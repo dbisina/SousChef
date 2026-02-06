@@ -32,9 +32,19 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+
+# Environment files with secrets
+.env.local
+.env.development
+.env.production
 
 # typescript
 *.tsbuildinfo
+
+#firebase config files
+google-services.json
+GoogleService-info.plist
 
 # generated native folders
 /ios

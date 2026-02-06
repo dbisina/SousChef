@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-expo-app@latest:*)",
+      "Bash(npx expo install:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:www.revenuecat.com)",
+      "Bash(npx tsc:*)",
+      "WebSearch",
+      "Bash(npm ls:*)",
+      "Bash(npm info:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(powershell:*)",
+      "Bash(del \"C:\\\\Users\\\\USER\\\\Documents\\\\GitHub\\\\SousChef\\\\assets\\\\convert.ps1\")",
+      "Bash(npx expo-doctor:*)",
+      "Bash(npm why:*)",
+      "Bash(python scripts/search.py:*)"
+    ]
+  }
+}
