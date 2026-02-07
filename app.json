@@ -22,7 +22,8 @@
         "NSSpeechRecognitionUsageDescription": "SousChef uses speech recognition for hands-free cooking commands",
         "NSMicrophoneUsageDescription": "SousChef needs microphone access for voice commands during cooking",
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,6 +35,23 @@
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
+      ],
+      "googleServicesFile": "./google-services.json",
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "category": ["DEFAULT"],
+          "data": [
+            { "mimeType": "text/plain" }
+          ]
+        },
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            { "scheme": "souschef" }
+          ]
+        }
       ]
     },
     "web": {
@@ -42,6 +60,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       [
         "expo-camera",
         {
@@ -52,6 +71,15 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow SousChef to access your photos for recipe images"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useAndroidX": true,
+            "enableJetifier": true
+          }
         }
       ]
     ],
