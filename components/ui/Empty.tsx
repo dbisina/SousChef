@@ -20,16 +20,16 @@ export const Empty: React.FC<EmptyProps> = ({
 }) => {
   return (
     <View className="flex-1 items-center justify-center px-8 py-12">
-      <View className="w-20 h-20 rounded-full bg-neutral-100 items-center justify-center mb-4">
+      <View className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center mb-4">
         <Ionicons name={icon} size={40} color="#737373" />
       </View>
 
-      <Text className="text-xl font-semibold text-neutral-900 text-center mb-2">
+      <Text className="text-xl font-semibold text-neutral-900 dark:text-neutral-50 text-center mb-2">
         {title}
       </Text>
 
       {description && (
-        <Text className="text-base text-neutral-500 text-center mb-6">
+        <Text className="text-base text-neutral-500 dark:text-neutral-400 text-center mb-6">
           {description}
         </Text>
       )}

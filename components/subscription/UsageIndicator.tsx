@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface UsageIndicatorProps {
   label: string;
@@ -19,6 +20,7 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
   showProgress = true,
   compact = false,
 }) => {
+  const colors = useThemeColors();
   const isUnlimited = remaining === 'unlimited';
   const remainingNum = isUnlimited ? 0 : remaining;
   const usedCount = limit ? limit - remainingNum : 0;
@@ -28,14 +30,14 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
     if (isUnlimited) return 'bg-green-500';
     if (progress >= 100) return 'bg-red-500';
     if (progress >= 75) return 'bg-yellow-500';
-    return 'bg-primary-500';
+    return '';
   };
 
   const getTextColor = () => {
     if (isUnlimited) return 'text-green-600';
     if (remainingNum === 0) return 'text-red-600';
     if (limit && remainingNum <= 2) return 'text-yellow-600';
-    return 'text-neutral-700';
+    return 'text-neutral-700 dark:text-neutral-300';
   };
 
   if (compact) {
@@ -45,7 +47,7 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
           <Ionicons
             name={icon}
             size={14}
-            color={isUnlimited ? '#22C55E' : remainingNum === 0 ? '#EF4444' : '#737373'}
+            color={isUnlimited ? '#22C55E' : remainingNum === 0 ? '#EF4444' : colors.textMuted}
             style={{ marginRight: 4 }}
           />
         )}
@@ -68,11 +70,11 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
             <Ionicons
               name={icon}
               size={16}
-              color="#737373"
+              color={colors.textMuted}
               style={{ marginRight: 6 }}
             />
           )}
-          <Text className="text-sm text-neutral-600">{label}</Text>
+          <Text className="text-sm text-neutral-600 dark:text-neutral-400">{label}</Text>
         </View>
         <Text className={`text-sm font-semibold ${getTextColor()}`}>
           {isUnlimited ? (
@@ -87,10 +89,10 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
       </View>
 
       {showProgress && !isUnlimited && limit && (
-        <View className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+        <View className="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
           <View
             className={`h-full ${getProgressColor()} rounded-full`}
-            style={{ width: `${Math.min(progress, 100)}%` }}
+            style={[{ width: `${Math.min(progress, 100)}%` }, !getProgressColor() && { backgroundColor: colors.accent }]}
           />
         </View>
       )}
@@ -108,6 +110,7 @@ export const UsageBadge: React.FC<UsageBadgeProps> = ({
   remaining,
   size = 'medium',
 }) => {
+  const colors = useThemeColors();
   const isUnlimited = remaining === 'unlimited';
   const remainingNum = isUnlimited ? 0 : remaining;
 
@@ -115,14 +118,14 @@ export const UsageBadge: React.FC<UsageBadgeProps> = ({
     if (isUnlimited) return 'bg-green-100';
     if (remainingNum === 0) return 'bg-red-100';
     if (remainingNum <= 2) return 'bg-yellow-100';
-    return 'bg-neutral-100';
+    return 'bg-neutral-100 dark:bg-neutral-700';
   };
 
   const getTextColor = () => {
     if (isUnlimited) return 'text-green-700';
     if (remainingNum === 0) return 'text-red-700';
     if (remainingNum <= 2) return 'text-yellow-700';
-    return 'text-neutral-700';
+    return 'text-neutral-700 dark:text-neutral-300';
   };
 
   const sizeClasses = size === 'small' ? 'px-1.5 py-0.5' : 'px-2 py-1';

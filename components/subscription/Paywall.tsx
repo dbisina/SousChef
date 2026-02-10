@@ -9,7 +9,9 @@ import {
   StyleSheet,
   StatusBar,
   Image,
+  Linking,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -23,6 +25,7 @@ import {
   calculateAnnualSavings,
 } from '@/lib/revenuecat';
 import { FeatureComparison } from './FeatureComparison';
+import { useThemeColors } from '@/stores/themeStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -88,6 +91,7 @@ export const Paywall: React.FC<PaywallProps> = ({
   requiredTier = 'premium',
 }) => {
   const { purchasePackage, restorePurchases, isLoading } = useSubscription();
+  const colors = useThemeColors();
   const { packages, fetchOfferings } = useSubscriptionPackages();
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'annual'>('annual');
   const [selectedTier, setSelectedTier] = useState<SubscriptionTier>(requiredTier);
@@ -102,7 +106,9 @@ export const Paywall: React.FC<PaywallProps> = ({
     }
   }, [visible, packages.length, fetchOfferings]);
 
-  // Group packages by tier and period dynamically
+  // Group packages by tier and period using product ID (not package identifier)
+  // Package identifiers like $rc_monthly/$rc_annual are the same across offerings,
+  // so we must use the underlying product ID to distinguish premium vs pro
   const groupedPackages = useMemo(() => {
     const groups: Record<string, Record<string, PurchasesPackage>> = {
       premium: {},
@@ -110,9 +116,11 @@ export const Paywall: React.FC<PaywallProps> = ({
     };
 
     packages.forEach((pkg) => {
-      const identifier = pkg.identifier.toLowerCase();
-      const tier = identifier.includes('pro') ? 'pro' : 'premium';
-      const period = identifier.includes('annual') || pkg.packageType === 'ANNUAL'
+      // Use the product identifier (e.g. "premium_monthly", "pro_yearly")
+      // to determine tier, since package identifiers ($rc_monthly) repeat across offerings
+      const productId = pkg.product?.identifier?.toLowerCase() || pkg.identifier.toLowerCase();
+      const tier = productId.includes('pro') ? 'pro' : 'premium';
+      const period = productId.includes('year') || productId.includes('annual') || pkg.packageType === 'ANNUAL'
         ? 'annual'
         : 'monthly';
 
@@ -188,6 +196,16 @@ export const Paywall: React.FC<PaywallProps> = ({
     return 'checkmark-circle';
   };
 
+  // Accent colors per tier
+  const tierAccent = selectedTier === 'pro' ? '#8B5CF6' : colors.accent;
+  const tierLightBg = selectedTier === 'pro' ? '#EDE9FE' : '#FFF7ED';
+  const tierGradient: [string, string, string] = selectedTier === 'pro'
+    ? ['#F5F3FF', '#EDE9FE', '#E0E7FF']
+    : ['#FFF7ED', '#FEF3C7', '#ECFCCB'];
+
+  // Current tier features
+  const currentFeatures = useMemo(() => getTierFeaturesList(selectedTier), [selectedTier]);
+
   return (
     <Modal
       visible={visible}
@@ -197,9 +215,9 @@ export const Paywall: React.FC<PaywallProps> = ({
     >
       <StatusBar barStyle="dark-content" />
       <View className="flex-1 bg-background-start">
-        {/* Gradient Background */}
+        {/* Gradient Background - changes per tier */}
         <LinearGradient
-          colors={['#FFF7ED', '#FEF3C7', '#ECFCCB']}
+          colors={tierGradient}
           style={StyleSheet.absoluteFill}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -220,7 +238,7 @@ export const Paywall: React.FC<PaywallProps> = ({
             className="px-4 py-2 rounded-full bg-white/60"
             style={styles.restoreButton}
           >
-            <Text className="text-neutral-700 font-medium text-sm">
+            <Text className="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
               {isRestoring ? 'Restoring...' : 'Restore'}
             </Text>
           </TouchableOpacity>
@@ -232,15 +250,15 @@ export const Paywall: React.FC<PaywallProps> = ({
           contentContainerStyle={{ paddingBottom: 120 }}
         >
           {/* Hero Section */}
-          <View className="items-center px-6 pb-6">
-            <View className="mb-4" style={styles.heroLogoContainer}>
+          <View className="items-center px-6 pb-4">
+            <View className="mb-3" style={styles.heroLogoContainer}>
               <Image
                 source={require('../../assets/icon.png')}
                 style={styles.heroLogo}
                 resizeMode="contain"
               />
             </View>
-            <Text className="text-3xl font-bold text-neutral-900 text-center mb-2">
+            <Text className="text-3xl font-bold text-neutral-900 text-center mb-1">
               Upgrade Your Kitchen
             </Text>
             <Text className="text-neutral-500 text-center text-base px-4">
@@ -250,14 +268,48 @@ export const Paywall: React.FC<PaywallProps> = ({
             </Text>
           </View>
 
-          {/* Period Toggle */}
-          <View className="mx-6 mb-6">
+          {/* ===== TIER TAB (Premium | Pro) ===== */}
+          {availableTiers.length > 1 && (
+            <View className="mx-6 mb-4">
+              <View className="flex-row p-1.5 rounded-2xl bg-white/70" style={styles.toggleContainer}>
+                {availableTiers.map((tier) => {
+                  const isActive = selectedTier === tier;
+                  const isPro = tier === 'pro';
+                  const tabColor = isPro ? '#8B5CF6' : colors.accent;
+                  return (
+                    <TouchableOpacity
+                      key={tier}
+                      onPress={() => setSelectedTier(tier)}
+                      className={`flex-1 py-3 rounded-xl ${isActive ? 'bg-white' : ''}`}
+                      style={isActive ? [styles.toggleActive, { borderColor: tabColor, borderWidth: 1.5 }] : undefined}
+                    >
+                      <View className="flex-row items-center justify-center">
+                        <Ionicons
+                          name={isPro ? 'diamond' : 'star'}
+                          size={16}
+                          color={isActive ? tabColor : '#A8A29E'}
+                          style={{ marginRight: 6 }}
+                        />
+                        <Text
+                          className={`font-bold ${isActive ? 'text-neutral-900' : 'text-neutral-500'}`}
+                          style={isActive ? { color: tabColor } : undefined}
+                        >
+                          {isPro ? 'Pro' : 'Premium'}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          )}
+
+          {/* ===== PERIOD TAB (Monthly | Annual) ===== */}
+          <View className="mx-6 mb-5">
             <View className="flex-row p-1.5 rounded-2xl bg-white/70" style={styles.toggleContainer}>
               <TouchableOpacity
                 onPress={() => setSelectedPeriod('monthly')}
-                className={`flex-1 py-3 rounded-xl ${
-                  selectedPeriod === 'monthly' ? 'bg-white' : ''
-                }`}
+                className={`flex-1 py-3 rounded-xl ${selectedPeriod === 'monthly' ? 'bg-white' : ''}`}
                 style={selectedPeriod === 'monthly' ? styles.toggleActive : undefined}
               >
                 <Text
@@ -270,9 +322,7 @@ export const Paywall: React.FC<PaywallProps> = ({
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setSelectedPeriod('annual')}
-                className={`flex-1 py-3 rounded-xl ${
-                  selectedPeriod === 'annual' ? 'bg-white' : ''
-                }`}
+                className={`flex-1 py-3 rounded-xl ${selectedPeriod === 'annual' ? 'bg-white' : ''}`}
                 style={selectedPeriod === 'annual' ? styles.toggleActive : undefined}
               >
                 <View className="flex-row items-center justify-center">
@@ -284,8 +334,8 @@ export const Paywall: React.FC<PaywallProps> = ({
                     Annual
                   </Text>
                   {savings && savings.percentage > 0 && (
-                    <View className="ml-2 px-2 py-0.5 bg-secondary-100 rounded-full">
-                      <Text className="text-xs font-bold text-secondary-700">
+                    <View className="ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: tierLightBg }}>
+                      <Text className="text-xs font-bold" style={{ color: tierAccent }}>
                         -{savings.percentage}%
                       </Text>
                     </View>
@@ -295,62 +345,116 @@ export const Paywall: React.FC<PaywallProps> = ({
             </View>
           </View>
 
-          {/* Plan Cards - Dynamically rendered based on available packages */}
-          <View className="px-6 gap-4">
-            {availableTiers.map((tier) => {
-              const pkg = groupedPackages[tier]?.[selectedPeriod];
-              if (!pkg) return null;
+          {/* ===== SELECTED PLAN CARD ===== */}
+          {selectedPackage && (
+            <View className="mx-6 mb-4">
+              {/* Price highlight card */}
+              <View className="rounded-3xl overflow-hidden" style={styles.planCard}>
+                <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
+                <View className="p-6 bg-white/60">
+                  {/* Tier badge */}
+                  <View className="flex-row items-center mb-4">
+                    <View className="px-3 py-1.5 rounded-full flex-row items-center" style={{ backgroundColor: tierLightBg }}>
+                      <Ionicons
+                        name={selectedTier === 'pro' ? 'diamond' : 'star'}
+                        size={14}
+                        color={tierAccent}
+                      />
+                      <Text className="ml-1.5 font-bold text-sm" style={{ color: tierAccent }}>
+                        {selectedTier === 'pro' ? 'Pro' : 'Premium'}
+                      </Text>
+                    </View>
+                    <Text className="ml-3 text-neutral-500 text-sm">
+                      {selectedTier === 'pro' ? 'For serious food enthusiasts' : 'Perfect for home cooks'}
+                    </Text>
+                  </View>
 
-              const isSelected = selectedTier === tier;
-              const isPro = tier === 'pro';
-              const features = getTierFeaturesList(tier);
-              const monthlyPrice = selectedPeriod === 'annual' ? getPricePerMonth(pkg) : null;
+                  {/* Price */}
+                  <View className="flex-row items-baseline mb-1">
+                    <Text className="text-4xl font-bold text-neutral-900">
+                      {formatPrice(selectedPackage)}
+                    </Text>
+                    <Text className="text-neutral-500 text-base ml-1">
+                      /{selectedPeriod === 'annual' ? 'year' : 'month'}
+                    </Text>
+                  </View>
+                  {selectedPeriod === 'annual' && (
+                    <Text className="text-sm mb-4" style={{ color: tierAccent }}>
+                      {getPricePerMonth(selectedPackage)}/month billed annually
+                    </Text>
+                  )}
+                  {selectedPeriod === 'monthly' && (
+                    <Text className="text-sm text-neutral-400 mb-4">
+                      Billed monthly, cancel anytime
+                    </Text>
+                  )}
 
-              return (
-                <PlanCard
-                  key={tier}
-                  tier={tier}
-                  name={isPro ? 'Pro' : 'Premium'}
-                  description={isPro ? 'For serious food enthusiasts' : 'Perfect for home cooks'}
-                  price={formatPrice(pkg)}
-                  pricePerMonth={monthlyPrice}
-                  period={selectedPeriod}
-                  features={features.slice(0, 7)} // Show top 7 features
-                  isSelected={isSelected}
-                  onSelect={() => setSelectedTier(tier)}
-                  highlighted={isPro}
-                  getFeatureLabel={getFeatureLabel}
-                  getFeatureIcon={getFeatureIcon}
-                />
-              );
-            })}
+                  {/* Divider */}
+                  <View className="h-px bg-neutral-200/60 mb-4" />
 
-            {/* Loading state if no packages yet */}
-            {isLoading && packages.length === 0 && (
-              <View className="py-12 items-center">
-                <View className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
-                <Text className="text-neutral-500 mt-4">Loading plans...</Text>
+                  {/* Features list */}
+                  <View className="gap-3">
+                    {currentFeatures.map((featureKey, index) => (
+                      <View key={index} className="flex-row items-center">
+                        <View
+                          className="w-6 h-6 rounded-full items-center justify-center mr-3"
+                          style={{ backgroundColor: tierLightBg }}
+                        >
+                          <Ionicons
+                            name={getFeatureIcon(featureKey)}
+                            size={14}
+                            color={tierAccent}
+                          />
+                        </View>
+                        <Text className="text-sm text-neutral-700 flex-1">
+                          {getFeatureLabel(featureKey)}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Pro includes Premium note */}
+                  {selectedTier === 'pro' && (
+                    <View
+                      className="mt-5 py-2.5 px-4 rounded-xl flex-row items-center justify-center"
+                      style={{ backgroundColor: tierLightBg }}
+                    >
+                      <Ionicons name="arrow-up-circle" size={16} color={tierAccent} />
+                      <Text className="text-sm font-medium ml-2" style={{ color: tierAccent }}>
+                        Includes everything in Premium
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-            )}
+            </View>
+          )}
 
-            {/* Empty state if no offerings configured */}
-            {!isLoading && packages.length === 0 && (
-              <View className="py-12 items-center">
-                <Ionicons name="alert-circle-outline" size={48} color="#A8A29E" />
-                <Text className="text-neutral-500 mt-4 text-center">
-                  Subscriptions are not available at this time.
-                </Text>
-              </View>
-            )}
-          </View>
+          {/* Loading state if no packages yet */}
+          {isLoading && packages.length === 0 && (
+            <View className="py-12 items-center">
+              <View className="w-8 h-8 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+              <Text className="text-neutral-500 mt-4">Loading plans...</Text>
+            </View>
+          )}
+
+          {/* Empty state if no offerings configured */}
+          {!isLoading && packages.length === 0 && (
+            <View className="py-12 items-center">
+              <Ionicons name="alert-circle-outline" size={48} color="#A8A29E" />
+              <Text className="text-neutral-500 mt-4 text-center">
+                Subscriptions are not available at this time.
+              </Text>
+            </View>
+          )}
 
           {/* Feature Comparison Link */}
           {packages.length > 0 && (
             <TouchableOpacity
-              className="mx-6 mt-6 py-3 items-center"
+              className="mx-6 mt-2 py-3 items-center"
               onPress={() => setShowComparison(true)}
             >
-              <Text className="text-primary-600 font-medium">
+              <Text className="font-medium" style={{ color: tierAccent }}>
                 Compare all features
               </Text>
             </TouchableOpacity>
@@ -365,10 +469,10 @@ export const Paywall: React.FC<PaywallProps> = ({
               at least 24 hours before the end of the period.
             </Text>
             <View className="flex-row justify-center mt-4 gap-4">
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => { onClose(); setTimeout(() => { const router = require('expo-router').router; router.push('/settings/terms'); }, 300); }}>
                 <Text className="text-xs text-neutral-500 underline">Terms of Use</Text>
               </TouchableOpacity>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => { onClose(); setTimeout(() => { const router = require('expo-router').router; router.push('/settings/privacy'); }, 300); }}>
                 <Text className="text-xs text-neutral-500 underline">Privacy Policy</Text>
               </TouchableOpacity>
             </View>
@@ -384,12 +488,13 @@ export const Paywall: React.FC<PaywallProps> = ({
                 title={
                   isPurchasing
                     ? 'Processing...'
-                    : `Continue with ${selectedTier === 'pro' ? 'Pro' : 'Premium'} \u2022 ${formatPrice(selectedPackage)}`
+                    : `Subscribe to ${selectedTier === 'pro' ? 'Pro' : 'Premium'} \u2022 ${formatPrice(selectedPackage)}/${selectedPeriod === 'annual' ? 'yr' : 'mo'}`
                 }
                 onPress={handlePurchase}
                 isLoading={isPurchasing}
                 fullWidth
                 size="lg"
+                style={{ backgroundColor: tierAccent }}
               />
             ) : (
               <Button
@@ -413,143 +518,6 @@ export const Paywall: React.FC<PaywallProps> = ({
         />
       </View>
     </Modal>
-  );
-};
-
-// Plan Card Component
-interface PlanCardProps {
-  tier: SubscriptionTier;
-  name: string;
-  description: string;
-  price: string;
-  pricePerMonth: string | null;
-  period: 'monthly' | 'annual';
-  features: string[];
-  isSelected: boolean;
-  onSelect: () => void;
-  highlighted?: boolean;
-  getFeatureLabel: (key: string) => string;
-  getFeatureIcon: (key: string) => keyof typeof Ionicons.glyphMap;
-}
-
-const PlanCard: React.FC<PlanCardProps> = ({
-  tier,
-  name,
-  description,
-  price,
-  pricePerMonth,
-  period,
-  features,
-  isSelected,
-  onSelect,
-  highlighted = false,
-  getFeatureLabel,
-  getFeatureIcon,
-}) => {
-  const accentColor = highlighted ? '#8B5CF6' : '#F97316';
-  const lightAccent = highlighted ? '#EDE9FE' : '#FFF7ED';
-  const mediumAccent = highlighted ? '#C4B5FD' : '#FDBA74';
-
-  return (
-    <TouchableOpacity
-      onPress={onSelect}
-      activeOpacity={0.9}
-      className={`rounded-3xl overflow-hidden ${isSelected ? '' : 'opacity-90'}`}
-      style={[
-        styles.planCard,
-        isSelected && { borderColor: accentColor, borderWidth: 2 },
-      ]}
-    >
-      {/* Highlight Badge */}
-      {highlighted && (
-        <View
-          className="absolute top-0 right-0 px-3 py-1.5 rounded-bl-2xl"
-          style={{ backgroundColor: accentColor }}
-        >
-          <Text className="text-white text-xs font-bold">BEST VALUE</Text>
-        </View>
-      )}
-
-      <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
-
-      <View className="p-5 bg-white/60">
-        {/* Header */}
-        <View className="flex-row items-start justify-between mb-4">
-          <View className="flex-row items-center flex-1">
-            {/* Selection Indicator */}
-            <View
-              className="w-6 h-6 rounded-full border-2 items-center justify-center mr-3"
-              style={{
-                borderColor: isSelected ? accentColor : '#D6D3D1',
-                backgroundColor: isSelected ? accentColor : 'transparent',
-              }}
-            >
-              {isSelected && <Ionicons name="checkmark" size={14} color="white" />}
-            </View>
-
-            <View className="flex-1">
-              <View className="flex-row items-center">
-                <Text className="text-xl font-bold text-neutral-900">{name}</Text>
-              </View>
-              <Text className="text-sm text-neutral-500 mt-0.5">{description}</Text>
-            </View>
-          </View>
-
-          {/* Price */}
-          <View className="items-end">
-            <Text className="text-2xl font-bold text-neutral-900">{price}</Text>
-            {pricePerMonth && (
-              <Text className="text-sm text-neutral-500">
-                {pricePerMonth}/mo
-              </Text>
-            )}
-            {!pricePerMonth && period === 'monthly' && (
-              <Text className="text-sm text-neutral-500">per month</Text>
-            )}
-            {!pricePerMonth && period === 'annual' && (
-              <Text className="text-sm text-neutral-500">per year</Text>
-            )}
-          </View>
-        </View>
-
-        {/* Divider */}
-        <View className="h-px bg-neutral-200/60 mb-4" />
-
-        {/* Features */}
-        <View className="gap-3">
-          {features.map((featureKey, index) => (
-            <View key={index} className="flex-row items-center">
-              <View
-                className="w-6 h-6 rounded-full items-center justify-center mr-3"
-                style={{ backgroundColor: lightAccent }}
-              >
-                <Ionicons
-                  name={getFeatureIcon(featureKey)}
-                  size={14}
-                  color={accentColor}
-                />
-              </View>
-              <Text className="text-sm text-neutral-700 flex-1">
-                {getFeatureLabel(featureKey)}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Pro includes Premium badge */}
-        {highlighted && (
-          <View
-            className="mt-4 py-2.5 px-4 rounded-xl flex-row items-center justify-center"
-            style={{ backgroundColor: lightAccent }}
-          >
-            <Ionicons name="arrow-up-circle" size={16} color={accentColor} />
-            <Text className="text-sm font-medium ml-2" style={{ color: accentColor }}>
-              Includes everything in Premium
-            </Text>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
   );
 };
 

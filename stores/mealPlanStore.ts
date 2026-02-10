@@ -11,7 +11,8 @@ import {
   MealType,
   WasteEntryFormData,
 } from '@/types/mealplan';
-import { Recipe, PantryItem } from '@/types';
+import { Recipe, PantryItem, PantryCategory } from '@/types';
+import { usePantryStore } from '@/stores/pantryStore';
 import {
   getCurrentMealPlan,
   getMealPlanByWeek,
@@ -287,12 +288,14 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
     const item = currentPlan.shoppingList.find((i) => i.id === itemId);
     if (!item) return;
 
+    const newCheckedState = !item.checked;
+
     // Optimistic update
     set((state) => {
       if (!state.currentPlan) return state;
 
       const updatedList = state.currentPlan.shoppingList.map((i) =>
-        i.id === itemId ? { ...i, checked: !i.checked } : i
+        i.id === itemId ? { ...i, checked: newCheckedState } : i
       );
 
       return {
@@ -304,7 +307,27 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
     });
 
     try {
-      await updateShoppingListItem(userId, currentPlan.id, itemId, !item.checked);
+      await updateShoppingListItem(userId, currentPlan.id, itemId, newCheckedState);
+
+      // Auto-add to pantry when item is checked off
+      if (newCheckedState) {
+        const pantryCategory = (
+          ['produce', 'dairy', 'meat', 'seafood', 'grains', 'spices', 'condiments', 'canned', 'frozen', 'beverages', 'other']
+            .includes(item.category) ? item.category : 'other'
+        ) as PantryCategory;
+
+        try {
+          await usePantryStore.getState().addPantryItem(userId, {
+            name: item.name,
+            amount: item.toBuy || item.amount,
+            unit: item.unit,
+            category: pantryCategory,
+          });
+        } catch (pantryError) {
+          // Don't revert shopping list toggle if pantry add fails
+          console.error('Failed to auto-add to pantry:', pantryError);
+        }
+      }
     } catch (error) {
       // Revert on failure
       set((state) => {

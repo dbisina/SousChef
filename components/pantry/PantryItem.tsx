@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { PantryItem as PantryItemType } from '@/types';
+import { useThemeColors } from '@/stores/themeStore';
 import { formatDate, isExpiringSoon, isExpired } from '@/lib/utils';
 
 interface PantryItemProps {
@@ -19,32 +20,33 @@ export const PantryItemCard: React.FC<PantryItemProps> = ({
 }) => {
   const expiringSoon = item.expiryDate ? isExpiringSoon(item.expiryDate) : false;
   const expired = item.expiryDate ? isExpired(item.expiryDate) : false;
+  const colors = useThemeColors();
 
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={!onPress}
       className={`
-        bg-white rounded-xl p-4 mb-2 flex-row items-center
+        bg-white dark:bg-neutral-800 rounded-xl p-4 mb-2 flex-row items-center
         ${expired ? 'border-l-4 border-red-500' : expiringSoon ? 'border-l-4 border-amber-500' : ''}
       `}
       activeOpacity={onPress ? 0.7 : 1}
     >
       {/* Category icon */}
-      <View className="w-10 h-10 rounded-full bg-primary-100 items-center justify-center mr-3">
+      <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: colors.accent + '20' }}>
         <Ionicons
           name={getCategoryIcon(item.category)}
           size={20}
-          color="#FF6B35"
+          color={colors.accent}
         />
       </View>
 
       {/* Item info */}
       <View className="flex-1">
-        <Text className="text-base font-semibold text-neutral-900">
+        <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
           {item.name}
         </Text>
-        <Text className="text-sm text-neutral-500">
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400">
           {item.amount} {item.unit}
         </Text>
         {showExpiry && item.expiryDate && (
@@ -96,21 +98,23 @@ export const CompactPantryItem: React.FC<CompactPantryItemProps> = ({
   onPress,
   selected = false,
 }) => {
+  const colors = useThemeColors();
   return (
     <TouchableOpacity
       onPress={onPress}
       className={`
         flex-row items-center px-3 py-2 rounded-lg mr-2 mb-2
-        ${selected ? 'bg-primary-500' : 'bg-neutral-100'}
+        ${selected ? '' : 'bg-neutral-100 dark:bg-neutral-700'}
       `}
+      style={selected ? { backgroundColor: colors.accent } : undefined}
     >
       <Ionicons
         name={getCategoryIcon(item.category)}
         size={16}
-        color={selected ? 'white' : '#737373'}
+        color={selected ? 'white' : colors.textMuted}
       />
       <Text
-        className={`ml-2 ${selected ? 'text-white font-medium' : 'text-neutral-700'}`}
+        className={`ml-2 ${selected ? 'text-white font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}
       >
         {item.name}
       </Text>
@@ -146,14 +150,15 @@ export const CategoryHeader: React.FC<CategoryHeaderProps> = ({
   category,
   itemCount,
 }) => {
+  const colors = useThemeColors();
   return (
     <View className="flex-row items-center py-2 mt-2">
-      <Ionicons name={getCategoryIcon(category)} size={20} color="#737373" />
-      <Text className="ml-2 text-sm font-semibold text-neutral-600 capitalize">
+      <Ionicons name={getCategoryIcon(category)} size={20} color={colors.textMuted} />
+      <Text className="ml-2 text-sm font-semibold text-neutral-600 dark:text-neutral-400 capitalize">
         {category}
       </Text>
-      <View className="ml-2 px-2 py-0.5 bg-neutral-200 rounded-full">
-        <Text className="text-xs text-neutral-600">{itemCount}</Text>
+      <View className="ml-2 px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded-full">
+        <Text className="text-xs text-neutral-600 dark:text-neutral-400">{itemCount}</Text>
       </View>
     </View>
   );

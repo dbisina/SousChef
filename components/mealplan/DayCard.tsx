@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 import { MealPlanDay, MealType, PlannedMeal } from '@/types/mealplan';
 
 interface DayCardProps {
@@ -25,6 +26,7 @@ export const DayCard: React.FC<DayCardProps> = ({
   onMealPress,
   onAddMeal,
 }) => {
+  const colors = useThemeColors();
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -41,7 +43,7 @@ export const DayCard: React.FC<DayCardProps> = ({
         <TouchableOpacity
           key={type}
           onPress={() => onMealPress(type, meal.recipeId)}
-          className="flex-row items-center bg-neutral-50 rounded-lg p-2 mb-2"
+          className="flex-row items-center bg-neutral-50 dark:bg-neutral-800 rounded-lg p-2 mb-2"
         >
           {meal.imageURL ? (
             <Image
@@ -50,17 +52,17 @@ export const DayCard: React.FC<DayCardProps> = ({
             />
           ) : (
             <View className="w-12 h-12 rounded-lg bg-primary-100 items-center justify-center">
-              <Ionicons name={icon as any} size={20} color="#FF6B35" />
+              <Ionicons name={icon as any} size={20} color={colors.accent} />
             </View>
           )}
           <View className="flex-1 ml-3">
-            <Text className="text-xs text-neutral-500 uppercase">
+            <Text className="text-xs text-neutral-500 dark:text-neutral-400 uppercase">
               {label}
             </Text>
-            <Text className="text-sm font-medium text-neutral-900" numberOfLines={1}>
+            <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
               {meal.recipeName}
             </Text>
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-neutral-500 dark:text-neutral-400">
               {meal.servings} serving{meal.servings !== 1 ? 's' : ''}
             </Text>
           </View>
@@ -75,15 +77,15 @@ export const DayCard: React.FC<DayCardProps> = ({
         onPress={() => onAddMeal(type)}
         className="flex-row items-center border border-dashed border-neutral-300 rounded-lg p-2 mb-2"
       >
-        <View className="w-12 h-12 rounded-lg bg-neutral-100 items-center justify-center">
+        <View className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-700 items-center justify-center">
           <Ionicons name={icon as any} size={20} color="#A3A3A3" />
         </View>
         <View className="flex-1 ml-3">
-          <Text className="text-xs text-neutral-400 uppercase">{label}</Text>
-          <Text className="text-sm text-neutral-400">Add meal</Text>
+          <Text className="text-xs text-neutral-400 dark:text-neutral-500 uppercase">{label}</Text>
+          <Text className="text-sm text-neutral-400 dark:text-neutral-500">Add meal</Text>
         </View>
         <View className="w-6 h-6 rounded-full bg-primary-100 items-center justify-center">
-          <Ionicons name="add" size={16} color="#FF6B35" />
+          <Ionicons name="add" size={16} color={colors.accent} />
         </View>
       </TouchableOpacity>
     );
@@ -92,26 +94,28 @@ export const DayCard: React.FC<DayCardProps> = ({
   return (
     <View
       className={`mb-4 rounded-xl overflow-hidden ${
-        isToday ? 'border-2 border-primary-500' : 'border border-neutral-200'
+        isToday ? 'border-2' : 'border border-neutral-200 dark:border-neutral-700'
       }`}
+      style={isToday ? { borderWidth: 2, borderColor: colors.accent } : undefined}
     >
       {/* Day header */}
       <View
         className={`flex-row items-center justify-between px-4 py-2 ${
-          isToday ? 'bg-primary-500' : 'bg-neutral-100'
+          isToday ? '' : 'bg-neutral-100 dark:bg-neutral-700'
         }`}
+        style={isToday ? { backgroundColor: colors.accent } : undefined}
       >
         <View className="flex-row items-center">
           <Text
             className={`text-base font-bold ${
-              isToday ? 'text-white' : 'text-neutral-900'
+              isToday ? 'text-white' : 'text-neutral-900 dark:text-neutral-50'
             }`}
           >
             {dayName}
           </Text>
           {isToday && (
             <View className="ml-2 px-2 py-0.5 bg-white rounded-full">
-              <Text className="text-xs font-medium text-primary-500">
+              <Text className="text-xs font-medium" style={{ color: colors.accent }}>
                 Today
               </Text>
             </View>
@@ -119,7 +123,7 @@ export const DayCard: React.FC<DayCardProps> = ({
         </View>
         <Text
           className={`text-sm ${
-            isToday ? 'text-primary-100' : 'text-neutral-500'
+            isToday ? 'text-primary-100' : 'text-neutral-500 dark:text-neutral-400'
           }`}
         >
           {formatDate(day.date)}
@@ -127,7 +131,7 @@ export const DayCard: React.FC<DayCardProps> = ({
       </View>
 
       {/* Meal slots */}
-      <View className="p-3 bg-white">
+      <View className="p-3 bg-white dark:bg-neutral-800">
         {MEAL_TYPES.map(({ type, label, icon }) =>
           renderMealSlot(type, label, icon, day[type])
         )}
@@ -150,6 +154,7 @@ export const CompactDayCard: React.FC<CompactDayCardProps> = ({
   isToday,
   onPress,
 }) => {
+  const colors = useThemeColors();
   const mealsCount = [day.breakfast, day.lunch, day.dinner, day.snack].filter(
     Boolean
   ).length;
@@ -158,17 +163,18 @@ export const CompactDayCard: React.FC<CompactDayCardProps> = ({
     <TouchableOpacity
       onPress={onPress}
       className={`flex-row items-center p-4 rounded-xl mb-2 ${
-        isToday ? 'bg-primary-50 border border-primary-200' : 'bg-neutral-50'
+        isToday ? 'bg-primary-50 border border-primary-200' : 'bg-neutral-50 dark:bg-neutral-800'
       }`}
     >
       <View
         className={`w-12 h-12 rounded-full items-center justify-center ${
-          isToday ? 'bg-primary-500' : 'bg-neutral-200'
+          isToday ? '' : 'bg-neutral-200 dark:bg-neutral-700'
         }`}
+        style={isToday ? { backgroundColor: colors.accent } : undefined}
       >
         <Text
           className={`text-lg font-bold ${
-            isToday ? 'text-white' : 'text-neutral-600'
+            isToday ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'
           }`}
         >
           {dayName.slice(0, 2)}
@@ -176,10 +182,10 @@ export const CompactDayCard: React.FC<CompactDayCardProps> = ({
       </View>
 
       <View className="flex-1 ml-3">
-        <Text className="text-base font-medium text-neutral-900">
+        <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50">
           {dayName}
         </Text>
-        <Text className="text-sm text-neutral-500">
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400">
           {mealsCount > 0
             ? `${mealsCount} meal${mealsCount !== 1 ? 's' : ''} planned`
             : 'No meals planned'}

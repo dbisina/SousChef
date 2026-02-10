@@ -1,27 +1,62 @@
 import * as Speech from 'expo-speech';
 import { Platform, Alert } from 'react-native';
-// Mock Voice for Expo Go (Development Client required for real functionality)
-const Voice = {
-  isAvailable: async () => false,
-  start: async (...args: any[]) => { },
-  stop: async () => { },
-  cancel: async () => { },
-  destroy: async (...args: any[]) => { },
-  isRecognizing: async () => false,
-  onSpeechStart: (e: any) => { },
-  onSpeechEnd: (e: any) => { },
-  onSpeechResults: (e: any) => { },
-  onSpeechPartialResults: (e: any) => { },
-  onSpeechError: (e: any) => { },
-  onSpeechRecognized: (e: any) => { },
-};
 
-// Types for Voice events (mocked)
+// Types for Voice events
 type SpeechStartEvent = any;
 type SpeechEndEvent = any;
 type SpeechResultsEvent = { value?: string[] };
 type SpeechErrorEvent = { error?: { code?: string; message?: string } };
 type SpeechRecognizedEvent = any;
+
+// Voice module interface
+interface VoiceModule {
+  isAvailable: () => Promise<boolean>;
+  start: (locale: string) => Promise<void>;
+  stop: () => Promise<void>;
+  cancel: () => Promise<void>;
+  destroy: () => Promise<void>;
+  isRecognizing: () => Promise<boolean>;
+  onSpeechStart: ((e: SpeechStartEvent) => void) | null;
+  onSpeechEnd: ((e: SpeechEndEvent) => void) | null;
+  onSpeechResults: ((e: SpeechResultsEvent) => void) | null;
+  onSpeechPartialResults: ((e: SpeechResultsEvent) => void) | null;
+  onSpeechError: ((e: SpeechErrorEvent) => void) | null;
+  onSpeechRecognized: ((e: SpeechRecognizedEvent) => void) | null;
+}
+
+// Mock Voice for when native module is unavailable (Expo Go)
+const MockVoice: VoiceModule = {
+  isAvailable: async () => false,
+  start: async (_locale: string) => { },
+  stop: async () => { },
+  cancel: async () => { },
+  destroy: async () => { },
+  isRecognizing: async () => false,
+  onSpeechStart: null,
+  onSpeechEnd: null,
+  onSpeechResults: null,
+  onSpeechPartialResults: null,
+  onSpeechError: null,
+  onSpeechRecognized: null,
+};
+
+// Try to load the real @react-native-voice/voice module
+// Falls back to mock if native module is not linked (e.g., Expo Go)
+let Voice: VoiceModule = MockVoice;
+let isNativeVoiceAvailable = false;
+
+try {
+  // Dynamic require to gracefully handle missing native module
+  const RNVoice = require('@react-native-voice/voice').default;
+  if (RNVoice) {
+    Voice = RNVoice;
+    isNativeVoiceAvailable = true;
+    console.log('[Voice] Native @react-native-voice/voice module loaded successfully');
+  }
+} catch (e) {
+  console.warn('[Voice] @react-native-voice/voice not available, using mock (Expo Go mode)');
+  console.warn('[Voice] Voice recognition requires a Development or Production build');
+}
 
 import {
   VoiceConfig,
@@ -85,16 +120,24 @@ let currentCallbacks: VoiceEventCallback = {};
 // Initialize voice recognition
 export const initializeVoiceRecognition = async (): Promise<boolean> => {
   try {
-    // Check if we are in a compatible environment
-    // In Expo Go, Voice.isAvailable will be false with our mock
-    const isAvailable = await Voice.isAvailable();
-
-    if (!isAvailable) {
-      console.warn('Voice recognition not available on this device (requires Development Build)');
+    // If native module wasn't loaded, voice recognition isn't available
+    if (!isNativeVoiceAvailable) {
+      console.warn('[Voice] Native voice module not loaded. Voice features disabled.');
+      console.warn('[Voice] To enable voice: build with EAS (eas build) instead of Expo Go.');
       return false;
     }
 
-    // Initialize premium voice selection
+    // Check if the device supports voice recognition
+    const isAvailable = await Voice.isAvailable();
+
+    if (!isAvailable) {
+      console.warn('[Voice] Voice recognition not available on this device');
+      return false;
+    }
+
+    console.log('[Voice] Voice recognition initialized successfully');
+
+    // Initialize premium voice selection for TTS
     await initializePremiumVoice();
 
     return true;
@@ -164,6 +207,11 @@ export const getSelectedVoice = (): Speech.Voice | null => {
 // Set up voice event listeners
 export const setupVoiceListeners = (callbacks: VoiceEventCallback): void => {
   currentCallbacks = callbacks;
+
+  if (!isNativeVoiceAvailable) {
+    console.warn('[Voice] Cannot setup listeners - native module not available');
+    return;
+  }
 
   Voice.onSpeechStart = (event: SpeechStartEvent) => {
     currentCallbacks.onSpeechStart?.();
@@ -251,14 +299,20 @@ const extractCommandAfterWakeWord = (transcript: string): string => {
 export const startWakeWordListening = async (
   onWakeWord: (command: string) => void
 ): Promise<boolean> => {
+  if (!isNativeVoiceAvailable) {
+    console.warn('[Voice] Cannot start wake word listening - native module not available');
+    return false;
+  }
+
   try {
     isWakeWordListening = true;
     wakeWordCallback = onWakeWord;
 
-    const started = await Voice.start('en-US');
+    await Voice.start('en-US');
+    console.log('[Voice] Wake word listening started');
     return true;
   } catch (error) {
-    console.error('Error starting wake word listening:', error);
+    console.error('[Voice] Error starting wake word listening:', error);
     isWakeWordListening = false;
     wakeWordCallback = null;
     return false;
@@ -275,16 +329,18 @@ export const stopWakeWordListening = async (): Promise<void> => {
     wakeWordRestartTimeout = null;
   }
 
+  if (!isNativeVoiceAvailable) return;
+
   try {
     await Voice.stop();
   } catch (error) {
-    console.error('Error stopping wake word listening:', error);
+    console.error('[Voice] Error stopping wake word listening:', error);
   }
 };
 
 // Restart wake word listening after a brief pause
 const restartWakeWordListening = (): void => {
-  if (!isWakeWordListening) return;
+  if (!isWakeWordListening || !isNativeVoiceAvailable) return;
 
   // Clear any existing restart timeout
   if (wakeWordRestartTimeout) {
@@ -293,11 +349,11 @@ const restartWakeWordListening = (): void => {
 
   // Restart after a short delay to prevent rapid fire
   wakeWordRestartTimeout = setTimeout(async () => {
-    if (isWakeWordListening) {
+    if (isWakeWordListening && isNativeVoiceAvailable) {
       try {
         await Voice.start('en-US');
       } catch (error) {
-        console.error('Error restarting wake word listening:', error);
+        console.error('[Voice] Error restarting wake word listening:', error);
         // Try again after a longer delay
         wakeWordRestartTimeout = setTimeout(() => restartWakeWordListening(), 2000);
       }
@@ -314,10 +370,12 @@ export const isWakeWordListeningActive = (): boolean => {
 export const removeVoiceListeners = async (): Promise<void> => {
   try {
     await stopWakeWordListening();
-    await Voice.destroy();
+    if (isNativeVoiceAvailable) {
+      await Voice.destroy();
+    }
     currentCallbacks = {};
   } catch (error) {
-    console.error('Error removing voice listeners:', error);
+    console.error('[Voice] Error removing voice listeners:', error);
   }
 };
 
@@ -325,37 +383,48 @@ export const removeVoiceListeners = async (): Promise<void> => {
 export const startListening = async (
   config: Partial<VoiceConfig> = {}
 ): Promise<boolean> => {
+  if (!isNativeVoiceAvailable) {
+    console.warn('[Voice] Cannot start listening - native module not available');
+    return false;
+  }
+
   const mergedConfig = { ...DEFAULT_VOICE_CONFIG, ...config };
 
   try {
     await Voice.start(mergedConfig.language);
     return true;
   } catch (error) {
-    console.error('Error starting voice recognition:', error);
+    console.error('[Voice] Error starting voice recognition:', error);
     return false;
   }
 };
 
 // Stop listening for voice input
 export const stopListening = async (): Promise<void> => {
+  if (!isNativeVoiceAvailable) return;
+
   try {
     await Voice.stop();
   } catch (error) {
-    console.error('Error stopping voice recognition:', error);
+    console.error('[Voice] Error stopping voice recognition:', error);
   }
 };
 
 // Cancel voice recognition
 export const cancelListening = async (): Promise<void> => {
+  if (!isNativeVoiceAvailable) return;
+
   try {
     await Voice.cancel();
   } catch (error) {
-    console.error('Error canceling voice recognition:', error);
+    console.error('[Voice] Error canceling voice recognition:', error);
   }
 };
 
 // Check if currently listening
-export const isListening = async (): Promise<boolean> => {
+export const isCurrentlyListening = async (): Promise<boolean> => {
+  if (!isNativeVoiceAvailable) return false;
+
   try {
     return await Voice.isRecognizing();
   } catch (error) {
@@ -525,6 +594,10 @@ export const checkVoicePermissions = async (): Promise<{
   microphone: boolean;
   speechRecognition: boolean;
 }> => {
+  if (!isNativeVoiceAvailable) {
+    return { microphone: false, speechRecognition: false };
+  }
+
   // On iOS, Voice.isAvailable() implicitly checks permissions
   // On Android, we may need to check separately
   const available = await Voice.isAvailable();
@@ -537,16 +610,21 @@ export const checkVoicePermissions = async (): Promise<{
 
 // Request voice permissions (platform specific)
 export const requestVoicePermissions = async (): Promise<boolean> => {
+  if (!isNativeVoiceAvailable) {
+    console.warn('[Voice] Cannot request permissions - native module not available');
+    return false;
+  }
+
   try {
     // Starting voice recognition will prompt for permissions if not granted
     await Voice.start('en-US');
     await Voice.cancel();
     return true;
   } catch (error) {
-    console.error('Error requesting voice permissions:', error);
+    console.error('[Voice] Error requesting voice permissions:', error);
     return false;
   }
 };
 
 // Export Voice module for direct access if needed
-export { Voice, Speech };
+export { Voice, Speech, isNativeVoiceAvailable };

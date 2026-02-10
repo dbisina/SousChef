@@ -6,5 +6,7 @@ export { Avatar, AvatarGroup } from './Avatar';
 export { Loading, Skeleton, RecipeCardSkeleton, ListLoading } from './Loading';
 export { Empty, EmptyRecipes, EmptyPantry, EmptySearch, EmptySaved } from './Empty';
 export { WelcomeModal, resetWelcomeModal } from './WelcomeModal';
+export { SponsoredAdCard } from './SponsoredAdCard';
+export { AdMobBanner } from './AdMobBanner';
 export { RadialFAB } from './RadialFAB';
 export type { FABAction } from './RadialFAB';

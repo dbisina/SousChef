@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 import { Card, Button } from '@/components/ui';
 
 const FAQ_ITEMS = [
@@ -65,6 +66,7 @@ const FAQ_ITEMS = [
 
 export default function HelpCenterScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
 
@@ -96,13 +98,13 @@ export default function HelpCenterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 bg-white">
+      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color="#404040" />
+          <Ionicons name="arrow-back" size={24} color={colors.icon} />
         </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 ml-2">
+        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
           Help Center
         </Text>
       </View>
@@ -110,18 +112,18 @@ export default function HelpCenterScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-4">
           {/* Search */}
-          <View className="flex-row items-center bg-white rounded-xl px-4 py-3 mb-6 border border-neutral-200">
-            <Ionicons name="search" size={20} color="#A3A3A3" />
+          <View className="flex-row items-center bg-white dark:bg-neutral-800 rounded-xl px-4 py-3 mb-6 border border-neutral-200 dark:border-neutral-700">
+            <Ionicons name="search" size={20} color={colors.textMuted} />
             <TextInput
-              className="flex-1 ml-2 text-neutral-900"
+              className="flex-1 ml-2 text-neutral-900 dark:text-neutral-100"
               placeholder="Search help articles..."
-              placeholderTextColor="#A3A3A3"
+              placeholderTextColor={colors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
             {searchQuery.length > 0 && (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color="#A3A3A3" />
+                <Ionicons name="close-circle" size={20} color={colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
@@ -133,11 +135,11 @@ export default function HelpCenterScreen() {
               className="flex-1 mr-2"
             >
               <Card className="items-center py-4">
-                <View className="w-12 h-12 rounded-full bg-primary-100 items-center justify-center mb-2">
-                  <Ionicons name="mail" size={24} color="#FF6B35" />
+                <View className="w-12 h-12 rounded-full items-center justify-center mb-2" style={{ backgroundColor: colors.accent + '20' }}>
+                  <Ionicons name="mail" size={24} color={colors.accent} />
                 </View>
-                <Text className="font-medium text-neutral-900">Email Us</Text>
-                <Text className="text-xs text-neutral-500">Get support</Text>
+                <Text className="font-medium text-neutral-900 dark:text-neutral-100">Email Us</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-400">Get support</Text>
               </Card>
             </TouchableOpacity>
             <TouchableOpacity
@@ -148,21 +150,21 @@ export default function HelpCenterScreen() {
                 <View className="w-12 h-12 rounded-full bg-blue-100 items-center justify-center mb-2">
                   <Ionicons name="globe" size={24} color="#3B82F6" />
                 </View>
-                <Text className="font-medium text-neutral-900">Website</Text>
-                <Text className="text-xs text-neutral-500">More resources</Text>
+                <Text className="font-medium text-neutral-900 dark:text-neutral-100">Website</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-400">More resources</Text>
               </Card>
             </TouchableOpacity>
           </View>
 
           {/* FAQ */}
-          <Text className="text-sm font-medium text-neutral-500 uppercase mb-3">
+          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
             Frequently Asked Questions
           </Text>
 
           {filteredFAQ.length > 0 ? (
             filteredFAQ.map((category) => (
               <View key={category.category} className="mb-4">
-                <Text className="font-semibold text-neutral-700 mb-2">
+                <Text className="font-semibold text-neutral-700 dark:text-neutral-300 mb-2">
                   {category.category}
                 </Text>
                 <Card padding="none">
@@ -176,12 +178,12 @@ export default function HelpCenterScreen() {
                         onPress={() => toggleQuestion(questionId)}
                         className={`px-4 py-3 ${
                           index < category.questions.length - 1
-                            ? 'border-b border-neutral-100'
+                            ? 'border-b border-neutral-100 dark:border-neutral-700'
                             : ''
                         }`}
                       >
                         <View className="flex-row items-center justify-between">
-                          <Text className="flex-1 font-medium text-neutral-900 pr-2">
+                          <Text className="flex-1 font-medium text-neutral-900 dark:text-neutral-100 pr-2">
                             {item.q}
                           </Text>
                           <Ionicons
@@ -191,7 +193,7 @@ export default function HelpCenterScreen() {
                           />
                         </View>
                         {isExpanded && (
-                          <Text className="text-neutral-600 mt-2 text-sm leading-relaxed">
+                          <Text className="text-neutral-600 dark:text-neutral-400 mt-2 text-sm leading-relaxed">
                             {item.a}
                           </Text>
                         )}
@@ -204,8 +206,8 @@ export default function HelpCenterScreen() {
           ) : (
             <Card className="items-center py-8">
               <Ionicons name="search-outline" size={40} color="#A3A3A3" />
-              <Text className="text-neutral-500 mt-2">No results found</Text>
-              <Text className="text-neutral-400 text-sm">Try a different search term</Text>
+              <Text className="text-neutral-500 dark:text-neutral-400 mt-2">No results found</Text>
+              <Text className="text-neutral-400 dark:text-neutral-500 text-sm">Try a different search term</Text>
             </Card>
           )}
 

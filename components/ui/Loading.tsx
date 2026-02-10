@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface LoadingProps {
   message?: string;
@@ -12,18 +13,20 @@ export const Loading: React.FC<LoadingProps> = ({
   size = 'large',
   fullScreen = false,
 }) => {
+  const colors = useThemeColors();
+
   const content = (
     <>
-      <ActivityIndicator size={size} color="#FF6B35" />
+      <ActivityIndicator size={size} color={colors.accent} />
       {message && (
-        <Text className="mt-3 text-base text-neutral-600">{message}</Text>
+        <Text className="mt-3 text-base text-neutral-600 dark:text-neutral-400">{message}</Text>
       )}
     </>
   );
 
   if (fullScreen) {
     return (
-      <View className="flex-1 items-center justify-center bg-white">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-neutral-900">
         {content}
       </View>
     );
@@ -52,7 +55,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 }) => {
   return (
     <View
-      className={`bg-neutral-200 animate-pulse ${className || ''}`}
+      className={`bg-neutral-200 dark:bg-neutral-700 animate-pulse ${className || ''}`}
       style={{
         width: typeof width === 'number' ? width : undefined,
         height: typeof height === 'number' ? height : undefined,
@@ -65,7 +68,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
 // Recipe card skeleton
 export const RecipeCardSkeleton: React.FC = () => {
   return (
-    <View className="rounded-2xl bg-white overflow-hidden shadow-sm mb-4">
+    <View className="rounded-2xl bg-white dark:bg-neutral-800 overflow-hidden shadow-sm mb-4">
       <Skeleton height={160} borderRadius={0} />
       <View className="p-4">
         <Skeleton width="70%" height={20} className="mb-2" />

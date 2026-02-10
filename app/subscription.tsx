@@ -22,6 +22,7 @@ import {
   SubscriptionCard,
   UsageIndicator,
 } from '@/components/subscription';
+import { useThemeColors } from '@/stores/themeStore';
 import { Loading } from '@/components/ui';
 import { getSubscriptionExpiryDate, willSubscriptionRenew } from '@/lib/revenuecat';
 
@@ -43,6 +44,8 @@ export default function SubscriptionScreen() {
 
   const { remainingAI, remainingPortion, aiUsageToday, portionUsageToday } =
     useRemainingUsage();
+
+  const colors = useThemeColors();
 
   // RevenueCat UI hooks
   const { presentPaywall, presentPaywallForPro, isPresenting: isPaywallPresenting } =
@@ -100,7 +103,7 @@ export default function SubscriptionScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-neutral-50 items-center justify-center">
+      <View className="flex-1 bg-neutral-50 dark:bg-neutral-900 items-center justify-center">
         <Loading />
       </View>
     );
@@ -113,21 +116,21 @@ export default function SubscriptionScreen() {
           title: 'Subscription',
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <Ionicons name="arrow-back" size={24} color="#404040" />
+              <Ionicons name="arrow-back" size={24} color={colors.icon} />
             </TouchableOpacity>
           ),
         }}
       />
 
       <ScrollView
-        className="flex-1 bg-neutral-50"
+        className="flex-1 bg-neutral-50 dark:bg-neutral-900"
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }
       >
         {/* Current Plan Section */}
         <View className="px-4 pt-6 pb-4">
-          <View className="bg-white rounded-2xl p-6 shadow-sm border border-neutral-100">
+          <View className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700">
             <View className="items-center mb-6">
               <View
                 className={`w-20 h-20 rounded-full items-center justify-center mb-4 ${
@@ -145,26 +148,26 @@ export default function SubscriptionScreen() {
                 />
               </View>
               <View className="flex-row items-center">
-                <Text className="text-2xl font-bold text-neutral-900 mr-2">
+                <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 mr-2">
                   {tierName}
                 </Text>
                 {isSubscribed && (
                   <PremiumBadge tier={subscriptionTier} size="medium" showIcon={false} />
                 )}
               </View>
-              <Text className="text-neutral-500 mt-1">
+              <Text className="text-neutral-500 dark:text-neutral-400 mt-1">
                 {isSubscribed ? 'Active subscription' : 'Free plan'}
               </Text>
             </View>
 
             {/* Subscription Details */}
             {isSubscribed && expiryDate && (
-              <View className="border-t border-neutral-100 pt-4 mb-4">
+              <View className="border-t border-neutral-100 dark:border-neutral-700 pt-4 mb-4">
                 <View className="flex-row justify-between items-center mb-2">
-                  <Text className="text-sm text-neutral-500">
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                     {willRenew ? 'Renews on' : 'Expires on'}
                   </Text>
-                  <Text className="text-sm font-medium text-neutral-700">
+                  <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                     {expiryDate.toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
@@ -173,14 +176,14 @@ export default function SubscriptionScreen() {
                   </Text>
                 </View>
                 <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-neutral-500">Auto-renew</Text>
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">Auto-renew</Text>
                   <View className="flex-row items-center">
                     <View
                       className={`w-2 h-2 rounded-full mr-2 ${
                         willRenew ? 'bg-green-500' : 'bg-yellow-500'
                       }`}
                     />
-                    <Text className="text-sm font-medium text-neutral-700">
+                    <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                       {willRenew ? 'On' : 'Off'}
                     </Text>
                   </View>
@@ -193,11 +196,11 @@ export default function SubscriptionScreen() {
               <TouchableOpacity
                 onPress={handleManageSubscription}
                 disabled={isCustomerCenterPresenting}
-                className={`bg-neutral-100 py-3 rounded-xl ${
+                className={`bg-neutral-100 dark:bg-neutral-700 py-3 rounded-xl ${
                   isCustomerCenterPresenting ? 'opacity-50' : ''
                 }`}
               >
-                <Text className="text-center font-semibold text-neutral-700">
+                <Text className="text-center font-semibold text-neutral-700 dark:text-neutral-300">
                   {isCustomerCenterPresenting ? 'Opening...' : 'Manage Subscription'}
                 </Text>
               </TouchableOpacity>
@@ -205,9 +208,10 @@ export default function SubscriptionScreen() {
               <TouchableOpacity
                 onPress={handleUpgrade}
                 disabled={isPaywallPresenting}
-                className={`bg-primary-500 py-3 rounded-xl ${
+                className={`py-3 rounded-xl ${
                   isPaywallPresenting ? 'opacity-50' : ''
                 }`}
+                style={{ backgroundColor: colors.accent }}
               >
                 <Text className="text-center font-semibold text-white">
                   {isPaywallPresenting ? 'Loading...' : 'Upgrade to Premium'}
@@ -219,10 +223,10 @@ export default function SubscriptionScreen() {
 
         {/* Daily Usage Section */}
         <View className="px-4 pb-4">
-          <Text className="text-lg font-bold text-neutral-900 mb-3">
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
             Today's Usage
           </Text>
-          <View className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100 space-y-4">
+          <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm border border-neutral-100 dark:border-neutral-700 space-y-4">
             <UsageIndicator
               label="AI Substitutions"
               remaining={remainingAI}
@@ -248,10 +252,10 @@ export default function SubscriptionScreen() {
 
         {/* Features Section */}
         <View className="px-4 pb-4">
-          <Text className="text-lg font-bold text-neutral-900 mb-3">
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
             Your Features
           </Text>
-          <View className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100">
+          <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm border border-neutral-100 dark:border-neutral-700">
             <FeatureRow
               label="Max Recipes"
               value={
@@ -315,24 +319,24 @@ export default function SubscriptionScreen() {
                 }
               }}
               disabled={isPaywallPresenting}
-              className={`bg-gradient-to-r from-primary-50 to-purple-50 border border-primary-200 rounded-2xl p-4 flex-row items-center ${
+              className={`border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl p-4 flex-row items-center ${
                 isPaywallPresenting ? 'opacity-50' : ''
               }`}
             >
-              <View className="w-12 h-12 rounded-full bg-white items-center justify-center shadow-sm">
-                <Ionicons name="rocket" size={24} color="#FF6B35" />
+              <View className="w-12 h-12 rounded-full bg-white dark:bg-neutral-700 items-center justify-center shadow-sm">
+                <Ionicons name="rocket" size={24} color={colors.accent} />
               </View>
               <View className="flex-1 ml-4">
-                <Text className="font-bold text-neutral-900">
+                <Text className="font-bold text-neutral-900 dark:text-neutral-50">
                   {isPremium ? 'Upgrade to Pro' : 'See All Plans'}
                 </Text>
-                <Text className="text-sm text-neutral-500">
+                <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                   {isPremium
                     ? 'Get unlimited AI features and meal planning'
                     : 'Compare Premium and Pro features'}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={24} color="#737373" />
+              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
             </TouchableOpacity>
           </View>
         )}
@@ -362,14 +366,14 @@ const FeatureRow: React.FC<FeatureRowProps> = ({
 }) => (
   <View
     className={`flex-row justify-between items-center py-3 ${
-      !isLast ? 'border-b border-neutral-100' : ''
+      !isLast ? 'border-b border-neutral-100 dark:border-neutral-700' : ''
     }`}
   >
-    <Text className="text-neutral-700">{label}</Text>
+    <Text className="text-neutral-700 dark:text-neutral-300">{label}</Text>
     <View className="flex-row items-center">
       <Text
         className={`font-medium mr-2 ${
-          enabled ? 'text-neutral-900' : 'text-neutral-400'
+          enabled ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-400 dark:text-neutral-500'
         }`}
       >
         {value}

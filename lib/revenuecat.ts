@@ -35,7 +35,11 @@ export const initializeRevenueCat = async (userId?: string): Promise<void> => {
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    console.warn('RevenueCat API key not configured');
+    console.warn(
+      `[RevenueCat] API key not configured for ${Platform.OS}. ` +
+      `Ensure EXPO_PUBLIC_REVENUECAT_${Platform.OS === 'ios' ? 'IOS' : 'ANDROID'}_API_KEY ` +
+      `is set as an EAS secret with the EXPO_PUBLIC_ prefix.`
+    );
     return;
   }
 

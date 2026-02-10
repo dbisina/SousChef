@@ -43,8 +43,8 @@ yarn-error.*
 *.tsbuildinfo
 
 #firebase config files
-google-services.json
-GoogleService-info.plist
+# google-services.json
+# GoogleService-info.plist
 
 # generated native folders
 /ios

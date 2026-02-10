@@ -50,32 +50,63 @@ export default function ScanScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <LinearGradient
-          colors={['#FF6B35', '#FF8F5A']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="px-6 pt-6 pb-8 rounded-b-3xl"
-        >
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-2xl font-bold text-white">
-              Food Scanner
-            </Text>
-            <View className="flex-row items-center bg-white/20 px-3 py-1.5 rounded-full">
-              <Ionicons name="scan" size={16} color="white" />
-              <Text className="text-white text-sm font-medium ml-1">
-                {remainingPortion === 'unlimited' ? 'Unlimited' : `${remainingPortion} left`}
-              </Text>
-            </View>
-          </View>
-          <Text className="text-white/90 text-base">
-            Scan any food to instantly check calories and nutritional information
-          </Text>
-        </LinearGradient>
+    <View className="flex-1 bg-neutral-50">
+      <ScrollView 
+        className="flex-1" 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 130 }}
+      >
+        {/* Integrated Hero Header */}
+        <View className="w-full h-80 relative overflow-hidden">
+          <LinearGradient
+            colors={['#FF6B35', '#FF8F5A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="absolute inset-0"
+          />
+          
+          {/* Decorative AR Scanning Elements */}
+          <View className="absolute inset-8 border border-white/20 rounded-3xl" />
+          <View className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-white/40 m-12 rounded-tl-lg" />
+          <View className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-white/40 m-12 rounded-tr-lg" />
+          <View className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-white/40 m-12 rounded-bl-lg" />
+          <View className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-white/40 m-12 rounded-br-lg" />
 
-        <View className="px-4 -mt-4">
+          {/* Header Content (Overlaid on Image) */}
+          <SafeAreaView edges={['top']} className="px-6 pt-6">
+            <View className="flex-row items-center">
+              <TouchableOpacity 
+                onPress={() => router.back()} 
+                className="w-10 h-10 items-center justify-center -ml-2 bg-white/20 rounded-full"
+              >
+                <Ionicons name="chevron-back" size={28} color="white" />
+              </TouchableOpacity>
+              <Text className="text-2xl font-bold text-white ml-2">
+                Food Scanner
+              </Text>
+              <View className="flex-1" />
+              <View className="flex-row items-center bg-white/20 px-3 py-1.5 rounded-full">
+                <Ionicons name="scan" size={16} color="white" />
+                <Text className="text-white text-sm font-medium ml-1">
+                  {remainingPortion === 'unlimited' ? 'Unlimited' : `${remainingPortion} left`}
+                </Text>
+              </View>
+            </View>
+          </SafeAreaView>
+
+          {/* Hero Graphic */}
+          <View className="flex-1 items-center justify-center -mt-6">
+            <View className="w-24 h-24 rounded-full bg-white/10 items-center justify-center mb-3">
+              <Ionicons name="nutrition" size={48} color="white" />
+            </View>
+            <Text className="text-white text-xl font-bold">Food Analysis</Text>
+            <Text className="text-white/80 text-sm px-12 text-center mt-1">
+              Instant calorie estimates and nutritional breakdown
+            </Text>
+          </View>
+        </View>
+
+        <View className="px-4 -mt-8">
           {/* Main scan card */}
           {!capturedImage && !portionResult && (
             <Card className="bg-white shadow-lg">
@@ -104,7 +135,8 @@ export default function ScanScreen() {
             <Card className="bg-white shadow-lg">
               <Image
                 source={{ uri: capturedImage }}
-                className="w-full h-56 rounded-xl mb-4"
+                className="w-full h-64 mb-4"
+                style={{ borderRadius: 24 }}
                 resizeMode="cover"
               />
               <View className="items-center py-4">
@@ -238,7 +270,7 @@ export default function ScanScreen() {
         feature="Portion Analysis"
         requiredTier={accessDenied?.upgradeRequired || 'premium'}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

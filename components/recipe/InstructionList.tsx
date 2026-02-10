@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface InstructionListProps {
   instructions: string[];
@@ -54,20 +55,21 @@ export const InstructionStep: React.FC<InstructionStepProps> = ({
   editable = false,
   onRemove,
 }) => {
+  const colors = useThemeColors();
   const content = (
     <View className="flex-row">
       {/* Step number */}
       <View
         className={`
           w-8 h-8 rounded-full items-center justify-center mr-4
-          ${isCompleted ? 'bg-secondary-500' : isActive ? 'bg-primary-500' : 'bg-neutral-200'}
+          ${isCompleted ? 'bg-secondary-500' : isActive ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-700'}
         `}
       >
         {isCompleted ? (
           <Ionicons name="checkmark" size={18} color="white" />
         ) : (
           <Text
-            className={`text-sm font-bold ${isActive ? 'text-white' : 'text-neutral-600'}`}
+            className={`text-sm font-bold ${isActive ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'}`}
           >
             {stepNumber}
           </Text>
@@ -79,7 +81,7 @@ export const InstructionStep: React.FC<InstructionStepProps> = ({
         <Text
           className={`
             text-base leading-relaxed
-            ${isCompleted ? 'text-neutral-400' : 'text-neutral-800'}
+            ${isCompleted ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-800 dark:text-neutral-100'}
           `}
         >
           {instruction}
@@ -116,6 +118,7 @@ export const CompactInstructionList: React.FC<CompactInstructionListProps> = ({
   instructions,
   maxVisible = 3,
 }) => {
+  const colors = useThemeColors();
   const visibleInstructions = instructions.slice(0, maxVisible);
   const remaining = instructions.length - maxVisible;
 
@@ -126,13 +129,13 @@ export const CompactInstructionList: React.FC<CompactInstructionListProps> = ({
           <Text className="text-sm font-medium text-primary-500 w-6">
             {index + 1}.
           </Text>
-          <Text className="flex-1 text-sm text-neutral-700" numberOfLines={2}>
+          <Text className="flex-1 text-sm text-neutral-700 dark:text-neutral-300" numberOfLines={2}>
             {instruction}
           </Text>
         </View>
       ))}
       {remaining > 0 && (
-        <Text className="text-sm text-neutral-400 mt-1 ml-6">
+        <Text className="text-sm text-neutral-400 dark:text-neutral-500 mt-1 ml-6">
           +{remaining} more steps
         </Text>
       )}
@@ -160,11 +163,12 @@ export const CookingModeInstruction: React.FC<CookingModeInstructionProps> = ({
   canGoPrevious = true,
   canGoNext = true,
 }) => {
+  const colors = useThemeColors();
   return (
-    <View className="bg-white rounded-2xl p-6 shadow-lg">
+    <View className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-lg">
       {/* Progress */}
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-sm font-medium text-neutral-500">
+        <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
           Step {stepNumber} of {totalSteps}
         </Text>
         <View className="flex-row">
@@ -173,7 +177,7 @@ export const CookingModeInstruction: React.FC<CookingModeInstructionProps> = ({
               key={idx}
               className={`
                 w-2 h-2 rounded-full mx-0.5
-                ${idx < stepNumber ? 'bg-primary-500' : 'bg-neutral-200'}
+                ${idx < stepNumber ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-700'}
               `}
             />
           ))}
@@ -181,9 +185,19 @@ export const CookingModeInstruction: React.FC<CookingModeInstructionProps> = ({
       </View>
 
       {/* Instruction */}
-      <Text className="text-xl leading-relaxed text-neutral-900 mb-6">
+      <Text className="text-xl leading-relaxed text-neutral-900 dark:text-neutral-50 mb-6">
         {instruction}
       </Text>
+
+      {/* Media Slot (Placeholder for future video/image support) */}
+      <View className="mb-6 rounded-xl bg-neutral-100 dark:bg-neutral-700 h-48 items-center justify-center border-2 border-dashed border-neutral-200 dark:border-neutral-700">
+        <View className="items-center">
+          <Ionicons name="images-outline" size={32} color={colors.textMuted} />
+          <Text className="text-neutral-400 dark:text-neutral-500 text-sm mt-2 font-medium">
+             Step Video / Image
+          </Text>
+        </View>
+      </View>
 
       {/* Navigation */}
       <View className="flex-row items-center justify-between">
@@ -192,11 +206,11 @@ export const CookingModeInstruction: React.FC<CookingModeInstructionProps> = ({
           disabled={!canGoPrevious}
           className={`
             flex-row items-center px-4 py-2 rounded-lg
-            ${canGoPrevious ? 'bg-neutral-100' : 'opacity-40'}
+            ${canGoPrevious ? 'bg-neutral-100 dark:bg-neutral-700' : 'opacity-40'}
           `}
         >
-          <Ionicons name="arrow-back" size={20} color="#404040" />
-          <Text className="ml-2 font-medium text-neutral-700">Previous</Text>
+          <Ionicons name="arrow-back" size={20} color={colors.icon} />
+          <Text className="ml-2 font-medium text-neutral-700 dark:text-neutral-300">Previous</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

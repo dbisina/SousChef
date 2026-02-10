@@ -15,7 +15,8 @@
       "Bash(del \"C:\\\\Users\\\\USER\\\\Documents\\\\GitHub\\\\SousChef\\\\assets\\\\convert.ps1\")",
       "Bash(npx expo-doctor:*)",
       "Bash(npm why:*)",
-      "Bash(python scripts/search.py:*)"
+      "Bash(python scripts/search.py:*)",
+      "Bash(node --version:*)"
     ]
   }
 }

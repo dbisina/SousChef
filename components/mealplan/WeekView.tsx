@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 import { MealPlanDay } from '@/types/mealplan';
 import { DayCard } from './DayCard';
 import { getDayName } from '@/services/mealPlanService';
@@ -24,6 +25,7 @@ export const WeekView: React.FC<WeekViewProps> = ({
   onAddMeal,
   isCurrentWeek,
 }) => {
+  const colors = useThemeColors();
   // Format week range for display
   const formatWeekRange = () => {
     const start = new Date(selectedWeekStart);
@@ -44,20 +46,20 @@ export const WeekView: React.FC<WeekViewProps> = ({
   return (
     <View className="flex-1">
       {/* Week navigation header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-neutral-100">
+      <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700">
         <TouchableOpacity
           onPress={onPreviousWeek}
-          className="p-2 rounded-full bg-neutral-100"
+          className="p-2 rounded-full bg-neutral-100 dark:bg-neutral-700"
         >
-          <Ionicons name="chevron-back" size={20} color="#404040" />
+          <Ionicons name="chevron-back" size={20} color={colors.icon} />
         </TouchableOpacity>
 
         <View className="items-center">
-          <Text className="text-lg font-bold text-neutral-900">
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
             {formatWeekRange()}
           </Text>
           {isCurrentWeek && (
-            <Text className="text-xs text-primary-500 font-medium">
+            <Text className="text-xs font-medium" style={{ color: colors.accent }}>
               This Week
             </Text>
           )}
@@ -65,9 +67,9 @@ export const WeekView: React.FC<WeekViewProps> = ({
 
         <TouchableOpacity
           onPress={onNextWeek}
-          className="p-2 rounded-full bg-neutral-100"
+          className="p-2 rounded-full bg-neutral-100 dark:bg-neutral-700"
         >
-          <Ionicons name="chevron-forward" size={20} color="#404040" />
+          <Ionicons name="chevron-forward" size={20} color={colors.icon} />
         </TouchableOpacity>
       </View>
 

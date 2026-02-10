@@ -5,7 +5,6 @@ import {
   Modal,
   TouchableOpacity,
   Dimensions,
-  Image,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +18,9 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Button } from './Button';
+import { SponsoredAdCard } from './SponsoredAdCard';
+import { useSubscription } from '@/hooks/useSubscription';
+import { getTierFeatures } from '@/services/subscriptionService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const MODAL_HEIGHT = SCREEN_HEIGHT * 0.7;
@@ -33,14 +35,27 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
   const [visible, setVisible] = useState(false);
   const translateY = useSharedValue(MODAL_HEIGHT);
   const backdropOpacity = useSharedValue(0);
+  const { isSubscribed, isInitialized, subscriptionTier } = useSubscription();
+  const features = getTierFeatures(subscriptionTier);
 
   useEffect(() => {
-    checkIfShouldShow();
-  }, [forceShow]);
+    if (isInitialized) {
+      checkIfShouldShow();
+    }
+  }, [forceShow, isInitialized, isSubscribed]);
 
   const checkIfShouldShow = async () => {
     if (forceShow) {
       showModal();
+      return;
+    }
+
+    // Always show for free users (not subscribed)
+    if (isInitialized && !isSubscribed) {
+      // Small delay ensuring smooth mount
+      setTimeout(() => {
+        showModal();
+      }, 500);
       return;
     }
 
@@ -158,35 +173,10 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
               />
             </View>
 
-            {/* Sponsored Ad Section - 1:1 Image in the middle */}
-            <View className="mx-6 mt-4">
-              <Text className="text-xs text-neutral-400 text-center mb-2">SPONSORED</Text>
-              <TouchableOpacity activeOpacity={0.9}>
-                <View className="rounded-2xl overflow-hidden bg-neutral-100">
-                  {/* 1:1 Aspect Ratio Image */}
-                  <Image
-                    source={{ uri: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=80' }}
-                    className="w-full aspect-square"
-                    resizeMode="cover"
-                  />
-                  {/* Ad overlay content */}
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.8)']}
-                    className="absolute bottom-0 left-0 right-0 p-4"
-                  >
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-1">
-                        <Text className="text-white font-bold text-lg">Fresh Ingredients</Text>
-                        <Text className="text-white/80 text-sm">Get 20% off your first order</Text>
-                      </View>
-                      <View className="bg-secondary-500 px-4 py-2 rounded-full">
-                        <Text className="text-white font-semibold">Shop Now</Text>
-                      </View>
-                    </View>
-                  </LinearGradient>
-                </View>
-              </TouchableOpacity>
-            </View>
+            {/* Sponsored Ad — hidden for ad-free subscribers */}
+            {!features.adFree && (
+              <SponsoredAdCard placement="welcome_modal" />
+            )}
 
             {/* Feature - Bottom */}
             <View className="px-6 mt-4">
@@ -199,29 +189,38 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
             </View>
 
             {/* Upgrade to Pro Section */}
-            <View className="mx-6 mt-2">
+            <View className="mx-6 mt-6  bg-amber-100/50 rounded-3xl">
               <LinearGradient
                 colors={['#FFF7ED', '#FFEDD5']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                className="rounded-2xl p-4"
+                className="p-[15px] rounded-3xl"
+                style={{
+                  shadowColor: '#F97316',
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.15,
+                  shadowRadius: 10,
+                  elevation: 4,
+                }}
               >
-                <View className="flex-row items-center">
-                  <View className="w-14 h-14 rounded-xl bg-primary-500 items-center justify-center">
+                <View className=" pl-4 pt-4 flex-row items-center ">
+                  <View className="w-14 h-14 rounded-2xl bg-primary-500 items-center justify-center shadow-sm">
                     <Ionicons name="star" size={28} color="white" />
                   </View>
                   <View className="flex-1 ml-4">
                     <Text className="text-lg font-bold text-neutral-900">
                       Upgrade to Pro
                     </Text>
-                    <Text className="text-sm text-neutral-600 mt-1">
+                    <Text className="text-sm text-neutral-600 mt-1 leading-5">
                       Unlock unlimited AI features and exclusive recipes!
                     </Text>
                   </View>
                 </View>
-                <View className="flex-row items-center mt-3 pt-3 border-t border-primary-200">
-                  <Ionicons name="checkmark-circle" size={16} color="#FF6B35" />
-                  <Text className="text-primary-700 text-sm ml-2">7-day free trial available</Text>
+                <View className="p-4 flex-row items-center mt-4 pt-4 border-t border-primary-200/50">
+                  <View className="bg-primary-100 px-2 py-1 rounded-md mr-2">
+                     <Ionicons name="checkmark" size={12} color="#C2410C" />
+                  </View>
+                  <Text className="text-primary-800 font-medium text-sm">7-day free trial available</Text>
                 </View>
               </LinearGradient>
             </View>
@@ -250,7 +249,7 @@ interface FeatureItemProps {
 }
 
 const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, color }) => (
-  <View className="flex-row items-center mb-4">
+  <View className="flex-row items-center p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
     <View
       className="w-12 h-12 rounded-xl items-center justify-center"
       style={{ backgroundColor: `${color}15` }}
@@ -258,8 +257,8 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, col
       <Ionicons name={icon} size={24} color={color} />
     </View>
     <View className="flex-1 ml-3">
-      <Text className="font-semibold text-neutral-900">{title}</Text>
-      <Text className="text-sm text-neutral-500">{description}</Text>
+      <Text className="font-bold text-neutral-900 text-base">{title}</Text>
+      <Text className="text-sm text-neutral-500 leading-5 mt-0.5">{description}</Text>
     </View>
   </View>
 );

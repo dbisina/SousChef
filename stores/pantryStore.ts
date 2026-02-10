@@ -58,7 +58,15 @@ export const usePantryStore = create<PantryState>((set, get) => ({
         ...doc.data(),
       })) as PantryItem[];
 
-      set({ items, isLoading: false });
+      // Dedupe by id (defensive — prevents duplicate key errors)
+      const seen = new Set<string>();
+      const uniqueItems = items.filter((item) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      });
+
+      set({ items: uniqueItems, isLoading: false });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to fetch pantry items';
       set({ error: message, isLoading: false });
@@ -66,7 +74,7 @@ export const usePantryStore = create<PantryState>((set, get) => ({
   },
 
   addPantryItem: async (userId, data) => {
-    set({ isLoading: true, error: null });
+    set({ error: null });
     try {
       const itemId = generateId();
       const itemData: PantryItem = {
@@ -75,19 +83,24 @@ export const usePantryStore = create<PantryState>((set, get) => ({
         amount: data.amount,
         unit: data.unit,
         category: data.category,
-        expiryDate: data.expiryDate ? Timestamp.fromDate(data.expiryDate) : undefined,
         addedAt: Timestamp.now(),
       };
 
+      // Only include expiryDate if it has a value — Firestore rejects undefined
+      if (data.expiryDate) {
+        itemData.expiryDate = Timestamp.fromDate(data.expiryDate);
+      }
+
       await setDoc(doc(db, 'users', userId, 'pantry', itemId), itemData);
 
-      set((state) => ({
-        items: [itemData, ...state.items],
-        isLoading: false,
-      }));
+      set((state) => {
+        // Prevent duplicate if item somehow already exists in local state
+        const filtered = state.items.filter((i) => i.id !== itemId);
+        return { items: [itemData, ...filtered] };
+      });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to add pantry item';
-      set({ error: message, isLoading: false });
+      set({ error: message });
       throw error;
     }
   },

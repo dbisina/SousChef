@@ -20,6 +20,7 @@ import {
 } from '@/components/mealplan';
 import { Card, Button, Loading, Empty } from '@/components/ui';
 import { Paywall } from '@/components/subscription';
+import { useThemeColors } from '@/stores/themeStore';
 import {
   WasteReason,
   WasteEntryFormData,
@@ -28,6 +29,7 @@ import {
 
 export default function WasteTrackingScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const {
     wasteLog,
     wasteStats,
@@ -114,12 +116,12 @@ export default function WasteTrackingScreen() {
   // Show paywall for users without access
   if (!canTrack) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50">
-        <View className="flex-row items-center px-4 py-3 bg-white border-b border-neutral-100">
+      <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950">
+        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color="#404040" />
+            <Ionicons name="arrow-back" size={24} color={colors.icon} />
           </TouchableOpacity>
-          <Text className="text-lg font-bold text-neutral-900 ml-4">
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100 ml-4">
             Waste Tracking
           </Text>
         </View>
@@ -128,10 +130,10 @@ export default function WasteTrackingScreen() {
           <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-6">
             <Ionicons name="leaf-outline" size={40} color="#22C55E" />
           </View>
-          <Text className="text-2xl font-bold text-neutral-900 text-center mb-2">
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 text-center mb-2">
             Waste Tracking
           </Text>
-          <Text className="text-neutral-500 text-center mb-6">
+          <Text className="text-neutral-500 dark:text-neutral-400 text-center mb-6">
             Track food waste, see trends, and learn how much you're saving
             with meal planning.
           </Text>
@@ -157,15 +159,15 @@ export default function WasteTrackingScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-neutral-100">
+      <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#404040" />
+          <Ionicons name="arrow-back" size={24} color={colors.icon} />
         </TouchableOpacity>
-        <Text className="text-lg font-bold text-neutral-900">Waste Tracking</Text>
+        <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Waste Tracking</Text>
         <TouchableOpacity onPress={() => setShowAddModal(true)}>
-          <Ionicons name="add-circle-outline" size={28} color="#FF6B35" />
+          <Ionicons name="add-circle-outline" size={28} color={colors.accent} />
         </TouchableOpacity>
       </View>
 
@@ -183,18 +185,18 @@ export default function WasteTrackingScreen() {
 
           {/* Recent waste log */}
           <View className="mt-6">
-            <Text className="text-lg font-bold text-neutral-900 mb-3">
+            <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-3">
               Recent Waste Log
             </Text>
 
             {wasteLog.length === 0 ? (
-              <Card className="bg-neutral-50">
+              <Card className="bg-neutral-50 dark:bg-neutral-800">
                 <View className="items-center py-6">
                   <Ionicons name="checkmark-circle-outline" size={48} color="#22C55E" />
-                  <Text className="text-neutral-600 mt-2 text-center">
+                  <Text className="text-neutral-600 dark:text-neutral-400 mt-2 text-center">
                     No waste logged yet!
                   </Text>
-                  <Text className="text-neutral-400 text-sm text-center mt-1">
+                  <Text className="text-neutral-400 dark:text-neutral-500 text-sm text-center mt-1">
                     Keep up the great work
                   </Text>
                 </View>
@@ -210,7 +212,7 @@ export default function WasteTrackingScreen() {
                 ))}
                 {wasteLog.length > 10 && (
                   <TouchableOpacity className="p-4 items-center">
-                    <Text className="text-primary-500 font-medium">
+                    <Text className="font-medium" style={{ color: colors.accent }}>
                       View all {wasteLog.length} entries
                     </Text>
                   </TouchableOpacity>
@@ -246,34 +248,34 @@ export default function WasteTrackingScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setShowAddModal(false)}
       >
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900">
           {/* Modal header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-100">
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
             <TouchableOpacity onPress={() => setShowAddModal(false)}>
-              <Text className="text-neutral-500">Cancel</Text>
+              <Text className="text-neutral-500 dark:text-neutral-400">Cancel</Text>
             </TouchableOpacity>
-            <Text className="text-lg font-bold text-neutral-900">Log Waste</Text>
+            <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Log Waste</Text>
             <View style={{ width: 60 }} />
           </View>
 
           <ScrollView className="flex-1 p-4">
             {/* Item name */}
             <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">
+              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Item Name *
               </Text>
               <TextInput
                 value={itemName}
                 onChangeText={setItemName}
                 placeholder="e.g., Spinach, Chicken, Milk"
-                className="border border-neutral-300 rounded-xl px-4 py-3 text-base"
+                className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
               />
             </View>
 
             {/* Amount and unit */}
             <View className="flex-row mb-4">
               <View className="flex-1 mr-2">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">
+                <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Amount *
                 </Text>
                 <TextInput
@@ -281,25 +283,25 @@ export default function WasteTrackingScreen() {
                   onChangeText={setAmount}
                   placeholder="e.g., 2"
                   keyboardType="decimal-pad"
-                  className="border border-neutral-300 rounded-xl px-4 py-3 text-base"
+                  className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
                 />
               </View>
               <View className="flex-1 ml-2">
-                <Text className="text-sm font-medium text-neutral-700 mb-2">
+                <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                   Unit
                 </Text>
                 <TextInput
                   value={unit}
                   onChangeText={setUnit}
                   placeholder="e.g., cups, oz"
-                  className="border border-neutral-300 rounded-xl px-4 py-3 text-base"
+                  className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
                 />
               </View>
             </View>
 
             {/* Reason */}
             <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">
+              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Reason
               </Text>
               <View className="flex-row flex-wrap">
@@ -311,14 +313,14 @@ export default function WasteTrackingScreen() {
                       className={`mr-2 mb-2 px-4 py-2 rounded-full border ${
                         reason === reasonKey
                           ? 'bg-red-500 border-red-500'
-                          : 'bg-white border-neutral-300'
+                          : 'bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600'
                       }`}
                     >
                       <Text
                         className={
                           reason === reasonKey
                             ? 'text-white font-medium'
-                            : 'text-neutral-600'
+                            : 'text-neutral-600 dark:text-neutral-400'
                         }
                       >
                         {WASTE_REASON_LABELS[reasonKey]}
@@ -331,7 +333,7 @@ export default function WasteTrackingScreen() {
 
             {/* Estimated value */}
             <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">
+              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Estimated Value ($)
               </Text>
               <TextInput
@@ -339,13 +341,13 @@ export default function WasteTrackingScreen() {
                 onChangeText={setEstimatedValue}
                 placeholder="e.g., 5.00"
                 keyboardType="decimal-pad"
-                className="border border-neutral-300 rounded-xl px-4 py-3 text-base"
+                className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
               />
             </View>
 
             {/* Notes */}
             <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">
+              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                 Notes (optional)
               </Text>
               <TextInput
@@ -354,14 +356,14 @@ export default function WasteTrackingScreen() {
                 placeholder="Any additional details..."
                 multiline
                 numberOfLines={3}
-                className="border border-neutral-300 rounded-xl px-4 py-3 text-base"
+                className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
                 style={{ textAlignVertical: 'top', minHeight: 80 }}
               />
             </View>
           </ScrollView>
 
           {/* Submit button */}
-          <View className="p-4 border-t border-neutral-100">
+          <View className="p-4 border-t border-neutral-100 dark:border-neutral-800">
             <Button
               title={isSubmitting ? 'Logging...' : 'Log Waste'}
               onPress={handleLogWaste}

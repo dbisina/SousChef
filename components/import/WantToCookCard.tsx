@@ -20,6 +20,8 @@ import Animated, {
   Layout,
 } from 'react-native-reanimated';
 import { WantToCookItem, WantToCookStatus } from '@/types/wantToCook';
+import { safeTimestampMillis } from '@/stores/wantToCookStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { formatDistanceToNow } from 'date-fns';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -49,13 +51,14 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
   onRemove,
 }) => {
   const scale = useSharedValue(1);
+  const colors = useThemeColors();
   const recipe = item.importedRecipe;
 
   if (!recipe) return null;
 
   const statusConfig = STATUS_CONFIG[item.status];
   const savedDaysAgo = Math.floor(
-    (Date.now() - item.savedAt.toMillis()) / (1000 * 60 * 60 * 24)
+    (Date.now() - safeTimestampMillis(item.savedAt)) / (1000 * 60 * 60 * 24)
   );
   const pantryMatch = item.pantryMatchPercent ?? 0;
 
@@ -95,7 +98,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
       className="mb-4"
     >
       <View
-        className="bg-white rounded-3xl overflow-hidden"
+        className="bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden"
         style={{
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 4 },
@@ -114,7 +117,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
             />
           ) : (
             <LinearGradient
-              colors={['#FF6B35', '#FF8F5A']}
+              colors={[colors.accent, colors.accent + 'CC']}
               className="w-full h-44 items-center justify-center"
             >
               <Ionicons name="restaurant-outline" size={48} color="white" />
@@ -186,12 +189,12 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
 
         {/* Content Section */}
         <View className="p-4">
-          <Text className="text-lg font-bold text-neutral-900 mb-1" numberOfLines={2}>
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-1" numberOfLines={2}>
             {recipe.title}
           </Text>
 
           {recipe.description && (
-            <Text className="text-neutral-500 text-sm mb-3" numberOfLines={2}>
+            <Text className="text-neutral-500 dark:text-neutral-400 text-sm mb-3" numberOfLines={2}>
               {recipe.description}
             </Text>
           )}
@@ -201,7 +204,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
             {recipe.prepTime && (
               <View className="flex-row items-center mr-4">
                 <Ionicons name="time-outline" size={16} color="#6B7280" />
-                <Text className="text-neutral-600 text-sm ml-1">
+                <Text className="text-neutral-600 dark:text-neutral-400 text-sm ml-1">
                   {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
                 </Text>
               </View>
@@ -209,14 +212,14 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
             {recipe.servings && (
               <View className="flex-row items-center mr-4">
                 <Ionicons name="people-outline" size={16} color="#6B7280" />
-                <Text className="text-neutral-600 text-sm ml-1">
+                <Text className="text-neutral-600 dark:text-neutral-400 text-sm ml-1">
                   {recipe.servings} servings
                 </Text>
               </View>
             )}
             <View className="flex-row items-center">
               <Ionicons name="nutrition-outline" size={16} color="#6B7280" />
-              <Text className="text-neutral-600 text-sm ml-1">
+              <Text className="text-neutral-600 dark:text-neutral-400 text-sm ml-1">
                 {recipe.ingredients.length} ingredients
               </Text>
             </View>
@@ -225,7 +228,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
           {/* Missing ingredients preview */}
           {item.missingIngredients && item.missingIngredients.length > 0 && (
             <View className="mb-4">
-              <Text className="text-xs font-semibold text-neutral-400 mb-2">
+              <Text className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 mb-2">
                 NEED TO BUY ({item.missingIngredients.length})
               </Text>
               <View className="flex-row flex-wrap">
@@ -238,8 +241,8 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
                   </View>
                 ))}
                 {item.missingIngredients.length > 4 && (
-                  <View className="bg-neutral-100 px-2 py-1 rounded-lg">
-                    <Text className="text-neutral-500 text-xs">
+                  <View className="bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded-lg">
+                    <Text className="text-neutral-500 dark:text-neutral-400 text-xs">
                       +{item.missingIngredients.length - 4} more
                     </Text>
                   </View>
@@ -254,7 +257,8 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
               <>
                 <TouchableOpacity
                   onPress={onAddToShoppingList}
-                  className="flex-1 bg-primary-500 py-3 rounded-xl flex-row items-center justify-center"
+                  className="flex-1 py-3 rounded-xl flex-row items-center justify-center"
+                  style={{ backgroundColor: colors.accent }}
                   activeOpacity={0.8}
                 >
                   <Ionicons name="cart-outline" size={18} color="white" />
@@ -280,7 +284,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
 
             <TouchableOpacity
               onPress={onRemove}
-              className="w-12 h-12 bg-neutral-100 rounded-xl items-center justify-center"
+              className="w-12 h-12 bg-neutral-100 dark:bg-neutral-700 rounded-xl items-center justify-center"
               activeOpacity={0.8}
             >
               <Ionicons name="trash-outline" size={20} color="#6B7280" />

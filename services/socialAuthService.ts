@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import * as Crypto from 'expo-crypto';
 import {
   auth,
   db,
@@ -55,12 +56,12 @@ export const signInWithGoogle = async (
     if (userDoc.exists()) {
       userData = { id: userDoc.id, ...userDoc.data() } as User;
     } else {
-      // Create new user document
+      // Create new user document - omit photoURL if not available (Firestore rejects undefined)
       userData = {
         id: firebaseUser.uid,
         email: firebaseUser.email || '',
         displayName: firebaseUser.displayName || 'User',
-        photoURL: firebaseUser.photoURL || undefined,
+        ...(firebaseUser.photoURL ? { photoURL: firebaseUser.photoURL } : {}),
         role: 'user' as UserRole,
         createdAt: Timestamp.now(),
         savedRecipes: [],
@@ -88,12 +89,20 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
       return { success: false, error: 'Apple Sign In is not available on this device' };
     }
 
-    // Request Apple credentials
+    // Generate a random nonce and hash it for Apple/Firebase
+    const rawNonce = generateNonce(32);
+    const hashedNonce = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      rawNonce
+    );
+
+    // Request Apple credentials with the hashed nonce
     const appleCredential = await AppleAuthentication.signInAsync({
       requestedScopes: [
         AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         AppleAuthentication.AppleAuthenticationScope.EMAIL,
       ],
+      nonce: hashedNonce,
     });
 
     // Create Firebase credential
@@ -106,7 +115,7 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
     const provider = new OAuthProvider('apple.com');
     const credential = provider.credential({
       idToken: identityToken,
-      rawNonce: undefined, // Nonce handling would be needed for production
+      rawNonce, // Pass the raw (unhashed) nonce to Firebase
     });
 
     // Sign in to Firebase
@@ -120,18 +129,27 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
 
     if (userDoc.exists()) {
       userData = { id: userDoc.id, ...userDoc.data() } as User;
+
+      // Update displayName if user was created with 'User' placeholder and Apple now provides a real name
+      if (userData.displayName === 'User' && fullName) {
+        const newDisplayName = `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim();
+        if (newDisplayName && newDisplayName !== 'User') {
+          userData.displayName = newDisplayName;
+          await setDoc(doc(db, 'users', firebaseUser.uid), { displayName: newDisplayName }, { merge: true });
+        }
+      }
     } else {
       // Build display name from Apple response
       const displayName = fullName
-        ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() || 'User'
+        ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() || firebaseUser.displayName || 'User'
         : firebaseUser.displayName || 'User';
 
-      // Create new user document
+      // Create new user document - omit photoURL if not available (Firestore rejects undefined)
       userData = {
         id: firebaseUser.uid,
         email: email || firebaseUser.email || '',
         displayName,
-        photoURL: firebaseUser.photoURL || undefined,
+        ...(firebaseUser.photoURL ? { photoURL: firebaseUser.photoURL } : {}),
         role: 'user' as UserRole,
         createdAt: Timestamp.now(),
         savedRecipes: [],
@@ -189,3 +207,16 @@ export const getGoogleAuthConfig = () => ({
   iosClientId: GOOGLE_IOS_CLIENT_ID,
   androidClientId: GOOGLE_ANDROID_CLIENT_ID,
 });
+
+/**
+ * Generate a random nonce string for Apple Sign-In
+ */
+const generateNonce = (length: number): string => {
+  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  const values = Crypto.getRandomBytes(length);
+  for (let i = 0; i < length; i++) {
+    result += charset[values[i] % charset.length];
+  }
+  return result;
+};

@@ -106,15 +106,15 @@ export const Input = forwardRef<TextInput, InputProps>(
     return (
       <View className={`mb-4 ${containerClassName || ''}`}>
         {label && (
-          <Text className="mb-2 text-sm font-medium text-neutral-700 tracking-wide">
+          <Text className="mb-2 text-sm font-medium text-neutral-700 dark:text-neutral-300 tracking-wide">
             {label}
           </Text>
         )}
 
         <View
           className={`
-            flex-row items-center rounded-2xl bg-white px-4
-            ${hasError ? 'border-2 border-red-400' : 'border border-neutral-200'}
+            flex-row items-center rounded-2xl bg-white dark:bg-neutral-800 px-4
+            ${hasError ? 'border-2 border-red-400' : 'border border-neutral-200 dark:border-neutral-700'}
           `}
           style={styles.inputContainer}
         >
@@ -129,7 +129,7 @@ export const Input = forwardRef<TextInput, InputProps>(
 
           <TextInput
             ref={ref}
-            className={`flex-1 py-4 text-base text-neutral-800 ${className || ''}`}
+            className={`flex-1 py-4 text-base text-neutral-800 dark:text-neutral-100 ${className || ''}`}
             placeholderTextColor="#A8A29E"
             {...props}
           />

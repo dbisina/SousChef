@@ -13,18 +13,21 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { usePantry, usePantrySearch, usePantryAlerts } from '@/hooks/usePantry';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { PantryItem, PantryCategory } from '@/types';
-import { PantryItemCard, CategoryHeader, AddPantryItemModal } from '@/components/pantry';
+import { PantryItemCard, CategoryHeader, AddPantryItemModal, EditPantryItemModal } from '@/components/pantry';
 import { Button, Loading, EmptyPantry, Card } from '@/components/ui';
 
 export default function PantryScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { user } = useAuthStore();
   const {
     items,
     isLoading,
     itemsByCategory,
     addItem,
+    updateItem,
     deleteItem,
     refresh,
   } = usePantry();
@@ -32,6 +35,7 @@ export default function PantryScreen() {
   const { expiringItems, expiredItems, hasAlerts } = usePantryAlerts();
 
   const [isAddModalVisible, setAddModalVisible] = useState(false);
+  const [editingItem, setEditingItem] = useState<PantryItem | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<PantryCategory | null>(null);
@@ -94,16 +98,17 @@ export default function PantryScreen() {
           renderItem={({ item }) => (
             <PantryItemCard
               item={item}
+              onPress={() => setEditingItem(item)}
               onDelete={() => handleDelete(item.id, item.name)}
             />
           )}
           ListEmptyComponent={
             <View className="items-center py-8">
-              <Text className="text-neutral-500">No items found</Text>
+              <Text className="text-neutral-500 dark:text-neutral-400">No items found</Text>
             </View>
           }
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
           }
           contentContainerStyle={{ paddingBottom: 120 }}
         />
@@ -123,10 +128,11 @@ export default function PantryScreen() {
               category={category}
               itemCount={itemsByCategory[category]?.length || 0}
             />
-            {itemsByCategory[category]?.map((item) => (
+            {itemsByCategory[category]?.map((item, index) => (
               <PantryItemCard
-                key={item.id}
+                key={`${category}-${item.id}-${index}`}
                 item={item}
+                onPress={() => setEditingItem(item)}
                 onDelete={() => handleDelete(item.id, item.name)}
               />
             ))}
@@ -136,7 +142,7 @@ export default function PantryScreen() {
           <EmptyPantry onAction={() => setAddModalVisible(true)} />
         }
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
         }
         contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
       />
@@ -144,32 +150,33 @@ export default function PantryScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* Header */}
       <View className="px-4 pt-4 pb-2">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-2xl font-bold text-neutral-900">My Pantry</Text>
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">My Pantry</Text>
           <TouchableOpacity
             onPress={() => setAddModalVisible(true)}
-            className="w-10 h-10 rounded-full bg-primary-500 items-center justify-center"
+            className="w-10 h-10 rounded-full items-center justify-center"
+            style={{ backgroundColor: colors.accent }}
           >
             <Ionicons name="add" size={24} color="white" />
           </TouchableOpacity>
         </View>
 
         {/* Search bar */}
-        <View className="flex-row items-center bg-white rounded-xl px-4 py-3 shadow-sm">
-          <Ionicons name="search" size={20} color="#737373" />
+        <View className="flex-row items-center bg-white dark:bg-neutral-800 rounded-xl px-4 py-3 shadow-sm">
+          <Ionicons name="search" size={20} color={colors.textMuted} />
           <TextInput
             placeholder="Search pantry..."
             value={searchText}
             onChangeText={handleSearchChange}
-            className="flex-1 ml-3 text-base text-neutral-900"
-            placeholderTextColor="#A3A3A3"
+            className="flex-1 ml-3 text-base text-neutral-900 dark:text-neutral-100"
+            placeholderTextColor={colors.textMuted}
           />
           {searchText.length > 0 && (
             <TouchableOpacity onPress={() => { setSearchText(''); clear(); }}>
-              <Ionicons name="close-circle" size={20} color="#A3A3A3" />
+              <Ionicons name="close-circle" size={20} color={colors.textMuted} />
             </TouchableOpacity>
           )}
         </View>
@@ -213,15 +220,16 @@ export default function PantryScreen() {
               onPress={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-full mr-2 ${
                 selectedCategory === category
-                  ? 'bg-primary-500'
-                  : 'bg-white border border-neutral-200'
+                  ? ''
+                  : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'
               }`}
+              style={selectedCategory === category ? { backgroundColor: colors.accent } : undefined}
             >
               <Text
                 className={
                   selectedCategory === category
                     ? 'text-white font-medium'
-                    : 'text-neutral-700'
+                    : 'text-neutral-700 dark:text-neutral-300'
                 }
               >
                 {category ? category.charAt(0).toUpperCase() + category.slice(1) : 'All'}
@@ -242,19 +250,19 @@ export default function PantryScreen() {
 
       {/* Summary bar */}
       {items.length > 0 && (
-        <View className="px-4 py-3 bg-white border-t border-neutral-200">
+        <View className="px-4 py-3 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
           <View className="flex-row items-center justify-between">
-            <Text className="text-neutral-500">
+            <Text className="text-neutral-500 dark:text-neutral-400">
               {items.length} item{items.length !== 1 ? 's' : ''} in pantry
             </Text>
             <TouchableOpacity
               onPress={() => router.push('/(tabs)/browse')}
               className="flex-row items-center"
             >
-              <Text className="text-primary-500 font-medium mr-1">
+              <Text className="font-medium mr-1" style={{ color: colors.accent }}>
                 Find Recipes
               </Text>
-              <Ionicons name="arrow-forward" size={16} color="#FF6B35" />
+              <Ionicons name="arrow-forward" size={16} color={colors.accent} />
             </TouchableOpacity>
           </View>
         </View>
@@ -265,6 +273,18 @@ export default function PantryScreen() {
         visible={isAddModalVisible}
         onClose={() => setAddModalVisible(false)}
         onAdd={addItem}
+      />
+
+      {/* Edit item modal */}
+      <EditPantryItemModal
+        visible={!!editingItem}
+        item={editingItem}
+        onClose={() => setEditingItem(null)}
+        onSave={updateItem}
+        onDelete={(itemId) => {
+          const name = editingItem?.name || 'Item';
+          handleDelete(itemId, name);
+        }}
       />
     </SafeAreaView>
   );

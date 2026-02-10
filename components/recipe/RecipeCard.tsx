@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Recipe } from '@/types';
+import { useThemeColors } from '@/stores/themeStore';
 import { DifficultyBadge, CalorieBadge, TimeBadge } from '@/components/ui';
 import { formatRelativeTime } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   compact = false,
 }) => {
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handlePress = () => {
     if (onPress) {
@@ -50,7 +52,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           className="w-24 h-24 rounded-xl"
         />
         <View className="flex-1 p-3 justify-center">
-          <Text className="text-base font-semibold text-neutral-800" numberOfLines={1}>
+          <Text className="text-base font-semibold text-neutral-800 dark:text-neutral-200" numberOfLines={1}>
             {recipe.title}
           </Text>
           <View className="flex-row items-center mt-2 space-x-2">
@@ -95,8 +97,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           <View className="absolute top-4 left-4 rounded-full overflow-hidden" style={styles.badge}>
             <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
             <View className="flex-row items-center px-3 py-1.5 bg-white/60">
-              <Ionicons name="checkmark-circle" size={14} color="#F97316" />
-              <Text className="text-primary-600 text-xs font-semibold ml-1">Chef's Pick</Text>
+              <Ionicons name="checkmark-circle" size={14} color={colors.accent} />
+              <Text className="text-xs font-semibold ml-1" style={{ color: colors.accent }}>Chef's Pick</Text>
             </View>
           </View>
         )}
@@ -114,7 +116,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                 <Ionicons
                   name={isSaved ? 'bookmark' : 'bookmark-outline'}
                   size={20}
-                  color={isSaved ? '#F97316' : '#44403C'}
+                  color={isSaved ? colors.accent : '#44403C'}
                 />
               </View>
             </TouchableOpacity>
@@ -136,12 +138,12 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       </View>
 
       {/* Content */}
-      <View className="p-5 bg-white">
-        <Text className="text-xl font-bold text-neutral-800 tracking-tight" numberOfLines={1}>
+      <View className="p-5 bg-white dark:bg-neutral-800">
+        <Text className="text-xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight" numberOfLines={1}>
           {recipe.title}
         </Text>
 
-        <Text className="text-sm text-neutral-500 mt-1.5 leading-relaxed" numberOfLines={2}>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed" numberOfLines={2}>
           {recipe.description}
         </Text>
 
@@ -152,7 +154,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         </View>
 
         {/* Footer */}
-        <View className="flex-row items-center justify-between mt-5 pt-4 border-t border-neutral-100">
+        <View className="flex-row items-center justify-between mt-5 pt-4 border-t border-neutral-100 dark:border-neutral-700">
           {showAuthor && (
             <View className="flex-row items-center">
               <View className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-100 to-primary-200 items-center justify-center">
@@ -160,7 +162,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                   {recipe.authorName.charAt(0).toUpperCase()}
                 </Text>
               </View>
-              <Text className="text-sm font-medium text-neutral-600 ml-2.5">
+              <Text className="text-sm font-medium text-neutral-600 dark:text-neutral-400 ml-2.5">
                 {recipe.authorName}
               </Text>
             </View>
@@ -169,11 +171,11 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           <View className="flex-row items-center space-x-4">
             {onLike && (
               <TouchableOpacity onPress={onLike} className="flex-row items-center">
-                <Ionicons name="heart-outline" size={18} color="#78716C" />
-                <Text className="text-sm text-neutral-500 ml-1 font-medium">{recipe.likes}</Text>
+                <Ionicons name="heart-outline" size={18} color={colors.textMuted} />
+                <Text className="text-sm text-neutral-500 dark:text-neutral-400 ml-1 font-medium">{recipe.likes}</Text>
               </TouchableOpacity>
             )}
-            <Text className="text-xs text-neutral-400 font-medium">
+            <Text className="text-xs text-neutral-400 dark:text-neutral-500 font-medium">
               {formatRelativeTime(recipe.createdAt)}
             </Text>
           </View>
@@ -189,6 +191,7 @@ export const HorizontalRecipeCard: React.FC<RecipeCardProps> = ({
   onPress,
 }) => {
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handlePress = () => {
     if (onPress) {
@@ -221,19 +224,19 @@ export const HorizontalRecipeCard: React.FC<RecipeCardProps> = ({
       <View className="absolute bottom-0 left-0 right-0 rounded-t-2xl overflow-hidden">
         <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFill} />
         <View className="p-4 bg-white/70" style={styles.horizontalContent}>
-          <Text className="text-base font-bold text-neutral-800" numberOfLines={1}>
+          <Text className="text-base font-bold text-neutral-800 dark:text-neutral-100" numberOfLines={1}>
             {recipe.title}
           </Text>
           <View className="flex-row items-center mt-2 space-x-3">
             <View className="flex-row items-center">
-              <Ionicons name="time-outline" size={14} color="#78716C" />
-              <Text className="text-xs text-neutral-600 ml-1 font-medium">
+              <Ionicons name="time-outline" size={14} color={colors.textMuted} />
+              <Text className="text-xs text-neutral-600 dark:text-neutral-400 ml-1 font-medium">
                 {recipe.prepTime + recipe.cookTime} min
               </Text>
             </View>
             <View className="flex-row items-center">
-              <Ionicons name="flame-outline" size={14} color="#F97316" />
-              <Text className="text-xs text-primary-600 ml-1 font-medium">
+              <Ionicons name="flame-outline" size={14} color={colors.accent} />
+              <Text className="text-xs ml-1 font-medium" style={{ color: colors.accent }}>
                 {recipe.nutrition?.caloriesPerServing || 0} cal
               </Text>
             </View>
@@ -246,7 +249,7 @@ export const HorizontalRecipeCard: React.FC<RecipeCardProps> = ({
         <View className="absolute top-3 left-3 rounded-full overflow-hidden">
           <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
           <View className="px-2.5 py-1 bg-white/60">
-            <Ionicons name="star" size={12} color="#F97316" />
+            <Ionicons name="star" size={12} color={colors.accent} />
           </View>
         </View>
       )}
@@ -260,6 +263,7 @@ export const FeaturedRecipeCard: React.FC<RecipeCardProps> = ({
   onPress,
 }) => {
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handlePress = () => {
     if (onPress) {

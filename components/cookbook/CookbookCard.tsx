@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Cookbook } from '@/types';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface CookbookCardProps {
   cookbook: Cookbook;
@@ -20,6 +21,7 @@ export const CookbookCard: React.FC<CookbookCardProps> = ({
   isSaved = false,
 }) => {
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handlePress = () => {
     if (onPress) {
@@ -54,8 +56,8 @@ export const CookbookCard: React.FC<CookbookCardProps> = ({
         <View className="absolute top-4 left-4 rounded-full overflow-hidden" style={styles.badge}>
           <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
           <View className="flex-row items-center px-3 py-1.5 bg-white/60">
-            <Ionicons name="book" size={14} color="#F97316" />
-            <Text className="text-primary-600 text-xs font-semibold ml-1">Cookbook</Text>
+            <Ionicons name="book" size={14} color={colors.accent} />
+            <Text className="text-xs font-semibold ml-1" style={{ color: colors.accent }}>Cookbook</Text>
           </View>
         </View>
 
@@ -72,7 +74,7 @@ export const CookbookCard: React.FC<CookbookCardProps> = ({
                 <Ionicons
                   name={isSaved ? 'bookmark' : 'bookmark-outline'}
                   size={20}
-                  color={isSaved ? '#F97316' : '#44403C'}
+                  color={isSaved ? colors.accent : '#44403C'}
                 />
               </View>
             </TouchableOpacity>
@@ -94,29 +96,29 @@ export const CookbookCard: React.FC<CookbookCardProps> = ({
       </View>
 
       {/* Content */}
-      <View className="p-5 bg-white">
-        <Text className="text-xl font-bold text-neutral-800 tracking-tight" numberOfLines={1}>
+      <View className="p-5 bg-white dark:bg-neutral-800">
+        <Text className="text-xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight" numberOfLines={1}>
           {cookbook.title}
         </Text>
 
-        <Text className="text-sm text-neutral-500 mt-1.5 leading-relaxed" numberOfLines={2}>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5 leading-relaxed" numberOfLines={2}>
           {cookbook.description}
         </Text>
 
         {/* Category badge */}
         {cookbook.category && (
           <View className="mt-3">
-            <View className="self-start bg-primary-50 px-3 py-1 rounded-full">
-              <Text className="text-xs font-medium text-primary-600">{cookbook.category}</Text>
+            <View className="self-start px-3 py-1 rounded-full" style={{ backgroundColor: colors.accent + '15' }}>
+              <Text className="text-xs font-medium" style={{ color: colors.accent }}>{cookbook.category}</Text>
             </View>
           </View>
         )}
 
         {/* Footer with likes */}
-        <View className="flex-row items-center justify-between mt-4 pt-4 border-t border-neutral-100">
+        <View className="flex-row items-center justify-between mt-4 pt-4 border-t border-neutral-100 dark:border-neutral-700">
           <View className="flex-row items-center">
-            <Ionicons name="heart" size={16} color="#F97316" />
-            <Text className="text-sm text-neutral-600 ml-1.5 font-medium">
+            <Ionicons name="heart" size={16} color={colors.accent} />
+            <Text className="text-sm text-neutral-600 dark:text-neutral-400 ml-1.5 font-medium">
               {cookbook.likes} likes
             </Text>
           </View>
@@ -132,6 +134,7 @@ export const HorizontalCookbookCard: React.FC<CookbookCardProps> = ({
   onPress,
 }) => {
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handlePress = () => {
     if (onPress) {
@@ -188,7 +191,7 @@ export const HorizontalCookbookCard: React.FC<CookbookCardProps> = ({
               {cookbook.recipeIds.length} recipes
             </Text>
              <View className="flex-row items-center bg-black/30 rounded-full px-1.5 py-0.5">
-              <Ionicons name="heart" size={10} color="#F97316" />
+              <Ionicons name="heart" size={10} color={colors.accent} />
               <Text className="text-[10px] text-white ml-1 font-medium">
                 {cookbook.likes}
               </Text>
@@ -227,6 +230,7 @@ export const CompactCookbookCard: React.FC<CookbookCardProps> = ({
   onPress,
 }) => {
   const router = useRouter();
+  const colors = useThemeColors();
 
   const handlePress = () => {
     if (onPress) {
@@ -248,22 +252,22 @@ export const CompactCookbookCard: React.FC<CookbookCardProps> = ({
         className="w-24 h-24 rounded-xl"
       />
       <View className="flex-1 p-3 justify-center">
-        <Text className="text-base font-semibold text-neutral-800" numberOfLines={1}>
+        <Text className="text-base font-semibold text-neutral-800 dark:text-neutral-100" numberOfLines={1}>
           {cookbook.title}
         </Text>
-        <Text className="text-sm text-neutral-500 mt-1" numberOfLines={1}>
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mt-1" numberOfLines={1}>
           {cookbook.description}
         </Text>
         <View className="flex-row items-center mt-2 space-x-3">
           <View className="flex-row items-center">
             <Ionicons name="restaurant-outline" size={12} color="#78716C" />
-            <Text className="text-xs text-neutral-500 ml-1">
+            <Text className="text-xs text-neutral-500 dark:text-neutral-400 ml-1">
               {cookbook.recipeIds.length} recipes
             </Text>
           </View>
           <View className="flex-row items-center">
-            <Ionicons name="heart" size={12} color="#F97316" />
-            <Text className="text-xs text-primary-600 ml-1">{cookbook.likes}</Text>
+            <Ionicons name="heart" size={12} color={colors.accent} />
+            <Text className="text-xs ml-1" style={{ color: colors.accent }}>{cookbook.likes}</Text>
           </View>
         </View>
       </View>

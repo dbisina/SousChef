@@ -25,11 +25,11 @@ export const Card: React.FC<CardProps> = ({
   };
 
   const variantBaseStyles = {
-    default: 'bg-white rounded-3xl',
+    default: 'bg-white dark:bg-neutral-800 rounded-3xl',
     glass: 'rounded-3xl overflow-hidden',
-    elevated: 'bg-white rounded-3xl shadow-glass',
-    outlined: 'bg-white/80 rounded-3xl border border-neutral-200/50',
-    soft: 'bg-primary-50/80 rounded-3xl',
+    elevated: 'bg-white dark:bg-neutral-800 rounded-3xl shadow-glass',
+    outlined: 'bg-white/80 dark:bg-neutral-800/80 rounded-3xl border border-neutral-200/50 dark:border-neutral-700/50',
+    soft: 'bg-primary-50/80 dark:bg-neutral-800/80 rounded-3xl',
   };
 
   if (variant === 'glass') {
@@ -92,11 +92,11 @@ export const PressableCard: React.FC<PressableCardProps> = ({
   };
 
   const variantBaseStyles = {
-    default: 'bg-white rounded-3xl',
+    default: 'bg-white dark:bg-neutral-800 rounded-3xl',
     glass: 'rounded-3xl overflow-hidden',
-    elevated: 'bg-white rounded-3xl shadow-glass',
-    outlined: 'bg-white/80 rounded-3xl border border-neutral-200/50',
-    soft: 'bg-primary-50/80 rounded-3xl',
+    elevated: 'bg-white dark:bg-neutral-800 rounded-3xl shadow-glass',
+    outlined: 'bg-white/80 dark:bg-neutral-800/80 rounded-3xl border border-neutral-200/50 dark:border-neutral-700/50',
+    soft: 'bg-primary-50/80 dark:bg-neutral-800/80 rounded-3xl',
   };
 
   if (variant === 'glass') {

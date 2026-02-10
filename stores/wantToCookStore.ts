@@ -28,10 +28,40 @@ import { Recipe, PantryItem } from '@/types';
 import {
   extractRecipeFromURL,
   extractRecipeFromPhoto,
+  extractRecipeFromMultiplePhotos,
   calculatePantryMatch,
   generateShoppingList,
 } from '@/services/recipeImportService';
 import { generateId } from '@/lib/firebase';
+
+/** Recursively strip `undefined` values from an object (Firestore rejects them).
+ *  Preserves Firestore Timestamps and other class instances. */
+function removeUndefinedFields(obj: any): any {
+  if (obj === null || obj === undefined) return null;
+  if (obj instanceof Timestamp) return obj;
+  if (obj instanceof Date) return obj;
+  if (Array.isArray(obj)) return obj.map(removeUndefinedFields);
+  if (typeof obj === 'object') {
+    const clean: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        clean[key] = removeUndefinedFields(value);
+      }
+    }
+    return clean;
+  }
+  return obj;
+}
+
+/** Safely get milliseconds from a savedAt field that may be a Timestamp,
+ *  a plain {seconds, nanoseconds} object, or undefined. */
+export function safeTimestampMillis(ts: any): number {
+  if (!ts) return Date.now();
+  if (typeof ts.toMillis === 'function') return ts.toMillis();
+  if (typeof ts.seconds === 'number') return ts.seconds * 1000;
+  if (ts instanceof Date) return ts.getTime();
+  return Date.now();
+}
 
 interface WantToCookState {
   // Want to Cook items
@@ -49,6 +79,7 @@ interface WantToCookState {
   // Actions - Import
   importFromURL: (url: string, userId: string) => Promise<WantToCookItem | null>;
   importFromPhoto: (imageUri: string, userId: string, cookbookName?: string) => Promise<WantToCookItem | null>;
+  importFromMultiplePhotos: (imageUris: string[], userId: string, cookbookName?: string) => Promise<WantToCookItem | null>;
 
   // Actions - Want to Cook
   addToWantToCook: (userId: string, recipe: Recipe | ImportedRecipe, isImported: boolean) => Promise<WantToCookItem>;
@@ -91,11 +122,12 @@ export const useWantToCookStore = create<WantToCookState>()(
 
       // Import recipe from URL
       importFromURL: async (url, userId) => {
-        set({ isImporting: true, importProgress: 'Fetching recipe...', error: null });
+        set({ isImporting: true, importProgress: 'Starting import...', error: null });
 
         try {
-          set({ importProgress: 'Analyzing content...' });
-          const result = await extractRecipeFromURL(url);
+          const result = await extractRecipeFromURL(url, (progress) => {
+            set({ importProgress: progress });
+          });
 
           if (!result.success || !result.recipe) {
             set({ error: result.error || 'Failed to import recipe', isImporting: false });
@@ -139,11 +171,36 @@ export const useWantToCookStore = create<WantToCookState>()(
         }
       },
 
+      // Import recipe from multiple photos (multi-page cookbook scan)
+      importFromMultiplePhotos: async (imageUris, userId, cookbookName) => {
+        set({ isImporting: true, importProgress: `Scanning ${imageUris.length} pages...`, error: null });
+
+        try {
+          set({ importProgress: `Extracting recipe from ${imageUris.length} pages...` });
+          const result = await extractRecipeFromMultiplePhotos(imageUris, cookbookName);
+
+          if (!result.success || !result.recipe) {
+            set({ error: result.error || 'Failed to scan recipe', isImporting: false });
+            return null;
+          }
+
+          set({ importProgress: 'Saving recipe...' });
+          const item = await get().addToWantToCook(userId, result.recipe, true);
+
+          set({ isImporting: false, importProgress: '' });
+          return item;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Multi-page scan failed';
+          set({ error: message, isImporting: false, importProgress: '' });
+          return null;
+        }
+      },
+
       // Add recipe to Want to Cook
       addToWantToCook: async (userId, recipe, isImported) => {
         const item: WantToCookItem = {
           id: generateId(),
-          oderId: userId,
+          ownerId: userId,
           status: 'saved',
           savedAt: Timestamp.now(),
           addedToShoppingList: false,
@@ -152,9 +209,10 @@ export const useWantToCookStore = create<WantToCookState>()(
             : { recipeId: (recipe as Recipe).id }),
         };
 
-        // Save to Firestore
+        // Save to Firestore (strip undefined values — Firestore rejects them)
+        const cleanItem = removeUndefinedFields(item);
         try {
-          await setDoc(doc(db, 'users', userId, 'wantToCook', item.id), item);
+          await setDoc(doc(db, 'users', userId, 'wantToCook', item.id), cleanItem);
         } catch (error) {
           console.error('Error saving to Firestore:', error);
         }
@@ -172,7 +230,7 @@ export const useWantToCookStore = create<WantToCookState>()(
         if (!item) return;
 
         try {
-          await deleteDoc(doc(db, 'users', item.oderId, 'wantToCook', itemId));
+          await deleteDoc(doc(db, 'users', item.ownerId, 'wantToCook', itemId));
         } catch (error) {
           console.error('Error deleting from Firestore:', error);
         }
@@ -193,7 +251,7 @@ export const useWantToCookStore = create<WantToCookState>()(
         }
 
         try {
-          await updateDoc(doc(db, 'users', item.oderId, 'wantToCook', itemId), updates);
+          await updateDoc(doc(db, 'users', item.ownerId, 'wantToCook', itemId), updates);
         } catch (error) {
           console.error('Error updating Firestore:', error);
         }
@@ -302,7 +360,7 @@ export const useWantToCookStore = create<WantToCookState>()(
         const cutoff = Date.now() - daysOld * 24 * 60 * 60 * 1000;
         return get().items.filter((item) => {
           if (item.status !== 'saved') return false;
-          const savedTime = item.savedAt.toMillis();
+          const savedTime = safeTimestampMillis(item.savedAt);
           return savedTime < cutoff;
         });
       },

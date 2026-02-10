@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { Button, Input } from '@/components/ui';
 import {
   signInWithGoogle,
@@ -38,6 +39,7 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
+  const colors = useThemeColors();
 
   // Google Auth
   const { response: googleResponse, promptAsync: googlePromptAsync, isReady: googleReady } = useGoogleAuth();
@@ -90,7 +92,7 @@ export default function LoginScreen() {
   };
 
   const handleForgotPassword = async () => {
-    const email = control._formValues.email;
+    const email = getValues('email');
     if (!email) {
       Alert.alert('Email Required', 'Please enter your email address first.');
       return;
@@ -106,6 +108,7 @@ export default function LoginScreen() {
   const {
     control,
     handleSubmit,
+    getValues,
     formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -125,7 +128,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -143,23 +146,23 @@ export default function LoginScreen() {
                 className="w-28 h-28 mb-4"
                 resizeMode="contain"
               />
-              <Text className="text-3xl font-bold text-neutral-900">
+              <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
                 SousChef
               </Text>
-              <Text className="text-neutral-500 mt-2">
+              <Text className="text-neutral-500 dark:text-neutral-400 mt-2">
                 Your AI-powered cooking companion
               </Text>
             </View>
 
             {/* Form */}
             <View className="flex-1">
-              <Text className="text-2xl font-bold text-neutral-900 mb-6">
+              <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 mb-6">
                 Welcome back
               </Text>
 
               {error && (
-                <View className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                  <Text className="text-red-600">{error}</Text>
+                <View className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
+                  <Text className="text-red-600 dark:text-red-400">{error}</Text>
                 </View>
               )}
 
@@ -203,7 +206,7 @@ export default function LoginScreen() {
               />
 
               <TouchableOpacity className="self-end mb-6" onPress={handleForgotPassword}>
-                <Text className="text-primary-500 font-medium">
+                <Text className="font-medium" style={{ color: colors.accent }}>
                   Forgot password?
                 </Text>
               </TouchableOpacity>
@@ -217,9 +220,9 @@ export default function LoginScreen() {
 
               {/* Divider */}
               <View className="flex-row items-center my-6">
-                <View className="flex-1 h-px bg-neutral-200" />
-                <Text className="mx-4 text-neutral-500">or</Text>
-                <View className="flex-1 h-px bg-neutral-200" />
+                <View className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
+                <Text className="mx-4 text-neutral-500 dark:text-neutral-400">or</Text>
+                <View className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
               </View>
 
               {/* Social login buttons */}
@@ -246,14 +249,27 @@ export default function LoginScreen() {
                   />
                 </View>
               )}
+
+              {/* Guest mode */}
+              <TouchableOpacity
+                className="mt-4 py-3 items-center"
+                onPress={() => {
+                  useAuthStore.getState().continueAsGuest();
+                  router.replace('/(tabs)');
+                }}
+              >
+                <Text className="text-neutral-500 dark:text-neutral-400 font-medium">
+                  Skip for now — try it first
+                </Text>
+              </TouchableOpacity>
             </View>
 
             {/* Sign up link */}
             <View className="flex-row justify-center mt-8">
-              <Text className="text-neutral-500">Don't have an account? </Text>
+              <Text className="text-neutral-500 dark:text-neutral-400">Don't have an account? </Text>
               <Link href="/auth/register" asChild>
                 <TouchableOpacity>
-                  <Text className="text-primary-500 font-semibold">Sign up</Text>
+                  <Text className="font-semibold" style={{ color: colors.accent }}>Sign up</Text>
                 </TouchableOpacity>
               </Link>
             </View>

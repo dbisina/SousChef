@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { Card, Loading } from '@/components/ui';
 import { Recipe } from '@/types';
 
@@ -28,6 +29,7 @@ interface AnalyticsData {
 
 export default function AnalyticsScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { user } = useAuthStore();
   const { recipes } = useRecipeStore();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -94,12 +96,12 @@ export default function AnalyticsScreen() {
 
   if (isLoading || !analytics) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
-        <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 bg-white">
+      <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
+        <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
           <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-            <Ionicons name="arrow-back" size={24} color="#404040" />
+            <Ionicons name="arrow-back" size={24} color={colors.icon} />
           </TouchableOpacity>
-          <Text className="flex-1 text-lg font-bold text-neutral-900 ml-2">
+          <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
             Recipe Analytics
           </Text>
         </View>
@@ -111,13 +113,13 @@ export default function AnalyticsScreen() {
   const maxViews = Math.max(...analytics.recentActivity.map((a) => a.views));
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 bg-white">
+      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color="#404040" />
+          <Ionicons name="arrow-back" size={24} color={colors.icon} />
         </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 ml-2">
+        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
           Recipe Analytics
         </Text>
       </View>
@@ -125,18 +127,18 @@ export default function AnalyticsScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-4">
           {/* Time Range Selector */}
-          <View className="flex-row bg-neutral-200 rounded-xl p-1 mb-6">
+          <View className="flex-row bg-neutral-200 dark:bg-neutral-700 rounded-xl p-1 mb-6">
             {(['week', 'month', 'all'] as const).map((range) => (
               <TouchableOpacity
                 key={range}
                 onPress={() => setTimeRange(range)}
                 className={`flex-1 py-2 rounded-lg ${
-                  timeRange === range ? 'bg-white' : ''
+                  timeRange === range ? 'bg-white dark:bg-neutral-600' : ''
                 }`}
               >
                 <Text
                   className={`text-center font-medium ${
-                    timeRange === range ? 'text-neutral-900' : 'text-neutral-500'
+                    timeRange === range ? 'text-neutral-900 dark:text-neutral-50' : 'text-neutral-500 dark:text-neutral-400'
                   }`}
                 >
                   {range === 'week' ? 'Week' : range === 'month' ? 'Month' : 'All Time'}
@@ -174,7 +176,7 @@ export default function AnalyticsScreen() {
           </View>
 
           {/* Activity Chart */}
-          <Text className="text-sm font-medium text-neutral-500 uppercase mb-3">
+          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
             Views This Week
           </Text>
           <Card className="mb-6">
@@ -182,13 +184,14 @@ export default function AnalyticsScreen() {
               {analytics.recentActivity.map((day, index) => (
                 <View key={index} className="items-center flex-1">
                   <View
-                    className="w-8 bg-primary-500 rounded-t-lg"
+                    className="w-8 rounded-t-lg"
                     style={{
                       height: `${(day.views / maxViews) * 100}%`,
                       minHeight: 4,
+                      backgroundColor: colors.accent,
                     }}
                   />
-                  <Text className="text-xs text-neutral-500 mt-2">{day.date}</Text>
+                  <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">{day.date}</Text>
                 </View>
               ))}
             </View>
@@ -197,7 +200,7 @@ export default function AnalyticsScreen() {
           {/* Top Recipes */}
           {analytics.topRecipes.length > 0 && (
             <>
-              <Text className="text-sm font-medium text-neutral-500 uppercase mb-3">
+              <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
                 Top Performing Recipes
               </Text>
               <Card padding="none" className="mb-6">
@@ -206,17 +209,17 @@ export default function AnalyticsScreen() {
                     key={recipe.id}
                     onPress={() => router.push(`/recipe/${recipe.id}`)}
                     className={`flex-row items-center px-4 py-3 ${
-                      index < analytics.topRecipes.length - 1 ? 'border-b border-neutral-100' : ''
+                      index < analytics.topRecipes.length - 1 ? 'border-b border-neutral-100 dark:border-neutral-700' : ''
                     }`}
                   >
-                    <Text className="w-6 text-lg font-bold text-neutral-400">
+                    <Text className="w-6 text-lg font-bold text-neutral-400 dark:text-neutral-500">
                       {index + 1}
                     </Text>
                     <View className="flex-1 ml-2">
-                      <Text className="font-medium text-neutral-900" numberOfLines={1}>
+                      <Text className="font-medium text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
                         {recipe.title}
                       </Text>
-                      <Text className="text-sm text-neutral-500">
+                      <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                         {recipe.views || 0} views • {recipe.saveCount || 0} saves
                       </Text>
                     </View>
@@ -230,7 +233,7 @@ export default function AnalyticsScreen() {
           {/* Category Breakdown */}
           {analytics.categoryBreakdown.length > 0 && (
             <>
-              <Text className="text-sm font-medium text-neutral-500 uppercase mb-3">
+              <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
                 Category Breakdown
               </Text>
               <Card>
@@ -242,18 +245,19 @@ export default function AnalyticsScreen() {
                     }`}
                   >
                     <View className="flex-row items-center flex-1">
-                      <Text className="text-neutral-700 capitalize">{item.category}</Text>
+                      <Text className="text-neutral-700 dark:text-neutral-300 capitalize">{item.category}</Text>
                     </View>
                     <View className="flex-row items-center">
                       <View
-                        className="h-2 bg-primary-500 rounded-full mr-2"
+                        className="h-2 rounded-full mr-2"
                         style={{
                           width: (item.count / analytics.totalRecipes) * 100,
                           maxWidth: 100,
                           minWidth: 20,
+                          backgroundColor: colors.accent,
                         }}
                       />
-                      <Text className="text-neutral-500 w-8 text-right">{item.count}</Text>
+                      <Text className="text-neutral-500 dark:text-neutral-400 w-8 text-right">{item.count}</Text>
                     </View>
                   </View>
                 ))}
@@ -284,8 +288,8 @@ const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color }) => (
           <Ionicons name={icon} size={20} color={color} />
         </View>
         <View className="ml-3">
-          <Text className="text-xl font-bold text-neutral-900">{value}</Text>
-          <Text className="text-xs text-neutral-500">{label}</Text>
+          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">{value}</Text>
+          <Text className="text-xs text-neutral-500 dark:text-neutral-400">{label}</Text>
         </View>
       </View>
     </Card>

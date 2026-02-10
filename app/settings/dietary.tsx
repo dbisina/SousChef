@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { Card, Button } from '@/components/ui';
 
 const DIETARY_OPTIONS = [
@@ -37,6 +38,7 @@ const ALLERGY_OPTIONS = [
 
 export default function DietaryPreferencesScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { user, updateUserProfile, isLoading } = useAuthStore();
 
   const [selectedDiets, setSelectedDiets] = useState<string[]>(
@@ -73,13 +75,13 @@ export default function DietaryPreferencesScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 bg-white">
+      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color="#404040" />
+          <Ionicons name="arrow-back" size={24} color={colors.icon} />
         </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 ml-2">
+        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
           Dietary Preferences
         </Text>
       </View>
@@ -97,7 +99,7 @@ export default function DietaryPreferencesScreen() {
           </Card>
 
           {/* Dietary Preferences */}
-          <Text className="text-sm font-medium text-neutral-500 uppercase mb-3">
+          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
             Dietary Preferences
           </Text>
           <View className="flex-row flex-wrap mb-6">
@@ -107,9 +109,10 @@ export default function DietaryPreferencesScreen() {
                 onPress={() => toggleDiet(diet.id)}
                 className={`mr-2 mb-2 px-4 py-2 rounded-full flex-row items-center ${
                   selectedDiets.includes(diet.id)
-                    ? 'bg-primary-500'
-                    : 'bg-white border border-neutral-200'
+                    ? ''
+                    : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'
                 }`}
+                style={selectedDiets.includes(diet.id) ? { backgroundColor: colors.accent } : undefined}
               >
                 <Ionicons
                   name={diet.icon as any}
@@ -118,7 +121,7 @@ export default function DietaryPreferencesScreen() {
                 />
                 <Text
                   className={`ml-2 font-medium ${
-                    selectedDiets.includes(diet.id) ? 'text-white' : 'text-neutral-700'
+                    selectedDiets.includes(diet.id) ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
                   }`}
                 >
                   {diet.label}
@@ -128,7 +131,7 @@ export default function DietaryPreferencesScreen() {
           </View>
 
           {/* Allergies */}
-          <Text className="text-sm font-medium text-neutral-500 uppercase mb-3">
+          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
             Allergies & Intolerances
           </Text>
           <Card padding="none" className="mb-6">
@@ -137,15 +140,15 @@ export default function DietaryPreferencesScreen() {
                 key={allergy.id}
                 onPress={() => toggleAllergy(allergy.id)}
                 className={`flex-row items-center justify-between px-4 py-3 ${
-                  index < ALLERGY_OPTIONS.length - 1 ? 'border-b border-neutral-100' : ''
+                  index < ALLERGY_OPTIONS.length - 1 ? 'border-b border-neutral-100 dark:border-neutral-700' : ''
                 }`}
               >
                 <View className="flex-row items-center">
                   <View
                     className={`w-8 h-8 rounded-full items-center justify-center ${
                       selectedAllergies.includes(allergy.id)
-                        ? 'bg-red-100'
-                        : 'bg-neutral-100'
+                        ? 'bg-red-100 dark:bg-red-900/30'
+                        : 'bg-neutral-100 dark:bg-neutral-700'
                     }`}
                   >
                     <Ionicons
@@ -154,13 +157,13 @@ export default function DietaryPreferencesScreen() {
                       color={selectedAllergies.includes(allergy.id) ? '#EF4444' : '#737373'}
                     />
                   </View>
-                  <Text className="ml-3 text-neutral-900">{allergy.label}</Text>
+                  <Text className="ml-3 text-neutral-900 dark:text-neutral-100">{allergy.label}</Text>
                 </View>
                 <View
                   className={`w-6 h-6 rounded-full border-2 items-center justify-center ${
                     selectedAllergies.includes(allergy.id)
                       ? 'bg-red-500 border-red-500'
-                      : 'border-neutral-300'
+                      : 'border-neutral-300 dark:border-neutral-600'
                   }`}
                 >
                   {selectedAllergies.includes(allergy.id) && (
@@ -173,15 +176,15 @@ export default function DietaryPreferencesScreen() {
 
           {/* Summary */}
           {(selectedDiets.length > 0 || selectedAllergies.length > 0) && (
-            <Card className="bg-neutral-100 mb-6">
-              <Text className="font-semibold text-neutral-900 mb-2">Summary</Text>
+            <Card className="bg-neutral-100 dark:bg-neutral-800 mb-6">
+              <Text className="font-semibold text-neutral-900 dark:text-neutral-100 mb-2">Summary</Text>
               {selectedDiets.length > 0 && (
-                <Text className="text-neutral-600 text-sm">
+                <Text className="text-neutral-600 dark:text-neutral-400 text-sm">
                   Diets: {selectedDiets.map((d) => DIETARY_OPTIONS.find((o) => o.id === d)?.label).join(', ')}
                 </Text>
               )}
               {selectedAllergies.length > 0 && (
-                <Text className="text-neutral-600 text-sm mt-1">
+                <Text className="text-neutral-600 dark:text-neutral-400 text-sm mt-1">
                   Allergies: {selectedAllergies.map((a) => ALLERGY_OPTIONS.find((o) => o.id === a)?.label).join(', ')}
                 </Text>
               )}

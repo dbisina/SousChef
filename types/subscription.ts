@@ -10,10 +10,10 @@ export type EntitlementId = typeof ENTITLEMENTS[keyof typeof ENTITLEMENTS];
 
 // Product identifiers (must match RevenueCat products)
 export const PRODUCT_IDS = {
-  // Premium tier - $9.99/month, $79.99/year
+  // Premium tier - $6.99/month, $49.99/year
   PREMIUM_MONTHLY: 'premium_monthly',
   PREMIUM_ANNUAL: 'premium_yearly',
-  // Pro tier - $19.99/month, $149.99/year
+  // Pro tier - $11.99/month, $89.99/year
   PRO_MONTHLY: 'pro_monthly',
   PRO_ANNUAL: 'pro_yearly',
 } as const;
@@ -56,12 +56,15 @@ export interface TierFeatures {
 }
 
 // Tier feature definitions
+// Free = generous enough to experience the core loop (import → cook)
+// Premium ($6.99) = power user with smart daily caps
+// Pro ($11.99) = everything, high caps (not truly unlimited to protect API costs)
 export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
   free: {
-    maxRecipes: 10,
-    maxPantryItems: 20,
+    maxRecipes: 'unlimited',       // Never gate the core import loop
+    maxPantryItems: 'unlimited',   // Pantry is core to the brief
     aiSubstitutions: true,
-    aiSubstitutionsPerDay: 3,
+    aiSubstitutionsPerDay: 3,      // Taste the AI, then hit the wall
     portionAnalysis: false,
     portionAnalysisPerDay: 0,
     advancedNutrition: false,
@@ -79,7 +82,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     maxRecipes: 'unlimited',
     maxPantryItems: 'unlimited',
     aiSubstitutions: true,
-    aiSubstitutionsPerDay: 20,
+    aiSubstitutionsPerDay: 15,     // Generous but controlled
     portionAnalysis: true,
     portionAnalysisPerDay: 10,
     advancedNutrition: true,
@@ -87,7 +90,7 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     mealPlanGeneration: false,
     wasteTracking: true,
     voiceHandsFree: true,
-    voiceUsagePerDay: 20,
+    voiceUsagePerDay: 15,
     offlineAccess: true,
     adFree: true,
     prioritySupport: false,
@@ -97,15 +100,15 @@ export const TIER_FEATURES: Record<SubscriptionTier, TierFeatures> = {
     maxRecipes: 'unlimited',
     maxPantryItems: 'unlimited',
     aiSubstitutions: true,
-    aiSubstitutionsPerDay: 'unlimited',
+    aiSubstitutionsPerDay: 200,    // Effectively unlimited
     portionAnalysis: true,
-    portionAnalysisPerDay: 'unlimited',
+    portionAnalysisPerDay: 50,
     advancedNutrition: true,
     mealPlanning: true,
     mealPlanGeneration: true,
     wasteTracking: true,
     voiceHandsFree: true,
-    voiceUsagePerDay: 'unlimited',
+    voiceUsagePerDay: 100,
     offlineAccess: true,
     adFree: true,
     prioritySupport: true,
@@ -120,13 +123,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'premium',
     period: 'monthly',
     name: 'Premium',
-    description: '$9.99/month - Enhanced cooking',
+    description: '$6.99/month',
     features: [
-      'Unlimited recipes & pantry',
-      '20 AI substitutions/day',
-      '10 food scans/day',
+      'Unlimited AI substitutions',
+      'Portion scanning & nutrition',
       'Voice hands-free cooking',
       'Meal planning',
+      'Ad-free experience',
     ],
   },
   {
@@ -134,13 +137,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'premium',
     period: 'annual',
     name: 'Premium Annual',
-    description: '$79.99/year - Save 33%',
+    description: '$49.99/year — Save 40%',
     features: [
-      'Unlimited recipes & pantry',
-      '20 AI substitutions/day',
-      '10 food scans/day',
+      'Unlimited AI substitutions',
+      'Portion scanning & nutrition',
       'Voice hands-free cooking',
       'Meal planning',
+      'Ad-free experience',
     ],
   },
   {
@@ -148,12 +151,12 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'pro',
     period: 'monthly',
     name: 'Pro',
-    description: '$19.99/month - Everything unlimited',
+    description: '$11.99/month',
     features: [
       'Everything in Premium',
-      'Unlimited AI features',
       'AI meal plan generation',
       'Zero-waste tracking',
+      'Priority support',
       'Exclusive pro recipes',
     ],
     highlighted: true,
@@ -163,12 +166,12 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     tier: 'pro',
     period: 'annual',
     name: 'Pro Annual',
-    description: '$149.99/year - Save 37%',
+    description: '$89.99/year — Save 37%',
     features: [
       'Everything in Premium',
-      'Unlimited AI features',
       'AI meal plan generation',
       'Zero-waste tracking',
+      'Priority support',
       'Exclusive pro recipes',
     ],
   },

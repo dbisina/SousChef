@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useMealPlan, useMealPlanStats, useMealPlanAccess } from '@/hooks/useMealPlan';
 import { usePantryStore } from '@/stores/pantryStore';
 import { useRecipeStore } from '@/stores/recipeStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { WeekView, PlanGenerator, SavingsDisplay } from '@/components/mealplan';
 import { Loading, Empty, Card, Button } from '@/components/ui';
 import { Paywall, FeatureGate } from '@/components/subscription';
@@ -14,6 +15,7 @@ import { MealType } from '@/types/mealplan';
 
 export default function MealPlanScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { getExpiringItems, getExpiredItems } = usePantryStore();
   const { recipes } = useRecipeStore();
 
@@ -116,15 +118,15 @@ export default function MealPlanScreen() {
   // Show paywall for free users
   if (!canView) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50">
+      <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900">
         <View className="flex-1 items-center justify-center p-8">
-          <View className="w-20 h-20 rounded-full bg-primary-100 items-center justify-center mb-6">
-            <Ionicons name="calendar-outline" size={40} color="#FF6B35" />
+          <View className="w-20 h-20 rounded-full items-center justify-center mb-6" style={{ backgroundColor: colors.accent + '20' }}>
+            <Ionicons name="calendar-outline" size={40} color={colors.accent} />
           </View>
-          <Text className="text-2xl font-bold text-neutral-900 text-center mb-2">
+          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 text-center mb-2">
             Meal Planning
           </Text>
-          <Text className="text-neutral-500 text-center mb-6">
+          <Text className="text-neutral-500 dark:text-neutral-400 text-center mb-6">
             Plan your meals for the week, reduce food waste, and save money with
             smart shopping lists.
           </Text>
@@ -149,10 +151,10 @@ export default function MealPlanScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-neutral-100">
-        <Text className="text-2xl font-bold text-neutral-900">Meal Plan</Text>
+      <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700">
+        <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">Meal Plan</Text>
         <View className="flex-row">
           {/* Shopping list button */}
           {currentPlan && currentPlan.shoppingList.length > 0 && (
@@ -161,8 +163,8 @@ export default function MealPlanScreen() {
               className="mr-2 p-2"
             >
               <View className="relative">
-                <Ionicons name="cart-outline" size={24} color="#FF6B35" />
-                <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary-500 items-center justify-center">
+                <Ionicons name="cart-outline" size={24} color={colors.accent} />
+                <View className="absolute -top-1 -right-1 w-4 h-4 rounded-full items-center justify-center" style={{ backgroundColor: colors.accent }}>
                   <Text className="text-white text-xs font-bold">
                     {currentPlan.shoppingList.filter((i) => !i.checked).length}
                   </Text>
@@ -183,8 +185,8 @@ export default function MealPlanScreen() {
 
       {/* Error display */}
       {error && (
-        <View className="mx-4 mt-4 p-4 bg-red-50 rounded-xl border border-red-200">
-          <Text className="text-red-600">{error}</Text>
+        <View className="mx-4 mt-4 p-4 bg-red-50 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800">
+          <Text className="text-red-600 dark:text-red-400">{error}</Text>
         </View>
       )}
 
@@ -215,30 +217,30 @@ export default function MealPlanScreen() {
           />
 
           {/* Stats summary */}
-          <View className="px-4 py-3 bg-white border-t border-neutral-100">
+          <View className="px-4 py-3 bg-white dark:bg-neutral-800 border-t border-neutral-100 dark:border-neutral-700">
             <View className="flex-row justify-between items-center">
               <View className="items-center">
-                <Text className="text-lg font-bold text-neutral-900">
+                <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
                   {stats.totalMeals}
                 </Text>
-                <Text className="text-xs text-neutral-500">Meals</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-400">Meals</Text>
               </View>
               <View className="items-center">
-                <Text className="text-lg font-bold text-neutral-900">
+                <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
                   {stats.uniqueRecipes}
                 </Text>
-                <Text className="text-xs text-neutral-500">Recipes</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-400">Recipes</Text>
               </View>
               <View className="items-center">
-                <Text className="text-lg font-bold text-secondary-600">
+                <Text className="text-lg font-bold text-secondary-600 dark:text-secondary-400">
                   {stats.ingredientOverlap}%
                 </Text>
-                <Text className="text-xs text-neutral-500">Overlap</Text>
+                <Text className="text-xs text-neutral-500 dark:text-neutral-400">Overlap</Text>
               </View>
               <TouchableOpacity onPress={handleClearPlan}>
                 <View className="flex-row items-center">
-                  <Ionicons name="refresh-outline" size={20} color="#737373" />
-                  <Text className="text-neutral-500 ml-1">Reset</Text>
+                  <Ionicons name="refresh-outline" size={20} color={colors.textMuted} />
+                  <Text className="text-neutral-500 dark:text-neutral-400 ml-1">Reset</Text>
                 </View>
               </TouchableOpacity>
             </View>
@@ -246,13 +248,13 @@ export default function MealPlanScreen() {
         </ScrollView>
       ) : (
         <View className="flex-1 items-center justify-center p-8">
-          <View className="w-24 h-24 rounded-full bg-neutral-100 items-center justify-center mb-6">
-            <Ionicons name="restaurant-outline" size={48} color="#D4D4D4" />
+          <View className="w-24 h-24 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center mb-6">
+            <Ionicons name="restaurant-outline" size={48} color={colors.textMuted} />
           </View>
-          <Text className="text-xl font-bold text-neutral-900 text-center mb-2">
+          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50 text-center mb-2">
             No Meal Plan Yet
           </Text>
-          <Text className="text-neutral-500 text-center mb-6">
+          <Text className="text-neutral-500 dark:text-neutral-400 text-center mb-6">
             Generate an AI-optimized meal plan based on your pantry and
             preferences.
           </Text>
@@ -283,7 +285,7 @@ export default function MealPlanScreen() {
           />
 
           {!canGenerate.allowed && (
-            <Text className="text-neutral-400 text-sm mt-2 text-center">
+            <Text className="text-neutral-400 dark:text-neutral-500 text-sm mt-2 text-center">
               Pro subscription required for AI generation
             </Text>
           )}
@@ -294,7 +296,8 @@ export default function MealPlanScreen() {
       {currentPlan && canGenerate.allowed && (
         <TouchableOpacity
           onPress={() => setShowGenerator(true)}
-          className="absolute bottom-6 right-6 w-14 h-14 rounded-full bg-primary-500 items-center justify-center shadow-lg"
+          className="absolute bottom-6 right-6 w-14 h-14 rounded-full items-center justify-center shadow-lg"
+          style={{ backgroundColor: colors.accent }}
         >
           <Ionicons name="sparkles" size={24} color="white" />
         </TouchableOpacity>

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSubscription, useRemainingUsage } from '@/hooks/useSubscription';
 import { PremiumBadge } from './PremiumBadge';
+import { useThemeColors } from '@/stores/themeStore';
 import { UsageIndicator } from './UsageIndicator';
 
 interface SubscriptionCardProps {
@@ -16,6 +17,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   onManagePress,
   showUsage = true,
 }) => {
+  const colors = useThemeColors();
   const { subscriptionTier, isSubscribed, tierName, tierColor, openManagement } =
     useSubscription();
   const { remainingAI, remainingPortion } = useRemainingUsage();
@@ -29,7 +31,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   };
 
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm border border-neutral-100">
+    <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm border border-neutral-100 dark:border-neutral-700">
       {/* Header */}
       <View className="flex-row items-center justify-between mb-4">
         <View className="flex-row items-center">
@@ -39,7 +41,7 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
                 ? 'bg-purple-100'
                 : subscriptionTier === 'premium'
                 ? 'bg-primary-100'
-                : 'bg-neutral-100'
+                : 'bg-neutral-100 dark:bg-neutral-700'
             }`}
           >
             <Ionicons
@@ -56,12 +58,12 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           </View>
           <View className="ml-3">
             <View className="flex-row items-center">
-              <Text className="text-lg font-bold text-neutral-900">{tierName}</Text>
+              <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">{tierName}</Text>
               {isSubscribed && (
                 <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} />
               )}
             </View>
-            <Text className="text-sm text-neutral-500">
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400">
               {isSubscribed ? 'Active subscription' : 'Free plan'}
             </Text>
           </View>
@@ -70,14 +72,15 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
         {isSubscribed ? (
           <TouchableOpacity
             onPress={handleManagePress}
-            className="px-3 py-2 rounded-lg bg-neutral-100"
+            className="px-3 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-700"
           >
-            <Text className="text-sm font-medium text-neutral-700">Manage</Text>
+            <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Manage</Text>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
             onPress={onUpgradePress}
-            className="px-3 py-2 rounded-lg bg-primary-500"
+            className="px-3 py-2 rounded-lg"
+            style={{ backgroundColor: colors.accent }}
           >
             <Text className="text-sm font-medium text-white">Upgrade</Text>
           </TouchableOpacity>
@@ -86,8 +89,8 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
 
       {/* Usage Section */}
       {showUsage && (
-        <View className="pt-4 border-t border-neutral-100">
-          <Text className="text-sm font-medium text-neutral-500 mb-3">
+        <View className="pt-4 border-t border-neutral-100 dark:border-neutral-700">
+          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">
             Daily Usage
           </Text>
           <View className="space-y-3">
@@ -111,16 +114,16 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
           onPress={onUpgradePress}
           className="mt-4 p-3 bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl flex-row items-center"
         >
-          <Ionicons name="rocket" size={20} color="#FF6B35" />
+          <Ionicons name="rocket" size={20} color={colors.accent} />
           <View className="flex-1 ml-3">
-            <Text className="text-sm font-medium text-neutral-900">
+            <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
               Unlock all features
             </Text>
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-neutral-500 dark:text-neutral-400">
               Get unlimited AI substitutions and more
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={20} color="#737373" />
+          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
         </TouchableOpacity>
       )}
     </View>

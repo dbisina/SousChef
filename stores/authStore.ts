@@ -20,6 +20,7 @@ interface AuthState {
   user: User | null;
   isLoading: boolean;
   isInitialized: boolean;
+  isGuest: boolean;
   error: string | null;
 
   // Actions
@@ -36,18 +37,33 @@ interface AuthState {
   fetchUserData: (uid: string) => Promise<User | null>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
   deleteAccount: () => Promise<void>;
+  continueAsGuest: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   isLoading: false,
   isInitialized: false,
+  isGuest: false,
   error: null,
 
-  setUser: (user) => set({ user }),
+  setUser: (user) => set({ user, isGuest: false }),
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
   setInitialized: (isInitialized) => set({ isInitialized }),
+
+  continueAsGuest: () => {
+    const guestUser: User = {
+      id: 'guest-' + Date.now(),
+      email: '',
+      displayName: 'Guest Chef',
+      role: 'user' as UserRole,
+      createdAt: Timestamp.now(),
+      savedRecipes: [],
+      dietaryPreferences: [],
+    };
+    set({ user: guestUser, isGuest: true, isInitialized: true });
+  },
 
   signUp: async (email, password, displayName) => {
     set({ isLoading: true, error: null });

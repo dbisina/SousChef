@@ -4,6 +4,7 @@ import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface CameraCaptureProps {
   visible: boolean;
@@ -24,6 +25,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const colors = useThemeColors();
 
   const handleCapture = async () => {
     if (cameraRef.current) {
@@ -90,11 +92,11 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
         {!permission.granted ? (
           // Permission request
           <View className="flex-1 items-center justify-center px-8">
-            <Ionicons name="camera-outline" size={64} color="#737373" />
+            <Ionicons name="camera-outline" size={64} color={colors.textMuted} />
             <Text className="text-white text-lg font-semibold mt-4 text-center">
               Camera Permission Required
             </Text>
-            <Text className="text-neutral-400 text-center mt-2 mb-6">
+            <Text className="text-neutral-400 dark:text-neutral-500 text-center mt-2 mb-6">
               We need camera access to analyze your ingredients
             </Text>
             <Button title="Grant Permission" onPress={requestPermission} />
@@ -120,7 +122,8 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
                 <TouchableOpacity
                   onPress={handleConfirm}
-                  className="w-20 h-20 rounded-full bg-primary-500 items-center justify-center"
+                  className="w-20 h-20 rounded-full items-center justify-center"
+                  style={{ backgroundColor: colors.accent }}
                 >
                   <Ionicons name="checkmark" size={36} color="white" />
                 </TouchableOpacity>

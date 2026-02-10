@@ -97,7 +97,12 @@ export const useVoiceControl = () => {
             setTranscript(text);
           },
           onSpeechError: (voiceError) => {
-            setError(voiceError.message);
+            // Don't show timeout/no-match errors to user - these are common in noisy environments
+            if (voiceError.type === 'timeout' || voiceError.type === 'recognition_error') {
+              console.log('[Voice] Recognition ended:', voiceError.type);
+            } else {
+              setError(voiceError.message);
+            }
             setListening(false);
           },
           onWakeWordDetected: async (commandText) => {
@@ -159,7 +164,7 @@ export const useVoiceControl = () => {
       // If wake word mode was enabled, restart it
       const { isWakeWordMode: wakeMode } = useVoiceStore.getState();
       if (wakeMode) {
-        const started = await startWakeWordListening(() => {});
+        const started = await startWakeWordListening(() => { });
         setWakeWordListening(started);
       }
     }
@@ -194,7 +199,7 @@ export const useVoiceControl = () => {
   // Start listening for voice commands
   const startVoiceListening = useCallback(async (): Promise<boolean> => {
     if (!isInitialized) {
-      setError('Voice recognition not available');
+      setError('Voice recognition not available. Requires a production or development build.');
       return false;
     }
 
@@ -260,7 +265,7 @@ export const useVoiceControl = () => {
   const enableWakeWordMode = useCallback(
     async (onWakeWord?: (command: string) => void): Promise<boolean> => {
       if (!isInitialized) {
-        setError('Voice recognition not available');
+        setError('Voice recognition not available. Requires a production or development build.');
         return false;
       }
 

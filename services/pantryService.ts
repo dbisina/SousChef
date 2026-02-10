@@ -49,9 +49,13 @@ export const addPantryItem = async (
     amount: data.amount,
     unit: data.unit,
     category: data.category,
-    expiryDate: data.expiryDate ? Timestamp.fromDate(data.expiryDate) : undefined,
     addedAt: Timestamp.now(),
   };
+
+  // Only include expiryDate if it has a value — Firestore rejects undefined
+  if (data.expiryDate) {
+    itemData.expiryDate = Timestamp.fromDate(data.expiryDate);
+  }
 
   await setDoc(doc(getPantryCollection(userId), itemId), itemData);
   return itemData;
@@ -63,10 +67,14 @@ export const updatePantryItem = async (
   itemId: string,
   data: Partial<PantryItemFormData>
 ): Promise<void> => {
-  const updateData: Partial<PantryItem> = {
-    ...data,
-    expiryDate: data.expiryDate ? Timestamp.fromDate(data.expiryDate) : undefined,
-  };
+  const { expiryDate, ...rest } = data;
+  const updateData: Partial<PantryItem> = { ...rest };
+
+  // Only include expiryDate if explicitly set — Firestore rejects undefined
+  if (expiryDate) {
+    updateData.expiryDate = Timestamp.fromDate(expiryDate);
+  }
+
   await setDoc(doc(getPantryCollection(userId), itemId), updateData, { merge: true });
 };
 

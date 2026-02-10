@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 import { MealPlanPreferences, MealType, DEFAULT_MEAL_PLAN_PREFERENCES } from '@/types/mealplan';
 import { Button, Card } from '@/components/ui';
 
@@ -30,6 +31,7 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
   const [preferences, setPreferences] = useState<MealPlanPreferences>(
     DEFAULT_MEAL_PLAN_PREFERENCES
   );
+  const colors = useThemeColors();
 
   const handleMealTypeToggle = (mealType: MealType) => {
     const current = preferences.mealsToInclude;
@@ -65,13 +67,13 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white dark:bg-neutral-800">
         {/* Header */}
-        <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-100">
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-700">
           <TouchableOpacity onPress={onClose}>
-            <Text className="text-neutral-500">Cancel</Text>
+            <Text className="text-neutral-500 dark:text-neutral-400">Cancel</Text>
           </TouchableOpacity>
-          <Text className="text-lg font-bold text-neutral-900">
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
             Generate Meal Plan
           </Text>
           <View style={{ width: 60 }} />
@@ -102,28 +104,28 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
             <Card className="mb-4">
               <View className="flex-row items-center justify-between">
                 <View>
-                  <Text className="text-base font-medium text-neutral-900">
+                  <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50">
                     Servings per meal
                   </Text>
-                  <Text className="text-sm text-neutral-500">
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                     How many people are you cooking for?
                   </Text>
                 </View>
                 <View className="flex-row items-center">
                   <TouchableOpacity
                     onPress={() => handleServingsChange(-1)}
-                    className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
                   >
-                    <Ionicons name="remove" size={20} color="#404040" />
+                    <Ionicons name="remove" size={20} color={colors.icon} />
                   </TouchableOpacity>
-                  <Text className="mx-4 text-xl font-bold text-neutral-900 w-8 text-center">
+                  <Text className="mx-4 text-xl font-bold text-neutral-900 dark:text-neutral-50 w-8 text-center">
                     {preferences.servingsPerMeal}
                   </Text>
                   <TouchableOpacity
                     onPress={() => handleServingsChange(1)}
-                    className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
                   >
-                    <Ionicons name="add" size={20} color="#404040" />
+                    <Ionicons name="add" size={20} color={colors.icon} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -133,28 +135,28 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
             <Card className="mb-4">
               <View className="flex-row items-center justify-between">
                 <View>
-                  <Text className="text-base font-medium text-neutral-900">
+                  <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50">
                     Days to plan
                   </Text>
-                  <Text className="text-sm text-neutral-500">
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                     How far ahead to plan?
                   </Text>
                 </View>
                 <View className="flex-row items-center">
                   <TouchableOpacity
                     onPress={() => handleDaysChange(-1)}
-                    className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
                   >
-                    <Ionicons name="remove" size={20} color="#404040" />
+                    <Ionicons name="remove" size={20} color={colors.icon} />
                   </TouchableOpacity>
-                  <Text className="mx-4 text-xl font-bold text-neutral-900 w-8 text-center">
+                  <Text className="mx-4 text-xl font-bold text-neutral-900 dark:text-neutral-50 w-8 text-center">
                     {preferences.daysToGenerate}
                   </Text>
                   <TouchableOpacity
                     onPress={() => handleDaysChange(1)}
-                    className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
                   >
-                    <Ionicons name="add" size={20} color="#404040" />
+                    <Ionicons name="add" size={20} color={colors.icon} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -162,7 +164,7 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
 
             {/* Meals to include */}
             <Card className="mb-4">
-              <Text className="text-base font-medium text-neutral-900 mb-3">
+              <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50 mb-3">
                 Meals to include
               </Text>
               <View className="flex-row flex-wrap">
@@ -175,13 +177,14 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
                         onPress={() => handleMealTypeToggle(mealType)}
                         className={`mr-2 mb-2 px-4 py-2 rounded-full border ${
                           isSelected
-                            ? 'bg-primary-500 border-primary-500'
-                            : 'bg-white border-neutral-300'
+                            ? 'border-transparent'
+                            : 'bg-white dark:bg-neutral-800 border-neutral-300'
                         }`}
+                        style={isSelected ? { backgroundColor: colors.accent, borderColor: colors.accent } : undefined}
                       >
                         <Text
                           className={`font-medium capitalize ${
-                            isSelected ? 'text-white' : 'text-neutral-600'
+                            isSelected ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'
                           }`}
                         >
                           {mealType}
@@ -195,16 +198,16 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
 
             {/* Optimization options */}
             <Card className="mb-4">
-              <Text className="text-base font-medium text-neutral-900 mb-3">
+              <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50 mb-3">
                 Optimization options
               </Text>
 
-              <View className="flex-row items-center justify-between py-2 border-b border-neutral-100">
+              <View className="flex-row items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-700">
                 <View className="flex-1">
-                  <Text className="text-neutral-800">
+                  <Text className="text-neutral-800 dark:text-neutral-100">
                     Prioritize expiring items
                   </Text>
-                  <Text className="text-sm text-neutral-500">
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                     Use items about to expire first
                   </Text>
                 </View>
@@ -213,17 +216,17 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
                   onValueChange={(value) =>
                     setPreferences({ ...preferences, prioritizeExpiring: value })
                   }
-                  trackColor={{ false: '#E5E5E5', true: '#FF6B35' }}
+                  trackColor={{ false: '#E5E5E5', true: colors.accent }}
                   thumbColor="white"
                 />
               </View>
 
-              <View className="flex-row items-center justify-between py-2 border-b border-neutral-100">
+              <View className="flex-row items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-700">
                 <View className="flex-1">
-                  <Text className="text-neutral-800">
+                  <Text className="text-neutral-800 dark:text-neutral-100">
                     Maximize ingredient overlap
                   </Text>
-                  <Text className="text-sm text-neutral-500">
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                     Reuse ingredients across meals
                   </Text>
                 </View>
@@ -232,15 +235,15 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
                   onValueChange={(value) =>
                     setPreferences({ ...preferences, maximizeOverlap: value })
                   }
-                  trackColor={{ false: '#E5E5E5', true: '#FF6B35' }}
+                  trackColor={{ false: '#E5E5E5', true: colors.accent }}
                   thumbColor="white"
                 />
               </View>
 
               <View className="flex-row items-center justify-between py-2">
                 <View className="flex-1">
-                  <Text className="text-neutral-800">Budget-friendly</Text>
-                  <Text className="text-sm text-neutral-500">
+                  <Text className="text-neutral-800 dark:text-neutral-100">Budget-friendly</Text>
+                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                     Prefer cheaper ingredients
                   </Text>
                 </View>
@@ -249,7 +252,7 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
                   onValueChange={(value) =>
                     setPreferences({ ...preferences, budgetFriendly: value })
                   }
-                  trackColor={{ false: '#E5E5E5', true: '#FF6B35' }}
+                  trackColor={{ false: '#E5E5E5', true: colors.accent }}
                   thumbColor="white"
                 />
               </View>
@@ -258,12 +261,12 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
             {/* Info card */}
             <Card className="bg-primary-50 border border-primary-200">
               <View className="flex-row">
-                <Ionicons name="sparkles" size={20} color="#FF6B35" />
+                <Ionicons name="sparkles" size={20} color={colors.accent} />
                 <View className="flex-1 ml-3">
-                  <Text className="text-primary-800 font-medium">
+                  <Text className="font-medium" style={{ color: colors.accent }}>
                     AI-Powered Optimization
                   </Text>
-                  <Text className="text-primary-600 text-sm mt-1">
+                  <Text className="text-sm mt-1" style={{ color: colors.accent }}>
                     Our AI will analyze your pantry, expiring items, and recipe
                     collection to create the most efficient meal plan possible.
                   </Text>
@@ -274,7 +277,7 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
         </ScrollView>
 
         {/* Generate button */}
-        <View className="p-4 border-t border-neutral-100">
+        <View className="p-4 border-t border-neutral-100 dark:border-neutral-700">
           <Button
             title={isGenerating ? 'Generating...' : 'Generate Meal Plan'}
             onPress={() => onGenerate(preferences)}

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ingredient } from '@/types';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRecipe } from '@/hooks/useRecipes';
 import { usePortionAnalysis, useCookingTips } from '@/hooks/useAI';
@@ -19,6 +19,7 @@ import { CameraCapture, PortionAnalysisResult, PortionAnalysisLoading } from '@/
 import { IngredientList, CookingModeInstruction, NutritionCard } from '@/components/recipe';
 import { Loading, Card, Button } from '@/components/ui';
 import { Paywall, UsageBadge } from '@/components/subscription';
+import { useThemeColors } from '@/stores/themeStore';
 import { VoiceButton, VoiceOverlay, FloatingTimerStrip } from '@/components/voice';
 import { formatInstructionForSpeech } from '@/services/voiceService';
 
@@ -27,6 +28,7 @@ type CookingStage = 'prep' | 'cooking' | 'done';
 export default function CookingModeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { recipe, isLoading } = useRecipe(id);
   const { tips, fetchTips } = useCookingTips();
   const { result: portionResult, isAnalyzing, analyzeImage, clear: clearPortionResult, accessDenied } = usePortionAnalysis();
@@ -74,6 +76,8 @@ export default function CookingModeScreen() {
   const [paywallFeature, setPaywallFeature] = useState<'Portion Analysis' | 'Voice Hands-Free'>('Portion Analysis');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [servings, setServings] = useState(4);
+
+  const colors = useThemeColors();
 
   useEffect(() => {
     if (recipe) {
@@ -221,7 +225,7 @@ export default function CookingModeScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['left', 'right', 'top', 'bottom']}>
+    <View className="flex-1 bg-white dark:bg-neutral-900">
       {/* Floating timer strip */}
       {timers.length > 0 && (
         <FloatingTimerStrip
@@ -234,15 +238,18 @@ export default function CookingModeScreen() {
       )}
 
       {/* Header */}
-      <View className={`flex-row items-center justify-between px-4 py-3 border-b border-neutral-100 ${timers.length > 0 ? 'mt-14' : ''}`}>
+      <View 
+        className={`flex-row items-center justify-between px-4 pb-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-900 z-10 ${timers.length > 0 ? 'mt-14' : ''}`}
+        style={{ paddingTop: insets.top + (timers.length > 0 ? 0 : 12) }}
+      >
         <TouchableOpacity onPress={handleExit}>
-          <Ionicons name="close" size={28} color="#404040" />
+          <Ionicons name="close" size={28} color={colors.icon} />
         </TouchableOpacity>
         <View className="items-center flex-1 mx-4">
-          <Text className="text-lg font-bold text-neutral-900" numberOfLines={1}>
+          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50" numberOfLines={1}>
             {recipe.title}
           </Text>
-          <Text className="text-sm text-neutral-500">
+          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
             {stage === 'prep'
               ? 'Preparation'
               : stage === 'cooking'
@@ -262,7 +269,7 @@ export default function CookingModeScreen() {
                   <Ionicons
                     name={isWakeWordMode ? 'radio' : isListening ? 'mic' : 'mic-outline'}
                     size={26}
-                    color={isWakeWordMode ? '#22C55E' : isListening ? '#FF6B35' : remainingVoice === 0 ? '#D4D4D4' : '#FF6B35'}
+                    color={isWakeWordMode ? '#22C55E' : isListening ? colors.accent : remainingVoice === 0 ? '#D4D4D4' : colors.accent}
                   />
                   {isWakeWordListening && (
                     <View className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-white" />
@@ -274,7 +281,7 @@ export default function CookingModeScreen() {
           {/* Camera button */}
           <TouchableOpacity onPress={() => setShowCamera(true)} className="flex-row items-center">
             <UsageBadge remaining={remainingPortion} size="small" />
-            <Ionicons name="camera-outline" size={26} color="#FF6B35" style={{ marginLeft: 4 }} />
+            <Ionicons name="camera-outline" size={26} color={colors.accent} style={{ marginLeft: 4 }} />
           </TouchableOpacity>
         </View>
       </View>
@@ -293,24 +300,24 @@ export default function CookingModeScreen() {
             {/* Servings adjuster */}
             <Card className="mb-4">
               <View className="flex-row items-center justify-between">
-                <Text className="text-base font-medium text-neutral-900">
+                <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50">
                   Servings
                 </Text>
                 <View className="flex-row items-center">
                   <TouchableOpacity
                     onPress={() => adjustServings(-1)}
-                    className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
                   >
-                    <Ionicons name="remove" size={20} color="#404040" />
+                    <Ionicons name="remove" size={20} color={colors.icon} />
                   </TouchableOpacity>
-                  <Text className="mx-4 text-xl font-bold text-neutral-900 w-8 text-center">
+                  <Text className="mx-4 text-xl font-bold text-neutral-900 dark:text-neutral-50 w-8 text-center">
                     {servings}
                   </Text>
                   <TouchableOpacity
                     onPress={() => adjustServings(1)}
-                    className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+                    className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-700 items-center justify-center"
                   >
-                    <Ionicons name="add" size={20} color="#404040" />
+                    <Ionicons name="add" size={20} color={colors.icon} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -318,17 +325,17 @@ export default function CookingModeScreen() {
 
             {/* Voice hint card with hands-free toggle */}
             {voiceInitialized && remainingVoice !== 0 && (
-              <Card className={`mb-4 border ${isWakeWordMode ? 'bg-green-50 border-green-200' : 'bg-primary-50 border-primary-200'}`}>
+              <Card className={`mb-4 border ${isWakeWordMode ? 'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800' : 'border'}`} style={!isWakeWordMode ? { backgroundColor: colors.accent + '15', borderColor: colors.accent + '40' } : undefined}>
                 <View className="flex-row items-center justify-between">
                   <View className="flex-row items-center flex-1">
-                    <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${isWakeWordMode ? 'bg-green-100' : 'bg-primary-100'}`}>
-                      <Ionicons name={isWakeWordMode ? 'radio' : 'mic'} size={20} color={isWakeWordMode ? '#22C55E' : '#FF6B35'} />
+                    <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${isWakeWordMode ? 'bg-green-100 dark:bg-green-900' : ''}`} style={!isWakeWordMode ? { backgroundColor: colors.accent + '25' } : undefined}>
+                      <Ionicons name={isWakeWordMode ? 'radio' : 'mic'} size={20} color={isWakeWordMode ? '#22C55E' : colors.accent} />
                     </View>
                     <View className="flex-1">
-                      <Text className={`font-semibold ${isWakeWordMode ? 'text-green-800' : 'text-primary-800'}`}>
+                      <Text className={`font-semibold ${isWakeWordMode ? 'text-green-800 dark:text-green-300' : ''}`} style={!isWakeWordMode ? { color: colors.accent } : undefined}>
                         {isWakeWordMode ? 'Hands-Free Mode Active' : 'Voice Control Available'}
                       </Text>
-                      <Text className={`text-sm ${isWakeWordMode ? 'text-green-600' : 'text-primary-600'}`}>
+                      <Text className={`text-sm ${isWakeWordMode ? 'text-green-600 dark:text-green-400' : 'text-neutral-500 dark:text-neutral-400'}`}>
                         {isWakeWordMode
                           ? 'Say "SousChef" followed by a command'
                           : 'Enable hands-free or tap mic to use voice'}
@@ -337,15 +344,16 @@ export default function CookingModeScreen() {
                   </View>
                   <TouchableOpacity
                     onPress={handleToggleHandsFreeMode}
-                    className={`px-3 py-2 rounded-lg ${isWakeWordMode ? 'bg-green-200' : 'bg-primary-200'}`}
+                    className={`px-3 py-2 rounded-lg ${isWakeWordMode ? 'bg-green-200 dark:bg-green-800' : ''}`}
+                    style={!isWakeWordMode ? { backgroundColor: colors.accent + '30' } : undefined}
                   >
-                    <Text className={`font-semibold text-sm ${isWakeWordMode ? 'text-green-800' : 'text-primary-800'}`}>
+                    <Text className={`font-semibold text-sm ${isWakeWordMode ? 'text-green-800 dark:text-green-300' : ''}`} style={!isWakeWordMode ? { color: colors.accent } : undefined}>
                       {isWakeWordMode ? 'Disable' : 'Hands-Free'}
                     </Text>
                   </TouchableOpacity>
                 </View>
                 {isWakeWordListening && (
-                  <View className="flex-row items-center mt-2 pt-2 border-t border-green-200">
+                  <View className="flex-row items-center mt-2 pt-2 border-t border-green-200 dark:border-green-700">
                     <View className="w-2 h-2 rounded-full bg-green-500 mr-2" />
                     <Text className="text-green-700 text-xs">
                       Listening for "SousChef"...
@@ -373,7 +381,7 @@ export default function CookingModeScreen() {
             )}
 
             {/* Ingredients checklist */}
-            <Text className="text-xl font-bold text-neutral-900 mb-3">
+            <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50 mb-3">
               Gather Your Ingredients
               {servings !== recipe.servings && (
                 <Text className="text-sm font-normal text-primary-500">
@@ -393,7 +401,7 @@ export default function CookingModeScreen() {
             {/* Captured image preview (shown during and after analysis) */}
             {capturedImage && !portionResult && !accessDenied && (
               <View className="mt-4">
-                <Text className="text-lg font-bold text-neutral-900 mb-3">
+                <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
                   {isAnalyzing ? 'Analyzing Your Photo...' : 'Captured Photo'}
                 </Text>
                 <Card>
@@ -409,7 +417,7 @@ export default function CookingModeScreen() {
             {/* Portion analysis result */}
             {portionResult && capturedImage && (
               <View className="mt-4">
-                <Text className="text-lg font-bold text-neutral-900 mb-3">
+                <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
                   Portion Analysis
                 </Text>
                 <PortionAnalysisResult
@@ -501,10 +509,10 @@ export default function CookingModeScreen() {
           {/* Quick ingredient reference */}
           <TouchableOpacity
             onPress={() => setStage('prep')}
-            className="flex-row items-center justify-center py-3 bg-neutral-100 rounded-xl mt-2"
+            className="flex-row items-center justify-center py-3 bg-neutral-100 dark:bg-neutral-800 rounded-xl mt-2"
           >
-            <Ionicons name="list" size={20} color="#737373" />
-            <Text className="text-neutral-600 ml-2">View Ingredients</Text>
+            <Ionicons name="list" size={20} color={colors.textMuted} />
+            <Text className="text-neutral-600 dark:text-neutral-400 ml-2">View Ingredients</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -515,10 +523,10 @@ export default function CookingModeScreen() {
             <View className="w-24 h-24 rounded-full bg-secondary-100 items-center justify-center mb-6">
               <Ionicons name="checkmark-circle" size={60} color="#22C55E" />
             </View>
-            <Text className="text-2xl font-bold text-neutral-900 mb-2">
+            <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 mb-2">
               Great job, Chef!
             </Text>
-            <Text className="text-neutral-500 text-center mb-8">
+            <Text className="text-neutral-500 dark:text-neutral-400 text-center mb-8">
               You've completed {recipe.title}. Enjoy your meal!
             </Text>
 
@@ -594,6 +602,6 @@ export default function CookingModeScreen() {
             : accessDenied?.upgradeRequired || 'premium'
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }

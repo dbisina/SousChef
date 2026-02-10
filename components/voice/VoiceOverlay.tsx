@@ -7,11 +7,13 @@ import {
   Animated,
   StyleSheet,
   Dimensions,
+  useColorScheme,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { VoiceListeningState, VoiceParseResult, VOICE_COMMAND_EXAMPLES } from '@/types/voice';
 import { VoiceButton } from './VoiceButton';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface VoiceOverlayProps {
   visible: boolean;
@@ -47,6 +49,8 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
   onToggleWakeWordMode,
 }) => {
   const waveAnim = useRef(new Animated.Value(0)).current;
+  const colors = useThemeColors();
+  const colorScheme = useColorScheme();
 
   // Wave animation while listening
   useEffect(() => {
@@ -106,14 +110,14 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <BlurView intensity={80} style={styles.container}>
+      <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={[styles.container, colorScheme === 'dark' && styles.containerDark]}>
         {/* Close button */}
         <TouchableOpacity
           onPress={onClose}
           className="absolute top-16 right-6 p-2"
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="close" size={28} color="#404040" />
+          <Ionicons name="close" size={28} color={colors.icon} />
         </TouchableOpacity>
 
         {/* Main content */}
@@ -161,11 +165,11 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
           {/* Transcript display */}
           <View className="mt-8 min-h-[60px] items-center">
             {transcript ? (
-              <Text className="text-xl text-neutral-900 text-center font-medium">
+              <Text className="text-xl text-neutral-900 dark:text-neutral-100 text-center font-medium">
                 "{transcript}"
               </Text>
             ) : (
-              <Text className="text-lg text-neutral-500 text-center">
+              <Text className="text-lg text-neutral-500 dark:text-neutral-400 text-center">
                 {getStatusMessage()}
               </Text>
             )}
@@ -189,7 +193,7 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
 
           {/* Command hints */}
           <View className="mt-12 w-full">
-            <Text className="text-sm text-neutral-500 text-center mb-3">
+            <Text className="text-sm text-neutral-500 dark:text-neutral-400 text-center mb-3">
               Try saying:
             </Text>
             <View className="flex-row flex-wrap justify-center gap-2">
@@ -199,9 +203,9 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
               ).map((hint) => (
                 <View
                   key={hint}
-                  className="bg-neutral-100 px-3 py-1.5 rounded-full"
+                  className="bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-full"
                 >
-                  <Text className="text-neutral-600 text-sm">"{hint}"</Text>
+                  <Text className="text-neutral-600 dark:text-neutral-400 text-sm">"{hint}"</Text>
                 </View>
               ))}
             </View>
@@ -212,19 +216,19 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
             <TouchableOpacity
               onPress={onToggleWakeWordMode}
               className={`mt-8 flex-row items-center px-5 py-3 rounded-xl ${
-                isWakeWordMode ? 'bg-green-100' : 'bg-neutral-100'
+                isWakeWordMode ? 'bg-green-100' : 'bg-neutral-100 dark:bg-neutral-800'
               }`}
             >
               <Ionicons
                 name={isWakeWordMode ? 'radio' : 'radio-outline'}
                 size={24}
-                color={isWakeWordMode ? '#22C55E' : '#737373'}
+                color={isWakeWordMode ? '#22C55E' : colors.textMuted}
               />
               <View className="ml-3">
-                <Text className={`font-semibold ${isWakeWordMode ? 'text-green-800' : 'text-neutral-700'}`}>
+                <Text className={`font-semibold ${isWakeWordMode ? 'text-green-800' : 'text-neutral-700 dark:text-neutral-300'}`}>
                   {isWakeWordMode ? 'Hands-Free Mode Active' : 'Enable Hands-Free Mode'}
                 </Text>
-                <Text className={`text-xs ${isWakeWordMode ? 'text-green-600' : 'text-neutral-500'}`}>
+                <Text className={`text-xs ${isWakeWordMode ? 'text-green-600' : 'text-neutral-500 dark:text-neutral-400'}`}>
                   {isWakeWordMode ? 'Listening for "SousChef"' : 'Say "SousChef" to activate'}
                 </Text>
               </View>
@@ -238,10 +242,10 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
         {/* Help button */}
         <TouchableOpacity
           onPress={() => {/* Could trigger help command */}}
-          className="absolute bottom-12 left-1/2 -ml-16 flex-row items-center bg-white px-4 py-2 rounded-full shadow-sm"
+          className="absolute bottom-12 left-1/2 -ml-16 flex-row items-center bg-white dark:bg-neutral-800 px-4 py-2 rounded-full shadow-sm"
         >
-          <Ionicons name="help-circle-outline" size={20} color="#737373" />
-          <Text className="text-neutral-500 ml-2">Say "Help" for commands</Text>
+          <Ionicons name="help-circle-outline" size={20} color={colors.textMuted} />
+          <Text className="text-neutral-500 dark:text-neutral-400 ml-2">Say "Help" for commands</Text>
         </TouchableOpacity>
       </BlurView>
     </Modal>
@@ -252,6 +256,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
+  },
+  containerDark: {
+    backgroundColor: 'rgba(23, 23, 23, 0.9)',
   },
   waveLine: {
     width: 4,

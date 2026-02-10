@@ -37,9 +37,11 @@ export const useRecipes = () => {
     return rawRecipes.filter((recipe) => !recipe.isExclusive);
   }, [rawRecipes, isPro]);
 
-  // Load recipes on mount
+  // Load recipes on mount - only if not already loaded
   useEffect(() => {
-    fetchRecipes(true);
+    if (rawRecipes.length === 0) {
+      fetchRecipes(true);
+    }
   }, []);
 
   // Apply filters

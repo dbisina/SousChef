@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 import {
   WasteStats as WasteStatsType,
   FoodWasteEntry,
@@ -18,15 +19,16 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({
   stats,
   onViewDetails,
 }) => {
+  const colors = useThemeColors();
   if (!stats) {
     return (
-      <Card className="bg-neutral-50">
+      <Card className="bg-neutral-50 dark:bg-neutral-800">
         <View className="items-center py-4">
           <Ionicons name="leaf-outline" size={32} color="#D4D4D4" />
-          <Text className="text-neutral-400 mt-2">
+          <Text className="text-neutral-400 dark:text-neutral-500 mt-2">
             No waste data yet
           </Text>
-          <Text className="text-neutral-400 text-sm text-center mt-1">
+          <Text className="text-neutral-400 dark:text-neutral-500 text-sm text-center mt-1">
             Start tracking your food waste to see insights
           </Text>
         </View>
@@ -41,7 +43,7 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({
       case 'worsening':
         return { name: 'trending-up', color: '#EF4444' };
       default:
-        return { name: 'remove', color: '#737373' };
+        return { name: 'remove', color: colors.textMuted };
     }
   };
 
@@ -50,12 +52,12 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({
   return (
     <Card>
       <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-lg font-bold text-neutral-900">
+        <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
           Waste Overview
         </Text>
         {onViewDetails && (
           <TouchableOpacity onPress={onViewDetails}>
-            <Text className="text-primary-500 font-medium">View All</Text>
+            <Text className="font-medium" style={{ color: colors.accent }}>View All</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -80,9 +82,9 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({
       </View>
 
       {/* Trend indicator */}
-      <View className="flex-row items-center justify-center py-2 bg-neutral-50 rounded-lg">
+      <View className="flex-row items-center justify-center py-2 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
         <Ionicons name={trend.name as any} size={20} color={trend.color} />
-        <Text className="ml-2 text-neutral-600">
+        <Text className="ml-2 text-neutral-600 dark:text-neutral-400">
           Trend:{' '}
           <Text style={{ color: trend.color }} className="font-medium">
             {stats.trendDirection.charAt(0).toUpperCase() +
@@ -94,16 +96,16 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({
       {/* Top wasted items */}
       {stats.topWastedItems.length > 0 && (
         <View className="mt-4">
-          <Text className="text-sm font-medium text-neutral-500 mb-2">
+          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-2">
             Most Wasted Items
           </Text>
           <View className="flex-row flex-wrap">
             {stats.topWastedItems.slice(0, 3).map((item, index) => (
               <View
                 key={index}
-                className="bg-neutral-100 px-3 py-1 rounded-full mr-2 mb-2"
+                className="bg-neutral-100 dark:bg-neutral-700 px-3 py-1 rounded-full mr-2 mb-2"
               >
-                <Text className="text-sm text-neutral-600">
+                <Text className="text-sm text-neutral-600 dark:text-neutral-400">
                   {item.name} ({item.count}x)
                 </Text>
               </View>
@@ -125,6 +127,7 @@ export const SavingsDisplay: React.FC<SavingsDisplayProps> = ({
   savedByPlanning,
   expiringItemsUsed,
 }) => {
+  const colors = useThemeColors();
   return (
     <View className="bg-green-50 border border-green-200 rounded-xl p-4">
       <View className="flex-row items-center mb-2">
@@ -164,6 +167,7 @@ export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({
   entry,
   onDelete,
 }) => {
+  const colors = useThemeColors();
   const formatDate = (timestamp: any) => {
     const date = timestamp.toDate();
     return date.toLocaleDateString('en-US', {
@@ -184,7 +188,7 @@ export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({
   };
 
   return (
-    <View className="flex-row items-center bg-white p-4 border-b border-neutral-100">
+    <View className="flex-row items-center bg-white dark:bg-neutral-800 p-4 border-b border-neutral-100 dark:border-neutral-700">
       <View className="w-10 h-10 rounded-full bg-red-100 items-center justify-center">
         <Ionicons
           name={getReasonIcon(entry.reason) as any}
@@ -194,15 +198,15 @@ export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({
       </View>
 
       <View className="flex-1 ml-3">
-        <Text className="text-base font-medium text-neutral-900">
+        <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50">
           {entry.itemName}
         </Text>
         <View className="flex-row items-center">
-          <Text className="text-sm text-neutral-500">
+          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
             {entry.amount} {entry.unit}
           </Text>
           <View className="w-1 h-1 rounded-full bg-neutral-300 mx-2" />
-          <Text className="text-sm text-neutral-500">
+          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
             {WASTE_REASON_LABELS[entry.reason]}
           </Text>
         </View>
@@ -212,7 +216,7 @@ export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({
         <Text className="text-base font-medium text-red-500">
           -${entry.estimatedValue.toFixed(2)}
         </Text>
-        <Text className="text-xs text-neutral-400">
+        <Text className="text-xs text-neutral-400 dark:text-neutral-500">
           {formatDate(entry.date)}
         </Text>
       </View>
@@ -234,6 +238,7 @@ interface WasteBreakdownProps {
 export const WasteBreakdown: React.FC<WasteBreakdownProps> = ({
   wasteByReason,
 }) => {
+  const themeColors = useThemeColors();
   const total = Object.values(wasteByReason).reduce((a, b) => a + b, 0);
   if (total === 0) return null;
 
@@ -251,7 +256,7 @@ export const WasteBreakdown: React.FC<WasteBreakdownProps> = ({
 
   return (
     <View>
-      <Text className="text-sm font-medium text-neutral-500 mb-3">
+      <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">
         Waste by Reason
       </Text>
 
@@ -260,14 +265,14 @@ export const WasteBreakdown: React.FC<WasteBreakdownProps> = ({
         return (
           <View key={reason} className="mb-3">
             <View className="flex-row justify-between mb-1">
-              <Text className="text-sm text-neutral-700">
+              <Text className="text-sm text-neutral-700 dark:text-neutral-300">
                 {WASTE_REASON_LABELS[reason as WasteReason]}
               </Text>
-              <Text className="text-sm text-neutral-500">
+              <Text className="text-sm text-neutral-500 dark:text-neutral-400">
                 {count} ({percentage}%)
               </Text>
             </View>
-            <View className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+            <View className="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
               <View
                 style={{
                   width: `${percentage}%`,

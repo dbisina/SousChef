@@ -31,13 +31,15 @@ import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { useAuthStore } from '@/stores/authStore';
 import { detectPlatform } from '@/services/recipeImportService';
 import * as Clipboard from 'expo-clipboard';
+import { useThemeColors } from '@/stores/themeStore';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface URLImportModalProps {
   visible: boolean;
   onClose: () => void;
-  onSuccess?: (recipeTitle: string) => void;
+  onSuccess?: (recipeTitle: string, recipeId?: string) => void;
+  initialURL?: string;
 }
 
 interface PlatformInfo {
@@ -52,8 +54,8 @@ const SUPPORTED_PLATFORMS: PlatformInfo[] = [
   { id: 'tiktok', name: 'TikTok', icon: 'logo-tiktok', color: '#000000', gradient: ['#00f2ea', '#ff0050'] },
   { id: 'instagram', name: 'Instagram', icon: 'logo-instagram', color: '#E4405F', gradient: ['#833ab4', '#fd1d1d', '#fcb045'] },
   { id: 'youtube', name: 'YouTube', icon: 'logo-youtube', color: '#FF0000', gradient: ['#FF0000', '#cc0000'] },
-  { id: 'pinterest', name: 'Pinterest', icon: 'logo-pinterest', color: '#BD081C', gradient: ['#BD081C', '#8c0615'] },
-  { id: 'website', name: 'Website', icon: 'globe-outline', color: '#6366F1', gradient: ['#6366F1', '#8B5CF6'] },
+  { id: 'x', name: 'X', icon: 'logo-twitter', color: '#000000', gradient: ['#1DA1F2', '#0d8bd9'] },
+  { id: 'website', name: 'Any URL', icon: 'globe-outline', color: '#6366F1', gradient: ['#6366F1', '#8B5CF6'] },
 ];
 
 // Separate component for platform icon to properly use hooks
@@ -75,12 +77,12 @@ const PlatformIcon = memo<{
       <View className={`items-center ${isActive ? 'opacity-100' : 'opacity-60'}`}>
         <LinearGradient
           colors={platform.gradient as [string, string, ...string[]]}
-          className="w-12 h-12 rounded-xl items-center justify-center mb-1"
+          className="w-12 h-12 rounded-full items-center justify-center mb-1"
           style={isActive ? { shadowColor: platform.color, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8 } : {}}
         >
           <Ionicons name={platform.icon as any} size={22} color="white" />
         </LinearGradient>
-        <Text className={`text-xs ${isActive ? 'text-neutral-900 font-medium' : 'text-neutral-500'}`}>
+        <Text className={`text-xs ${isActive ? 'text-neutral-900 dark:text-neutral-50 font-medium' : 'text-neutral-500 dark:text-neutral-400'}`}>
           {platform.name}
         </Text>
       </View>
@@ -94,11 +96,20 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
   visible,
   onClose,
   onSuccess,
+  initialURL,
 }) => {
   const [url, setUrl] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const colors = useThemeColors();
   const { user } = useAuthStore();
   const { importFromURL, isImporting, importProgress, error, setError } = useWantToCookStore();
+
+  // Pre-fill URL from share intent
+  useEffect(() => {
+    if (initialURL && visible) {
+      setUrl(initialURL);
+    }
+  }, [initialURL, visible]);
 
   // Animation values
   const backdropOpacity = useSharedValue(0);
@@ -191,7 +202,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
       const title = result.importedRecipe?.title || 'Recipe';
       setUrl('');
       onClose();
-      onSuccess?.(title);
+      onSuccess?.(title, result.id);
     } else if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
@@ -199,6 +210,20 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
 
   const detectedPlatform = url ? detectPlatform(url) : null;
   const platformInfo = SUPPORTED_PLATFORMS.find((p) => p.id === detectedPlatform);
+
+  // Friendly label for detected source types not in the main platform icons
+  const SOURCE_LABELS: Record<string, string> = {
+    facebook: 'Facebook', pinterest: 'Pinterest', threads: 'Threads',
+    reddit: 'Reddit', snapchat: 'Snapchat', pdf: 'PDF document',
+    json: 'JSON data', xml: 'XML/RSS feed', text: 'Text file',
+    image: 'Image', video: 'Video file', audio: 'Audio file',
+    allrecipes: 'AllRecipes', foodnetwork: 'Food Network', bonappetit: 'Bon Appétit',
+    seriouseats: 'Serious Eats', tasty: 'Tasty', delish: 'Delish',
+    epicurious: 'Epicurious', nyt_cooking: 'NYT Cooking', bbc_food: 'BBC Food',
+    simplyrecipes: 'Simply Recipes', food52: 'Food52', cookpad: 'Cookpad',
+    yummly: 'Yummly', budgetbytes: 'Budget Bytes',
+  };
+  const detectedLabel = platformInfo?.name || (detectedPlatform ? SOURCE_LABELS[detectedPlatform] : null);
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
@@ -258,12 +283,12 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
         >
           {/* Header with gradient */}
           <LinearGradient
-            colors={['#FF6B35', '#FF8F5A']}
+            colors={[colors.accent, colors.accent + 'CC']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="px-6 pt-6 pb-8"
+            className="px-6 pt-8 pb-10"
           >
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row items-center justify-between m-[20px]">
               <TouchableOpacity
                 onPress={onClose}
                 className="w-10 h-10 rounded-full bg-white/20 items-center justify-center"
@@ -276,22 +301,22 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
               </View>
             </View>
 
-            <View className="items-center">
+            <View className="items-center mb-[10px]">
               <View className="w-16 h-16 rounded-2xl bg-white/20 items-center justify-center mb-3">
                 <Ionicons name="link" size={32} color="white" />
               </View>
-              <Text className="text-2xl font-bold text-white text-center">
+              <Text className="text-2xl font-bold text-white text-center -mt-1">
                 Import Any Recipe
               </Text>
-              <Text className="text-white/80 text-center mt-1">
-                Paste a link and we'll extract everything
+              <Text className="text-white/80 text-center mt-1 mb-2">
+                Links, videos, images, PDFs, JSON, text — we handle it all
               </Text>
             </View>
           </LinearGradient>
 
           <View className="px-6 py-6">
             {/* Supported platforms */}
-            <View className="flex-row justify-around mb-6">
+            <View className="flex-row justify-between mb-3 p-[5px]">
               {SUPPORTED_PLATFORMS.map((platform, index) => (
                 <PlatformIcon
                   key={platform.id}
@@ -301,16 +326,20 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                 />
               ))}
             </View>
+            <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-5">
+              +  more
+            </Text>
 
             {/* URL Input */}
             <Animated.View style={inputStyle}>
-              <Text className="text-sm font-semibold text-neutral-700 mb-2 ml-1">
+              <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300 mb-2 ml-1">
                 Recipe URL
               </Text>
               <View
                 className={`flex-row items-center rounded-2xl overflow-hidden border-2 transition-colors ${
-                  isFocused ? 'border-primary-500 bg-primary-50/50' : 'border-neutral-200 bg-neutral-50'
+                  isFocused ? 'border-neutral-200 dark:border-neutral-600' : 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800'
                 }`}
+                style={isFocused ? { borderColor: colors.accent, backgroundColor: colors.accent + '10' } : {}}
               >
                 <View className="p-4">
                   {platformInfo ? (
@@ -325,13 +354,13 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                       />
                     </LinearGradient>
                   ) : (
-                    <View className="w-8 h-8 rounded-lg bg-neutral-200 items-center justify-center">
+                    <View className="w-8 h-8 rounded-lg bg-neutral-200 dark:bg-neutral-700 items-center justify-center">
                       <Ionicons name="link-outline" size={18} color="#9CA3AF" />
                     </View>
                   )}
                 </View>
                 <TextInput
-                  className="flex-1 py-4 pr-2 text-base text-neutral-900"
+                  className="flex-1 py-4 pr-2 text-base text-neutral-900 dark:text-neutral-50"
                   placeholder="https://..."
                   placeholderTextColor="#9CA3AF"
                   value={url}
@@ -350,7 +379,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                   className="px-4 py-4"
                   disabled={isImporting}
                 >
-                  <View className="bg-primary-500 px-3 py-2 rounded-xl">
+                  <View style={{ backgroundColor: colors.accent }} className="px-3 py-2 rounded-xl">
                     <Text className="text-white font-semibold text-sm">Paste</Text>
                   </View>
                 </TouchableOpacity>
@@ -358,7 +387,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
             </Animated.View>
 
             {/* Platform detected badge */}
-            {platformInfo && url && !isImporting && (
+            {detectedLabel && url && !isImporting && (
               <Animated.View
                 entering={FadeIn.duration(200)}
                 exiting={FadeOut.duration(200)}
@@ -368,7 +397,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                   <Ionicons name="checkmark" size={14} color="white" />
                 </View>
                 <Text className="text-sm text-green-600 font-medium ml-2">
-                  {platformInfo.name} recipe detected
+                  {detectedLabel} recipe detected
                 </Text>
               </Animated.View>
             )}
@@ -394,7 +423,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                 entering={FadeIn.duration(200)}
                 className="mt-4"
               >
-                <View className="bg-primary-50 rounded-2xl p-4 border border-primary-100">
+                <View className="rounded-2xl p-4 border" style={{ backgroundColor: colors.accent + '15', borderColor: colors.accent + '30' }}>
                   <View className="flex-row items-center mb-3">
                     <Animated.View
                       style={{
@@ -402,18 +431,18 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                         height: 24,
                       }}
                     >
-                      <Ionicons name="sparkles" size={24} color="#FF6B35" />
+                      <Ionicons name="sparkles" size={24} color={colors.accent} />
                     </Animated.View>
-                    <Text className="text-primary-700 ml-2 font-semibold">
+                    <Text className="ml-2 font-semibold" style={{ color: colors.accent }}>
                       {importProgress || 'Analyzing recipe...'}
                     </Text>
                   </View>
-                  <View className="h-2 bg-primary-100 rounded-full overflow-hidden">
+                  <View className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: colors.accent + '20' }}>
                     <Animated.View
                       style={[
                         {
                           height: '100%',
-                          backgroundColor: '#FF6B35',
+                          backgroundColor: colors.accent,
                           borderRadius: 999,
                         },
                         progressStyle,
@@ -425,38 +454,38 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
             )}
 
             {/* Import button */}
-            <View className="mt-6">
+            <View className="mt-6 rounded-2xl overflow-hidden">
               <TouchableOpacity
                 onPress={handleImport}
                 disabled={!url.trim() || isImporting}
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={!url.trim() || isImporting ? ['#D1D5DB', '#9CA3AF'] : ['#FF6B35', '#FF8F5A']}
+                  colors={!url.trim() || isImporting ? ['#D1D5DB', '#9CA3AF'] : [colors.accent, colors.accent + 'CC']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
-                  className="py-4 rounded-2xl items-center justify-center flex-row"
+                  className="py-4 rounded-full w-full"
                   style={{
-                    shadowColor: '#FF6B35',
+                    shadowColor: colors.accent,
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: url.trim() && !isImporting ? 0.3 : 0,
                     shadowRadius: 8,
                   }}
                 >
                   {isImporting ? (
-                    <>
-                      <Ionicons name="hourglass-outline" size={20} color="white" />
-                      <Text className="text-white font-bold text-lg ml-2">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12, }}>
+                      <Ionicons name="hourglass-outline" size={24} color="white" />
+                      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18, marginLeft: 8 }}>
                         Importing...
                       </Text>
-                    </>
+                    </View>
                   ) : (
-                    <>
-                      <Ionicons name="download-outline" size={20} color="white" />
-                      <Text className="text-white font-bold text-lg ml-2">
+                    <View style={{ flexDirection: 'row', alignItems: 'center', padding: 12,}}>
+                      <Ionicons name="download-outline" size={24} color="white" />
+                      <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 18, marginLeft: 12 }}>
                         Import Recipe
                       </Text>
-                    </>
+                    </View>
                   )}
                 </LinearGradient>
               </TouchableOpacity>
@@ -465,7 +494,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
             {/* Help text */}
             <View className="flex-row items-center justify-center mt-4">
               <Ionicons name="information-circle-outline" size={16} color="#9CA3AF" />
-              <Text className="text-neutral-400 text-sm ml-1">
+              <Text className="text-neutral-400 dark:text-neutral-500 text-sm ml-1">
                 Works with most recipe websites and videos
               </Text>
             </View>

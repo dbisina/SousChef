@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   VoiceState,
   VoiceListeningState,
@@ -13,9 +15,15 @@ const generateTimerId = (): string => {
 };
 
 interface VoiceStoreState extends VoiceState, TimerState {
+  // Settings (persisted)
+  voiceEnabled: boolean;
+
   // Wake word state
   isWakeWordMode: boolean;
   isWakeWordListening: boolean;
+
+  // Settings actions
+  setVoiceEnabled: (enabled: boolean) => void;
 
   // Voice state setters
   setListening: (isListening: boolean) => void;
@@ -56,13 +64,21 @@ const initialTimerState: TimerState = {
   activeTimerCount: 0,
 };
 
-export const useVoiceStore = create<VoiceStoreState>((set, get) => ({
+export const useVoiceStore = create<VoiceStoreState>()(
+  persist(
+    (set, get) => ({
   ...initialVoiceState,
   ...initialTimerState,
+
+  // Settings (persisted)
+  voiceEnabled: true,
 
   // Wake word state
   isWakeWordMode: false,
   isWakeWordListening: false,
+
+  // Settings actions
+  setVoiceEnabled: (enabled) => set({ voiceEnabled: enabled }),
 
   // Voice state setters
   setListening: (isListening) =>
@@ -250,7 +266,17 @@ export const useVoiceStore = create<VoiceStoreState>((set, get) => ({
   getTimer: (timerId) => {
     return get().timers.find((t) => t.id === timerId);
   },
-}));
+}),
+    {
+      name: 'voice-settings',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        voiceEnabled: state.voiceEnabled,
+        isWakeWordMode: state.isWakeWordMode,
+      }),
+    }
+  )
+);
 
 // Selectors
 export const selectVoiceState = (state: VoiceStoreState): VoiceState => ({

@@ -8,24 +8,26 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 
 export default function TermsOfServiceScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 bg-white">
+      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color="#404040" />
+          <Ionicons name="arrow-back" size={24} color={colors.icon} />
         </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 ml-2">
+        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
           Terms of Service
         </Text>
       </View>
 
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
-        <Text className="text-sm text-neutral-500 mb-4">
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
           Last updated: February 2025
         </Text>
 
@@ -118,7 +120,7 @@ export default function TermsOfServiceScreen() {
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <View className="mb-6">
-    <Text className="text-lg font-bold text-neutral-900 mb-2">{title}</Text>
-    <Text className="text-neutral-600 leading-relaxed">{children}</Text>
+    <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-2">{title}</Text>
+    <Text className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{children}</Text>
   </View>
 );

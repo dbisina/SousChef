@@ -13,6 +13,7 @@ export interface ImportedRecipe {
   title: string;
   description: string;
   imageURL?: string;
+  videoURL?: string;
   sourceURL: string;
   sourcePlatform?: string; // 'tiktok', 'instagram', 'youtube', 'website', etc.
   ingredients: Ingredient[];
@@ -34,7 +35,7 @@ export interface ImportedRecipe {
 // "Want to Cook" item - a recipe the user wants to make
 export interface WantToCookItem {
   id: string;
-  oderId: string; // User who saved it
+  ownerId: string; // User who saved it
   // Can reference an app recipe OR an imported recipe
   recipeId?: string; // Reference to Recipe in recipes collection
   importedRecipe?: ImportedRecipe; // Inline imported recipe data

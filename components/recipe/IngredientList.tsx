@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Ingredient } from '@/types';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface IngredientListProps {
   ingredients: Ingredient[];
@@ -54,6 +55,7 @@ export const IngredientItem: React.FC<IngredientItemProps> = ({
   editable = false,
   onRemove,
 }) => {
+  const colors = useThemeColors();
   const content = (
     <View className="flex-row items-center py-2">
       {/* Checkbox */}
@@ -61,7 +63,7 @@ export const IngredientItem: React.FC<IngredientItemProps> = ({
         <View
           className={`
             w-6 h-6 rounded-lg border-2 items-center justify-center mr-3
-            ${isChecked ? 'bg-primary-500 border-primary-500' : 'border-neutral-300'}
+            ${isChecked ? 'bg-primary-500 border-primary-500' : 'border-neutral-300 dark:border-neutral-600'}
           `}
         >
           {isChecked && <Ionicons name="checkmark" size={16} color="white" />}
@@ -71,21 +73,21 @@ export const IngredientItem: React.FC<IngredientItemProps> = ({
       {/* Ingredient info */}
       <View className="flex-1">
         <Text
-          className={`text-base ${isChecked ? 'text-neutral-400 line-through' : 'text-neutral-900'}`}
+          className={`text-base ${isChecked ? 'text-neutral-400 dark:text-neutral-500 line-through' : 'text-neutral-900 dark:text-neutral-50'}`}
         >
           <Text className="font-medium">
             {ingredient.amount} {ingredient.unit}
           </Text>{' '}
           {ingredient.name}
           {ingredient.optional && (
-            <Text className="text-neutral-400"> (optional)</Text>
+            <Text className="text-neutral-400 dark:text-neutral-500"> (optional)</Text>
           )}
         </Text>
       </View>
 
       {/* Calories */}
       {showCalories && ingredient.calories > 0 && (
-        <Text className="text-sm text-neutral-500 ml-2">
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 ml-2">
           {ingredient.calories} cal
         </Text>
       )}
@@ -120,6 +122,7 @@ export const SimpleIngredientList: React.FC<SimpleIngredientListProps> = ({
   ingredients,
   columns = 1,
 }) => {
+  const colors = useThemeColors();
   if (columns === 2) {
     const midpoint = Math.ceil(ingredients.length / 2);
     const leftColumn = ingredients.slice(0, midpoint);
@@ -131,7 +134,7 @@ export const SimpleIngredientList: React.FC<SimpleIngredientListProps> = ({
           {leftColumn.map((ing, idx) => (
             <View key={idx} className="flex-row items-start py-1">
               <View className="w-2 h-2 rounded-full bg-primary-500 mt-2 mr-2" />
-              <Text className="flex-1 text-neutral-700">
+              <Text className="flex-1 text-neutral-700 dark:text-neutral-300">
                 {ing.amount} {ing.unit} {ing.name}
               </Text>
             </View>
@@ -141,7 +144,7 @@ export const SimpleIngredientList: React.FC<SimpleIngredientListProps> = ({
           {rightColumn.map((ing, idx) => (
             <View key={idx} className="flex-row items-start py-1">
               <View className="w-2 h-2 rounded-full bg-primary-500 mt-2 mr-2" />
-              <Text className="flex-1 text-neutral-700">
+              <Text className="flex-1 text-neutral-700 dark:text-neutral-300">
                 {ing.amount} {ing.unit} {ing.name}
               </Text>
             </View>
@@ -156,9 +159,9 @@ export const SimpleIngredientList: React.FC<SimpleIngredientListProps> = ({
       {ingredients.map((ing, idx) => (
         <View key={idx} className="flex-row items-start py-1">
           <View className="w-2 h-2 rounded-full bg-primary-500 mt-2 mr-2" />
-          <Text className="flex-1 text-neutral-700">
+          <Text className="flex-1 text-neutral-700 dark:text-neutral-300">
             {ing.amount} {ing.unit} {ing.name}
-            {ing.optional && <Text className="text-neutral-400"> (optional)</Text>}
+            {ing.optional && <Text className="text-neutral-400 dark:text-neutral-500"> (optional)</Text>}
           </Text>
         </View>
       ))}

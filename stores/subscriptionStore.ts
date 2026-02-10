@@ -19,11 +19,13 @@ import {
   logoutFromRevenueCat,
   getCustomerInfo,
   getOfferings,
+  getAllOfferings,
   purchasePackage,
   restorePurchases,
   getSubscriptionTier,
   addCustomerInfoListener,
   setUserAttributes,
+  isPurchasesConfigured,
   presentPaywall as rcPresentPaywall,
   presentPaywallIfNeeded as rcPresentPaywallIfNeeded,
   presentCustomerCenter as rcPresentCustomerCenter,
@@ -69,7 +71,7 @@ interface SubscriptionStore extends SubscriptionState {
   refreshUsage: () => Promise<void>;
 
   // Internal
-  setCustomerInfo: (customerInfo: CustomerInfo | null) => void;
+  setCustomerInfo: (customerInfo: CustomerInfo | null) => Promise<void>;
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
 }
@@ -99,22 +101,42 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     try {
       await initializeRevenueCat(userId);
 
-      // Fetch customer info and offerings
-      const [customerInfo, offerings] = await Promise.all([
+      // Check if RevenueCat was actually configured (API key might be missing)
+      const configured = await isPurchasesConfigured();
+      if (!configured) {
+        console.warn('[Subscriptions] RevenueCat not configured — skipping offerings fetch');
+        set({ isInitialized: true, isLoading: false });
+        return;
+      }
+
+      // Fetch customer info and offerings (from all offerings: premium + pro)
+      const [customerInfo, allOfferings] = await Promise.all([
         getCustomerInfo(),
-        getOfferings(),
+        getAllOfferings(),
       ]);
+
+      // Combine packages from premium and pro offerings
+      const premiumOffering = allOfferings['premium'];
+      const proOffering = allOfferings['pro'];
+      const defaultOffering = allOfferings['default'];
+      const allPackages = [
+        ...(premiumOffering?.availablePackages || []),
+        ...(proOffering?.availablePackages || []),
+      ];
+      // Fallback to default offering if premium/pro not found
+      const combinedPackages = allPackages.length > 0
+        ? allPackages
+        : (defaultOffering?.availablePackages || []);
 
       const tier = getSubscriptionTier(customerInfo);
 
-      // Check for Firestore override - only for admin users
-      // This allows admins to have subscription access without actual RevenueCat purchases
+      // Admin override - admins always get pro access without needing a RevenueCat purchase
       let finalTier = tier;
       if (tier === 'free') {
         const { useAuthStore } = await import('./authStore');
         const user = useAuthStore.getState().user;
-        if (user?.role === 'admin' && user?.subscriptionTier && (user.subscriptionTier === 'premium' || user.subscriptionTier === 'pro')) {
-          finalTier = user.subscriptionTier;
+        if (user?.role === 'admin') {
+          finalTier = user?.subscriptionTier || 'pro';
         }
       }
 
@@ -123,8 +145,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       set({
         isInitialized: true,
         customerInfo,
-        currentOffering: offerings,
-        packages: offerings?.availablePackages || [],
+        currentOffering: premiumOffering || defaultOffering || null,
+        packages: combinedPackages,
         subscriptionTier: finalTier,
         isSubscribed: finalTier !== 'free',
         isPremium: finalTier === 'premium' || finalTier === 'pro',
@@ -159,13 +181,14 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       if (currentTier === 'free') {
         const { useAuthStore } = await import('./authStore');
         const user = useAuthStore.getState().user;
-        // Only allow Firestore tier override for admin users
-        if (user?.role === 'admin' && user?.subscriptionTier && (user.subscriptionTier === 'premium' || user.subscriptionTier === 'pro')) {
+        // Admin users always get pro access
+        if (user?.role === 'admin') {
+          const adminTier = user?.subscriptionTier || 'pro';
           set({
-            subscriptionTier: user.subscriptionTier,
+            subscriptionTier: adminTier,
             isSubscribed: true,
             isPremium: true,
-            isPro: user.subscriptionTier === 'pro',
+            isPro: adminTier === 'pro',
           });
         }
       }
@@ -184,12 +207,12 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
 
       let finalTier = getSubscriptionTier(customerInfo);
 
-      // Check for Firestore override - only for admin users
+      // Admin users always get pro access
       if (finalTier === 'free') {
         const { useAuthStore } = await import('./authStore');
         const user = useAuthStore.getState().user;
-        if (user?.role === 'admin' && user?.subscriptionTier && (user.subscriptionTier === 'premium' || user.subscriptionTier === 'pro')) {
-          finalTier = user.subscriptionTier;
+        if (user?.role === 'admin') {
+          finalTier = user?.subscriptionTier || 'pro';
         }
       }
 
@@ -239,16 +262,27 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     }
   },
 
-  // Fetch available offerings
+  // Fetch available offerings (combine premium + pro)
   fetchOfferings: async () => {
     set({ isLoading: true });
 
     try {
-      const offerings = await getOfferings();
+      const allOfferings = await getAllOfferings();
+
+      const premiumOffering = allOfferings['premium'];
+      const proOffering = allOfferings['pro'];
+      const defaultOffering = allOfferings['default'];
+      const allPackages = [
+        ...(premiumOffering?.availablePackages || []),
+        ...(proOffering?.availablePackages || []),
+      ];
+      const combinedPackages = allPackages.length > 0
+        ? allPackages
+        : (defaultOffering?.availablePackages || []);
 
       set({
-        currentOffering: offerings,
-        packages: offerings?.availablePackages || [],
+        currentOffering: premiumOffering || defaultOffering || null,
+        packages: combinedPackages,
         isLoading: false,
       });
     } catch (error) {
@@ -407,8 +441,23 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   },
 
   // Set customer info (internal)
-  setCustomerInfo: (customerInfo) => {
+  setCustomerInfo: async (customerInfo) => {
     if (!customerInfo) {
+      // Even if RevenueCat has no info, check for admin override
+      const { useAuthStore } = await import('./authStore');
+      const user = useAuthStore.getState().user;
+      if (user?.role === 'admin') {
+        const adminTier = user?.subscriptionTier || 'pro';
+        set({
+          customerInfo: null,
+          subscriptionTier: adminTier,
+          isSubscribed: true,
+          isPremium: true,
+          isPro: adminTier === 'pro',
+        });
+        return;
+      }
+
       set({
         customerInfo: null,
         subscriptionTier: 'free',
@@ -419,7 +468,16 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       return;
     }
 
-    const tier = getSubscriptionTier(customerInfo);
+    let tier = getSubscriptionTier(customerInfo);
+
+    // Preserve admin override when RevenueCat reports 'free'
+    if (tier === 'free') {
+      const { useAuthStore } = await import('./authStore');
+      const user = useAuthStore.getState().user;
+      if (user?.role === 'admin') {
+        tier = user?.subscriptionTier || 'pro';
+      }
+    }
 
     set({
       customerInfo,

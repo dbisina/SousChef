@@ -4,7 +4,8 @@ import { View, Text, StyleSheet, Platform, useWindowDimensions } from 'react-nat
 import Svg, { Path } from 'react-native-svg';
 import { useAuthStore } from '@/stores/authStore';
 import { usePantryStore } from '@/stores/pantryStore';
-import { useMealPlanStore } from '@/stores/mealPlanStore';
+import { useWantToCookStore } from '@/stores/wantToCookStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { useMemo, useState, useCallback } from 'react';
 import { RadialFAB, FABAction } from '@/components/ui/RadialFAB';
 import { URLImportModal } from '@/components/import/URLImportModal';
@@ -40,7 +41,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   activeIconContainer: {
-    backgroundColor: 'rgba(249, 115, 22, 0.1)',
+    backgroundColor: 'rgba(249, 115, 22, 0.1)', // Will be overridden per-instance
   },
   badge: {
     position: 'absolute',
@@ -69,7 +70,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const TabBarBackground = ({ width }: { width: number }) => {
+const TabBarBackground = ({ width, fill }: { width: number; fill: string }) => {
   const tabBarWidth = width - 40;
 
   const path = useMemo(() => {
@@ -95,7 +96,7 @@ const TabBarBackground = ({ width }: { width: number }) => {
   return (
     <View style={styles.tabBarBackground}>
       <Svg width={tabBarWidth} height={TAB_BAR_HEIGHT} style={styles.svgShadow}>
-        <Path d={path} fill="white" />
+        <Path d={path} fill={fill} />
       </Svg>
     </View>
   );
@@ -106,14 +107,15 @@ export default function TabLayout() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { getExpiringItems, getExpiredItems } = usePantryStore();
-  const { currentPlan } = useMealPlanStore();
+  const { shoppingList } = useWantToCookStore();
+  const colors = useThemeColors();
 
   // Modal states for FAB actions
   const [showURLImport, setShowURLImport] = useState(false);
   const [showCookbookScanner, setShowCookbookScanner] = useState(false);
 
   const expiringCount = getExpiringItems().length + getExpiredItems().length;
-  const shoppingCount = currentPlan?.shoppingList.filter((i) => !i.checked && i.toBuy > 0).length || 0;
+  const shoppingCount = shoppingList.filter((i) => !i.checked).length;
 
   // FAB Actions
   const fabActions: FABAction[] = useMemo(() => [
@@ -145,8 +147,8 @@ export default function TabLayout() {
       id: 'add-recipe',
       icon: 'create',
       label: 'Add Recipe',
-      color: '#FF6B35',
-      gradient: ['#FF6B35', '#FF8F5A'] as [string, string],
+      color: colors.accent,
+      gradient: [colors.accent, colors.palette[400]] as [string, string],
       onPress: () => router.push('/(tabs)/upload'),
     },
   ], [router]);
@@ -161,10 +163,10 @@ export default function TabLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#F97316',
-          tabBarInactiveTintColor: '#A8A29E',
+          tabBarActiveTintColor: colors.accent,
+          tabBarInactiveTintColor: colors.tabBarInactive,
           tabBarShowLabel: true,
-          tabBarBackground: () => <TabBarBackground width={width} />,
+          tabBarBackground: () => <TabBarBackground width={width} fill={colors.tabBarFill} />,
           tabBarStyle: {
             position: 'absolute',
             bottom: Platform.OS === 'ios' ? 28 : 16,
@@ -209,40 +211,6 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="browse"
-          options={{
-            title: 'Browse',
-            tabBarIcon: ({ color, focused }) => (
-              <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
-                <Ionicons
-                  name={focused ? 'search' : 'search-outline'}
-                  size={22}
-                  color={color}
-                />
-              </View>
-            ),
-          }}
-        />
-        <Tabs.Screen
-          name="scan"
-          options={{
-            title: '',
-            tabBarIcon: () => <View style={styles.fabPlaceholder} />,
-          }}
-          listeners={{
-            tabPress: (e) => {
-              // Prevent default navigation - the RadialFAB handles this
-              e.preventDefault();
-            },
-          }}
-        />
-        <Tabs.Screen
-          name="upload"
-          options={{
-            href: null,
-          }}
-        />
-        <Tabs.Screen
           name="pantry"
           options={{
             title: 'Pantry',
@@ -265,13 +233,26 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="mealplan"
+          name="scan"
           options={{
-            title: 'Plan',
+            title: '',
+            tabBarIcon: () => <View style={styles.fabPlaceholder} />,
+          }}
+          listeners={{
+            tabPress: (e) => {
+              // Prevent default navigation - the RadialFAB handles this
+              e.preventDefault();
+            },
+          }}
+        />
+        <Tabs.Screen
+          name="shopping"
+          options={{
+            title: 'Shopping',
             tabBarIcon: ({ color, focused }) => (
               <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
                 <Ionicons
-                  name={focused ? 'calendar' : 'calendar-outline'}
+                  name={focused ? 'cart' : 'cart-outline'}
                   size={22}
                   color={color}
                 />
@@ -284,6 +265,40 @@ export default function TabLayout() {
                 )}
               </View>
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="more"
+          options={{
+            title: 'More',
+            tabBarIcon: ({ color, focused }) => (
+              <View style={[styles.iconContainer, focused && styles.activeIconContainer]}>
+                <Ionicons
+                  name={focused ? 'grid' : 'grid-outline'}
+                  size={22}
+                  color={color}
+                />
+              </View>
+            ),
+          }}
+        />
+        {/* Hidden tabs — accessible via navigation only */}
+        <Tabs.Screen
+          name="browse"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="mealplan"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="upload"
+          options={{
+            href: null,
           }}
         />
         <Tabs.Screen

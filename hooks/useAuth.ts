@@ -3,6 +3,7 @@ import { useRouter, useSegments } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/stores/authStore';
+import { isOnboardingComplete } from '@/app/onboarding';
 
 // Hook to handle auth state changes and protected routes
 export const useAuth = () => {
@@ -46,11 +47,18 @@ export const useAuth = () => {
 
     const inAuthGroup = segments[0] === 'auth';
     const inAdminGroup = segments[0] === 'admin';
+    const inOnboarding = segments[0] === 'onboarding';
 
-    if (!user && !inAuthGroup) {
-      // Not signed in and not on auth screen, redirect to login
-      router.replace('/auth/login');
-    } else if (user && inAuthGroup) {
+    if (!user && !inAuthGroup && !inOnboarding) {
+      // Not signed in — check if onboarding is done
+      isOnboardingComplete().then((done) => {
+        if (!done) {
+          router.replace('/onboarding');
+        } else {
+          router.replace('/auth/login');
+        }
+      });
+    } else if (user && (inAuthGroup || inOnboarding)) {
       // Signed in and on auth screen, redirect to home
       router.replace('/(tabs)');
     } else if (user && inAdminGroup && user.role !== 'admin' && user.role !== 'chef') {

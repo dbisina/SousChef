@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { VoiceListeningState } from '@/types/voice';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface VoiceButtonProps {
   isListening: boolean;
@@ -32,6 +33,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
 }) => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
+  const colors = useThemeColors();
 
   // Pulse animation when listening
   useEffect(() => {
@@ -95,7 +97,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
   // Get background color based on state
   const getBackgroundColor = () => {
     if (disabled) return '#D4D4D4';
-    if (isListening) return '#FF6B35';
+    if (isListening) return colors.accent;
     if (isSpeaking) return '#22C55E';
     if (isProcessing) return '#F59E0B';
     return '#FFFFFF';
@@ -103,9 +105,9 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
 
   // Get icon color based on state
   const getIconColor = () => {
-    if (disabled) return '#737373';
+    if (disabled) return colors.textMuted;
     if (isListening || isSpeaking || isProcessing) return '#FFFFFF';
-    return '#FF6B35';
+    return colors.accent;
   };
 
   // Get status text
@@ -161,7 +163,7 @@ export const VoiceButton: React.FC<VoiceButtonProps> = ({
 
       {/* Status label */}
       {showLabel && (
-        <Text className="text-xs text-neutral-500 mt-2">{getStatusText()}</Text>
+        <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">{getStatusText()}</Text>
       )}
     </View>
   );

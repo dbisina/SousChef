@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet } from 'rea
 import { Ionicons } from '@expo/vector-icons';
 import { RecipeFilters as FiltersType, RecipeCategory, Cuisine, Difficulty } from '@/types';
 import { Button } from '@/components/ui';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface RecipeFiltersProps {
   filters: FiltersType;
@@ -15,6 +16,7 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
   onApplyFilters,
   onClearFilters,
 }) => {
+  const colors = useThemeColors();
   const [isModalVisible, setModalVisible] = useState(false);
   const [tempFilters, setTempFilters] = useState<FiltersType>(filters);
 
@@ -48,19 +50,19 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
             className={`flex-row items-center px-4 py-2.5 rounded-full mr-3 border ${
               activeFilterCount > 0 
                 ? 'bg-primary-50 border-primary-200' 
-                : 'bg-white border-neutral-200'
+                : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
             }`}
           >
             <View className={`rounded-full p-1 mr-2 ${activeFilterCount > 0 ? 'bg-primary-500' : 'bg-neutral-100'}`}>
                <Ionicons
                 name="options"
                 size={14}
-                color={activeFilterCount > 0 ? 'white' : '#525252'}
+                color={activeFilterCount > 0 ? 'white' : colors.textMuted}
               />
             </View>
            
             <Text
-              className={`font-semibold ${activeFilterCount > 0 ? 'text-primary-700' : 'text-neutral-700'}`}
+              className={`font-semibold ${activeFilterCount > 0 ? 'text-primary-700' : 'text-neutral-700 dark:text-neutral-300'}`}
             >
               Filters
             </Text>
@@ -72,7 +74,7 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
           </TouchableOpacity>
 
           {/* Vertical Divider */}
-          <View className="h-6 w-[1px] bg-neutral-200 mr-3" />
+          <View className="h-6 w-[1px] bg-neutral-200 dark:bg-neutral-700 mr-3" />
 
           {/* Quick Filter Chips */}
           <FilterChip
@@ -133,13 +135,13 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
         presentationStyle="pageSheet"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-white dark:bg-neutral-800">
           {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-4 border-b border-neutral-100">
+          <View className="flex-row items-center justify-between px-4 py-4 border-b border-neutral-100 dark:border-neutral-700">
             <TouchableOpacity onPress={() => setModalVisible(false)}>
               <Text className="text-primary-500 text-base">Cancel</Text>
             </TouchableOpacity>
-            <Text className="text-lg font-bold text-neutral-900">Filters</Text>
+            <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Filters</Text>
             <TouchableOpacity onPress={handleClear}>
               <Text className="text-primary-500 text-base">Clear</Text>
             </TouchableOpacity>
@@ -258,7 +260,7 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
           </ScrollView>
 
           {/* Apply button */}
-          <View className="p-4 border-t border-neutral-100">
+          <View className="p-4 border-t border-neutral-100 dark:border-neutral-700">
             <Button title="Apply Filters" onPress={handleApply} fullWidth />
           </View>
         </View>
@@ -276,6 +278,7 @@ interface FilterChipProps {
 }
 
 const FilterChip: React.FC<FilterChipProps> = ({ label, isActive, onPress, className = '', icon }) => {
+  const colors = useThemeColors();
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -284,7 +287,7 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, isActive, onPress, class
         flex-row items-center px-3.5 py-2 rounded-full border
         ${isActive 
           ? 'bg-primary-500 border-primary-600' 
-          : 'bg-white border-neutral-200'}
+          : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'}
         ${className}
       `}
     >
@@ -292,12 +295,12 @@ const FilterChip: React.FC<FilterChipProps> = ({ label, isActive, onPress, class
         <Ionicons 
           name={icon} 
           size={16} 
-          color={isActive ? 'white' : '#737373'} 
+          color={isActive ? 'white' : colors.textMuted} 
           style={{ marginRight: 6 }}
         />
       )}
       <Text
-        className={`font-medium text-sm ${isActive ? 'text-white' : 'text-neutral-700'}`}
+        className={`font-medium text-sm ${isActive ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'}`}
       >
         {label}
       </Text>
@@ -313,7 +316,7 @@ interface FilterSectionProps {
 const FilterSection: React.FC<FilterSectionProps> = ({ title, children }) => {
   return (
     <View className="mb-6">
-      <Text className="text-base font-semibold text-neutral-900 mb-3">
+      <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-3">
         {title}
       </Text>
       {children}

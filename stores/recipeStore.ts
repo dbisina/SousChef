@@ -305,6 +305,15 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
       await updateDoc(doc(db, 'users', userId), {
         savedRecipes: arrayUnion(recipeId),
       });
+      // Update local auth store
+      const { useAuthStore } = await import('./authStore');
+      const authState = useAuthStore.getState();
+      if (authState.user) {
+        const currentSaved = authState.user.savedRecipes || [];
+        if (!currentSaved.includes(recipeId)) {
+          authState.setUser({ ...authState.user, savedRecipes: [...currentSaved, recipeId] });
+        }
+      }
     } catch (error) {
       console.error('Error saving recipe:', error);
     }
@@ -315,6 +324,13 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
       await updateDoc(doc(db, 'users', userId), {
         savedRecipes: arrayRemove(recipeId),
       });
+      // Update local auth store
+      const { useAuthStore } = await import('./authStore');
+      const authState = useAuthStore.getState();
+      if (authState.user) {
+        const currentSaved = authState.user.savedRecipes || [];
+        authState.setUser({ ...authState.user, savedRecipes: currentSaved.filter(id => id !== recipeId) });
+      }
     } catch (error) {
       console.error('Error unsaving recipe:', error);
     }

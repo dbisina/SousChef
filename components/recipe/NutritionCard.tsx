@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { NutritionInfo } from '@/types';
 import { calculateDailyValues, formatNutrition } from '@/services/calorieService';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface NutritionCardProps {
   nutrition: NutritionInfo;
@@ -16,11 +17,12 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   showDailyValues = true,
   compact = false,
 }) => {
+  const colors = useThemeColors();
   const dailyValues = calculateDailyValues(nutrition);
 
   if (compact) {
     return (
-      <View className="flex-row items-center justify-between bg-neutral-50 rounded-xl p-3">
+      <View className="flex-row items-center justify-between bg-neutral-50 dark:bg-neutral-800 rounded-xl p-3">
         <NutritionBadge
           label="Cal"
           value={nutrition.caloriesPerServing}
@@ -46,22 +48,22 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
   }
 
   return (
-    <View className="bg-white rounded-2xl p-4 shadow-sm">
-      <Text className="text-lg font-bold text-neutral-900 mb-4">
+    <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm">
+      <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-4">
         Nutrition Facts
       </Text>
 
       {servings > 1 && (
-        <Text className="text-sm text-neutral-500 mb-4">
+        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
           Per serving ({servings} servings total)
         </Text>
       )}
 
       {/* Calories */}
-      <View className="border-b-2 border-neutral-900 pb-2 mb-2">
+      <View className="border-b-2 border-neutral-900 dark:border-neutral-100 pb-2 mb-2">
         <View className="flex-row items-baseline justify-between">
-          <Text className="text-xl font-bold text-neutral-900">Calories</Text>
-          <Text className="text-3xl font-bold text-neutral-900">
+          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">Calories</Text>
+          <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
             {nutrition.caloriesPerServing}
           </Text>
         </View>
@@ -100,7 +102,7 @@ export const NutritionCard: React.FC<NutritionCardProps> = ({
       </View>
 
       {showDailyValues && (
-        <Text className="text-xs text-neutral-400 mt-4">
+        <Text className="text-xs text-neutral-400 dark:text-neutral-500 mt-4">
           * Percent Daily Values are based on a 2,000 calorie diet.
         </Text>
       )}
@@ -125,24 +127,25 @@ const NutritionRow: React.FC<NutritionRowProps> = ({
   isBold = false,
   isIndented = false,
 }) => {
+  const colors = useThemeColors();
   return (
     <View
       className={`
-        flex-row items-center justify-between py-1 border-b border-neutral-100
+        flex-row items-center justify-between py-1 border-b border-neutral-100 dark:border-neutral-700
         ${isIndented ? 'ml-4' : ''}
       `}
     >
       <Text
-        className={`${isBold ? 'font-semibold' : ''} text-neutral-700`}
+        className={`${isBold ? 'font-semibold' : ''} text-neutral-700 dark:text-neutral-300`}
       >
         {label}
       </Text>
       <View className="flex-row items-center">
-        <Text className={`${isBold ? 'font-semibold' : ''} text-neutral-700`}>
+        <Text className={`${isBold ? 'font-semibold' : ''} text-neutral-700 dark:text-neutral-300`}>
           {value}{unit}
         </Text>
         {dailyValue !== undefined && (
-          <Text className="text-neutral-500 ml-2 w-12 text-right">
+          <Text className="text-neutral-500 dark:text-neutral-400 ml-2 w-12 text-right">
             {dailyValue}%
           </Text>
         )}
@@ -158,12 +161,13 @@ interface NutritionBadgeProps {
 }
 
 const NutritionBadge: React.FC<NutritionBadgeProps> = ({ label, value, unit }) => {
+  const colors = useThemeColors();
   return (
     <View className="items-center">
-      <Text className="text-lg font-bold text-neutral-900">
+      <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
         {value}{unit}
       </Text>
-      <Text className="text-xs text-neutral-500">{label}</Text>
+      <Text className="text-xs text-neutral-500 dark:text-neutral-400">{label}</Text>
     </View>
   );
 };
@@ -174,8 +178,9 @@ interface MiniNutritionProps {
 }
 
 export const MiniNutrition: React.FC<MiniNutritionProps> = ({ nutrition }) => {
+  const colors = useThemeColors();
   return (
-    <Text className="text-sm text-neutral-500">
+    <Text className="text-sm text-neutral-500 dark:text-neutral-400">
       {formatNutrition(nutrition)}
     </Text>
   );
@@ -191,21 +196,22 @@ interface CalorieSummaryProps {
 }
 
 export const CalorieSummary: React.FC<CalorieSummaryProps> = ({ items }) => {
+  const colors = useThemeColors();
   const total = items.reduce((sum, item) => sum + item.calories * item.servings, 0);
 
   return (
-    <View className="bg-white rounded-2xl p-4">
-      <Text className="text-lg font-bold text-neutral-900 mb-3">
+    <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4">
+      <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
         Calorie Summary
       </Text>
 
       {items.map((item, index) => (
         <View
           key={index}
-          className="flex-row items-center justify-between py-2 border-b border-neutral-100"
+          className="flex-row items-center justify-between py-2 border-b border-neutral-100 dark:border-neutral-700"
         >
-          <Text className="text-neutral-700">{item.name}</Text>
-          <Text className="text-neutral-500">
+          <Text className="text-neutral-700 dark:text-neutral-300">{item.name}</Text>
+          <Text className="text-neutral-500 dark:text-neutral-400">
             {item.servings > 1 ? `${item.servings} x ` : ''}
             {item.calories} cal
           </Text>
@@ -213,7 +219,7 @@ export const CalorieSummary: React.FC<CalorieSummaryProps> = ({ items }) => {
       ))}
 
       <View className="flex-row items-center justify-between pt-3 mt-1">
-        <Text className="text-lg font-bold text-neutral-900">Total</Text>
+        <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Total</Text>
         <Text className="text-xl font-bold text-primary-500">{total} cal</Text>
       </View>
     </View>

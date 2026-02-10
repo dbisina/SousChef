@@ -47,17 +47,17 @@ export const Button: React.FC<ButtonProps> = ({
     primary: 'active:bg-primary-600',
     secondary: 'active:bg-secondary-600',
     outline: 'active:bg-primary-50',
-    ghost: 'active:bg-neutral-100',
+    ghost: 'active:bg-neutral-100 dark:active:bg-neutral-700',
     danger: 'active:bg-red-600',
     glass: '',
   };
 
   const disabledStyles = {
-    primary: 'bg-neutral-200',
-    secondary: 'bg-neutral-200',
-    outline: 'border-neutral-300 bg-transparent',
+    primary: 'bg-neutral-200 dark:bg-neutral-700',
+    secondary: 'bg-neutral-200 dark:bg-neutral-700',
+    outline: 'border-neutral-300 dark:border-neutral-600 bg-transparent',
     ghost: 'bg-transparent',
-    danger: 'bg-neutral-200',
+    danger: 'bg-neutral-200 dark:bg-neutral-700',
     glass: 'opacity-50',
   };
 
@@ -67,10 +67,10 @@ export const Button: React.FC<ButtonProps> = ({
     outline: 'text-primary-500',
     ghost: 'text-primary-500',
     danger: 'text-white',
-    glass: 'text-neutral-800',
+    glass: 'text-neutral-800 dark:text-neutral-200',
   };
 
-  const disabledTextStyles = 'text-neutral-400';
+  const disabledTextStyles = 'text-neutral-400 dark:text-neutral-500';
 
   const sizeStyles = {
     sm: 'px-4 py-2.5',
@@ -193,8 +193,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
   const variantStyles = {
     primary: 'bg-primary-500',
     secondary: 'bg-secondary-500',
-    ghost: 'bg-neutral-100',
-    glass: 'bg-white/60',
+    ghost: 'bg-neutral-100 dark:bg-neutral-700',
+    glass: 'bg-white/60 dark:bg-neutral-800/60',
   };
 
   return (

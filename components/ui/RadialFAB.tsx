@@ -101,11 +101,11 @@ export const RadialFAB: React.FC<RadialFABProps> = ({ actions }) => {
     }
 
     if (isOpen) {
-      openValue.value = withSpring(0, { damping: 15, stiffness: 200 });
-      rotation.value = withTiming(0, { duration: 200 });
+      openValue.value = withTiming(0, { duration: 250 });
+      rotation.value = withTiming(0, { duration: 250 });
     } else {
-      openValue.value = withSpring(1, { damping: 15, stiffness: 200 });
-      rotation.value = withTiming(45, { duration: 200 });
+      openValue.value = withTiming(1, { duration: 300 });
+      rotation.value = withTiming(45, { duration: 300 });
     }
     setIsOpen(!isOpen);
   };
@@ -116,7 +116,7 @@ export const RadialFAB: React.FC<RadialFABProps> = ({ actions }) => {
     }
 
     // Close menu first
-    openValue.value = withSpring(0, { damping: 15, stiffness: 200 });
+    openValue.value = withTiming(0, { duration: 200 });
     rotation.value = withTiming(0, { duration: 200 });
     setIsOpen(false);
 

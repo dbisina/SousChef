@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
+import { useThemeColors } from '@/stores/themeStore';
 import { Button, Input } from '@/components/ui';
 
 const registerSchema = z
@@ -35,6 +36,7 @@ export default function RegisterScreen() {
   const { signUp, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const colors = useThemeColors();
 
   const {
     control,
@@ -60,7 +62,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900">
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
@@ -74,17 +76,17 @@ export default function RegisterScreen() {
             {/* Back button */}
             <TouchableOpacity
               onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center mb-6"
+              className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center mb-6"
             >
-              <Ionicons name="arrow-back" size={24} color="#404040" />
+              <Ionicons name="arrow-back" size={24} color={colors.icon} />
             </TouchableOpacity>
 
             {/* Header */}
             <View className="mb-8">
-              <Text className="text-3xl font-bold text-neutral-900">
+              <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
                 Create account
               </Text>
-              <Text className="text-neutral-500 mt-2">
+              <Text className="text-neutral-500 dark:text-neutral-400 mt-2">
                 Join SousChef and start cooking smarter
               </Text>
             </View>
@@ -92,8 +94,8 @@ export default function RegisterScreen() {
             {/* Form */}
             <View className="flex-1">
               {error && (
-                <View className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
-                  <Text className="text-red-600">{error}</Text>
+                <View className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
+                  <Text className="text-red-600 dark:text-red-400">{error}</Text>
                 </View>
               )}
 
@@ -188,19 +190,19 @@ export default function RegisterScreen() {
               />
 
               {/* Terms */}
-              <Text className="text-xs text-neutral-400 text-center mt-4">
+              <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center mt-4">
                 By signing up, you agree to our{' '}
-                <Text className="text-primary-500">Terms of Service</Text> and{' '}
-                <Text className="text-primary-500">Privacy Policy</Text>
+                <Text style={{ color: colors.accent }}>Terms of Service</Text> and{' '}
+                <Text style={{ color: colors.accent }}>Privacy Policy</Text>
               </Text>
             </View>
 
             {/* Sign in link */}
             <View className="flex-row justify-center mt-8">
-              <Text className="text-neutral-500">Already have an account? </Text>
+              <Text className="text-neutral-500 dark:text-neutral-400">Already have an account? </Text>
               <Link href="/auth/login" asChild>
                 <TouchableOpacity>
-                  <Text className="text-primary-500 font-semibold">Sign in</Text>
+                  <Text className="font-semibold" style={{ color: colors.accent }}>Sign in</Text>
                 </TouchableOpacity>
               </Link>
             </View>

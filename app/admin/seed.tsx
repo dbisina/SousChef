@@ -9,6 +9,7 @@ import { Button } from '@/components/ui';
 import { SEED_RECIPES, SEED_USERS, SEED_COOKBOOKS, SeedUser } from '@/data/seedData';
 import { db, auth, doc, setDoc, collection, addDoc, Timestamp, createUserWithEmailAndPassword, updateProfile } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/firebase';
+import { seedDemoAd } from '@/services/adService';
 import { calculateNutrition, calculateIngredientCalories } from '@/lib/utils';
 
 export default function SeedDataScreen() {
@@ -105,7 +106,7 @@ export default function SeedDataScreen() {
           // Seed Pantry Items if any
           if (seedUser.pantryItems && seedUser.pantryItems.length > 0) {
               addLog(`  - Adding ${seedUser.pantryItems.length} pantry items...`);
-              const pantryRef = collection(db, COLLECTIONS.USERS, seedUser.id, 'pantry');
+              const pantryRef = collection(db, COLLECTIONS.USERS, finalUserId, 'pantry');
               
               for (const item of seedUser.pantryItems) {
                   // Create a deterministic ID based on item name to avoid duplicates
@@ -303,6 +304,21 @@ export default function SeedDataScreen() {
           isLoading={isSeeding}
           disabled={isSeeding}
         />
+
+        <View className="mt-4">
+          <Button
+            title="Seed Demo Sponsored Ad"
+            variant="outline"
+            onPress={async () => {
+              try {
+                const adId = await seedDemoAd();
+                Alert.alert('Ad Created', `Demo sponsored ad seeded to Firestore.\nDoc ID: ${adId}`);
+              } catch (e: any) {
+                Alert.alert('Error', e.message || 'Failed to seed ad.');
+              }
+            }}
+          />
+        </View>
       </View>
     </SafeAreaView>
   );

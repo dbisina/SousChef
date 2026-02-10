@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeColors } from '@/stores/themeStore';
 
 interface YouTubePlayerProps {
   videoUrl: string;
@@ -60,6 +61,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const colors = useThemeColors();
 
   const videoId = extractVideoId(videoUrl);
   const screenWidth = Dimensions.get('window').width;
@@ -81,18 +83,18 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
   if (!videoId) {
     return (
-      <View className="bg-neutral-100 rounded-xl p-6 items-center justify-center" style={{ height: playerHeight }}>
-        <Ionicons name="videocam-off-outline" size={40} color="#737373" />
-        <Text className="text-neutral-500 mt-2 text-center">Invalid YouTube URL</Text>
+      <View className="bg-neutral-100 dark:bg-neutral-700 rounded-xl p-6 items-center justify-center" style={{ height: playerHeight }}>
+        <Ionicons name="videocam-off-outline" size={40} color={colors.textMuted} />
+        <Text className="text-neutral-500 dark:text-neutral-400 mt-2 text-center">Invalid YouTube URL</Text>
       </View>
     );
   }
 
   if (hasError) {
     return (
-      <View className="bg-neutral-100 rounded-xl p-6 items-center justify-center" style={{ height: playerHeight }}>
+      <View className="bg-neutral-100 dark:bg-neutral-700 rounded-xl p-6 items-center justify-center" style={{ height: playerHeight }}>
         <Ionicons name="alert-circle-outline" size={40} color="#EF4444" />
-        <Text className="text-neutral-500 mt-2 text-center">Failed to load video</Text>
+        <Text className="text-neutral-500 dark:text-neutral-400 mt-2 text-center">Failed to load video</Text>
         <TouchableOpacity
           onPress={() => setHasError(false)}
           className="mt-3 px-4 py-2 bg-primary-500 rounded-lg"
@@ -107,11 +109,11 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
     <View className="rounded-xl overflow-hidden bg-black">
       {!isReady && (
         <View
-          className="absolute inset-0 bg-neutral-200 items-center justify-center z-10"
+          className="absolute inset-0 bg-neutral-200 dark:bg-neutral-700 items-center justify-center z-10"
           style={{ height: playerHeight }}
         >
-          <Ionicons name="play-circle" size={48} color="#737373" />
-          <Text className="text-neutral-500 mt-2">Loading video...</Text>
+          <Ionicons name="play-circle" size={48} color={colors.textMuted} />
+          <Text className="text-neutral-500 dark:text-neutral-400 mt-2">Loading video...</Text>
         </View>
       )}
       <YoutubePlayer

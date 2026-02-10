@@ -227,3 +227,6 @@ export * from './mealplan';
 
 // Re-export want to cook types
 export * from './wantToCook';
+
+// Re-export ad types
+export * from './ads';
