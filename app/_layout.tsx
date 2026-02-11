@@ -8,6 +8,7 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/stores/authStore';
+import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useShareIntentStore } from '@/stores/shareIntentStore';
 import { useThemeStore, useThemeColors } from '@/stores/themeStore';
 import { ThemeProvider } from '@/components/ThemeProvider';
@@ -119,6 +120,15 @@ export default function RootLayout() {
       subscription.remove();
       unsubShare();
     };
+  }, []);
+
+  // Initialize RevenueCat on app launch
+  useEffect(() => {
+    const initSubscription = async () => {
+      // Initialize anonymously first, will identify when user logs in
+      await useSubscriptionStore.getState().initialize();
+    };
+    initSubscription();
   }, []);
 
   if (!isInitialized) {
