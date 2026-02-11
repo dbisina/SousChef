@@ -29,14 +29,10 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "image": "latest",
-        "autoSubmit": true,
-        "submitProfile": "production"
+        "image": "latest"
       },
       "android": {
-        "image": "latest",
-        "autoSubmit": true,
-        "submitProfile": "production"
+        "image": "latest"
       },
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
@@ -44,16 +40,6 @@
     }
   },
   "submit": {
-    "production": {
-      "ios": {
-        "appleId": "danielbisina@gmail.com",
-        "ascAppId": "6738848055",
-        "appleTeamId": "D76PR74GWY"
-      },
-      "android": {
-        "serviceAccountKeyPath": "./google-play-service-account.json",
-        "track": "internal"
-      }
-    }
+    "production": {}
   }
 }
