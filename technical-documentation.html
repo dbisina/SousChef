@@ -649,10 +649,10 @@
                         L --> M
                         M --> A
 
-                        style A fill:#f97316,color:#fff,stroke:none
-                        style E fill:#3b82f6,color:#fff,stroke:none
-                        style H fill:#f59e0b,color:#fff,stroke:none
-                        style K fill:#10b981,color:#fff,stroke:none
+                        style A fill:#f97316,color:#000,stroke:none
+                        style E fill:#3b82f6,color:#000,stroke:none
+                        style H fill:#f59e0b,color:#000,stroke:none
+                        style K fill:#10b981,color:#000,stroke:none
                     </div>
                 </div>
 
@@ -890,9 +890,9 @@
                         Q --> S[Sync Entitlements]
                         end
 
-                        style B fill:#10b981,color:#fff,stroke:none
-                        style L fill:#f97316,color:#fff,stroke:none
-                        style O fill:#3b82f6,color:#fff,stroke:none
+                        style B fill:#10b981,color:#000,stroke:none
+                        style L fill:#f97316,color:#000,stroke:none
+                        style O fill:#3b82f6,color:#000,stroke:none
                     </div>
                 </div>
 
@@ -966,9 +966,9 @@ const handleImportRecipe = async (url: string) => {
                         H --> I[Firestore]
                         end
 
-                        style A fill:#f97316,color:#fff,stroke:none
-                        style F fill:#3b82f6,color:#fff,stroke:none
-                        style I fill:#10b981,color:#fff,stroke:none
+                        style A fill:#f97316,color:#000,stroke:none
+                        style F fill:#3b82f6,color:#000,stroke:none
+                        style I fill:#10b981,color:#000,stroke:none
                     </div>
                 </div>
 
@@ -976,7 +976,8 @@ const handleImportRecipe = async (url: string) => {
                     <div class="timeline-item">
                         <h4>1. Video Download & Caching</h4>
                         <p>Download temporary cached version respecting platform TOS. Files are cached locally in
-                            <code>FileSystem.cacheDirectory</code>.</p>
+                            <code>FileSystem.cacheDirectory</code>.
+                        </p>
                     </div>
                     <div class="timeline-item">
                         <h4>2. Multimodal Extraction</h4>
@@ -1082,8 +1083,8 @@ match /users/{userId} {
                         D --> F[App Store / Play Store]
                         E --> G[Internal Testing]
 
-                        style A fill:#f97316,color:#fff,stroke:none
-                        style D fill:#10b981,color:#fff,stroke:none
+                        style A fill:#f97316,color:#000,stroke:none
+                        style D fill:#10b981,color:#000,stroke:none
                     </div>
                 </div>
 
@@ -1106,19 +1107,20 @@ match /users/{userId} {
             theme: 'base',
             themeVariables: {
                 primaryColor: '#f97316',
-                primaryTextColor: '#fff',
+                primaryTextColor: '#000',
                 primaryBorderColor: '#ea580c',
-                lineColor: '#64748b',
+                lineColor: '#1e293b',
                 secondaryColor: '#3b82f6',
                 tertiaryColor: '#f59e0b',
                 mainBkg: '#ffffff',
-                nodeBorder: '#cbd5e1'
+                nodeBorder: '#cbd5e1',
+                textColor: '#000'
             }
         });
 
         // Common Chart Defaults
-        Chart.defaults.color = '#64748b';
-        Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.2)';
+        Chart.defaults.color = '#1e293b';
+        Chart.defaults.borderColor = 'rgba(30, 41, 59, 0.2)';
         Chart.defaults.font.family = "'Inter', sans-serif";
 
         // Conversion Chart
