@@ -440,11 +440,20 @@ export const Paywall: React.FC<PaywallProps> = ({
 
           {/* Empty state if no offerings configured */}
           {!isLoading && packages.length === 0 && (
-            <View className="py-12 items-center">
+            <View className="py-12 items-center px-6">
               <Ionicons name="alert-circle-outline" size={48} color="#A8A29E" />
               <Text className="text-neutral-500 mt-4 text-center">
                 Subscriptions are not available at this time.
               </Text>
+              <Text className="text-neutral-400 text-sm mt-2 text-center">
+                Please check your internet connection and try again.
+              </Text>
+              <TouchableOpacity
+                onPress={fetchOfferings}
+                className="mt-6 px-6 py-3 bg-primary-500 rounded-lg"
+              >
+                <Text className="text-white font-semibold">Retry</Text>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -461,19 +470,25 @@ export const Paywall: React.FC<PaywallProps> = ({
           )}
 
           {/* Terms */}
-          <View className="px-6 py-6">
-            <Text className="text-xs text-neutral-400 text-center leading-5">
+          <View className="px-6 py-6 pb-20">
+            <Text className="text-xs text-neutral-400 text-center leading-5 mb-6">
               Payment will be charged to your {'\n'}
               App Store account at confirmation.{'\n'}
               Subscription auto-renews unless cancelled{'\n'}
               at least 24 hours before the end of the period.
             </Text>
-            <View className="flex-row justify-center mt-4 gap-4">
-              <TouchableOpacity onPress={() => { onClose(); setTimeout(() => { const router = require('expo-router').router; router.push('/settings/terms'); }, 300); }}>
-                <Text className="text-xs text-neutral-500 underline">Terms of Use</Text>
+            <View className="flex-row justify-center gap-6">
+              <TouchableOpacity 
+                onPress={() => { onClose(); setTimeout(() => { const router = require('expo-router').router; router.push('/settings/terms'); }, 300); }}
+                className="py-2 px-4 bg-neutral-100 rounded-lg"
+              >
+                <Text className="text-xs font-semibold text-neutral-600">Terms of Use</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => { onClose(); setTimeout(() => { const router = require('expo-router').router; router.push('/settings/privacy'); }, 300); }}>
-                <Text className="text-xs text-neutral-500 underline">Privacy Policy</Text>
+              <TouchableOpacity 
+                onPress={() => { onClose(); setTimeout(() => { const router = require('expo-router').router; router.push('/settings/privacy'); }, 300); }}
+                className="py-2 px-4 bg-neutral-100 rounded-lg"
+              >
+                <Text className="text-xs font-semibold text-neutral-600">Privacy Policy</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -72,7 +72,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 bg-black">
-        {/* Header */}
+        {/* Header - Always show close button */}
         <View className="absolute top-12 left-0 right-0 z-10 px-4">
           <View className="flex-row items-center justify-between">
             <TouchableOpacity
@@ -81,10 +81,12 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
             >
               <Ionicons name="close" size={24} color="white" />
             </TouchableOpacity>
-            <View className="items-center">
-              <Text className="text-white text-lg font-bold">{title}</Text>
-              <Text className="text-white/70 text-sm">{description}</Text>
-            </View>
+            {permission.granted && (
+              <View className="items-center">
+                <Text className="text-white text-lg font-bold">{title}</Text>
+                <Text className="text-white/70 text-sm">{description}</Text>
+              </View>
+            )}
             <View className="w-10" />
           </View>
         </View>
@@ -94,12 +96,17 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
           <View className="flex-1 items-center justify-center px-8">
             <Ionicons name="camera-outline" size={64} color={colors.textMuted} />
             <Text className="text-white text-lg font-semibold mt-4 text-center">
-              Camera Permission Required
+              Camera Access Needed
             </Text>
-            <Text className="text-neutral-400 dark:text-neutral-500 text-center mt-2 mb-6">
-              We need camera access to analyze your ingredients
+            <Text className="text-neutral-400 dark:text-neutral-500 text-center mt-2 mb-8">
+              To analyze your ingredients or food, SousChef needs access to your camera.
             </Text>
-            <Button title="Grant Permission" onPress={requestPermission} />
+            
+            <Button
+                title="Continue"
+                onPress={requestPermission}
+                fullWidth
+            />
           </View>
         ) : capturedImage ? (
           // Preview captured image
