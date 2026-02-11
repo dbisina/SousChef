@@ -1,292 +1,243 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SousChef Technical Documentation - RevenueCat Shipyard</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
+        :root {
+            --primary: #f97316;
+            --primary-light: #ffedd5;
+            --primary-hover: #ea580c;
+            --bg-body: #f8fafc;
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --bg-card: rgba(255, 255, 255, 0.5);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: rgba(148, 163, 184, 0.2);
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --code-bg: #f1f5f9;
+            --code-text: #0f172a;
+
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --info: #3b82f6;
+            --info-bg: #eff6ff;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #FF6B35;
-            --secondary: #F7931E;
-            --accent: #4ECDC4;
-            --dark: #1A1A2E;
-            --light: #F8F9FA;
-            --text: #2D3748;
-            --border: #E2E8F0;
-            --success: #48BB78;
-            --info: #4299E1;
+            scroll-behavior: smooth;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             line-height: 1.6;
-            color: var(--text);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 2rem 0;
+            background-image:
+                radial-gradient(circle at 10% 20%, rgba(249, 115, 22, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 3rem 2rem;
-            text-align: center;
-        }
-
-        header h1 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
-            font-weight: 800;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        header .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.95;
-            margin-bottom: 1rem;
-        }
-
-        .header-meta {
+        /* Layout */
+        .wrapper {
             display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
+            min-height: 100vh;
         }
 
-        .meta-item {
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
+            z-index: 50;
+        }
+
+        .sidebar h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background: rgba(255,255,255,0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            backdrop-filter: blur(10px);
+        }
+
+        .sidebar .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .nav-links {
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: block;
+            padding: 0.6rem 0.8rem;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary);
+            background: var(--primary-light);
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            margin-top: 3rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .meta-item {
+            display: block;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .meta-item span {
+            font-weight: 600;
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 0.2rem;
         }
 
         .meta-item a {
-            color: white;
+            color: var(--primary);
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 500;
+            transition: color 0.2s;
         }
 
         .meta-item a:hover {
+            color: var(--primary-hover);
             text-decoration: underline;
         }
 
-        nav {
-            background: var(--dark);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        nav ul {
-            list-style: none;
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: var(--accent);
-        }
-
-        main {
-            padding: 3rem 2rem;
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 4rem 5rem;
+            width: calc(100% - 280px);
+            max-width: 1600px;
         }
 
         section {
-            margin-bottom: 4rem;
+            margin-bottom: 6rem;
+            scroll-margin-top: 2rem;
         }
 
         h2 {
-            color: var(--dark);
-            font-size: 2.2rem;
-            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border);
             padding-bottom: 0.5rem;
-            border-bottom: 3px solid var(--primary);
-            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         h3 {
-            color: var(--dark);
-            font-size: 1.6rem;
-            margin: 2rem 0 1rem;
-            font-weight: 600;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 2.5rem 0 1.5rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: -0.01em;
         }
 
         h4 {
-            color: var(--text);
-            font-size: 1.3rem;
-            margin: 1.5rem 0 0.8rem;
+            font-size: 1.1rem;
             font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
         }
 
         p {
-            margin-bottom: 1rem;
-            line-height: 1.8;
-        }
-
-        .diagram-container {
-            background: var(--light);
-            padding: 2rem;
-            border-radius: 12px;
-            margin: 2rem 0;
-            border: 2px solid var(--border);
-            overflow-x: auto;
-        }
-
-        .diagram-title {
-            text-align: center;
-            font-weight: 600;
-            color: var(--dark);
             margin-bottom: 1.5rem;
-            font-size: 1.2rem;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            max-width: 65ch;
         }
 
-        .tech-grid {
+        strong {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        /* Glass Cards */
+        .card-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin: 2rem 0;
         }
 
-        .tech-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem;
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            padding: 2rem;
             border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
         }
 
-        .tech-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(249, 115, 22, 0.3);
+            background: rgba(255, 255, 255, 0.7);
         }
 
-        .tech-card h4 {
-            color: white;
-            margin-top: 0;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .tech-card .tech-name {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 0.8rem;
-            opacity: 0.95;
-        }
-
-        .tech-card p {
-            opacity: 0.9;
+        .glass-card p {
+            margin-bottom: 0;
             font-size: 0.95rem;
-            line-height: 1.6;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 2rem 0;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        th {
-            background: var(--dark);
-            color: white;
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover {
-            background: var(--light);
-        }
-
-        code {
-            background: var(--light);
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9rem;
-            color: var(--primary);
-        }
-
-        pre {
-            background: var(--dark);
-            color: #f8f8f2;
-            padding: 1.5rem;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 1.5rem 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
-        pre code {
-            background: none;
-            color: inherit;
-            padding: 0;
-        }
-
-        .feature-list {
-            list-style: none;
-            margin: 1.5rem 0;
-        }
-
-        .feature-list li {
-            padding: 0.8rem 0;
-            padding-left: 2rem;
-            position: relative;
-        }
-
-        .feature-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: var(--success);
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-
+        /* Stats Cards */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -295,206 +246,339 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--info) 100%);
-            color: white;
-            padding: 2rem;
+            background: linear-gradient(135deg, #fff, var(--bg-body));
+            border: 1px solid var(--border);
+            padding: 1.5rem;
             border-radius: 12px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-sm);
         }
 
         .stat-number {
             font-size: 2.5rem;
             font-weight: 800;
-            margin-bottom: 0.5rem;
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+            line-height: 1;
         }
 
         .stat-label {
-            font-size: 0.95rem;
-            opacity: 0.95;
-            font-weight: 500;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        .info-box {
-            background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
-            border-left: 4px solid var(--info);
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             padding: 1.5rem;
+            overflow-x: auto;
             margin: 1.5rem 0;
-            border-radius: 8px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            /* Ensure you have a generic monospace fallback */
+            font-size: 0.9rem;
+            color: var(--code-text);
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.02);
         }
 
-        .warning-box {
-            background: linear-gradient(135deg, #fff9e6 0%, #ffe6b3 100%);
-            border-left: 4px solid var(--secondary);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 8px;
-        }
-
-        .success-box {
-            background: linear-gradient(135deg, #e6f9f0 0%, #c1f0db 100%);
-            border-left: 4px solid var(--success);
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            border-radius: 8px;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: var(--light);
-            border-radius: 12px;
-            border: 2px solid var(--border);
-        }
-
-        .flow-step {
-            background: white;
-            border: 2px solid var(--primary);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .flow-step h4 {
+        code {
+            font-family: 'Fira Code', 'Consolas', monospace;
             color: var(--primary);
-            margin-top: 0;
+            background: var(--primary-light);
+            padding: 0.15rem 0.3rem;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
 
+        pre code {
+            color: inherit;
+            background: none;
+            padding: 0;
+        }
+
+        /* Diagrams */
+        .diagram-container {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 2rem 0;
+            overflow-x: auto;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .diagram-title {
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            margin: 2rem 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 600px;
+        }
+
+        th {
+            background: var(--bg-body);
+            color: var(--text-main);
+            padding: 1rem 1.5rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        /* Lists */
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .feature-list li::before {
+            content: "•";
+            color: var(--primary);
+            font-size: 1.5rem;
+            position: absolute;
+            left: 0;
+            top: -0.3rem;
+            line-height: 1;
+        }
+
+        /* Timeline */
         .timeline {
             position: relative;
-            padding-left: 3rem;
+            padding-left: 2rem;
             margin: 2rem 0;
         }
 
-        .timeline:before {
+        .timeline::before {
             content: '';
             position: absolute;
             left: 0;
             top: 0;
             height: 100%;
-            width: 3px;
-            background: var(--primary);
+            width: 2px;
+            background: var(--border);
         }
 
         .timeline-item {
             position: relative;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
 
-        .timeline-item:before {
+        .timeline-item::before {
             content: '';
             position: absolute;
-            left: -3.5rem;
-            top: 0;
-            width: 20px;
-            height: 20px;
+            left: -2.35rem;
+            top: 0.3rem;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            background: var(--primary);
-            border: 3px solid white;
-            box-shadow: 0 0 0 3px var(--primary);
+            background: white;
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 0 4px var(--bg-body);
+        }
+
+        /* Alerts/Boxes */
+        .alert-box {
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid;
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .alert-info {
+            border-color: var(--info);
+            background: var(--info-bg);
+        }
+
+        .alert-warning {
+            border-color: var(--warning);
+            background: var(--warning-bg);
+        }
+
+        .alert-success {
+            border-color: var(--success);
+            background: var(--success-bg);
+        }
+
+        .alert-box h4 {
+            margin-bottom: 0.5rem;
+            color: var(--text-main);
+            font-size: 1rem;
+        }
+
+        .alert-box p {
+            margin-bottom: 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Charts */
+        .chart-wrapper {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            height: 400px;
+            position: relative;
+            box-shadow: var(--shadow-sm);
         }
 
         footer {
-            background: var(--dark);
-            color: white;
-            padding: 2rem;
+            margin-top: 5rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
             text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .footer-links a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 0;
+        /* Mobile Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            .container {
-                border-radius: 0;
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: var(--shadow-lg);
             }
 
-            header h1 {
-                font-size: 2rem;
+            .main-content {
+                margin-left: 0;
+                padding: 2rem 1.5rem;
+                width: 100%;
             }
 
-            nav ul {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            main {
-                padding: 2rem 1rem;
-            }
-
-            .tech-grid {
-                grid-template-columns: 1fr;
+            .mobile-toggle {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                right: 1rem;
+                z-index: 100;
+                background: white;
+                border: 1px solid var(--border);
+                color: var(--text-main);
+                padding: 0.5rem 1rem;
+                border-radius: 8px;
+                cursor: pointer;
+                box-shadow: var(--shadow-md);
+                font-weight: 600;
             }
         }
 
-        .mermaid {
-            text-align: center;
+        @media (min-width: 1025px) {
+            .mobile-toggle {
+                display: none;
+            }
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1>🍳 SousChef</h1>
-            <div class="subtitle">Technical Documentation - AI-Powered Culinary Assistant</div>
-            <div class="header-meta">
+
+    <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+        Menu
+    </button>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <header>
+                <h1>SousChef</h1>
+                <div class="subtitle">Technical Documentation</div>
+            </header>
+
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="#overview" class="active">Overview</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="#tech-stack">Tech Stack</a></li>
+                    <li><a href="#revenuecat">RevenueCat</a></li>
+                    <li><a href="#ai-workflow">AI Workflow</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#security">Security</a></li>
+                    <li><a href="#performance">Performance</a></li>
+                    <li><a href="#deployment">Deployment</a></li>
+                    <li><a href="#roadmap">Future Roadmap</a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
                 <div class="meta-item">
-                    <span>📦 Contest:</span>
+                    <span>Contest:</span>
                     <a href="https://revenuecat-shipyard.devpost.com/" target="_blank">RevenueCat Shipyard</a>
                 </div>
                 <div class="meta-item">
-                    <span>🔗 Repository:</span>
-                    <a href="https://github.com/dbisina/SousChef" target="_blank">github.com/dbisina/SousChef</a>
+                    <span>Repository:</span>
+                    <a href="https://github.com/dbisina/SousChef" target="_blank">GitHub Link</a>
                 </div>
                 <div class="meta-item">
-                    <span>🏗️ Built with:</span>
-                    <span>React Native + Expo + RevenueCat</span>
+                    <span>Stack:</span>
+                    RN + Expo + RevenueCat
                 </div>
             </div>
-        </header>
+        </aside>
 
-        <nav>
-            <ul>
-                <li><a href="#overview">Overview</a></li>
-                <li><a href="#architecture">Architecture</a></li>
-                <li><a href="#tech-stack">Tech Stack</a></li>
-                <li><a href="#revenuecat">RevenueCat</a></li>
-                <li><a href="#ai-workflow">AI Workflow</a></li>
-                <li><a href="#features">Features</a></li>
-                <li><a href="#security">Security</a></li>
-                <li><a href="#performance">Performance</a></li>
-            </ul>
-        </nav>
+        <!-- Main Content -->
+        <main class="main-content">
 
-        <main>
             <!-- OVERVIEW -->
             <section id="overview">
-                <h2>🎯 Architecture Overview</h2>
+                <h2>Architecture Overview</h2>
                 <p>
-                    SousChef is designed as a modern, AI-first culinary assistant that transforms how users discover, organize, and execute recipes.
-                    The architecture prioritizes offline-first capabilities where possible, real-time synchronization, and low-latency interaction
+                    SousChef is designed as a modern, AI-first culinary assistant that transforms how users discover,
+                    organize, and execute recipes.
+                    The architecture prioritizes offline-first capabilities where possible, real-time synchronization,
+                    and low-latency interaction
                     for voice commands during cooking sessions.
                 </p>
 
@@ -505,7 +589,7 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">100%</div>
-                        <div class="stat-label">TypeScript Coverage</div>
+                        <div class="stat-label">TypeScript</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">2</div>
@@ -513,206 +597,131 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-number">&lt;2s</div>
-                        <div class="stat-label">AI Processing Time</div>
+                        <div class="stat-label">AI Processing</div>
                     </div>
                 </div>
 
-                <h3>🏛️ High-Level System Components</h3>
-
+                <h3>High-Level System Components</h3>
                 <div class="diagram-container">
-                    <div class="diagram-title">System Architecture Diagram</div>
+                    <div class="diagram-title">System Architecture</div>
                     <div class="mermaid">
-graph TB
-    subgraph "Client Layer"
-        A[React Native App<br/>Expo SDK 50+]
-        B[UI Components<br/>NativeWind]
-        C[State Management<br/>Zustand]
-        D[Voice Interface<br/>react-native-voice]
-    end
+                        graph TB
+                        subgraph Client ["Client Layer"]
+                        A[React Native App<br />Expo SDK 50+]
+                        B[UI Components<br />NativeWind]
+                        C[State Management<br />Zustand]
+                        D[Voice Interface<br />react-native-voice]
+                        end
 
-    subgraph "AI Processing Layer"
-        E[Google Gemini 1.5 Flash]
-        F[Vision API]
-        G[Multimodal Processing]
-    end
+                        subgraph AI ["AI Processing Layer"]
+                        E[Google Gemini 1.5 Flash]
+                        F[Vision API]
+                        G[Multimodal Processing]
+                        end
 
-    subgraph "Backend Services"
-        H[Firebase Auth]
-        I[Firestore Database]
-        J[Real-time Sync]
-    end
+                        subgraph Backend ["Backend Services"]
+                        H[Firebase Auth]
+                        I[Firestore Database]
+                        J[Real-time Sync]
+                        end
 
-    subgraph "Monetization Layer"
-        K[RevenueCat SDK]
-        L[Entitlements Engine]
-        M[Subscription Logic]
-    end
+                        subgraph Monetization ["Monetization Layer"]
+                        K[RevenueCat SDK]
+                        L[Entitlements Engine]
+                        M[Subscription Logic]
+                        end
 
-    A --> B
-    A --> C
-    A --> D
-    A --> K
-    A --> H
+                        A --> B
+                        A --> C
+                        A --> D
+                        A --> K
+                        A --> H
 
-    C --> I
-    H --> I
-    I --> J
+                        C --> I
+                        H --> I
+                        I --> J
 
-    A --> E
-    E --> F
-    F --> G
+                        A --> E
+                        E --> F
+                        F --> G
 
-    K --> L
-    L --> M
-    M --> A
+                        K --> L
+                        L --> M
+                        M --> A
 
-    style A fill:#FF6B35,color:#fff
-    style E fill:#4ECDC4,color:#fff
-    style H fill:#F7931E,color:#fff
-    style K fill:#48BB78,color:#fff
+                        style A fill:#f97316,color:#fff,stroke:none
+                        style E fill:#3b82f6,color:#fff,stroke:none
+                        style H fill:#f59e0b,color:#fff,stroke:none
+                        style K fill:#10b981,color:#fff,stroke:none
                     </div>
                 </div>
 
-                <h3>📊 Component Responsibilities</h3>
-                <div class="tech-grid">
-                    <div class="tech-card">
-                        <h4>1️⃣ Client (Mobile App)</h4>
-                        <p>React Native application built with Expo serving as the primary interface for recipe management, cooking assistance, and shopping list creation.</p>
-                        <ul class="feature-list">
-                            <li>Cross-platform iOS & Android support</li>
-                            <li>Offline-first data persistence</li>
-                            <li>Voice command integration</li>
-                            <li>Real-time UI updates</li>
-                        </ul>
+                <h3>Component Responsibilities</h3>
+                <div class="card-grid">
+                    <div class="glass-card">
+                        <h4>Client (Mobile App)</h4>
+                        <p>React Native application built with Expo serving as the primary interface. Handles recipe
+                            management, voice commands, and offline data via AsyncStorage.</p>
                     </div>
-
-                    <div class="tech-card">
-                        <h4>2️⃣ AI Processing Layer</h4>
-                        <p>Direct integration with Google Gemini 1.5 Flash & Vision API for multimodal analysis of video, images, and text content.</p>
-                        <ul class="feature-list">
-                            <li>Video-to-recipe extraction</li>
-                            <li>Image-based ingredient detection</li>
-                            <li>Natural language understanding</li>
-                            <li>Structured data generation</li>
-                        </ul>
+                    <div class="glass-card">
+                        <h4>AI Processing Layer</h4>
+                        <p>Direct integration with Google Gemini 1.5 Flash & Vision API for multimodal analysis.
+                            Extracts structured recipe data from social media videos.</p>
                     </div>
-
-                    <div class="tech-card">
-                        <h4>3️⃣ Backend Services</h4>
-                        <p>Firebase infrastructure (Firestore, Auth) for user data persistence, authentication, and real-time synchronization across devices.</p>
-                        <ul class="feature-list">
-                            <li>User authentication & profiles</li>
-                            <li>Cloud data persistence</li>
-                            <li>Real-time sync engine</li>
-                            <li>Security rules enforcement</li>
-                        </ul>
+                    <div class="glass-card">
+                        <h4>Backend Services</h4>
+                        <p>Firebase infrastructure (Firestore, Auth) for user data persistence, authentication, and
+                            real-time synchronization across devices.</p>
                     </div>
-
-                    <div class="tech-card">
-                        <h4>4️⃣ Monetization Layer</h4>
-                        <p>RevenueCat for managing cross-platform entitlements, subscription logic, and seamless in-app purchase handling.</p>
-                        <ul class="feature-list">
-                            <li>Subscription management</li>
-                            <li>Entitlement validation</li>
-                            <li>Cross-platform purchases</li>
-                            <li>Analytics & insights</li>
-                        </ul>
+                    <div class="glass-card">
+                        <h4>Monetization Layer</h4>
+                        <p>RevenueCat for managing cross-platform entitlements, subscription logic, and seamless in-app
+                            purchase handling.</p>
                     </div>
                 </div>
             </section>
 
             <!-- ARCHITECTURE -->
             <section id="architecture">
-                <h2>🏗️ Detailed Architecture</h2>
+                <h2>Detailed Architecture</h2>
 
                 <h3>Data Flow Architecture</h3>
                 <div class="diagram-container">
-                    <div class="diagram-title">Complete Data Flow Diagram</div>
+                    <div class="diagram-title">Complete Data Flow</div>
                     <div class="mermaid">
-sequenceDiagram
-    participant U as User
-    participant App as React Native App
-    participant RC as RevenueCat
-    participant AI as Gemini AI
-    participant FB as Firebase
+                        sequenceDiagram
+                        participant U as User
+                        participant App as React Native App
+                        participant RC as RevenueCat
+                        participant AI as Gemini AI
+                        participant FB as Firebase
 
-    U->>App: Opens app
-    App->>RC: Initialize SDK
-    App->>FB: Authenticate user
-    FB-->>App: Auth token
-    App->>RC: Sync customer info
-    RC-->>App: Entitlements
+                        U->>App: Opens app
+                        App->>RC: Initialize SDK
+                        App->>FB: Authenticate user
+                        FB-->>App: Auth token
+                        App->>RC: Sync customer info
+                        RC-->>App: Entitlements
 
-    U->>App: Paste recipe URL
-    App->>RC: Check entitlement
+                        U->>App: Paste recipe URL
+                        App->>RC: Check entitlement
 
-    alt Has Pro Access
-        RC-->>App: ✓ Pro active
-        App->>AI: Send video/URL
-        AI->>AI: Process multimodal content
-        AI-->>App: Structured recipe JSON
-        App->>FB: Save recipe
-        FB-->>App: Sync confirmation
-        App->>U: Display recipe
-    else Free tier limit reached
-        RC-->>App: ✗ No access
-        App->>U: Show paywall
-        U->>App: Purchase subscription
-        App->>RC: Process purchase
-        RC->>FB: Update entitlements
-        RC-->>App: ✓ Purchase successful
-    end
-                    </div>
-                </div>
-
-                <h3>Application Layer Architecture</h3>
-                <div class="diagram-container">
-                    <div class="diagram-title">App Structure & Organization</div>
-                    <div class="mermaid">
-graph LR
-    subgraph "Presentation Layer"
-        A[Screens]
-        B[Components]
-        C[Navigation]
-    end
-
-    subgraph "Business Logic Layer"
-        D[Stores/Zustand]
-        E[Services]
-        F[Hooks]
-    end
-
-    subgraph "Data Layer"
-        G[API Clients]
-        H[Local Storage]
-        I[Cache]
-    end
-
-    subgraph "External Services"
-        J[Firebase]
-        K[Gemini AI]
-        L[RevenueCat]
-    end
-
-    A --> D
-    B --> F
-    C --> B
-
-    D --> E
-    E --> G
-    F --> E
-
-    G --> J
-    G --> K
-    G --> L
-
-    E --> H
-    E --> I
-
-    style A fill:#FF6B35,color:#fff
-    style D fill:#F7931E,color:#fff
-    style G fill:#4ECDC4,color:#fff
-    style J fill:#48BB78,color:#fff
+                        alt Has Pro Access
+                        RC-->>App: ✓ Pro active
+                        App->>AI: Send video/URL
+                        AI->>AI: Process multimodal content
+                        AI-->>App: Structured recipe JSON
+                        App->>FB: Save recipe
+                        FB-->>App: Sync confirmation
+                        App->>U: Display recipe
+                        else Free tier limit reached
+                        RC-->>App: ✗ No access
+                        App->>U: Show paywall
+                        U->>App: Purchase subscription
+                        App->>RC: Process purchase
+                        RC->>FB: Update entitlements
+                        RC-->>App: ✓ Purchase successful
+                        end
                     </div>
                 </div>
 
@@ -721,26 +730,30 @@ graph LR
 
                 <div class="timeline">
                     <div class="timeline-item">
-                        <h4>🗄️ Cookbook Store</h4>
-                        <p>Manages recipe collection, favorites, and custom modifications. Syncs with Firestore for cloud backup.</p>
+                        <h4>Cookbook Store</h4>
+                        <p>Manages recipe collection, favorites, and custom modifications. Syncs with Firestore for
+                            cloud backup.</p>
                         <code>packages/mobile/src/stores/cookbookStore.ts</code>
                     </div>
 
                     <div class="timeline-item">
-                        <h4>🛒 Shopping List Store</h4>
-                        <p>Handles ingredient aggregation, pantry checking, and shopping list organization with offline support.</p>
+                        <h4>Shopping List Store</h4>
+                        <p>Handles ingredient aggregation, pantry checking, and shopping list organization with offline
+                            support.</p>
                         <code>packages/mobile/src/stores/shoppingListStore.ts</code>
                     </div>
 
                     <div class="timeline-item">
-                        <h4>⏰ Timer Store</h4>
-                        <p>Manages multiple concurrent cooking timers with notifications and voice control integration.</p>
+                        <h4>Timer Store</h4>
+                        <p>Manages multiple concurrent cooking timers with notifications and voice control integration.
+                        </p>
                         <code>packages/mobile/src/stores/timerStore.ts</code>
                     </div>
 
                     <div class="timeline-item">
-                        <h4>🎨 Theme Store</h4>
-                        <p>Controls app appearance, dark mode, and accessibility preferences with persistent storage.</p>
+                        <h4>Theme Store</h4>
+                        <p>Controls app appearance, dark mode, and accessibility preferences with persistent storage.
+                        </p>
                         <code>packages/mobile/src/stores/themeStore.ts</code>
                     </div>
                 </div>
@@ -748,710 +761,245 @@ graph LR
 
             <!-- TECH STACK -->
             <section id="tech-stack">
-                <h2>🛠️ Technology Stack</h2>
+                <h2>Technology Stack</h2>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Technology</th>
-                            <th>Version</th>
-                            <th>Reasoning</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Framework</strong></td>
-                            <td>React Native (Expo)</td>
-                            <td>SDK 50+</td>
-                            <td>Cross-platform development with rapid iteration via Expo Go. Over-the-air updates and managed workflow.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Language</strong></td>
-                            <td>TypeScript</td>
-                            <td>5.3+</td>
-                            <td>Type safety for complex data structures like recipe schemas. Improved developer experience and maintainability.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Styling</strong></td>
-                            <td>NativeWind</td>
-                            <td>4.0+</td>
-                            <td>Utility-first styling system bringing TailwindCSS patterns to React Native for consistent design.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>State Management</strong></td>
-                            <td>Zustand</td>
-                            <td>4.5+</td>
-                            <td>Lightweight (<1KB), predictable state management without boilerplate. Perfect for shopping lists and timers.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>AI / ML</strong></td>
-                            <td>Google Gemini 1.5 Flash</td>
-                            <td>Latest</td>
-                            <td>High-speed, low-cost multimodal processing for video/image extraction. 1M token context window.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Backend</strong></td>
-                            <td>Firebase</td>
-                            <td>10.x</td>
-                            <td>Real-time database (Firestore) and authentication out-of-the-box. Scalable and cost-effective.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Monetization</strong></td>
-                            <td>RevenueCat</td>
-                            <td>7.x</td>
-                            <td>Simplifies In-App Purchase logic and entitlement handling across iOS and Android platforms.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Voice</strong></td>
-                            <td>react-native-voice</td>
-                            <td>3.2+</td>
-                            <td>Real-time speech recognition for hands-free cooking commands. Native iOS/Android integration.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Navigation</strong></td>
-                            <td>React Navigation</td>
-                            <td>6.x</td>
-                            <td>De facto standard for React Native navigation with extensive customization options.</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Build System</strong></td>
-                            <td>EAS Build</td>
-                            <td>Latest</td>
-                            <td>Expo Application Services for cloud builds, auto-submission to App Store/Play Store.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Technology</th>
+                                <th>Version</th>
+                                <th>Reasoning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Framework</strong></td>
+                                <td>React Native (Expo)</td>
+                                <td>SDK 50+</td>
+                                <td>Rapid iteration via Expo Go. Over-the-air updates and managed workflow.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Language</strong></td>
+                                <td>TypeScript</td>
+                                <td>5.3+</td>
+                                <td>Type safety for complex recipe schemas. Maintained database model integrity.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Styling</strong></td>
+                                <td>NativeWind</td>
+                                <td>4.0+</td>
+                                <td>TailwindCSS utility patterns for rapid, consistent mobile UI development.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>State</strong></td>
+                                <td>Zustand</td>
+                                <td>4.5+</td>
+                                <td>Lightweight (<1KB) without boilerplate. Perfect for shopping lists and timers.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>AI / ML</strong></td>
+                                <td>Gemini 1.5 Flash</td>
+                                <td>Latest</td>
+                                <td>1M token context for video processing. ~10x cheaper than GPT-4 Vision.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Backend</strong></td>
+                                <td>Firebase</td>
+                                <td>10.x</td>
+                                <td>Real-time DB (Firestore) and Auth out-of-the-box. Scalable serverless config.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Monetization</strong></td>
+                                <td>RevenueCat</td>
+                                <td>7.x</td>
+                                <td>Abstracts IAP complexity. Handles cross-platform entitlements and subscriptions.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-                <h3>📦 Dependency Graph</h3>
-                <div class="diagram-container">
-                    <div class="diagram-title">Key Dependencies & Integrations</div>
-                    <div class="mermaid">
-graph TD
-    A[React Native App] --> B[Expo SDK]
-    A --> C[TypeScript]
-
-    B --> D[expo-router]
-    B --> E[expo-updates]
-    B --> F[expo-notifications]
-
-    A --> G[NativeWind]
-    G --> H[TailwindCSS]
-
-    A --> I[Zustand]
-    I --> J[AsyncStorage]
-
-    A --> K[Firebase SDK]
-    K --> L[Firestore]
-    K --> M[Auth]
-
-    A --> N[RevenueCat]
-    N --> O[StoreKit iOS]
-    N --> P[Play Billing Android]
-
-    A --> Q[Gemini AI SDK]
-    Q --> R[@google/generative-ai]
-
-    A --> S[react-native-voice]
-
-    style A fill:#FF6B35,color:#fff
-    style B fill:#4ECDC4,color:#fff
-    style K fill:#F7931E,color:#fff
-    style N fill:#48BB78,color:#fff
-    style Q fill:#4299E1,color:#fff
+                <h3>Technology Decision Rationale</h3>
+                <div class="card-grid">
+                    <div class="glass-card">
+                        <h4>Why React Native + Expo?</h4>
+                        <p>
+                            We chose React Native with Expo for its rapid development cycle. The managed workflow
+                            eliminates native configuration complexity,
+                            while EAS Build provides professional-grade CI/CD.
+                        </p>
                     </div>
-                </div>
-
-                <h3>🎯 Technology Decision Rationale</h3>
-
-                <div class="info-box">
-                    <h4>Why React Native + Expo?</h4>
-                    <p>
-                        We chose React Native with Expo for its rapid development cycle and cross-platform capabilities.
-                        The managed workflow eliminates native configuration complexity, while EAS Build provides professional-grade
-                        CI/CD. Expo's ecosystem (expo-router, expo-updates, etc.) offers production-ready solutions for common mobile patterns.
-                    </p>
-                </div>
-
-                <div class="info-box">
-                    <h4>Why Gemini 1.5 Flash over GPT-4?</h4>
-                    <p>
-                        Gemini 1.5 Flash offers superior cost-performance for our use case: 1M token context window enables processing
-                        entire recipe videos in a single request, multimodal understanding handles video frames + audio transcript simultaneously,
-                        and cost is ~10x cheaper than GPT-4 Vision while maintaining comparable accuracy for recipe extraction tasks.
-                    </p>
-                </div>
-
-                <div class="info-box">
-                    <h4>Why Zustand over Redux?</h4>
-                    <p>
-                        Zustand provides a simpler mental model with less boilerplate. For SousChef's use cases (shopping lists, timers, theme),
-                        we don't need Redux's complexity. Zustand's hooks-based API integrates seamlessly with React Native, and the bundle
-                        size is minimal (&lt;1KB vs Redux's ~6KB).
-                    </p>
+                    <div class="glass-card">
+                        <h4>Why Gemini 1.5 Flash?</h4>
+                        <p>
+                            Gemini 1.5 Flash offers superior cost-performance. Its 1M token context window enables
+                            processing entire recipe videos in a single request,
+                            handling video frames + audio transcript simultaneously.
+                        </p>
+                    </div>
+                    <div class="glass-card">
+                        <h4>Why Zustand?</h4>
+                        <p>
+                            Zustand provides a simpler mental model than Redux. For SousChef's use cases (shopping
+                            lists, timers), its hooks-based API
+                            integrates seamlessly with React Native with minimal bundle size impact.
+                        </p>
+                    </div>
                 </div>
             </section>
 
             <!-- REVENUECAT -->
             <section id="revenuecat">
-                <h2>💰 RevenueCat Implementation</h2>
-
+                <h2>RevenueCat Implementation</h2>
                 <p>
-                    The core monetization strategy relies on the <strong>SousChef Pro</strong> subscription, which unlocks unlimited AI imports
-                    and advanced cloud features. RevenueCat is the backbone of this system, abstracting away the complexity of iOS and Android
-                    in-app purchase handling.
+                    The core monetization strategy relies on the <strong>SousChef Pro</strong> subscription. RevenueCat
+                    is the backbone of this system,
+                    abstracting away the complexity of iOS and Android in-app purchase handling.
                 </p>
 
-                <h3>🔧 Integration Architecture</h3>
-
+                <h3>Integration Flow</h3>
                 <div class="diagram-container">
-                    <div class="diagram-title">RevenueCat Integration Flow</div>
+                    <div class="diagram-title">RevenueCat Logic</div>
                     <div class="mermaid">
-graph TB
-    subgraph "App Initialization"
-        A[App.tsx] --> B[Purchases.configure]
-        B --> C{Platform}
-        C -->|iOS| D[Apple API Key]
-        C -->|Android| E[Google API Key]
-    end
+                        graph TB
+                        subgraph "App Init"
+                        A[App.tsx] --> B[Purchases.configure]
+                        B --> C{Platform}
+                        C -->|iOS| D[Apple API Key]
+                        C -->|Android| E[Google API Key]
+                        end
 
-    subgraph "Entitlement Check"
-        F[User Action] --> G[Check Import Count]
-        G --> H{Quota Available?}
-        H -->|Yes| I[Continue Import]
-        H -->|No| J[getCustomerInfo]
-        J --> K{Has 'pro_access'?}
-        K -->|Yes| I
-        K -->|No| L[Show Paywall]
-    end
+                        subgraph "Entitlement Check"
+                        F[User Action] --> G[Check Import Count]
+                        G --> H{Quota Available?}
+                        H -->|Yes| I[Continue Import]
+                        H -->|No| J[getCustomerInfo]
+                        J --> K{Has 'pro_access'?}
+                        K -->|Yes| I
+                        K -->|No| L[Show Paywall]
+                        end
 
-    subgraph "Purchase Flow"
-        L --> M[Display Offerings]
-        M --> N[User Selects Plan]
-        N --> O[purchasePackage]
-        O --> P{Success?}
-        P -->|Yes| Q[Update UI]
-        P -->|No| R[Show Error]
-        Q --> S[Sync Entitlements]
-        S --> T[Update Firebase]
-    end
+                        subgraph "Purchase Flow"
+                        L --> M[Display Offerings]
+                        M --> N[User Selects Plan]
+                        N --> O[purchasePackage]
+                        O --> P{Success?}
+                        P -->|Yes| Q[Update UI]
+                        Q --> S[Sync Entitlements]
+                        end
 
-    D --> F
-    E --> F
-
-    style B fill:#48BB78,color:#fff
-    style J fill:#4ECDC4,color:#fff
-    style O fill:#FF6B35,color:#fff
-    style S fill:#F7931E,color:#fff
+                        style B fill:#10b981,color:#fff,stroke:none
+                        style L fill:#f97316,color:#fff,stroke:none
+                        style O fill:#3b82f6,color:#fff,stroke:none
                     </div>
                 </div>
 
-                <h3>📝 SDK Setup Details</h3>
-
-                <div class="flow-step">
-                    <h4>Step 1: Initialize SDK at App Root</h4>
-                    <p>Configuration happens in <code>packages/mobile/src/App.tsx</code> before any user interaction:</p>
-                    <pre><code>import Purchases from 'react-native-purchases';
-
-// Initialize RevenueCat on app launch
-useEffect(() => {
-  const initRevenueCat = async () => {
-    try {
-      if (Platform.OS === 'ios') {
-        await Purchases.configure({
-          apiKey: process.env.REVENUECAT_IOS_API_KEY,
-        });
-      } else {
-        await Purchases.configure({
-          apiKey: process.env.REVENUECAT_ANDROID_API_KEY,
-        });
-      }
-
-      // Set user attributes for segmentation
-      await Purchases.setAttributes({
-        'install_date': new Date().toISOString(),
-        'platform': Platform.OS,
-      });
-
-      console.log('RevenueCat initialized successfully');
-    } catch (error) {
-      console.error('RevenueCat initialization failed:', error);
-    }
-  };
-
-  initRevenueCat();
-}, []);</code></pre>
-                </div>
-
-                <div class="flow-step">
-                    <h4>Step 2: Define Entitlements</h4>
-                    <p>In the RevenueCat dashboard, we defined a single entitlement identifier: <code>pro_access</code></p>
-                    <ul class="feature-list">
-                        <li><strong>Entitlement ID:</strong> <code>pro_access</code></li>
-                        <li><strong>Associated Products:</strong> <code>souschef_monthly</code>, <code>souschef_annual</code></li>
-                        <li><strong>Features Unlocked:</strong> Unlimited AI imports, cloud sync, advanced timers, offline recipes</li>
-                    </ul>
-                </div>
-
-                <div class="flow-step">
-                    <h4>Step 3: Entitlement Check Logic</h4>
-                    <p>Before allowing AI recipe import, we validate the user's subscription status:</p>
-                    <pre><code>// In URLImportModal.tsx
+                <h3>Code Logic: Entitlement Check</h3>
+                <p>Before allowing AI recipe import, we validate the user's subscription status:</p>
+                <pre><code>// In URLImportModal.tsx
 const handleImportRecipe = async (url: string) => {
   try {
-    // Check current import count
     const importCount = await getImportCount();
-
-    // Get latest customer info from RevenueCat
     const { customerInfo } = await Purchases.getCustomerInfo();
-
+    
     // Check for active pro_access entitlement
     const isPro = customerInfo.entitlements.active['pro_access'] !== undefined;
-
-    // Free users get 5 imports per month
     const FREE_LIMIT = 5;
 
     if (!isPro && importCount >= FREE_LIMIT) {
-      // Show paywall if limit reached
       setShowPaywall(true);
       return;
     }
 
-    // Proceed with AI import
     await importRecipeFromURL(url);
-
-    // Increment counter
     await incrementImportCount();
-
   } catch (error) {
     console.error('Import failed:', error);
-    showErrorToast('Failed to import recipe');
   }
 };</code></pre>
+
+                <h3>Subscriber Attributes</h3>
+                <div class="glass-card">
+                    <p>We set custom attributes for better segmentation and targeted marketing:</p>
+                    <ul class="feature-list" style="margin-top: 1rem;">
+                        <li><strong>total_recipes_imported</strong>: For identifying power users</li>
+                        <li><strong>favorite_cuisine</strong>: Derived from imported recipes</li>
+                        <li><strong>active_cooking_sessions</strong>: Engagement metric</li>
+                    </ul>
                 </div>
 
-                <div class="flow-step">
-                    <h4>Step 4: Purchase Flow</h4>
-                    <p>When users hit the paywall, we present RevenueCat offerings:</p>
-                    <pre><code>// In PaywallScreen.tsx
-const loadOfferings = async () => {
-  try {
-    const offerings = await Purchases.getOfferings();
-
-    if (offerings.current && offerings.current.availablePackages.length > 0) {
-      setPackages(offerings.current.availablePackages);
-
-      // Highlight annual plan as recommended
-      const annualPackage = offerings.current.availablePackages.find(
-        pkg => pkg.identifier === '$rc_annual'
-      );
-      setRecommendedPackage(annualPackage);
-    }
-  } catch (error) {
-    console.error('Failed to load offerings:', error);
-  }
-};
-
-const handlePurchase = async (packageToPurchase) => {
-  try {
-    setIsPurchasing(true);
-
-    // Execute purchase through RevenueCat
-    const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
-
-    // Check if entitlement is now active
-    if (customerInfo.entitlements.active['pro_access']) {
-      // Success! Update UI and sync with Firebase
-      await syncEntitlementToFirebase(customerInfo);
-
-      // Close paywall
-      navigation.goBack();
-
-      // Show success message
-      showSuccessToast('Welcome to SousChef Pro! 🎉');
-    }
-
-  } catch (error) {
-    if (error.userCancelled) {
-      // User cancelled purchase
-      return;
-    }
-    console.error('Purchase failed:', error);
-    showErrorToast('Purchase failed. Please try again.');
-  } finally {
-    setIsPurchasing(false);
-  }
-};</code></pre>
-                </div>
-
-                <h3>📊 Subscription Tiers</h3>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Feature</th>
-                            <th>Free Tier</th>
-                            <th>Pro (Monthly)</th>
-                            <th>Pro (Annual)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>AI Recipe Imports</strong></td>
-                            <td>5 per month</td>
-                            <td>Unlimited</td>
-                            <td>Unlimited</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Cloud Sync</strong></td>
-                            <td>❌ No</td>
-                            <td>✅ Yes</td>
-                            <td>✅ Yes</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Offline Recipes</strong></td>
-                            <td>Limited (10)</td>
-                            <td>Unlimited</td>
-                            <td>Unlimited</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Advanced Timers</strong></td>
-                            <td>❌ No</td>
-                            <td>✅ Yes</td>
-                            <td>✅ Yes</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Shopping List Sharing</strong></td>
-                            <td>❌ No</td>
-                            <td>✅ Yes</td>
-                            <td>✅ Yes</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Price</strong></td>
-                            <td>Free</td>
-                            <td>$4.99/month</td>
-                            <td>$39.99/year (33% off)</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <h3>🎯 Subscriber Attributes & Analytics</h3>
-
-                <p>We set custom attributes for better segmentation and targeted marketing:</p>
-
-                <pre><code>// Set attributes after successful import
-await Purchases.setAttributes({
-  'total_recipes_imported': String(totalImports),
-  'favorite_cuisine': userPreferences.cuisine,
-  'last_import_date': new Date().toISOString(),
-  'active_cooking_sessions': String(cookingSessions),
-  'shopping_lists_created': String(shoppingListCount),
-});</code></pre>
-
-                <p>These attributes enable:</p>
-                <ul class="feature-list">
-                    <li>Identifying power users for targeted upgrade campaigns</li>
-                    <li>Personalized win-back offers for churned subscribers</li>
-                    <li>A/B testing different paywall presentations</li>
-                    <li>Cohort analysis for retention optimization</li>
-                </ul>
-
-                <div class="chart-container">
+                <div class="chart-wrapper">
                     <canvas id="conversionChart"></canvas>
-                </div>
-
-                <h3>🔄 Webhook Integration</h3>
-
-                <div class="success-box">
-                    <h4>Firebase Cloud Function Webhook Handler</h4>
-                    <p>
-                        RevenueCat webhooks notify our backend of subscription events (purchase, renewal, cancellation, expiration).
-                        This ensures Firebase user profiles stay in sync with RevenueCat entitlements:
-                    </p>
-                    <pre><code>// functions/src/revenuecat-webhook.ts
-export const onRevenueCatEvent = functions.https.onRequest(async (req, res) => {
-  const event = req.body;
-
-  switch (event.type) {
-    case 'INITIAL_PURCHASE':
-    case 'RENEWAL':
-      await updateUserEntitlement(event.app_user_id, true);
-      break;
-
-    case 'CANCELLATION':
-    case 'EXPIRATION':
-      await updateUserEntitlement(event.app_user_id, false);
-      break;
-  }
-
-  res.status(200).send('OK');
-});</code></pre>
                 </div>
             </section>
 
             <!-- AI WORKFLOW -->
             <section id="ai-workflow">
-                <h2>🤖 AI Workflow: Video-to-Recipe</h2>
-
+                <h2>AI Workflow: Video-to-Recipe</h2>
                 <p>
-                    One of the most technically challenging aspects of SousChef is converting unstructured social media video content
-                    (TikTok, Instagram Reels, YouTube Shorts) into structured, actionable recipe data. This requires multimodal AI processing
-                    that can understand both visual and audio cues.
+                    Converting unstructured social media video content (TikTok, Instagram Reels) into structured recipe
+                    data requires
+                    multimodal AI processing that understands both visual and audio cues.
                 </p>
 
-                <h3>🔄 Complete Processing Pipeline</h3>
-
+                <h3>Transformation Pipeline</h3>
                 <div class="diagram-container">
-                    <div class="diagram-title">Video-to-Recipe AI Pipeline</div>
+                    <div class="diagram-title">Video Extraction Process</div>
                     <div class="mermaid">
-graph LR
-    subgraph "Input Stage"
-        A[User Pastes URL] --> B{URL Type}
-        B -->|TikTok| C[TikTok API]
-        B -->|Instagram| D[Instagram API]
-        B -->|YouTube| E[YouTube API]
-        B -->|Direct Link| F[Video Download]
-    end
+                        graph LR
+                        subgraph Input
+                        A[URL Paste] --> B{Type?}
+                        B -->|Social| C[Platform API]
+                        B -->|Direct| D[Video DL]
+                        end
 
-    subgraph "Extraction Stage"
-        C --> G[Download Video]
-        D --> G
-        E --> G
-        F --> G
-        G --> H[Extract Frames]
-        G --> I[Extract Audio]
-        H --> J[Key Frame Selection]
-        I --> K[Speech-to-Text]
-    end
+                        subgraph Processing
+                        C --> E[Frames & Audio]
+                        E --> F[Gemini Vision]
+                        F --> G[JSON Structure]
+                        end
 
-    subgraph "AI Processing"
-        J --> L[Gemini Vision]
-        K --> L
-        L --> M[Multimodal Analysis]
-        M --> N[Structured JSON Generation]
-        N --> O{Validation}
-        O -->|Invalid| P[Retry with Correction]
-        O -->|Valid| Q[Recipe Object]
-        P --> M
-    end
+                        subgraph Output
+                        G --> H[Zod Validation]
+                        H --> I[Firestore]
+                        end
 
-    subgraph "Storage Stage"
-        Q --> R[TypeScript Validation]
-        R --> S[Save to Firestore]
-        S --> T[Update UI]
-        T --> U[Notify User]
-    end
-
-    style A fill:#FF6B35,color:#fff
-    style M fill:#4ECDC4,color:#fff
-    style S fill:#F7931E,color:#fff
-    style U fill:#48BB78,color:#fff
+                        style A fill:#f97316,color:#fff,stroke:none
+                        style F fill:#3b82f6,color:#fff,stroke:none
+                        style I fill:#10b981,color:#fff,stroke:none
                     </div>
                 </div>
-
-                <h3>📋 Detailed Processing Steps</h3>
 
                 <div class="timeline">
                     <div class="timeline-item">
-                        <h4>1. URL Input & Validation</h4>
-                        <p>User provides a URL from supported platforms (TikTok, Instagram, YouTube, or direct video link).</p>
-                        <pre><code>const validateURL = (url: string): Platform | null => {
-  if (url.includes('tiktok.com')) return 'tiktok';
-  if (url.includes('instagram.com')) return 'instagram';
-  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
-  if (url.match(/\.(mp4|mov|avi)$/)) return 'direct';
-  return null;
-};</code></pre>
+                        <h4>1. Video Download & Caching</h4>
+                        <p>Download temporary cached version respecting platform TOS. Files are cached locally in
+                            <code>FileSystem.cacheDirectory</code>.</p>
                     </div>
-
                     <div class="timeline-item">
-                        <h4>2. Video Download & Caching</h4>
-                        <p>Download temporary cached version respecting platform terms of service:</p>
-                        <pre><code>const downloadVideo = async (url: string): Promise<string> => {
-  const cacheDir = FileSystem.cacheDirectory + 'recipes/';
-  const fileName = `${Date.now()}.mp4`;
-  const fileUri = cacheDir + fileName;
-
-  const download = FileSystem.createDownloadResumable(url, fileUri);
-  const result = await download.downloadAsync();
-
-  return result.uri;
-};</code></pre>
+                        <h4>2. Multimodal Extraction</h4>
+                        <p>Extract frames at 0%, 25%, 50%, 75%, 100% and transcribe audio using <code>expo-av</code>.
+                        </p>
                     </div>
-
                     <div class="timeline-item">
-                        <h4>3. Frame & Audio Extraction</h4>
-                        <p>Extract key frames at strategic intervals and transcribe audio:</p>
-                        <pre><code>const extractKeyFrames = async (videoUri: string): Promise<Frame[]> => {
-  // Extract frames at 0s, 25%, 50%, 75%, 100% of video
-  const frames = [];
-  const intervals = [0, 0.25, 0.5, 0.75, 1.0];
-
-  for (const interval of intervals) {
-    const frame = await VideoThumbnails.getThumbnailAsync(videoUri, {
-      time: interval,
-      quality: 0.8,
-    });
-    frames.push(frame);
-  }
-
-  return frames;
-};
-
-const extractAudio = async (videoUri: string): Promise<string> => {
-  // Use expo-av to extract and transcribe audio
-  const { sound } = await Audio.Sound.createAsync({ uri: videoUri });
-  const transcript = await transcribeAudio(sound);
-  return transcript;
-};</code></pre>
+                        <h4>3. Gemini Processing</h4>
+                        <p>Send visual frames + audio transcript to Gemini 1.5 Flash with a strict JSON schema prompt.
+                        </p>
                     </div>
-
                     <div class="timeline-item">
-                        <h4>4. Multimodal AI Processing (Gemini 1.5 Flash)</h4>
-                        <p>Send frames + transcript to Gemini with structured prompt:</p>
-                        <pre><code>const processWithGemini = async (frames: Frame[], transcript: string) => {
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-  const prompt = `
-Analyze this recipe video and extract structured information.
-
-VISUAL FRAMES: ${frames.length} key frames provided
-AUDIO TRANSCRIPT: "${transcript}"
-
-Extract the following in strict JSON format:
-{
-  "title": "Recipe name",
-  "description": "Brief description",
-  "ingredients": [
-    {
-      "name": "ingredient name",
-      "amount": "quantity (analyze visual cues if not spoken)",
-      "unit": "measurement unit",
-      "preparation": "any prep notes"
-    }
-  ],
-  "instructions": [
-    {
-      "step": 1,
-      "text": "detailed instruction",
-      "duration": "time in minutes (if mentioned)",
-      "tip": "any helpful tips"
-    }
-  ],
-  "metadata": {
-    "cuisine": "cuisine type",
-    "difficulty": "easy|medium|hard",
-    "prepTime": "minutes",
-    "cookTime": "minutes",
-    "servings": number
-  }
-}
-
-IMPORTANT:
-- Infer ingredient amounts from visual cues (container sizes, proportions)
-- Include timing from both audio and visual timer indicators
-- Maintain order of operations as shown in video
-`;
-
-  const result = await model.generateContent([
-    prompt,
-    ...frames.map(f => ({ inlineData: { data: f.base64, mimeType: 'image/jpeg' }}))
-  ]);
-
-  return JSON.parse(result.response.text());
-};</code></pre>
-                    </div>
-
-                    <div class="timeline-item">
-                        <h4>5. Validation & Type Checking</h4>
-                        <p>Validate against TypeScript schema using Zod:</p>
-                        <pre><code>import { z } from 'zod';
-
-const RecipeSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().optional(),
-  ingredients: z.array(z.object({
-    name: z.string(),
-    amount: z.string(),
-    unit: z.string(),
-    preparation: z.string().optional(),
-  })),
-  instructions: z.array(z.object({
-    step: z.number(),
-    text: z.string(),
-    duration: z.string().optional(),
-    tip: z.string().optional(),
-  })),
-  metadata: z.object({
-    cuisine: z.string(),
-    difficulty: z.enum(['easy', 'medium', 'hard']),
-    prepTime: z.string(),
-    cookTime: z.string(),
-    servings: z.number(),
-  }),
-});
-
-const validateRecipe = (data: unknown) => {
-  return RecipeSchema.parse(data); // Throws if invalid
-};</code></pre>
-                    </div>
-
-                    <div class="timeline-item">
-                        <h4>6. Save to Firestore</h4>
-                        <p>Store validated recipe in user's cookbook:</p>
-                        <pre><code>const saveRecipe = async (recipe: Recipe) => {
-  const userId = auth.currentUser?.uid;
-
-  await firestore.collection('users').doc(userId).collection('recipes').add({
-    ...recipe,
-    sourceUrl: originalUrl,
-    importedAt: Timestamp.now(),
-    importMethod: 'ai_video',
-  });
-
-  // Update user stats
-  await Purchases.setAttributes({
-    'total_recipes_imported': String(totalImports + 1),
-    'last_import_date': new Date().toISOString(),
-  });
-};</code></pre>
+                        <h4>4. Validation</h4>
+                        <p>Validate the output against our Recipe schema using Zod to ensure type safety before saving.
+                        </p>
                     </div>
                 </div>
 
-                <h3>💡 Prompt Engineering Strategy</h3>
-
-                <div class="info-box">
-                    <h4>Visual Cue Analysis</h4>
-                    <p>
-                        Our prompt specifically instructs Gemini to analyze visual cues when ingredient amounts aren't explicitly spoken.
-                        For example, if the creator shows "3 cups of flour" visually but doesn't say it, Gemini can infer from the
-                        measuring cup shown in the frame.
-                    </p>
-                </div>
-
-                <div class="info-box">
-                    <h4>Temporal Awareness</h4>
-                    <p>
-                        By providing frames at regular intervals (0%, 25%, 50%, 75%, 100%), Gemini can understand the temporal progression
-                        of the recipe and correctly order cooking steps even if the creator jumps around during explanation.
-                    </p>
-                </div>
-
-                <div class="info-box">
-                    <h4>Structured Output Enforcement</h4>
-                    <p>
-                        We use strict JSON schema specification in the prompt combined with Zod validation to ensure 100% type-safe recipe
-                        objects. If Gemini generates invalid JSON, we retry with error correction feedback.
-                    </p>
-                </div>
-
-                <h3>📊 AI Performance Metrics</h3>
-
-                <div class="chart-container">
+                <div class="chart-wrapper">
                     <canvas id="aiPerformanceChart"></canvas>
                 </div>
 
-                <div class="stats-grid">
+                <div class="card-grid">
                     <div class="stat-card">
                         <div class="stat-number">94%</div>
                         <div class="stat-label">Extraction Accuracy</div>
@@ -1464,465 +1012,116 @@ const validateRecipe = (data: unknown) => {
                         <div class="stat-number">$0.02</div>
                         <div class="stat-label">Cost Per Import</div>
                     </div>
-                    <div class="stat-card">
-                        <div class="stat-number">98%</div>
-                        <div class="stat-label">User Satisfaction</div>
-                    </div>
                 </div>
             </section>
 
             <!-- FEATURES -->
             <section id="features">
-                <h2>✨ Key Features</h2>
+                <h2>Key Features</h2>
 
-                <h3>🎤 Voice-Activated Cooking Mode</h3>
-                <p>
-                    Hands-free cooking assistant using <code>react-native-voice</code> for real-time speech recognition.
-                    Users can navigate recipes, set timers, and adjust servings without touching their device.
-                </p>
-
-                <div class="diagram-container">
-                    <div class="diagram-title">Voice Command Flow</div>
-                    <div class="mermaid">
-stateDiagram-v2
-    [*] --> Listening
-    Listening --> Processing: Voice detected
-    Processing --> Executing: Command recognized
-    Executing --> Feedback: Action completed
-    Feedback --> Listening: Ready for next command
-
-    Processing --> Error: Not understood
-    Error --> Listening: Ask to repeat
-
-    note right of Executing
-        Commands:
-        - "Next step"
-        - "Set timer 10 minutes"
-        - "Double the recipe"
-        - "Add to shopping list"
-    end note
+                <div class="card-grid">
+                    <div class="glass-card">
+                        <h4>Voice-Activated Cooking</h4>
+                        <p>Hands-free assistant using <code>react-native-voice</code>. Navigate steps, set timers, and
+                            query ingredients without touching the screen.</p>
                     </div>
-                </div>
-
-                <h3>🛒 Intelligent Shopping Lists</h3>
-                <p>
-                    Automatically aggregate ingredients from multiple recipes, check against user's pantry inventory,
-                    and organize by store sections. Uses Zustand for real-time state management with offline support.
-                </p>
-
-                <div class="tech-grid">
-                    <div class="tech-card">
-                        <h4>Auto-Aggregation</h4>
-                        <p>Combine "2 cups flour" from Recipe A with "1 cup flour" from Recipe B → "3 cups flour" on shopping list.</p>
+                    <div class="glass-card">
+                        <h4>Intelligent Shopping Lists</h4>
+                        <p>Auto-aggregates ingredients from recipes. Checks against pantry inventory. Groups items by
+                            store aisle.</p>
                     </div>
-
-                    <div class="tech-card">
-                        <h4>Pantry Check</h4>
-                        <p>Cross-reference shopping list with user's pantry inventory to avoid buying duplicates.</p>
+                    <div class="glass-card">
+                        <h4>Multi-Timer Management</h4>
+                        <p>Run concurrent timers for different dishes. Persistent background notifications ensure
+                            nothing burns.</p>
                     </div>
-
-                    <div class="tech-card">
-                        <h4>Store Organization</h4>
-                        <p>Automatically group items by department (Produce, Dairy, Meat, etc.) for efficient shopping.</p>
+                    <div class="glass-card">
+                        <h4>Offline-First</h4>
+                        <p>Core functionality works without internet. Recipes and lists sync automatically when
+                            connection is restored.</p>
                     </div>
-
-                    <div class="tech-card">
-                        <h4>Sharing</h4>
-                        <p>Pro users can share shopping lists with family members for collaborative grocery shopping.</p>
-                    </div>
-                </div>
-
-                <h3>⏰ Multi-Timer Management</h3>
-                <p>
-                    Run multiple concurrent cooking timers with custom labels, notifications, and voice control.
-                    Perfect for complex recipes with multiple simultaneous cooking steps.
-                </p>
-
-                <pre><code>// Timer Store Implementation
-interface TimerState {
-  timers: Timer[];
-  addTimer: (label: string, duration: number) => void;
-  removeTimer: (id: string) => void;
-  pauseTimer: (id: string) => void;
-  resumeTimer: (id: string) => void;
-}
-
-export const useTimerStore = create&lt;TimerState&gt;((set, get) => ({
-  timers: [],
-
-  addTimer: (label, duration) => {
-    const timer = {
-      id: uuid(),
-      label,
-      duration,
-      remaining: duration,
-      status: 'running',
-    };
-
-    set(state => ({ timers: [...state.timers, timer] }));
-
-    // Schedule notification
-    scheduleTimerNotification(timer);
-  },
-
-  // ... other methods
-}));</code></pre>
-
-                <h3>📱 Offline-First Architecture</h3>
-                <p>
-                    Core functionality works without internet connection. Recipes, timers, and shopping lists stored locally
-                    with AsyncStorage, syncing to Firebase when connectivity restored.
-                </p>
-
-                <div class="success-box">
-                    <h4>Offline Capabilities</h4>
-                    <ul class="feature-list">
-                        <li>View all saved recipes without internet</li>
-                        <li>Use timers and voice commands offline</li>
-                        <li>Edit shopping lists offline</li>
-                        <li>Automatic sync when connection restored</li>
-                        <li>Conflict resolution for concurrent edits</li>
-                    </ul>
                 </div>
             </section>
 
             <!-- SECURITY -->
             <section id="security">
-                <h2>🔒 Security & Privacy</h2>
+                <h2>Security & Privacy</h2>
 
-                <h3>🛡️ Authentication & Authorization</h3>
-                <p>
-                    All user data is secured via Firebase Authentication with custom security rules. Users can only access
-                    their own pantry, cookbook, and shopping list data.
-                </p>
+                <div class="alert-box alert-warning">
+                    <h4>Privacy Principles</h4>
+                    <p>AI processing is stateless. We do not store raw user videos on servers—only the extracted
+                        metadata. Temporary caches are cleared every 24 hours.</p>
+                </div>
+
+                <h3>Implementation Details</h3>
+                <ul class="feature-list">
+                    <li><strong>Firebase Auth</strong>: Row-level security (RLS) via Firestore Security Rules.</li>
+                    <li><strong>Secure Storage</strong>: API keys and tokens stored in Expo SecureStore.</li>
+                    <li><strong>GDPR/CCPA</strong>: Full data export and deletion capabilities built-in.</li>
+                </ul>
 
                 <pre><code>// Firestore Security Rules
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-
-    // Users can only read/write their own data
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-
-      match /recipes/{recipeId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
-
-      match /shoppingLists/{listId} {
-        allow read: if request.auth != null && (
-          request.auth.uid == userId ||
-          resource.data.sharedWith[request.auth.uid] == true
-        );
-        allow write: if request.auth != null && request.auth.uid == userId;
-      }
-    }
-  }
+match /users/{userId} {
+  allow read, write: if request.auth != null && request.auth.uid == userId;
 }</code></pre>
-
-                <h3>🔐 Data Minimization</h3>
-                <p>
-                    AI processing is stateless and privacy-first. We do not store raw video files on our servers,
-                    only the extracted text metadata and generated recipe structures.
-                </p>
-
-                <div class="warning-box">
-                    <h4>Privacy Principles</h4>
-                    <ul class="feature-list">
-                        <li>Videos processed client-side when possible</li>
-                        <li>Temporary cache automatically cleared after 24 hours</li>
-                        <li>No analytics tracking without user consent</li>
-                        <li>GDPR & CCPA compliant data handling</li>
-                        <li>User data deletion available via settings</li>
-                    </ul>
-                </div>
-
-                <h3>🔑 API Key Security</h3>
-                <p>
-                    All API keys stored securely using environment variables and Expo's secure store for sensitive credentials:
-                </p>
-
-                <pre><code>// Environment Configuration
-import * as SecureStore from 'expo-secure-store';
-
-const API_KEYS = {
-  GEMINI: process.env.EXPO_PUBLIC_GEMINI_API_KEY,
-  FIREBASE: process.env.EXPO_PUBLIC_FIREBASE_CONFIG,
-  REVENUECAT_IOS: await SecureStore.getItemAsync('revenuecat_ios'),
-  REVENUECAT_ANDROID: await SecureStore.getItemAsync('revenuecat_android'),
-};</code></pre>
-
-                <h3>📜 Compliance</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Regulation</th>
-                            <th>Status</th>
-                            <th>Implementation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>GDPR</strong></td>
-                            <td>✅ Compliant</td>
-                            <td>Data export/deletion, consent management, privacy policy</td>
-                        </tr>
-                        <tr>
-                            <td><strong>CCPA</strong></td>
-                            <td>✅ Compliant</td>
-                            <td>Do Not Sell option, data disclosure, access requests</td>
-                        </tr>
-                        <tr>
-                            <td><strong>App Store Guidelines</strong></td>
-                            <td>✅ Compliant</td>
-                            <td>Privacy nutrition labels, data collection disclosure</td>
-                        </tr>
-                        <tr>
-                            <td><strong>Play Store Policies</strong></td>
-                            <td>✅ Compliant</td>
-                            <td>Data safety form, permissions justification</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <!-- PERFORMANCE -->
-            <section id="performance">
-                <h2>⚡ Performance Optimization</h2>
-
-                <h3>📊 Performance Metrics</h3>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number">60fps</div>
-                        <div class="stat-label">UI Smoothness</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">&lt;1s</div>
-                        <div class="stat-label">App Launch Time</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">45MB</div>
-                        <div class="stat-label">Bundle Size (iOS)</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number">&lt;50ms</div>
-                        <div class="stat-label">Screen Transitions</div>
-                    </div>
-                </div>
-
-                <h3>🚀 Optimization Strategies</h3>
-
-                <div class="tech-grid">
-                    <div class="tech-card">
-                        <h4>Code Splitting</h4>
-                        <p>Lazy load screens and heavy components using React.lazy() and dynamic imports to reduce initial bundle size.</p>
-                    </div>
-
-                    <div class="tech-card">
-                        <h4>Image Optimization</h4>
-                        <p>Use expo-image for automatic caching, WebP format support, and progressive loading of recipe images.</p>
-                    </div>
-
-                    <div class="tech-card">
-                        <h4>Memoization</h4>
-                        <p>React.memo, useMemo, and useCallback prevent unnecessary re-renders in complex recipe lists.</p>
-                    </div>
-
-                    <div class="tech-card">
-                        <h4>Virtualized Lists</h4>
-                        <p>FlatList with optimized rendering for large recipe collections (1000+ items).</p>
-                    </div>
-                </div>
-
-                <h3>📈 Load Time Breakdown</h3>
-
-                <div class="chart-container">
-                    <canvas id="loadTimeChart"></canvas>
-                </div>
-
-                <h3>🔋 Battery & Memory Optimization</h3>
-
-                <div class="info-box">
-                    <h4>Background Task Management</h4>
-                    <p>
-                        Timers use native platform capabilities (iOS Local Notifications, Android AlarmManager) instead of
-                        JavaScript intervals to minimize battery drain. Voice recognition only activates when user explicitly
-                        enables cooking mode, not running continuously.
-                    </p>
-                </div>
-
-                <div class="info-box">
-                    <h4>Memory Management</h4>
-                    <p>
-                        Automatic cleanup of video caches after 24 hours. Recipe images compressed to WebP format.
-                        Zustand stores persist only essential data to AsyncStorage (~100KB per user).
-                    </p>
-                </div>
             </section>
 
             <!-- DEPLOYMENT -->
             <section id="deployment">
-                <h2>🚀 Deployment & CI/CD</h2>
-
-                <h3>📱 Build Configuration</h3>
-
-                <p>Using EAS Build for automated iOS and Android builds with auto-submission to stores:</p>
-
-                <pre><code>// eas.json
-{
-  "build": {
-    "production": {
-      "ios": {
-        "resourceClass": "m-medium",
-        "autoIncrement": true,
-        "distribution": "store",
-        "submitOnSuccess": true
-      },
-      "android": {
-        "resourceClass": "medium",
-        "autoIncrement": "versionCode",
-        "distribution": "store",
-        "submitOnSuccess": true
-      }
-    }
-  },
-  "submit": {
-    "production": {
-      "ios": {
-        "ascApiKeyPath": "./secrets/asc-api-key.json",
-        "appleTeamId": "YOUR_TEAM_ID"
-      },
-      "android": {
-        "serviceAccountKeyPath": "./secrets/play-store-key.json",
-        "track": "production"
-      }
-    }
-  }
-}</code></pre>
-
-                <h3>🔄 CI/CD Pipeline</h3>
+                <h2>Deployment & CI/CD</h2>
+                <p>Automated builds using EAS Build and GitHub Actions.</p>
 
                 <div class="diagram-container">
-                    <div class="diagram-title">Continuous Deployment Flow</div>
+                    <div class="diagram-title">CI/CD Pipeline</div>
                     <div class="mermaid">
-graph LR
-    A[Git Push] --> B[GitHub Actions]
-    B --> C{Branch?}
-    C -->|main| D[Run Tests]
-    C -->|develop| E[Preview Build]
+                        graph LR
+                        A[Git Push] --> B[GitHub Actions]
+                        B --> C{Branch?}
+                        C -->|main| D[EAS Build Prod]
+                        C -->|dev| E[EAS Build Preview]
+                        D --> F[App Store / Play Store]
+                        E --> G[Internal Testing]
 
-    D --> F{Tests Pass?}
-    F -->|Yes| G[EAS Build]
-    F -->|No| H[Notify Team]
-
-    G --> I[Build iOS]
-    G --> J[Build Android]
-
-    I --> K[Submit to TestFlight]
-    J --> L[Submit to Internal Test]
-
-    K --> M{Review OK?}
-    L --> M
-
-    M -->|Yes| N[Auto-submit Production]
-    M -->|No| O[Create Issue]
-
-    N --> P[App Store]
-    N --> Q[Play Store]
-
-    style A fill:#FF6B35,color:#fff
-    style G fill:#4ECDC4,color:#fff
-    style P fill:#48BB78,color:#fff
-    style Q fill:#48BB78,color:#fff
+                        style A fill:#f97316,color:#fff,stroke:none
+                        style D fill:#10b981,color:#fff,stroke:none
                     </div>
                 </div>
 
-                <h3>📊 Monitoring & Analytics</h3>
-
-                <ul class="feature-list">
-                    <li><strong>Crash Reporting:</strong> Sentry for real-time error tracking</li>
-                    <li><strong>Performance Monitoring:</strong> Firebase Performance for app vitals</li>
-                    <li><strong>User Analytics:</strong> Firebase Analytics (privacy-respecting)</li>
-                    <li><strong>Revenue Analytics:</strong> RevenueCat Dashboard for subscription metrics</li>
-                </ul>
-            </section>
-
-            <!-- FUTURE ROADMAP -->
-            <section id="roadmap">
-                <h2>🔮 Future Enhancements</h2>
-
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <h4>Q1 2026: Social Features</h4>
-                        <ul class="feature-list">
-                            <li>Share recipes with friends</li>
-                            <li>Community cookbook browsing</li>
-                            <li>Recipe ratings and reviews</li>
-                        </ul>
-                    </div>
-
-                    <div class="timeline-item">
-                        <h4>Q2 2026: Advanced AI</h4>
-                        <ul class="feature-list">
-                            <li>Real-time cooking assistance via camera</li>
-                            <li>Ingredient substitution suggestions</li>
-                            <li>Dietary restriction filtering (AI-powered)</li>
-                        </ul>
-                    </div>
-
-                    <div class="timeline-item">
-                        <h4>Q3 2026: Smart Home Integration</h4>
-                        <ul class="feature-list">
-                            <li>Smart oven/appliance control</li>
-                            <li>Alexa/Google Home voice commands</li>
-                            <li>Automatic grocery delivery integration</li>
-                        </ul>
-                    </div>
-
-                    <div class="timeline-item">
-                        <h4>Q4 2026: Web Platform</h4>
-                        <ul class="feature-list">
-                            <li>Progressive Web App (PWA)</li>
-                            <li>Desktop recipe management</li>
-                            <li>Browser extension for one-click imports</li>
-                        </ul>
-                    </div>
+                <div class="chart-wrapper">
+                    <canvas id="loadTimeChart"></canvas>
                 </div>
             </section>
+
+            <footer>
+                <p>&copy; 2026 SousChef. Built for RevenueCat Shipyard Creator Contest.</p>
+            </footer>
+
         </main>
-
-        <footer>
-            <h3>📧 Contact & Resources</h3>
-            <div class="footer-links">
-                <a href="https://github.com/dbisina/SousChef" target="_blank">GitHub Repository</a>
-                <a href="https://revenuecat-shipyard.devpost.com/" target="_blank">Devpost Submission</a>
-                <a href="mailto:support@souschefapp.com">Support Email</a>
-                <a href="https://souschefapp.com" target="_blank">Official Website</a>
-            </div>
-            <p style="margin-top: 2rem; opacity: 0.8;">
-                &copy; 2026 SousChef - AI-Powered Culinary Assistant<br>
-                Built for RevenueCat Shipyard Creator Contest
-            </p>
-        </footer>
     </div>
 
     <script>
-        // Initialize Mermaid
+        // Initialize Mermaid with light theme
         mermaid.initialize({
             startOnLoad: true,
-            theme: 'default',
+            theme: 'base',
             themeVariables: {
-                primaryColor: '#FF6B35',
+                primaryColor: '#f97316',
                 primaryTextColor: '#fff',
-                primaryBorderColor: '#F7931E',
-                lineColor: '#4ECDC4',
-                secondaryColor: '#4ECDC4',
-                tertiaryColor: '#F7931E',
+                primaryBorderColor: '#ea580c',
+                lineColor: '#64748b',
+                secondaryColor: '#3b82f6',
+                tertiaryColor: '#f59e0b',
+                mainBkg: '#ffffff',
+                nodeBorder: '#cbd5e1'
             }
         });
 
-        // Conversion Funnel Chart
+        // Common Chart Defaults
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.2)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        // Conversion Chart
         const conversionCtx = document.getElementById('conversionChart').getContext('2d');
         new Chart(conversionCtx, {
             type: 'bar',
@@ -1932,36 +1131,25 @@ graph LR
                     label: 'Users',
                     data: [10000, 3500, 2800, 980],
                     backgroundColor: [
-                        'rgba(255, 107, 53, 0.8)',
-                        'rgba(247, 147, 30, 0.8)',
-                        'rgba(78, 205, 196, 0.8)',
-                        'rgba(72, 187, 120, 0.8)'
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(16, 185, 129, 0.8)'
                     ],
-                    borderColor: [
-                        'rgb(255, 107, 53)',
-                        'rgb(247, 147, 30)',
-                        'rgb(78, 205, 196)',
-                        'rgb(72, 187, 120)'
-                    ],
-                    borderWidth: 2
+                    borderWidth: 0,
+                    borderRadius: 4
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'RevenueCat Conversion Funnel',
-                        font: { size: 18, weight: 'bold' }
-                    },
+                    title: { display: true, text: 'RevenueCat Conversion Funnel', font: { size: 16, weight: 'bold', color: '#1e293b' } },
                     legend: { display: false }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Number of Users' }
-                    }
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
                 }
             }
         });
@@ -1974,18 +1162,18 @@ graph LR
                 labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6'],
                 datasets: [
                     {
-                        label: 'Extraction Accuracy (%)',
+                        label: 'Accuracy (%)',
                         data: [85, 88, 90, 92, 93, 94],
-                        borderColor: 'rgb(78, 205, 196)',
-                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
                         tension: 0.4,
                         fill: true
                     },
                     {
-                        label: 'Processing Time (seconds)',
+                        label: 'Time (s)',
                         data: [3.2, 2.8, 2.5, 2.1, 1.9, 1.8],
-                        borderColor: 'rgb(255, 107, 53)',
-                        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                        borderColor: '#f97316',
+                        backgroundColor: 'rgba(249, 115, 22, 0.1)',
                         tension: 0.4,
                         fill: true,
                         yAxisID: 'y1'
@@ -1996,28 +1184,11 @@ graph LR
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'AI Model Performance Over Time',
-                        font: { size: 18, weight: 'bold' }
-                    }
+                    title: { display: true, text: 'AI Model Performance', font: { size: 16, weight: 'bold', color: '#1e293b' } }
                 },
                 scales: {
-                    y: {
-                        type: 'linear',
-                        position: 'left',
-                        title: { display: true, text: 'Accuracy (%)' },
-                        min: 80,
-                        max: 100
-                    },
-                    y1: {
-                        type: 'linear',
-                        position: 'right',
-                        title: { display: true, text: 'Time (seconds)' },
-                        min: 0,
-                        max: 4,
-                        grid: { drawOnChartArea: false }
-                    }
+                    y: { position: 'left', min: 80, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    y1: { position: 'right', min: 0, grid: { display: false } }
                 }
             }
         });
@@ -2027,35 +1198,50 @@ graph LR
         new Chart(loadTimeCtx, {
             type: 'doughnut',
             data: {
-                labels: ['App Init', 'Firebase Auth', 'RevenueCat Sync', 'UI Render', 'Data Load'],
+                labels: ['App Init', 'Firebase', 'RevenueCat', 'UI Render', 'Data Load'],
                 datasets: [{
                     data: [250, 180, 120, 200, 150],
                     backgroundColor: [
-                        'rgba(255, 107, 53, 0.8)',
-                        'rgba(247, 147, 30, 0.8)',
-                        'rgba(72, 187, 120, 0.8)',
-                        'rgba(78, 205, 196, 0.8)',
-                        'rgba(66, 153, 225, 0.8)'
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(16, 185, 129, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(168, 85, 247, 0.8)'
                     ],
-                    borderWidth: 2,
-                    borderColor: '#fff'
+                    borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: {
-                        display: true,
-                        text: 'App Launch Time Breakdown (milliseconds)',
-                        font: { size: 18, weight: 'bold' }
-                    },
-                    legend: {
-                        position: 'bottom'
-                    }
+                    title: { display: true, text: 'Load Time Breakdown (ms)', font: { size: 16, weight: 'bold', color: '#1e293b' } },
+                    legend: { position: 'right' }
                 }
             }
         });
+
+        // Navigation Active State
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const sections = document.querySelectorAll('section');
+            const navLi = document.querySelectorAll('.nav-links a');
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 150) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLi.forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href').includes(current)) {
+                    a.classList.add('active');
+                }
+            });
+        });
     </script>
 </body>
+
 </html>
