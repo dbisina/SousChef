@@ -196,10 +196,10 @@ export default function CookingModeScreen() {
 
   const handleExit = () => {
     Alert.alert(
-      'Exit Cooking Mode',
-      'Are you sure you want to exit? Your progress will be lost.',
+      'Leaving the Kitchen? 🍳',
+      'Are you sure you want to exit? We\'ll lose your place in this recipe, and you\'ll have to start over later!',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Keep Cooking', style: 'cancel' },
         { text: 'Exit', style: 'destructive', onPress: () => router.back() },
       ]
     );
@@ -423,6 +423,7 @@ export default function CookingModeScreen() {
                 <PortionAnalysisResult
                   imageUri={capturedImage}
                   analysis={portionResult}
+                  onClose={() => { setCapturedImage(null); clearPortionResult(); }}
                 />
               </View>
             )}

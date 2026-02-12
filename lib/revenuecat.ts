@@ -243,12 +243,7 @@ export const addCustomerInfoListener = (
 
 // Check if purchases are configured
 export const isPurchasesConfigured = async (): Promise<boolean> => {
-  try {
-    await Purchases.getCustomerInfo();
-    return true;
-  } catch {
-    return false;
-  }
+  return isConfigured;
 };
 
 // Format price for display

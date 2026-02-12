@@ -35,10 +35,20 @@ export default function ScanScreen() {
     }
   };
 
+  const handleDismissResult = () => {
+    setCapturedImage(null);
+    clearPortionResult();
+  };
+
   const handleNewScan = () => {
     setCapturedImage(null);
     clearPortionResult();
     setShowCamera(true);
+  };
+
+  const handleRescan = async (ingredientHints: string[]) => {
+    if (!capturedImage) return;
+    await analyzeImage(capturedImage, undefined, ingredientHints);
   };
 
   const handleStartScan = () => {
@@ -159,6 +169,9 @@ export default function ScanScreen() {
               <PortionAnalysisResult
                 imageUri={capturedImage}
                 analysis={portionResult}
+                onClose={handleDismissResult}
+                onRescan={handleRescan}
+                isRescanning={isAnalyzing}
               />
               <View className="mt-4">
                 <Button

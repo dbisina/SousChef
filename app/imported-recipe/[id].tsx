@@ -20,6 +20,7 @@ import { DifficultyBadge, TimeBadge, Badge, Button } from '@/components/ui';
 import { SimpleIngredientList, InstructionList } from '@/components/recipe';
 import { useThemeColors } from '@/stores/themeStore';
 import { getCategoryEmoji } from '@/lib/utils';
+import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
 
 export default function ImportedRecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -84,17 +85,17 @@ export default function ImportedRecipeDetailScreen() {
 
     addToShoppingList(ingredients);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert('Added!', 'Ingredients added to your shopping list.');
+    showSuccessToast('Ingredients are on your list! 🛒 See you at the store.', 'Added!');
   };
 
   const handleMarkCooked = () => {
     markAsCooked(item.id);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert('Nice! 🎉', 'Recipe marked as cooked!');
+    showSuccessToast('Boom! Cooked it. 👨‍🍳 Hope it was delicious!', 'Nice! 🎉');
   };
 
   const handleRemove = () => {
-    Alert.alert('Remove Recipe', 'Are you sure you want to remove this recipe?', [
+    Alert.alert('Remove Recipe?', `Are you sure you want to remove "${recipe.title}"? You can always import it again later if you miss it!`, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Remove',

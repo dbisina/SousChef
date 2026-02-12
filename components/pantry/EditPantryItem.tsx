@@ -13,6 +13,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { PantryCategory, PantryItem } from '@/types';
 import { Button, Input } from '@/components/ui';
 import { useThemeColors } from '@/stores/themeStore';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 interface EditPantryItemFormData {
   name: string;
@@ -74,7 +75,7 @@ export const EditPantryItemModal: React.FC<EditPantryItemProps> = ({
   const handleSave = async (data: EditPantryItemFormData) => {
     if (!item) return;
     if (!data.name?.trim()) {
-      Alert.alert('Error', 'Please enter an ingredient name.');
+      showInfoToast('Wait! Don\'t forget to name your ingredient.', 'Missing Name');
       return;
     }
     setIsSubmitting(true);
@@ -87,7 +88,7 @@ export const EditPantryItemModal: React.FC<EditPantryItemProps> = ({
       });
       onClose();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update item. Please try again.');
+      showErrorToast('We couldn\'t save your changes. Let\'s try that again?', 'Update Problem');
     } finally {
       setIsSubmitting(false);
     }
@@ -96,8 +97,8 @@ export const EditPantryItemModal: React.FC<EditPantryItemProps> = ({
   const handleDelete = () => {
     if (!item || !onDelete) return;
     Alert.alert(
-      'Delete Item',
-      `Remove ${item.name} from your pantry?`,
+      'Remove Ingredient?',
+      `Are you sure you want to remove ${item.name}? You can always add it back later!`,
       [
         { text: 'Cancel', style: 'cancel' },
         {

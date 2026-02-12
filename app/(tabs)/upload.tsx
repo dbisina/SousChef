@@ -18,6 +18,7 @@ import { z } from 'zod';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { uploadImage } from '@/lib/cloudinary';
+import { showSuccessToast, showErrorToast, showInfoToast, showWarningToast } from '@/stores/toastStore';
 import { RecipeCategory, Cuisine, Difficulty } from '@/types';
 import { Button, Input, Card } from '@/components/ui';
 import { youtubeUrlPattern } from '@/components/recipe';
@@ -103,7 +104,7 @@ export default function UploadScreen() {
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission required', 'Camera permission is required to take photos');
+      showWarningToast('We need camera access to take a photo of your masterpiece! 📸', 'Permission Needed');
       return;
     }
 
@@ -142,12 +143,12 @@ export default function UploadScreen() {
 
   const onSubmit = async (data: RecipeFormData) => {
     if (!imageUri) {
-      Alert.alert('Image required', 'Please add a photo of your recipe');
+      showInfoToast('Don\'t forget to add a photo! We\'d love to see your creation. 🖼️', 'Photo Needed');
       return;
     }
 
     if (!user) {
-      Alert.alert('Login required', 'Please login to upload recipes');
+      showWarningToast('Please sign in so we can save your recipe to your cookbook! 🧑‍🍳', 'Sign In Needed');
       return;
     }
 
@@ -170,11 +171,10 @@ export default function UploadScreen() {
         user.role === 'chef' || user.role === 'admin'
       );
 
-      Alert.alert('Success', 'Recipe uploaded successfully!', [
-        { text: 'OK', onPress: () => router.push('/(tabs)') },
-      ]);
+      showSuccessToast('Wonderful! Your recipe is now in your cookbook. ✨', 'Great Work!');
+      router.push('/(tabs)');
     } catch (error) {
-      Alert.alert('Error', 'Failed to upload recipe. Please try again.');
+      showErrorToast('Oops! We hit a snag uploading your recipe. Let\'s try once more? 🔄', 'Upload Problem');
     } finally {
       setIsSubmitting(false);
     }

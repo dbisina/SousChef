@@ -9,4 +9,5 @@ export { WelcomeModal, resetWelcomeModal } from './WelcomeModal';
 export { SponsoredAdCard } from './SponsoredAdCard';
 export { AdMobBanner } from './AdMobBanner';
 export { RadialFAB } from './RadialFAB';
+export { Toast } from './Toast';
 export type { FABAction } from './RadialFAB';

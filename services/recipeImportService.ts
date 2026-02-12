@@ -14,9 +14,11 @@ import {
   extractRecipeFromVideo,
   extractRecipeFromText,
   extractRecipeFromContentBundle,
+  extractRecipeWithThinking,
   downloadVideoToTemp,
   cleanupTempFile,
   GeminiRecipeResult,
+  ThinkingCallbacks,
 } from '@/lib/gemini';
 import { extractPlatformContent, PlatformContent } from './platformExtractorService';
 import { getInfoAsync } from 'expo-file-system/legacy';
@@ -67,6 +69,7 @@ export const detectPlatform = (url: string): string => {
 export const extractRecipeFromURL = async (
   url: string,
   onProgress?: (message: string) => void,
+  thinkingCallbacks?: ThinkingCallbacks,
 ): Promise<URLExtractionResponse> => {
   try {
     const platform = detectPlatform(url);
@@ -271,7 +274,7 @@ export const extractRecipeFromURL = async (
       // ── Combined Gemini analysis (video + caption + everything) ──
       onProgress?.(tempVideoPath ? 'Analyzing video & content with AI...' : 'Analyzing content with AI...');
 
-      const geminiResult = await extractRecipeFromContentBundle({
+      const contentBundle = {
         videoLocalPath: tempVideoPath,
         captionText: platformContent.captionText,
         transcript: platformContent.transcript,
@@ -282,7 +285,12 @@ export const extractRecipeFromURL = async (
         author: platformContent.author,
         platform,
         sourceUrl: url,
-      });
+      };
+
+      // Use streaming with visible thinking for video imports when callbacks are provided
+      const geminiResult = tempVideoPath && thinkingCallbacks
+        ? await extractRecipeWithThinking(contentBundle, thinkingCallbacks)
+        : await extractRecipeFromContentBundle(contentBundle);
 
       if (geminiResult && geminiResult.title) {
         onProgress?.('Building recipe...');

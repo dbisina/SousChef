@@ -28,7 +28,7 @@ export default function PrivacyPolicyScreen() {
 
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
-          Last updated: February 2025
+          Last updated: February 2026
         </Text>
 
         <Text className="text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
@@ -133,8 +133,7 @@ export default function PrivacyPolicyScreen() {
 
         <Section title="13. Contact Us">
           For privacy-related questions or to exercise your rights:{'\n\n'}
-          Email: privacy@souschef.app{'\n'}
-          Address: SousChef Inc., San Francisco, CA, USA
+          Email: danbis664@gmail.com
         </Section>
 
         <View className="h-8" />

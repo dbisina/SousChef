@@ -12,6 +12,7 @@ import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useShareIntentStore } from '@/stores/shareIntentStore';
 import { useThemeStore, useThemeColors } from '@/stores/themeStore';
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { Toast } from '@/components/ui';
 import { registerForPushNotifications, clearBadge } from '@/services/notificationService';
 import { parseShareURL, onShareURL, getSharedURL } from '@/lib/shareExtension';
 
@@ -321,6 +322,7 @@ export default function RootLayout() {
           }}
         />
       </Stack>
+      <Toast />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

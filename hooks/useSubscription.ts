@@ -3,6 +3,7 @@ import { Alert, Linking, Platform } from 'react-native';
 import { PurchasesPackage, PurchasesOffering } from 'react-native-purchases';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useAuthStore } from '@/stores/authStore';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 import {
   SubscriptionTier,
   TIER_FEATURES,
@@ -82,11 +83,11 @@ export const useSubscription = () => {
       const result = await purchase(pkg);
 
       if (result.success) {
-        Alert.alert('Success!', 'Thank you for subscribing to SousChef!');
+        showSuccessToast('You now have full access to SousChef! Happy cooking! 🎉', 'Welcome aboard!');
       } else if (result.userCancelled) {
         // User cancelled, no alert needed
       } else {
-        Alert.alert('Purchase Failed', result.error || 'Please try again.');
+        showErrorToast('We couldn\'t complete your purchase. Please check your details or try again later.', 'Payment Issue');
       }
 
       return result;
@@ -100,12 +101,12 @@ export const useSubscription = () => {
 
     if (result.success) {
       if (result.hasActiveSubscription) {
-        Alert.alert('Restored!', 'Your subscription has been restored.');
+        showSuccessToast('We\'ve restored your subscription. All your features are ready!', 'Welcome Back!');
       } else {
-        Alert.alert('No Subscription Found', 'No active subscription was found to restore.');
+        showInfoToast('We couldn\'t find an active subscription associated with your account.', 'Nothing to Restore');
       }
     } else {
-      Alert.alert('Restore Failed', result.error || 'Please try again.');
+      showErrorToast('We hit a snag restoring your purchases. Please try again in a bit.', 'Restore Problem');
     }
 
     return result;
@@ -485,9 +486,9 @@ export const useCustomerCenter = () => {
         await rcPresentCustomerCenter(enhancedCallbacks);
       } catch (error) {
         console.error('Failed to present Customer Center:', error);
-        Alert.alert(
-          'Error',
-          'Unable to open subscription management. Please try again later.'
+        showErrorToast(
+          'We can\'t reach the subscription portal right now. Please try again later!',
+          'Connection Hiccup'
         );
       } finally {
         setIsPresenting(false);

@@ -105,7 +105,11 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       const configured = await isPurchasesConfigured();
       if (!configured) {
         console.warn('[Subscriptions] RevenueCat not configured — skipping offerings fetch');
-        set({ isInitialized: true, isLoading: false });
+        set({
+          isInitialized: true,
+          isLoading: false,
+          error: 'Subscription service could not connect. Please check your internet connection.',
+        });
         return;
       }
 
@@ -264,9 +268,28 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
 
   // Fetch available offerings (combine premium + pro)
   fetchOfferings: async () => {
-    set({ isLoading: true });
+    set({ isLoading: true, error: null });
 
     try {
+      // Ensure RevenueCat is configured before fetching
+      const configured = await isPurchasesConfigured();
+      if (!configured) {
+        // Attempt re-initialization
+        const { useAuthStore } = await import('./authStore');
+        const user = useAuthStore.getState().user;
+        await initializeRevenueCat(user?.id);
+
+        // Check again after re-init attempt
+        const nowConfigured = await isPurchasesConfigured();
+        if (!nowConfigured) {
+          set({
+            error: 'Subscription service is not configured. Please restart the app or check your connection.',
+            isLoading: false,
+          });
+          return;
+        }
+      }
+
       const allOfferings = await getAllOfferings();
 
       const premiumOffering = allOfferings['premium'];
@@ -284,9 +307,11 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         currentOffering: premiumOffering || defaultOffering || null,
         packages: combinedPackages,
         isLoading: false,
+        error: combinedPackages.length === 0 ? 'No subscription plans are currently available.' : null,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to fetch offerings';
+      console.error('[Subscriptions] fetchOfferings error:', error);
       set({ error: message, isLoading: false });
     }
   },

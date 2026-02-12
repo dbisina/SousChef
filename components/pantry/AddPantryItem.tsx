@@ -16,6 +16,7 @@ import { PantryCategory, PantryItemFormData } from '@/types';
 import { Button, Input } from '@/components/ui';
 import { COMMON_PANTRY_ITEMS } from '@/stores/pantryStore';
 import { useThemeColors } from '@/stores/themeStore';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 interface AddPantryItemProps {
   visible: boolean;
@@ -65,7 +66,7 @@ export const AddPantryItemModal: React.FC<AddPantryItemProps> = ({
       setTimeout(() => setRecentlyAdded(null), 1500);
     } catch (error) {
       console.error('Quick add error:', error);
-      Alert.alert('Error', `Failed to add ${name}. Please try again.`);
+      showErrorToast(`Something went wrong adding your ${name}. Let's try that again?`, 'Pantry Issue');
     } finally {
       setIsSubmitting(false);
     }
@@ -73,7 +74,7 @@ export const AddPantryItemModal: React.FC<AddPantryItemProps> = ({
 
   const handleCustomAdd = async (data: PantryItemFormData) => {
     if (!data.name?.trim()) {
-      Alert.alert('Error', 'Please enter an ingredient name.');
+      showInfoToast('Wait! Don\'t forget to name your ingredient.', 'Missing Name');
       return;
     }
     const finalAmount = data.amount && data.amount > 0 ? data.amount : 1;
@@ -86,13 +87,13 @@ export const AddPantryItemModal: React.FC<AddPantryItemProps> = ({
         unit: finalUnit,
         category: data.category || 'other',
       });
-      Alert.alert('Added!', `${data.name} has been added to your pantry.`);
+      showSuccessToast(`${data.name} is now in your pantry! 🍎`, 'Added!');
       reset({ name: '', amount: 1, unit: 'piece', category: 'other' });
       setShowCustomUnitInput(false);
       setCustomUnitValue('');
     } catch (error) {
       console.error('Custom add error:', error);
-      Alert.alert('Error', `Failed to add ${data.name}. Please try again.`);
+      showErrorToast(`We couldn't add your ${data.name} just yet. Please try again!`, 'Pantry Issue');
     } finally {
       setIsSubmitting(false);
     }

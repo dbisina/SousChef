@@ -25,6 +25,7 @@ import {
 import { useThemeColors } from '@/stores/themeStore';
 import { Loading } from '@/components/ui';
 import { getSubscriptionExpiryDate, willSubscriptionRenew } from '@/lib/revenuecat';
+import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
 
 export default function SubscriptionScreen() {
   const {
@@ -68,7 +69,7 @@ export default function SubscriptionScreen() {
     if (useRevenueCatUI) {
       const result = await presentPaywall();
       if (result.status === 'purchased' || result.status === 'restored') {
-        Alert.alert('Success!', 'Thank you for subscribing!');
+        showSuccessToast('Welcome aboard! 🌟 Thank you for subscribing to SousChef. We\'re so excited to have you!', 'Success!');
       }
     } else {
       setShowPaywall(true);
@@ -83,10 +84,10 @@ export default function SubscriptionScreen() {
           console.log('Feedback survey completed:', feedbackSurveyOptionId);
         },
         onRestoreCompleted: () => {
-          Alert.alert('Success', 'Your purchases have been restored.');
+          showSuccessToast('Welcome back! ✨ Your purchases have been successfully restored.', 'Restored');
         },
         onRestoreFailed: () => {
-          Alert.alert('Error', 'Failed to restore purchases. Please try again.');
+          showErrorToast('Hmm, we couldn\'t restore your purchases. Let\'s try once more? 🔄', 'Restore Problem');
         },
       });
     } catch (error) {

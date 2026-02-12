@@ -25,6 +25,7 @@ import {
   cancelAllScheduledNotifications,
 } from '@/services/notificationService';
 import { useAuthStore } from '@/stores/authStore';
+import { showSuccessToast, showErrorToast, showInfoToast, showWarningToast } from '@/stores/toastStore';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -76,11 +77,17 @@ export default function NotificationsScreen() {
         if (permissionStatus !== 'granted') {
           const token = await registerForPushNotifications(user?.id);
           if (!token) {
+            showWarningToast(
+              'We\'d love to send you helpful cooking reminders. Please enable notifications in your device settings? 🔔',
+              'Stay in the loop!'
+            );
+            // We still want to offer opening settings, but Alert is better for that deep link. 
+            // I'll keep the Alert here but make it friendlier as it's a system-level request.
             Alert.alert(
-              'Permission Required',
-              'Please enable notifications in your device settings to receive alerts.',
+              'Enable Notifications',
+              'To receive pantry alerts and meal reminders, please enable notifications in your device settings.',
               [
-                { text: 'Cancel', style: 'cancel' },
+                { text: 'Not Now', style: 'cancel' },
                 {
                   text: 'Open Settings',
                   onPress: () => {
@@ -105,7 +112,7 @@ export default function NotificationsScreen() {
       if (!settings[key] && !settings.pushEnabled) {
         const token = await registerForPushNotifications(user?.id);
         if (!token) {
-          Alert.alert('Permission Required', 'Enable push notifications first.');
+          showInfoToast('Let\'s get those notifications working! 🔔 Please enable push notifications first.', 'Almost There');
           return;
         }
         setPermissionStatus('granted');
@@ -120,8 +127,8 @@ export default function NotificationsScreen() {
 
   const handleClearAll = async () => {
     Alert.alert(
-      'Clear Notifications',
-      `Cancel all ${scheduledCount} scheduled notifications?`,
+      'Clear Reminders?',
+      `Are you sure you want to cancel all ${scheduledCount} cooking reminders? You'll have to set them up again later if you change your mind!`,
       [
         { text: 'Cancel', style: 'cancel' },
         {

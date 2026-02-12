@@ -26,6 +26,7 @@ import {
   WasteEntryFormData,
   WASTE_REASON_LABELS,
 } from '@/types/mealplan';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 export default function WasteTrackingScreen() {
   const router = useRouter();
@@ -59,12 +60,12 @@ export default function WasteTrackingScreen() {
   // Handle log waste
   const handleLogWaste = async () => {
     if (!itemName.trim()) {
-      Alert.alert('Missing Information', 'Please enter an item name.');
+      showInfoToast('What item are we logging today? ✍️', 'Missing Info');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      Alert.alert('Missing Information', 'Please enter a valid amount.');
+      showInfoToast('How much was there? We need a number to track your impact. ⚖️', 'Missing Amount');
       return;
     }
 
@@ -91,7 +92,7 @@ export default function WasteTrackingScreen() {
       setNotes('');
       setShowAddModal(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to log waste. Please try again.');
+      showErrorToast('Oops! We couldn\'t log that waste. Let\'s try once more? 🔄', 'Log Problem');
     } finally {
       setIsSubmitting(false);
     }
@@ -100,8 +101,8 @@ export default function WasteTrackingScreen() {
   // Handle delete waste
   const handleDeleteWaste = (entryId: string) => {
     Alert.alert(
-      'Delete Entry',
-      'Are you sure you want to delete this waste entry?',
+      'Delete Log?',
+      'Are you sure you want to remove this waste entry from your log?',
       [
         { text: 'Cancel', style: 'cancel' },
         {

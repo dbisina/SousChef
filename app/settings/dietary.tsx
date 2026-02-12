@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/stores/authStore';
 import { useThemeColors } from '@/stores/themeStore';
 import { Card, Button } from '@/components/ui';
+import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
 
 const DIETARY_OPTIONS = [
   { id: 'vegetarian', label: 'Vegetarian', icon: 'leaf', color: '#22C55E' },
@@ -66,11 +67,10 @@ export default function DietaryPreferencesScreen() {
         dietaryPreferences: selectedDiets,
         allergies: selectedAllergies,
       });
-      Alert.alert('Success', 'Dietary preferences updated!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      showSuccessToast('All set! We\'ve updated your dietary preferences. 🥗', 'Preferences Saved');
+      router.back();
     } catch (error) {
-      Alert.alert('Error', 'Failed to save preferences. Please try again.');
+      showErrorToast('Hmm, we couldn\'t save your preferences. Want to try again? 🔄', 'Save Problem');
     }
   };
 

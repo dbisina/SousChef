@@ -15,6 +15,7 @@ import {
   Timestamp,
 } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
+import { getFriendlyAuthError } from '@/lib/utils';
 
 interface AuthState {
   user: User | null;
@@ -88,7 +89,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await setDoc(doc(db, 'users', uid), userData);
       set({ user: userData, isLoading: false });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to create account';
+      const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
       throw error;
     }
@@ -116,7 +117,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({ user: userData, isLoading: false });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to sign in';
+      const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
       throw error;
     }
@@ -128,7 +129,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await firebaseSignOut(auth);
       set({ user: null, isLoading: false });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to sign out';
+      const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
       throw error;
     }
@@ -140,7 +141,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       await sendPasswordResetEmail(auth, email);
       set({ isLoading: false });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to send reset email';
+      const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
       throw error;
     }
@@ -178,7 +179,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await updateProfile(auth.currentUser, { displayName: updates.displayName });
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to update profile';
+      const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
       throw error;
     }
@@ -200,7 +201,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({ user: null, isLoading: false });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to delete account';
+      const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
       throw error;
     }

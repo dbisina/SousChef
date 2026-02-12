@@ -16,6 +16,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useThemeColors } from '@/stores/themeStore';
 import { Button } from '@/components/ui';
 import { submitAdInquiry } from '@/services/adService';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 import {
   AdPlacement,
   AdBudgetRange,
@@ -48,11 +49,11 @@ export default function AdvertiseScreen() {
   };
 
   const validate = (): boolean => {
-    if (!name.trim()) { Alert.alert('Missing Info', 'Please enter your name.'); return false; }
-    if (!email.trim() || !email.includes('@')) { Alert.alert('Missing Info', 'Please enter a valid email.'); return false; }
-    if (!company.trim()) { Alert.alert('Missing Info', 'Please enter your company name.'); return false; }
-    if (!budget) { Alert.alert('Missing Info', 'Please select a budget range.'); return false; }
-    if (placements.size === 0) { Alert.alert('Missing Info', 'Please select at least one ad placement.'); return false; }
+    if (!name.trim()) { showInfoToast('Please enter your name so we know who to talk to! ✍️', 'Missing Info'); return false; }
+    if (!email.trim() || !email.includes('@')) { showInfoToast('Double-check your email address? We want to make sure we can reach you. 📧', 'Missing Info'); return false; }
+    if (!company.trim()) { showInfoToast('Don\'t forget to tell us your company name! 🏢', 'Missing Info'); return false; }
+    if (!budget) { showInfoToast('Please select a budget range that works for you. 💰', 'Missing Info'); return false; }
+    if (placements.size === 0) { showInfoToast('Where would you like your ads to appear? 📍', 'Missing Info'); return false; }
     return true;
   };
 
@@ -71,7 +72,7 @@ export default function AdvertiseScreen() {
       });
       setSubmitted(true);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to submit. Please try again.');
+      showErrorToast('Oops! We couldn\'t send your inquiry. Let\'s try once more? 🔄', 'Inquiry Problem');
     } finally {
       setSubmitting(false);
     }

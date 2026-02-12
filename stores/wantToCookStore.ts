@@ -32,6 +32,7 @@ import {
   calculatePantryMatch,
   generateShoppingList,
 } from '@/services/recipeImportService';
+import { ThinkingPhase } from '@/lib/gemini';
 import { generateId } from '@/lib/firebase';
 
 /** Recursively strip `undefined` values from an object (Firestore rejects them).
@@ -76,6 +77,10 @@ interface WantToCookState {
   isImporting: boolean;
   importProgress: string;
 
+  // AI thinking state (visible thinking for video imports)
+  thinkingNotes: string[];
+  thinkingPhase: ThinkingPhase;
+
   // Actions - Import
   importFromURL: (url: string, userId: string) => Promise<WantToCookItem | null>;
   importFromPhoto: (imageUri: string, userId: string, cookbookName?: string) => Promise<WantToCookItem | null>;
@@ -105,6 +110,11 @@ interface WantToCookState {
   getOldSavedRecipes: (daysOld: number) => WantToCookItem[];
   getReadyToCook: (pantryItems: PantryItem[]) => WantToCookItem[];
 
+  // Actions - Thinking
+  addThinkingNote: (note: string) => void;
+  setThinkingPhase: (phase: ThinkingPhase) => void;
+  clearThinking: () => void;
+
   // State setters
   setError: (error: string | null) => void;
   setLoading: (loading: boolean) => void;
@@ -119,29 +129,50 @@ export const useWantToCookStore = create<WantToCookState>()(
       shoppingList: [],
       isImporting: false,
       importProgress: '',
+      thinkingNotes: [],
+      thinkingPhase: 'idle' as ThinkingPhase,
 
       // Import recipe from URL
       importFromURL: async (url, userId) => {
-        set({ isImporting: true, importProgress: 'Starting import...', error: null });
+        set({
+          isImporting: true,
+          importProgress: 'Starting import...',
+          error: null,
+          thinkingNotes: [],
+          thinkingPhase: 'idle' as ThinkingPhase,
+        });
 
         try {
-          const result = await extractRecipeFromURL(url, (progress) => {
-            set({ importProgress: progress });
-          });
+          const result = await extractRecipeFromURL(
+            url,
+            (progress) => {
+              set({ importProgress: progress });
+            },
+            {
+              onThinkingNote: (note) => {
+                set((state) => ({
+                  thinkingNotes: [...state.thinkingNotes, note],
+                }));
+              },
+              onPhaseChange: (phase) => {
+                set({ thinkingPhase: phase });
+              },
+            },
+          );
 
           if (!result.success || !result.recipe) {
-            set({ error: result.error || 'Failed to import recipe', isImporting: false });
+            set({ error: result.error || 'Failed to import recipe', isImporting: false, thinkingPhase: 'idle' as ThinkingPhase });
             return null;
           }
 
-          set({ importProgress: 'Saving recipe...' });
+          set({ importProgress: 'Saving recipe...', thinkingPhase: 'done' as ThinkingPhase });
           const item = await get().addToWantToCook(userId, result.recipe, true);
 
-          set({ isImporting: false, importProgress: '' });
+          set({ isImporting: false, importProgress: '', thinkingPhase: 'idle' as ThinkingPhase, thinkingNotes: [] });
           return item;
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Import failed';
-          set({ error: message, isImporting: false, importProgress: '' });
+          set({ error: message, isImporting: false, importProgress: '', thinkingPhase: 'idle' as ThinkingPhase, thinkingNotes: [] });
           return null;
         }
       },
@@ -374,6 +405,19 @@ export const useWantToCookStore = create<WantToCookState>()(
           const match = calculatePantryMatch(ingredients, pantryItems);
           return match.canMake;
         });
+      },
+
+      // Thinking actions
+      addThinkingNote: (note) => {
+        set((state) => ({
+          thinkingNotes: [...state.thinkingNotes, note],
+        }));
+      },
+      setThinkingPhase: (phase) => {
+        set({ thinkingPhase: phase });
+      },
+      clearThinking: () => {
+        set({ thinkingNotes: [], thinkingPhase: 'idle' as ThinkingPhase });
       },
 
       setError: (error) => set({ error }),

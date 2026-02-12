@@ -23,6 +23,7 @@ import { SHOPPING_CATEGORY_LABELS, ShoppingCategory, ShoppingListItem } from '@/
 import { PantryCategory } from '@/types';
 import { usePantryStore } from '@/stores/pantryStore';
 import { useAuthStore } from '@/stores/authStore';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 const PANTRY_CATEGORIES: PantryCategory[] = [
   'produce', 'dairy', 'meat', 'seafood', 'grains',
@@ -108,7 +109,7 @@ export default function ShoppingListScreen() {
       }
     } catch (e) {
       console.warn('Failed to add to pantry:', e);
-      Alert.alert('Error', `Failed to add ${pantryModalItem.name} to pantry.`);
+      showErrorToast(`Oops! We couldn't add ${pantryModalItem.name} to your pantry. Let's try once more? 🔄`, 'Pantry Problem');
     }
 
     setShowPantryModal(false);
@@ -129,7 +130,7 @@ export default function ShoppingListScreen() {
     const itemsToBuy = shoppingList.filter((item) => item.toBuy > 0 && !item.checked);
 
     if (itemsToBuy.length === 0) {
-      Alert.alert('Nothing to Share', 'Your shopping list is empty or all items are checked.');
+      showInfoToast('Your shopping list is empty or all items are checked. Add some ingredients to share them! 🛒', 'List is Empty');
       return;
     }
 
@@ -163,8 +164,8 @@ export default function ShoppingListScreen() {
     if (checkedItems === 0) return;
 
     Alert.alert(
-      'Clear Checked Items',
-      `Remove ${checkedItems} checked item${checkedItems !== 1 ? 's' : ''} from the list?`,
+      'Clear List?',
+      `Are you sure you want to remove ${checkedItems} checked item${checkedItems !== 1 ? 's' : ''} from your list?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {

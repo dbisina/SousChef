@@ -281,3 +281,34 @@ export const getCategoryEmoji = (category: string): string => {
   };
   return emojis[category] || '🍴';
 };
+
+/** Map technical Firebase Auth errors to user-friendly messages. */
+export const getFriendlyAuthError = (error: any): string => {
+  const code = error?.code || (typeof error === 'string' ? error : '');
+
+  if (code.includes('auth/invalid-email')) {
+    return 'That email address doesn\'t look quite right. Double-check the spelling?';
+  }
+  if (code.includes('auth/user-disabled')) {
+    return 'This account has been disabled. Please contact support if you think this is a mistake.';
+  }
+  if (code.includes('auth/user-not-found') || code.includes('auth/wrong-password') || code.includes('auth/invalid-credential')) {
+    return 'Hmm, those credentials don\'t match our records. Try again?';
+  }
+  if (code.includes('auth/email-already-in-use')) {
+    return 'Looks like that email is already registered! Try logging in instead?';
+  }
+  if (code.includes('auth/weak-password')) {
+    return 'Your password is a bit too short. Try making it at least 6 characters!';
+  }
+  if (code.includes('auth/network-request-failed')) {
+    return 'Connection trouble! Please check your internet and try again.';
+  }
+  if (code.includes('auth/too-many-requests')) {
+    return 'Woah, slow down! Too many attempts. Please wait a moment and try again.';
+  }
+
+  // Fallback for unknown errors but strip technical prefixes
+  const message = error?.message || String(error);
+  return message.replace(/\[firebase\/auth\]\s*/i, '').replace(/auth\//g, '');
+};

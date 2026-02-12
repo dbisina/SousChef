@@ -25,6 +25,7 @@ import {
   useGoogleAuth,
   isAppleSignInAvailable,
 } from '@/services/socialAuthService';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -65,10 +66,10 @@ export default function LoginScreen() {
         setUser(result.user);
         router.replace('/(tabs)');
       } else {
-        Alert.alert('Sign In Failed', result.error || 'Failed to sign in with Google');
+        showErrorToast(result.error || 'We couldn\'t sign you in with Google. Let\'s try again?', 'Sign In Issue');
       }
     } catch (err) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      showErrorToast('Something unexpected happened. Maybe try another way?', 'Oops!');
     } finally {
       setSocialLoading(false);
     }
@@ -82,10 +83,10 @@ export default function LoginScreen() {
         setUser(result.user);
         router.replace('/(tabs)');
       } else if (result.error !== 'cancelled') {
-        Alert.alert('Sign In Failed', result.error || 'Failed to sign in with Apple');
+        showErrorToast(result.error || 'Apple Sign In didn\'t work this time. Try again?', 'Sign In Issue');
       }
     } catch (err) {
-      Alert.alert('Error', 'An unexpected error occurred');
+      showErrorToast('Something unexpected happened. Maybe try another way?', 'Oops!');
     } finally {
       setSocialLoading(false);
     }
@@ -94,14 +95,14 @@ export default function LoginScreen() {
   const handleForgotPassword = async () => {
     const email = getValues('email');
     if (!email) {
-      Alert.alert('Email Required', 'Please enter your email address first.');
+      showInfoToast('Please enter your email address so we know where to send the link!', 'Email Needed');
       return;
     }
     try {
       await resetPassword(email);
-      Alert.alert('Email Sent', 'Check your inbox for password reset instructions.');
+      showSuccessToast('Check your inbox for password reset instructions. It\'s on the way! 📧', 'Email Sent');
     } catch (err) {
-      Alert.alert('Error', 'Failed to send reset email. Please try again.');
+      // Error handled by store
     }
   };
 

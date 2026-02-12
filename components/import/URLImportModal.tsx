@@ -1,4 +1,4 @@
-import React, { useState, useEffect, memo } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Alert,
   Dimensions,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -21,12 +22,16 @@ import Animated, {
   withTiming,
   withSequence,
   withDelay,
+  withRepeat,
+  cancelAnimation,
   interpolate,
   Extrapolation,
   SharedValue,
   FadeIn,
+  FadeInDown,
   FadeOut,
 } from 'react-native-reanimated';
+import { ThinkingPhase } from '@/lib/gemini';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { useAuthStore } from '@/stores/authStore';
 import { detectPlatform } from '@/services/recipeImportService';
@@ -92,6 +97,144 @@ const PlatformIcon = memo<{
 
 PlatformIcon.displayName = 'PlatformIcon';
 
+// ── Thinking Notes Sub-Components ──
+
+const PulsingDot = memo<{ color: string }>(({ color }) => {
+  const opacity = useSharedValue(0.3);
+
+  useEffect(() => {
+    opacity.value = withRepeat(
+      withTiming(1, { duration: 800 }),
+      -1,
+      true,
+    );
+  }, []);
+
+  const style = useAnimatedStyle(() => ({
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: color,
+    opacity: opacity.value,
+  }));
+
+  return <Animated.View style={style} />;
+});
+PulsingDot.displayName = 'PulsingDot';
+
+const ThinkingNoteRow = memo<{ note: string; index: number; accentColor: string }>(({ note, index, accentColor }) => {
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(index * 60).duration(300).springify()}
+      className="flex-row items-start mb-2"
+    >
+      <View
+        style={{ backgroundColor: accentColor, width: 6, height: 6, borderRadius: 3, marginTop: 6, marginRight: 8 }}
+      />
+      <Text className="text-sm text-neutral-700 dark:text-neutral-300 flex-1" style={{ lineHeight: 20 }}>
+        {note}
+      </Text>
+    </Animated.View>
+  );
+});
+ThinkingNoteRow.displayName = 'ThinkingNoteRow';
+
+const TypingIndicator = memo<{ color: string }>(({ color }) => {
+  const dot1 = useSharedValue(0.3);
+  const dot2 = useSharedValue(0.3);
+  const dot3 = useSharedValue(0.3);
+
+  useEffect(() => {
+    dot1.value = withRepeat(withTiming(1, { duration: 500 }), -1, true);
+    dot2.value = withDelay(150, withRepeat(withTiming(1, { duration: 500 }), -1, true));
+    dot3.value = withDelay(300, withRepeat(withTiming(1, { duration: 500 }), -1, true));
+  }, []);
+
+  const s1 = useAnimatedStyle(() => ({ opacity: dot1.value }));
+  const s2 = useAnimatedStyle(() => ({ opacity: dot2.value }));
+  const s3 = useAnimatedStyle(() => ({ opacity: dot3.value }));
+
+  const dotStyle = { width: 5, height: 5, borderRadius: 2.5, backgroundColor: color, marginHorizontal: 2 };
+
+  return (
+    <View className="flex-row items-center mt-1 ml-[14px]">
+      <Animated.View style={[dotStyle, s1]} />
+      <Animated.View style={[dotStyle, s2]} />
+      <Animated.View style={[dotStyle, s3]} />
+    </View>
+  );
+});
+TypingIndicator.displayName = 'TypingIndicator';
+
+const PHASE_CONFIG: Record<ThinkingPhase, { label: string; icon: string }> = {
+  idle: { label: '', icon: '' },
+  watching: { label: 'Watching video...', icon: 'eye-outline' },
+  reading: { label: 'Reading recipe...', icon: 'document-text-outline' },
+  building: { label: 'Building recipe...', icon: 'construct-outline' },
+  done: { label: 'Done!', icon: 'checkmark-circle-outline' },
+};
+
+/**
+ * ThinkingNotesView subscribes to the store DIRECTLY for `thinkingNotes`
+ * so that note-streaming updates only re-render this sub-tree, not the
+ * entire URLImportModal (which contains many useAnimatedStyle hooks).
+ */
+const ThinkingNotesView: React.FC<{ accentColor: string }> = ({ accentColor }) => {
+  const notes = useWantToCookStore((s) => s.thinkingNotes);
+  const phase = useWantToCookStore((s) => s.thinkingPhase);
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new notes arrive
+    if (notes.length > 0) {
+      const t = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+      return () => clearTimeout(t);
+    }
+  }, [notes.length]);
+
+  const phaseInfo = PHASE_CONFIG[phase];
+
+  return (
+    <Animated.View entering={FadeIn.duration(300)} className="mt-4">
+      <View
+        className="rounded-2xl overflow-hidden border"
+        style={{ backgroundColor: accentColor + '10', borderColor: accentColor + '30' }}
+      >
+        {/* Phase header */}
+        <View className="flex-row items-center px-4 pt-3 pb-2">
+          {phaseInfo.icon ? (
+            <Ionicons name={phaseInfo.icon as any} size={18} color={accentColor} />
+          ) : null}
+          <Text className="ml-2 font-semibold text-sm" style={{ color: accentColor }}>
+            {phaseInfo.label}
+          </Text>
+          {(phase === 'watching' || phase === 'reading') && (
+            <View className="ml-auto">
+              <PulsingDot color={accentColor} />
+            </View>
+          )}
+          {phase === 'done' && (
+            <Ionicons name="checkmark" size={16} color="#22C55E" style={{ marginLeft: 'auto' }} />
+          )}
+        </View>
+
+        {/* Notes list */}
+        <ScrollView
+          ref={scrollRef}
+          style={{ maxHeight: 160 }}
+          className="px-4 pb-3"
+          showsVerticalScrollIndicator={false}
+        >
+          {notes.map((note, i) => (
+            <ThinkingNoteRow key={i} note={note} index={i} accentColor={accentColor} />
+          ))}
+          {(phase === 'watching' || phase === 'reading') && <TypingIndicator color={accentColor} />}
+        </ScrollView>
+      </View>
+    </Animated.View>
+  );
+};
+
 export const URLImportModal: React.FC<URLImportModalProps> = ({
   visible,
   onClose,
@@ -102,7 +245,12 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const colors = useThemeColors();
   const { user } = useAuthStore();
-  const { importFromURL, isImporting, importProgress, error, setError } = useWantToCookStore();
+  const importFromURL = useWantToCookStore((s) => s.importFromURL);
+  const isImporting = useWantToCookStore((s) => s.isImporting);
+  const importProgress = useWantToCookStore((s) => s.importProgress);
+  const error = useWantToCookStore((s) => s.error);
+  const setError = useWantToCookStore((s) => s.setError);
+  const thinkingPhase = useWantToCookStore((s) => s.thinkingPhase);
 
   // Pre-fill URL from share intent
   useEffect(() => {
@@ -138,7 +286,8 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
       backdropOpacity.value = withTiming(0, { duration: 200 });
       modalScale.value = withTiming(0.9, { duration: 200 });
       platformAnimations.forEach((anim) => {
-        anim.value = 0;
+        cancelAnimation(anim);
+        anim.value = withTiming(0, { duration: 0 });
       });
     }
   }, [visible]);
@@ -147,14 +296,16 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
     if (isImporting) {
       // Animate progress bar
       progressWidth.value = withTiming(30, { duration: 500 });
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         progressWidth.value = withTiming(60, { duration: 1000 });
       }, 500);
-      setTimeout(() => {
+      const t2 = setTimeout(() => {
         progressWidth.value = withTiming(85, { duration: 1500 });
       }, 1500);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
     } else {
-      progressWidth.value = 0;
+      cancelAnimation(progressWidth);
+      progressWidth.value = withTiming(0, { duration: 0 });
     }
   }, [isImporting]);
 
@@ -417,8 +568,10 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
               </Animated.View>
             )}
 
-            {/* Import progress */}
-            {isImporting && (
+            {/* Import progress -- thinking notes or simple progress bar */}
+            {isImporting && thinkingPhase !== 'idle' ? (
+              <ThinkingNotesView accentColor={colors.accent} />
+            ) : isImporting ? (
               <Animated.View
                 entering={FadeIn.duration(200)}
                 className="mt-4"
@@ -451,7 +604,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                   </View>
                 </View>
               </Animated.View>
-            )}
+            ) : null}
 
             {/* Import button */}
             <View className="mt-6 rounded-2xl overflow-hidden">

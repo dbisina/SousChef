@@ -30,9 +30,10 @@ export const analyzeRecipeWithIngredients = async (
 // Analyze portion size from camera image
 export const analyzePortionImage = async (
   imageUri: string,
-  targetRecipe?: Recipe
+  targetRecipe?: Recipe,
+  ingredientHints?: string[]
 ): Promise<PortionAnalysis> => {
-  return analyzePortionFromImage(imageUri, targetRecipe?.ingredients);
+  return analyzePortionFromImage(imageUri, targetRecipe?.ingredients, ingredientHints);
 };
 
 // Get AI cooking tips for a recipe

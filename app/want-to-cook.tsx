@@ -7,6 +7,7 @@ import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { useThemeColors } from '@/stores/themeStore';
 import { WantToCookCard } from '@/components/import';
 import { WantToCookItem } from '@/types/wantToCook';
+import { showSuccessToast } from '@/stores/toastStore';
 
 export default function WantToCookScreen() {
   const router = useRouter();
@@ -36,13 +37,13 @@ export default function WantToCookScreen() {
     }));
 
     addToShoppingList(ingredients);
-    Alert.alert('Added!', 'Ingredients added to shopping list.');
+    showSuccessToast('Ingredients are on your list! 🛒 See you at the store.', 'Added!');
   }, [addToShoppingList]);
 
   const handleRemove = useCallback((item: WantToCookItem) => {
     Alert.alert(
-      'Remove Recipe',
-      'Are you sure you want to remove this recipe?',
+      'Remove Recipe?',
+      'Are you sure you want to remove this recipe? You can always add it back later if you change your mind!',
       [
         { text: 'Cancel', style: 'cancel' },
         {

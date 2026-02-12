@@ -90,7 +90,7 @@ export const Paywall: React.FC<PaywallProps> = ({
   feature,
   requiredTier = 'premium',
 }) => {
-  const { purchasePackage, restorePurchases, isLoading } = useSubscription();
+  const { purchasePackage, restorePurchases, isLoading, isInitialized, error } = useSubscription();
   const colors = useThemeColors();
   const { packages, fetchOfferings } = useSubscriptionPackages();
   const [selectedPeriod, setSelectedPeriod] = useState<'monthly' | 'annual'>('annual');
@@ -99,12 +99,12 @@ export const Paywall: React.FC<PaywallProps> = ({
   const [isRestoring, setIsRestoring] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
 
-  // Fetch offerings when paywall becomes visible
+  // Fetch offerings when paywall becomes visible (only after initialization completes)
   useEffect(() => {
-    if (visible && packages.length === 0) {
+    if (visible && isInitialized && packages.length === 0 && !isLoading) {
       fetchOfferings();
     }
-  }, [visible, packages.length, fetchOfferings]);
+  }, [visible, isInitialized, packages.length, isLoading, fetchOfferings]);
 
   // Group packages by tier and period using product ID (not package identifier)
   // Package identifiers like $rc_monthly/$rc_annual are the same across offerings,
@@ -443,7 +443,7 @@ export const Paywall: React.FC<PaywallProps> = ({
             <View className="py-12 items-center px-6">
               <Ionicons name="alert-circle-outline" size={48} color="#A8A29E" />
               <Text className="text-neutral-500 mt-4 text-center">
-                Subscriptions are not available at this time.
+                {error || 'Subscriptions are not available at this time.'}
               </Text>
               <Text className="text-neutral-400 text-sm mt-2 text-center">
                 Please check your internet connection and try again.

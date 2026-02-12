@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useCookbookLibraryStore } from '@/stores/cookbookLibraryStore';
 import { usePantryStore } from '@/stores/pantryStore';
 import { useThemeColors } from '@/stores/themeStore';
+import { showSuccessToast, showErrorToast, showInfoToast, showWarningToast } from '@/stores/toastStore';
 import { lookupCookbook, fetchBookCoverImage } from '@/services/cookbookLibraryService';
 import { CookbookEntry, CookbookSuggestion } from '@/types/cookbookLibrary';
 import { CookbookScanner } from '@/components/import';
@@ -93,8 +94,8 @@ export default function CookbookLibraryScreen() {
     fetchRecipesForCookbook(cookbookId).then(({ isComplete }) => {
       if (!isComplete) {
         Alert.alert(
-          'Some Recipes Missing',
-          "We couldn't find the complete recipe list online. You can scan pages from your physical copy to fill in the gaps.",
+          'Wait, we\'re missing a few! 📚',
+          "We couldn't find all the recipes for this book online. Would you like to scan some pages from your physical copy to fill them in?",
           [
             { text: 'Scan Now', onPress: () => { setScannerCookbookId(cookbookId); setShowScanner(true); } },
             { text: 'Later', style: 'cancel' },
@@ -109,8 +110,8 @@ export default function CookbookLibraryScreen() {
 
   const handleRemove = useCallback(
     (cookbook: CookbookEntry) => {
-      Alert.alert('Remove Cookbook', `Remove "${cookbook.title}" and all its recipes from your shelf?`, [
-        { text: 'Cancel', style: 'cancel' },
+      Alert.alert('Remove Cookbook?', `Are you sure you want to remove "${cookbook.title}"? You'll lose all its recipes from your shelf.`, [
+        { text: 'Keep It', style: 'cancel' },
         {
           text: 'Remove',
           style: 'destructive',
@@ -126,7 +127,7 @@ export default function CookbookLibraryScreen() {
     if (!isComplete) {
       Alert.alert(
         'Still Incomplete',
-        'Would you like to scan your physical cookbook to add the missing recipes?',
+        'Would you like to scan your physical cookbook to add the recipes we couldn\'t find?',
         [
           { text: 'Scan Pages', onPress: () => { setScannerCookbookId(cookbook.id); setShowScanner(true); } },
           { text: 'Not Now', style: 'cancel' },
@@ -152,14 +153,14 @@ export default function CookbookLibraryScreen() {
       (c) => c.title.toLowerCase() === suggestion.cookbookTitle.toLowerCase()
     );
     if (!cookbook) {
-      Alert.alert('Cookbook Not Found', `"${suggestion.cookbookTitle}" is no longer on your shelf.`);
+      showErrorToast(`"${suggestion.cookbookTitle}" isn't on your shelf anymore! 📚`, 'Book Missing');
       return;
     }
     const recipe = cookbook.recipes?.find(
       (r) => r.name.toLowerCase() === suggestion.recipeName.toLowerCase()
     );
     if (!recipe) {
-      Alert.alert('Recipe Not Found', `"${suggestion.recipeName}" wasn't found in "${cookbook.title}". It may have been removed.`);
+      showErrorToast(`We couldn't find "${suggestion.recipeName}" in that book. It might have been removed. 🍳`, 'Recipe Missing');
       return;
     }
     router.push({
@@ -170,11 +171,11 @@ export default function CookbookLibraryScreen() {
 
   const handleGetSuggestions = useCallback(() => {
     if (cookbooks.length === 0) {
-      Alert.alert('Add Cookbooks First', 'Add some cookbooks to your shelf to get recipe suggestions.');
+      showInfoToast('Add some cookbooks to your shelf so we can find the perfect recipe for you! 📚', 'Add a Book');
       return;
     }
     if (pantryItems.length === 0) {
-      Alert.alert('Pantry Empty', 'Add items to your pantry so we can match recipes to your ingredients.');
+      showInfoToast('Add some items to your pantry so we can match them with recipes you\'ll love! 🍎', 'Fill Your Pantry');
       return;
     }
     getSuggestions(pantryItems);

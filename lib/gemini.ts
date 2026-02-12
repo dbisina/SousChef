@@ -39,7 +39,7 @@ const isRotatableError = (error: any): boolean => {
 
 /**
  * Create a model-like object with automatic key rotation.
- * Exposes `.generateContent()` compatible with the raw SDK model.
+ * Exposes `.generateContent()` and `.generateContentStream()` compatible with the raw SDK model.
  */
 const createFailoverModel = (modelName: string) => {
   // Pre-create one model instance per key
@@ -83,14 +83,49 @@ const createFailoverModel = (modelName: string) => {
 
       throw firstError;
     },
+
+    generateContentStream: async (request: any) => {
+      if (models.length === 0) {
+        throw new Error('[Gemini] No API keys configured');
+      }
+
+      let firstError: any;
+
+      for (let attempt = 0; attempt < models.length; attempt++) {
+        const idx = (activeKeyIndex + attempt) % models.length;
+        try {
+          const result = await models[idx].generateContentStream(request);
+          if (idx !== activeKeyIndex) {
+            console.log(`[Gemini] Stream switched active key to ${idx + 1}/${models.length}`);
+            activeKeyIndex = idx;
+          }
+          return result;
+        } catch (error: any) {
+          if (attempt === 0) firstError = error;
+          console.warn(
+            `[Gemini] Stream key ${idx + 1}/${models.length} failed:`,
+            error?.message?.slice(0, 140),
+          );
+
+          if (isRotatableError(error) && attempt < models.length - 1) {
+            console.log('[Gemini] Rotating to next API key...');
+            continue;
+          }
+
+          throw firstError ?? error;
+        }
+      }
+
+      throw firstError;
+    },
   };
 };
 
 const generateTempId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
 // Model configurations (with automatic key failover)
-const textModel = createFailoverModel('gemini-2.0-flash');
-const visionModel = createFailoverModel('gemini-2.0-flash');
+const textModel = createFailoverModel('gemini-3-flash-preview');
+const visionModel = createFailoverModel('gemini-3-flash-preview');
 
 // Check if base64 data starts with valid image magic bytes
 const isValidImageBase64 = (base64: string): boolean => {
@@ -258,7 +293,8 @@ Only respond with valid JSON, no additional text.`;
 // Analyze portion size from image
 export const analyzePortionFromImage = async (
   imageUri: string,
-  targetRecipeIngredients?: Ingredient[]
+  targetRecipeIngredients?: Ingredient[],
+  ingredientHints?: string[]
 ): Promise<PortionAnalysis> => {
   const imagePart = await createImagePart(imageUri);
 
@@ -269,6 +305,15 @@ The user is preparing this recipe which requires:
 ${targetRecipeIngredients.map((i) => `- ${i.amount} ${i.unit} ${i.name}`).join('\n')}
 
 Please compare what you see to what the recipe needs.`;
+  }
+
+  if (ingredientHints && ingredientHints.length > 0) {
+    contextPrompt += `
+
+USER-PROVIDED INGREDIENT CORRECTIONS:
+The user has indicated this food contains the following ingredients: ${ingredientHints.join(', ')}.
+Use this as strong guidance when identifying items and estimating portions and calories.
+Re-examine the image with this context — look specifically for these ingredients and adjust your estimates accordingly.`;
   }
 
   const prompt = `You are a culinary and nutrition expert analyzing a photo of food. This could be raw ingredients, a prepared dish, a snack, a beverage, or any type of food item.
@@ -557,6 +602,38 @@ export interface GeminiRecipeResult {
 const MAX_INLINE_VIDEO_BYTES = 20 * 1024 * 1024;
 
 /**
+ * Heuristic: does the caption/description text look like it contains a
+ * written-out recipe (both ingredients AND instructions)?
+ *
+ * When a creator writes the full recipe in the caption, that text is more
+ * authoritative than what the AI infers from watching the video — the video
+ * becomes supplementary visual context rather than the primary source.
+ */
+const captionLooksLikeRecipe = (text: string | undefined): boolean => {
+  if (!text || text.length < 80) return false;
+  const lower = text.toLowerCase();
+
+  // Ingredient signals: measurement units, "ingredients" header, numbered amounts
+  const ingredientPatterns = [
+    /\b\d+\s*(cup|cups|tbsp|tsp|tablespoon|teaspoon|oz|ounce|lb|pound|g|gram|kg|ml|liter|litre|clove|bunch|pinch|dash|can|stick|slice|piece)/i,
+    /\bingredients?\b/i,
+    /\b\d+\/\d+\s*(cup|tsp|tbsp)/i,
+  ];
+
+  // Instruction signals: action verbs, step markers, sequential cooking language
+  const instructionPatterns = [
+    /\b(step\s*\d|directions?|instructions?|method|how to)\b/i,
+    /\b(preheat|saut[ée]|simmer|boil|bake|roast|fry|whisk|stir|fold|chop|dice|mince|slice|season|marinate|drain|mix|combine|cook|heat|add|pour|place|serve|garnish|let\s+(it\s+)?rest|set\s+aside|bring\s+to)\b/i,
+  ];
+
+  const hasIngredients = ingredientPatterns.some((p) => p.test(lower));
+  const hasInstructions = instructionPatterns.some((p) => p.test(lower));
+
+  // Must have BOTH to be considered a full written recipe
+  return hasIngredients && hasInstructions;
+};
+
+/**
  * Download a remote video to a temporary local file.
  * Returns the local path or null on failure.
  * Caller is responsible for deleting the file afterwards.
@@ -659,6 +736,7 @@ export const extractRecipeFromContentBundle = async (bundle: {
 
   const hasMedia = parts.length > 0;
   const contextStr = contextLines.join('\n\n');
+  const captionIsRecipe = captionLooksLikeRecipe(bundle.captionText);
 
   // ── Build prompt ──
   const prompt = `You are a world-class culinary AI. Extract a complete, detailed recipe from the provided content (sourced from ${bundle.platform}).
@@ -673,9 +751,11 @@ ${contextStr}
 
 INSTRUCTIONS:
 - Combine ALL available information (video, text, captions, structured data) to produce the most complete recipe possible.
-- If the video shows steps not mentioned in text, include them.
+${captionIsRecipe
+      ? `- IMPORTANT: The caption/description contains a WRITTEN RECIPE with ingredients and instructions. Treat the caption as the PRIMARY authoritative source for ingredient names, amounts, and cooking steps. Use the video only to fill in gaps or add details not mentioned in the caption (e.g. visual techniques, timing cues). Do NOT override caption amounts or steps with guesses from the video.`
+      : `- If the video shows steps not mentioned in text, include them.
 - If text mentions ingredients not visible in video, include those too.
-- If information conflicts, prefer the video content.
+- If information conflicts, prefer the video content.`}
 - Convert ALL amounts to numbers (e.g. "1/2" → 0.5, "a pinch" → 0.125, "two" → 2).
 - If amounts are not specified, estimate reasonable household quantities.
 - Instructions should be clear, actionable steps.
@@ -719,5 +799,196 @@ If you truly cannot identify any recipe: {"error": "reason", "confidence": 0}`;
   } catch (e) {
     console.error('Gemini content bundle extraction error:', e);
     return null;
+  }
+};
+
+// ────────────────────────────────────────────────────────
+// Streaming recipe extraction with visible thinking notes
+// ────────────────────────────────────────────────────────
+
+export type ThinkingPhase = 'idle' | 'watching' | 'reading' | 'building' | 'done';
+
+export interface ThinkingCallbacks {
+  onThinkingNote: (note: string) => void;
+  onPhaseChange: (phase: ThinkingPhase) => void;
+}
+
+/**
+ * Stream a recipe extraction from a content bundle, emitting "thinking" notes
+ * as the AI watches the video. Falls back to `extractRecipeFromContentBundle`
+ * if the streaming call fails.
+ *
+ * The prompt instructs Gemini to first output observation lines prefixed with
+ * `>> `, then emit a ```json block with the structured recipe.
+ */
+export const extractRecipeWithThinking = async (
+  bundle: Parameters<typeof extractRecipeFromContentBundle>[0],
+  callbacks: ThinkingCallbacks,
+): Promise<GeminiRecipeResult | null> => {
+  const parts: Part[] = [];
+  const contextLines: string[] = [];
+
+  // ── Assemble text context (same as extractRecipeFromContentBundle) ──
+  if (bundle.jsonLd) contextLines.push(`STRUCTURED RECIPE DATA (Schema.org):\n${bundle.jsonLd}`);
+  if (bundle.title) contextLines.push(`TITLE: ${bundle.title}`);
+  if (bundle.author) contextLines.push(`AUTHOR: ${bundle.author}`);
+  if (bundle.captionText) contextLines.push(`CAPTION / DESCRIPTION:\n${bundle.captionText}`);
+  if (bundle.transcript) contextLines.push(`VIDEO TRANSCRIPT:\n${bundle.transcript.slice(0, 12000)}`);
+  if (bundle.pageText) contextLines.push(`PAGE CONTENT:\n${bundle.pageText.slice(0, 10000)}`);
+  contextLines.push(`SOURCE: ${bundle.platform} — ${bundle.sourceUrl}`);
+
+  // ── Add video ──
+  let usedVideo = false;
+  if (bundle.videoLocalPath) {
+    try {
+      const info = await getInfoAsync(bundle.videoLocalPath);
+      if (info.exists && (!info.size || info.size < MAX_INLINE_VIDEO_BYTES)) {
+        const base64 = await readAsStringAsync(bundle.videoLocalPath, { encoding: 'base64' });
+        const mimeType = bundle.videoLocalPath.toLowerCase().endsWith('.mov')
+          ? 'video/quicktime'
+          : 'video/mp4';
+        parts.push({ inlineData: { data: base64, mimeType } });
+        usedVideo = true;
+      }
+    } catch (e) {
+      console.error('Failed to read video file for streaming:', e);
+    }
+  }
+
+  if (!usedVideo && bundle.thumbnailUrl) {
+    const imgPart = await createImagePartSafe(bundle.thumbnailUrl);
+    if (imgPart) parts.push(imgPart);
+  }
+
+  const hasMedia = parts.length > 0;
+  const contextStr = contextLines.join('\n\n');
+  const captionIsRecipe = captionLooksLikeRecipe(bundle.captionText);
+
+  // ── Build streaming prompt with observation markers ──
+  const prompt = `You are a world-class culinary AI. Extract a complete, detailed recipe from the provided content (sourced from ${bundle.platform}).
+
+${hasMedia ? (usedVideo
+      ? 'A COOKING VIDEO is attached. Watch it carefully — observe every ingredient shown, every cooking step, listen to all audio/voiceover, and read any text overlays.'
+      : 'A THUMBNAIL IMAGE is attached. Use it to identify the dish and its likely ingredients.')
+      : ''}
+
+AVAILABLE CONTEXT:
+${contextStr}
+
+IMPORTANT OUTPUT FORMAT:
+First, write your observation notes as you analyze the content. Each observation MUST be on its own line and start with ">> ". These are your real-time thinking notes. Write 4-8 short observations about what you see/hear.
+${captionIsRecipe
+      ? `Since the caption contains a written recipe, focus your observations on confirming/noting the caption details and any extra visual details from the video.`
+      : ''}
+
+Example observations:
+>> Looks like a creamy pasta dish with garlic
+>> Chef is using fettuccine noodles in boiling water
+>> I see butter and minced garlic being sautéed
+>> Heavy cream is being poured into the pan
+
+After your observations, output the recipe as a JSON block.
+
+INSTRUCTIONS:
+- Combine ALL available information (video, text, captions, structured data) to produce the most complete recipe possible.
+${captionIsRecipe
+      ? `- IMPORTANT: The caption/description contains a WRITTEN RECIPE with ingredients and instructions. Treat the caption as the PRIMARY authoritative source for ingredient names, amounts, and cooking steps. Use the video only to fill in gaps or add details not mentioned in the caption (e.g. visual techniques, timing cues). Do NOT override caption amounts or steps with guesses from the video.`
+      : `- If the video shows steps not mentioned in text, include them.
+- If information conflicts, prefer the video content.`}
+- Convert ALL amounts to numbers (e.g. "1/2" → 0.5, "a pinch" → 0.125).
+- If amounts are not specified, estimate reasonable household quantities.
+- Set confidence 0-1: ≥0.85 for well-documented recipes, 0.5-0.7 for reconstructed ones.
+
+After your observations, return the recipe as a JSON code block:
+\`\`\`json
+{
+  "title": "Recipe Name",
+  "description": "Brief appealing description of the dish",
+  "ingredients": [{"name": "ingredient", "amount": 1, "unit": "cup", "optional": false}],
+  "instructions": ["Step 1: ...", "Step 2: ..."],
+  "servings": 4,
+  "prepTime": 15,
+  "cookTime": 30,
+  "difficulty": "easy|medium|hard",
+  "cuisine": "italian|mexican|chinese|american|indian|japanese|thai|mediterranean|etc",
+  "category": "dinner|lunch|breakfast|dessert|snack|appetizer|side|drink",
+  "tags": ["tag1", "tag2"],
+  "confidence": 0.85
+}
+\`\`\`
+
+If you truly cannot identify any recipe: {"error": "reason", "confidence": 0}`;
+
+  try {
+    callbacks.onPhaseChange(captionIsRecipe ? 'reading' : 'watching');
+
+    const model = hasMedia ? visionModel : textModel;
+    const content = hasMedia ? [prompt, ...parts] : prompt;
+    const streamResult = await model.generateContentStream(content);
+
+    let fullText = '';
+    let inJsonBlock = false;
+    let lineBuffer = '';
+
+    for await (const chunk of streamResult.stream) {
+      const chunkText = chunk.text();
+      fullText += chunkText;
+      lineBuffer += chunkText;
+
+      // Process complete lines from the buffer
+      const lines = lineBuffer.split('\n');
+      // Keep the last (potentially incomplete) line in the buffer
+      lineBuffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+
+        // Detect transition to JSON block
+        if (trimmed.startsWith('```json') || trimmed === '```') {
+          if (!inJsonBlock && trimmed.startsWith('```json')) {
+            inJsonBlock = true;
+            callbacks.onPhaseChange('building');
+            continue;
+          }
+          if (inJsonBlock) {
+            inJsonBlock = false;
+            continue;
+          }
+        }
+
+        // Emit observation notes
+        if (!inJsonBlock && trimmed.startsWith('>> ')) {
+          const note = trimmed.slice(3).trim();
+          if (note) {
+            callbacks.onThinkingNote(note);
+          }
+        }
+      }
+    }
+
+    // Process any remaining text in the buffer
+    if (lineBuffer.trim().startsWith('>> ') && !inJsonBlock) {
+      const note = lineBuffer.trim().slice(3).trim();
+      if (note) callbacks.onThinkingNote(note);
+    }
+
+    // Extract JSON from the full response
+    const jsonMatch =
+      fullText.match(/```json\n?([\s\S]*?)\n?```/) ||
+      fullText.match(/```\n?([\s\S]*?)\n?```/) ||
+      [null, fullText];
+    const parsed = JSON.parse((jsonMatch[1] || fullText).trim());
+
+    if (parsed.error) {
+      console.log('Gemini streaming found no recipe:', parsed.error);
+      return null;
+    }
+
+    return parsed as GeminiRecipeResult;
+  } catch (e) {
+    console.warn('Streaming extraction failed, falling back to non-streaming:', e);
+    // Silent fallback to the existing non-streaming path
+    callbacks.onPhaseChange('building');
+    return extractRecipeFromContentBundle(bundle);
   }
 };

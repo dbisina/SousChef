@@ -133,7 +133,7 @@ export const usePortionAnalysis = () => {
     return true;
   }, [checkPortionAccess]);
 
-  const analyzeImage = useCallback(async (imageUri: string, targetRecipe?: Recipe) => {
+  const analyzeImage = useCallback(async (imageUri: string, targetRecipe?: Recipe, ingredientHints?: string[]) => {
     // Check subscription access
     const hasAccess = await checkAccess();
     if (!hasAccess) {
@@ -144,7 +144,7 @@ export const usePortionAnalysis = () => {
     setError(null);
 
     try {
-      const analysisResult = await analyzePortionImage(imageUri, targetRecipe);
+      const analysisResult = await analyzePortionImage(imageUri, targetRecipe, ingredientHints);
       setResult(analysisResult);
       // Record usage after successful analysis
       await recordPortionUsage();

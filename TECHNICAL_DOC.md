@@ -13,7 +13,7 @@ SousChef is designed as a modern, AI-first culinary assistant. The architecture 
 ### High-Level Components
 
 1.  **Client (Mobile App):** A React Native application built with Expo, serving as the primary interface for recipe management, cooking, and shopping.
-2.  **AI Layer (Processing):** Direct integration with Google Gemini 1.5 Flash & Vision API for multimodal analysis of video, images, and text.
+2.  **AI Layer (Processing):** Direct integration with Google Gemini 3.0 Flash Preview & Vision API for multimodal analysis of video, images, and text.
 3.  **Backend (Data & Auth):** Firebase (Firestore, Auth) for user data persistence and identity management.
 4.  **Monetization (Subscription):** RevenueCat for managing cross-platform entitlements and subscription logic.
 
@@ -27,7 +27,7 @@ SousChef is designed as a modern, AI-first culinary assistant. The architecture 
 | **Language** | **TypeScript** | Type safety for complex data structures like recipe schemas. |
 | **Styling** | **NativeWind (TailwindCSS)** | Utility-first styling for a consistent, responsive design system. |
 | **State Management** | **Zustand** | Lightweight, predictable state management for shopping lists and timers. |
-| **AI / ML** | **Google Gemini 1.5 Flash** | High-speed, low-cost multimodal processing for video/image extraction. |
+| **AI / ML** | **Google Gemini 3.0 Flash Preview** | Next-generation multimodal processing with improved latency and accuracy. |
 | **Backend** | **Firebase** | Real-time database (Firestore) and authentication out-of-the-box. |
 | **Monetization** | **RevenueCat** | Simplifies In-App Purchase logic and entitlement handling. |
 | **Voice** | **react-native-voice** | Real-time speech recognition for hands-free cooking commands. |
@@ -36,46 +36,39 @@ SousChef is designed as a modern, AI-first culinary assistant. The architecture 
 
 ## 💰 Implementation: RevenueCat
 
-The core monetization strategy relies on the **SousChef Pro** subscription, which unlocks unlimited AI imports and advanced cloud features. RevenueCat is the backbone of this system.
+The core monetization strategy relies on the **SousChef Pro** subscription, which unlocks unlimited AI imports and advanced cloud features. RevenueCat is the backbone of this system, abstracting the complexities of StoreKit and Google Play Billing.
 
 ### Integration Details
 
-1.  **SDK Setup:**
-    We utilize the `react-native-purchases` SDK. Initialization happens at the app root level in `packages/mobile/src/App.tsx`, configuring the API key based on the platform (iOS/Android).
+1.  **SDK Setup**:
+    We utilize the `react-native-purchases` SDK. Initialization happens at the app root level, configuring the API key based on the platform (iOS/Android) and identifying the user via their Firebase UID to ensure cross-platform entitlement parity.
 
-2.  **Entitlements:**
-    We defined a single entitlement identifier: `pro_access`. This entitlement is unlocked by purchasing either the `souschef_monthly` or `souschef_annual` offering.
-
-3.  **Paywall Logic:**
-    The paywall is triggered via the `URLImportModal` component. Before allowing a user to process a new URL, we check their subscription status:
-    ```typescript
-    // Check if user has active entitlement
-    const { customerInfo } = await Purchases.getCustomerInfo();
-    const isPro = customerInfo.entitlements.active['pro_access'] !== undefined;
-
-    if (!isPro && importCount >= FREE_LIMIT) {
-      setShowPaywall(true); // Trigger RevenueCat paywall flow
-      return;
-    }
-    ```
-
-4.  **Subscriber Attributes:**
-    We set custom attributes for better segmentation, such as `total_recipes_imported`, allowing us to target power users with specific offers.
+2.  **Entitlements & Offerings**:
+    - **Entitlement**: `pro_access`
+    - **Offerings**: `souschef_monthly` ($4.99) and `souschef_annual` ($39.99).
+    - **Logic**: We use the `Purchases.getCustomerInfo()` method to check for active entitlements before allowing restricted actions.
 
 ---
 
-## 🤖 AI Workflow: Video-to-Recipe
+## 🤖 AI Workflow: Multimodal Recipe Extraction
 
-One of the most technically challenging aspects was converting unstructured social media video content into structured JSON recipes.
+Our extraction engine leverages **Gemini 3.0 Flash Preview** for its superior speed and multimodal context window. 
 
-1.  **Input:** User provides a URL (TikTok/Instagram).
-2.  **Extraction:** The app downloads a temporary cached version of the video (if platform allows) or extracts frame snapshots.
-3.  **Processing (Gemini 1.5):** We send a multimodal prompt containing the video frames + audio transcript to Gemini.
-    *   *Prompt Engineering:* "Analyze the visual cues in this video to determine ingredient amounts that are not explicitly spoken."
-4.  **Structuring:** The LLM returns a strictly formatted JSON object matching our `Recipe` TypeScript interface.
-5.  **Validation:** The app validates the JSON against our schema (Zod) before saving it to the user's cookbook.
+1.  **Media Processing**:
+    - For video links (TikTok/Instagram), we download the low-res media and extract audio.
+    - We pass the video file + audio transcript + page metadata to Gemini.
+2.  **Prompt Engineering**:
+    We use a strictly typed system prompt that forces Gemini to output a JSON schema matching our internal `Recipe` interface.
+3.  **Visual Perception**:
+    The AI is instructed to look for visual cues (text overlays, measuring spoon sizes) that might not be mentioned in the audio, ensuring high accuracy even for "no-narration" cooking videos.
 
 ---
+
+## 🎤 Hands-Free Interface
+
+To ensure safety and cleanliness in the kitchen, SousChef implements a dual-layer voice recognition system:
+- **Layer 1 (Local)**: High-confidence pattern matching for simple commands (Next, Back, Stop).
+- **Layer 2 (AI Fallback)**: For complex queries ("What can I use instead of eggs?"), we use Gemini to parse the user's intent.
 
 ## 🔒 Security & Privacy
 

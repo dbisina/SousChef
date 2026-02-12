@@ -28,7 +28,7 @@ export default function TermsOfServiceScreen() {
 
       <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
         <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
-          Last updated: February 2025
+          Last updated: February 2026
         </Text>
 
         <Section title="1. Acceptance of Terms">
@@ -109,7 +109,7 @@ export default function TermsOfServiceScreen() {
 
         <Section title="14. Contact Us">
           For questions about these Terms of Service, please contact us at:{'\n'}
-          Email: legal@souschef.app
+          Email: danbis664@gmail.com
         </Section>
 
         <View className="h-8" />

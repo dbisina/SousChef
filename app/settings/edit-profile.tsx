@@ -16,6 +16,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useThemeColors } from '@/stores/themeStore';
 import { uploadImage } from '@/lib/cloudinary';
 import { Avatar, Button, Input, Card } from '@/components/ui';
+import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -43,7 +44,7 @@ export default function EditProfileScreen() {
         );
         setPhotoURL(uploadedUrl);
       } catch (error) {
-        Alert.alert('Error', 'Failed to upload image. Please try again.');
+        showErrorToast('We couldn\'t upload your new photo just yet. Want to try again? 📸', 'Upload Problem');
       } finally {
         setIsUploading(false);
       }
@@ -52,7 +53,7 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!displayName.trim()) {
-      Alert.alert('Error', 'Display name is required');
+      showInfoToast('Wait! We need to know what to call you! 🖊️', 'Name Needed');
       return;
     }
 
@@ -61,11 +62,10 @@ export default function EditProfileScreen() {
         displayName: displayName.trim(),
         photoURL: photoURL || undefined,
       });
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      showSuccessToast('Looking good! Your profile has been updated. ✨', 'Profile Saved');
+      router.back();
     } catch (error) {
-      Alert.alert('Error', 'Failed to update profile. Please try again.');
+      showErrorToast('Oops! We couldn\'t save your profile changes. Let\'s try once more? 🔄', 'Update Problem');
     }
   };
 
