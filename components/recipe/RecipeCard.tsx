@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -19,7 +19,7 @@ interface RecipeCardProps {
   compact?: boolean;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({
+export const RecipeCard: React.FC<RecipeCardProps> = memo(({
   recipe,
   onPress,
   onLike,
@@ -183,7 +183,23 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       </View>
     </TouchableOpacity>
   );
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if recipe data, saved state, or handlers changed
+  return (
+    prevProps.recipe.id === nextProps.recipe.id &&
+    prevProps.recipe.title === nextProps.recipe.title &&
+    prevProps.recipe.imageURL === nextProps.recipe.imageURL &&
+    prevProps.recipe.likes === nextProps.recipe.likes &&
+    prevProps.isSaved === nextProps.isSaved &&
+    prevProps.compact === nextProps.compact &&
+    prevProps.showAuthor === nextProps.showAuthor &&
+    prevProps.onPress === nextProps.onPress &&
+    prevProps.onLike === nextProps.onLike &&
+    prevProps.onSave === nextProps.onSave
+  );
+});
+
+RecipeCard.displayName = 'RecipeCard';
 
 // Horizontal scrolling recipe card with glass effect
 export const HorizontalRecipeCard: React.FC<RecipeCardProps> = ({

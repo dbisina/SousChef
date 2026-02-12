@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(find:*)",
+      "Bash(\"lib/cloudinary.ts\" << 'EOF'\n\n/**\n * Optimize Cloudinary image URL with responsive transformations\n * @param url - Original Cloudinary URL\n * @param width - Desired width in pixels\n * @param height - Desired height in pixels \\(optional\\)\n * @param quality - Image quality \\(default: 'auto'\\)\n * @returns Optimized URL with transformations\n */\nexport const getOptimizedImageUrl = \\(\n  url: string,\n  width: number,\n  height?: number,\n  quality: 'auto' | 'best' | 'good' | 'eco' | 'low' = 'auto'\n\\): string => {\n  if \\(!url || !url.includes\\('cloudinary'\\)\\) return url;\n\n  try {\n    const transforms: string[] = [];\n    transforms.push\\(`w_${width}`\\);\n    if \\(height\\) {\n      transforms.push\\(`h_${height}`\\);\n      transforms.push\\('c_fill'\\);\n    }\n    transforms.push\\(`q_${quality}`\\);\n    transforms.push\\('f_auto'\\);\n    transforms.push\\('fl_progressive'\\);\n    const transformString = transforms.join\\(','\\);\n    return url.replace\\('/upload/', `/upload/${transformString}/`\\);\n  } catch \\(error\\) {\n    console.error\\('Error optimizing image URL:', error\\);\n    return url;\n  }\n};\n\nexport const getThumbnailUrl = \\(url: string\\): string => {\n  return getOptimizedImageUrl\\(url, 200, 200, 'good'\\);\n};\n\nexport const getCardImageUrl = \\(url: string\\): string => {\n  return getOptimizedImageUrl\\(url, 400, 300, 'auto'\\);\n};\n\nexport const getFullImageUrl = \\(url: string\\): string => {\n  return getOptimizedImageUrl\\(url, 800, undefined, 'auto'\\);\n};\nEOF)"
     ]
   }
 }

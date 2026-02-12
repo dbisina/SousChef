@@ -108,6 +108,10 @@ const PulsingDot = memo<{ color: string }>(({ color }) => {
       -1,
       true,
     );
+
+    return () => {
+      cancelAnimation(opacity);
+    };
   }, []);
 
   const style = useAnimatedStyle(() => ({
@@ -148,6 +152,12 @@ const TypingIndicator = memo<{ color: string }>(({ color }) => {
     dot1.value = withRepeat(withTiming(1, { duration: 500 }), -1, true);
     dot2.value = withDelay(150, withRepeat(withTiming(1, { duration: 500 }), -1, true));
     dot3.value = withDelay(300, withRepeat(withTiming(1, { duration: 500 }), -1, true));
+
+    return () => {
+      cancelAnimation(dot1);
+      cancelAnimation(dot2);
+      cancelAnimation(dot3);
+    };
   }, []);
 
   const s1 = useAnimatedStyle(() => ({ opacity: dot1.value }));

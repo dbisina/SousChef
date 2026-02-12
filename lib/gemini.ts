@@ -123,8 +123,14 @@ const createFailoverModel = (modelName: string) => {
 
 const generateTempId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
 
-// Model configurations (with automatic key failover)
-const textModel = createFailoverModel('gemini-3-flash-preview');
+// ── Model configurations (with automatic key failover) ──────────────
+// Separation of concerns:
+//   textModel  → Gemini 2.0 Flash (stable, fast) for pure-text tasks:
+//                recipe text extraction, cooking tips, substitutions, meal planning
+//   visionModel → Gemini 3 Flash (preview, advanced multimodal) for tasks
+//                 involving images or video: portion analysis, recipe-from-image,
+//                 video extraction, content bundle analysis with media
+const textModel = createFailoverModel('gemini-2.0-flash');
 const visionModel = createFailoverModel('gemini-3-flash-preview');
 
 // Check if base64 data starts with valid image magic bytes

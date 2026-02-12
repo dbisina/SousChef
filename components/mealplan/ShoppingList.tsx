@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
   View,
   Text,
@@ -94,6 +94,10 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
       stickySectionHeadersEnabled
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingBottom: 100 }}
+      removeClippedSubviews={true}
+      maxToRenderPerBatch={20}
+      updateCellsBatchingPeriod={50}
+      initialNumToRender={10}
     />
   );
 };
@@ -106,7 +110,7 @@ interface ShoppingListRowProps {
   showPantryIndicator: boolean;
 }
 
-const ShoppingListRow: React.FC<ShoppingListRowProps> = ({
+const ShoppingListRow: React.FC<ShoppingListRowProps> = memo(({
   item,
   onToggle,
   onPress,
@@ -185,7 +189,21 @@ const ShoppingListRow: React.FC<ShoppingListRowProps> = ({
       )}
     </TouchableOpacity>
   );
-};
+}, (prevProps, nextProps) => {
+  // Only re-render if item changed or handlers changed
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.item.checked === nextProps.item.checked &&
+    prevProps.item.name === nextProps.item.name &&
+    prevProps.item.amount === nextProps.item.amount &&
+    prevProps.item.toBuy === nextProps.item.toBuy &&
+    prevProps.showPantryIndicator === nextProps.showPantryIndicator &&
+    prevProps.onToggle === nextProps.onToggle &&
+    prevProps.onPress === nextProps.onPress
+  );
+});
+
+ShoppingListRow.displayName = 'ShoppingListRow';
 
 // Shopping list summary component
 interface ShoppingListSummaryProps {

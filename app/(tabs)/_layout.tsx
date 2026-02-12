@@ -151,7 +151,7 @@ export default function TabLayout() {
       gradient: [colors.accent, colors.palette[400]] as [string, string],
       onPress: () => router.push('/(tabs)/upload'),
     },
-  ], [router]);
+  ], [router, colors.accent, colors.palette]);
 
   const handleImportSuccess = useCallback((title: string) => {
     // Could show a toast here

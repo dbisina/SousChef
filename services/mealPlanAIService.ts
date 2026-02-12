@@ -27,7 +27,7 @@ USER PREFERENCES:
 - Servings per meal: {servings}
 - Meals to include: {mealTypes}
 - Days to plan: {days}
-- Dietary restrictions: {restrictions}
+- Dietary restrictions & allergies: {restrictions}
 - Cuisine preferences: {cuisines}
 - Max prep time: {maxPrepTime} minutes
 - Max cook time: {maxCookTime} minutes
@@ -35,12 +35,12 @@ USER PREFERENCES:
 - Maximize ingredient overlap: {maximizeOverlap}
 
 OPTIMIZATION GOALS (in order of priority):
-1. Use ALL expiring items before they spoil - this is the most important goal
-2. Maximize ingredient reuse across meals (buy ingredients that work in multiple recipes)
-3. Minimize shopping list size by choosing recipes with overlapping ingredients
-4. Use existing pantry items as much as possible
-5. Balance nutrition and variety across the week
-6. Respect user preferences and restrictions
+1. NEVER include recipes that violate dietary restrictions or contain allergens — this is a HARD constraint
+2. Use ALL expiring items before they spoil
+3. Maximize ingredient reuse across meals (buy ingredients that work in multiple recipes)
+4. Minimize shopping list size by choosing recipes with overlapping ingredients
+5. Use existing pantry items as much as possible
+6. Balance nutrition and variety across the week
 
 Return a JSON object with this exact structure:
 {

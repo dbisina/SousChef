@@ -12,6 +12,11 @@ import {
   generateId,
 } from '@/lib/firebase';
 import { PantryItem, PantryCategory, PantryItemFormData } from '@/types';
+import {
+  selectExpiringItems,
+  selectExpiredItems,
+  selectSearchedItems,
+} from './selectors/pantrySelectors';
 
 interface PantryState {
   items: PantryItem[];
@@ -162,34 +167,17 @@ export const usePantryStore = create<PantryState>((set, get) => ({
     return get().items.filter((item) => item.category === category);
   },
 
+  // Computed getters - now using memoized selectors for performance
   getExpiringItems: () => {
-    const now = new Date();
-    const threeDays = 3 * 24 * 60 * 60 * 1000;
-
-    return get().items.filter((item) => {
-      if (!item.expiryDate) return false;
-      const expiryDate = item.expiryDate.toDate();
-      const diff = expiryDate.getTime() - now.getTime();
-      return diff > 0 && diff < threeDays;
-    });
+    return selectExpiringItems(get().items);
   },
 
   getExpiredItems: () => {
-    const now = new Date();
-
-    return get().items.filter((item) => {
-      if (!item.expiryDate) return false;
-      return item.expiryDate.toDate().getTime() < now.getTime();
-    });
+    return selectExpiredItems(get().items);
   },
 
   searchItems: (searchQuery) => {
-    const query = searchQuery.toLowerCase();
-    return get().items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(query) ||
-        item.category.toLowerCase().includes(query)
-    );
+    return selectSearchedItems(get().items, searchQuery);
   },
 }));
 

@@ -19,6 +19,8 @@ interface PlanGeneratorProps {
   onGenerate: (preferences: MealPlanPreferences) => void;
   isGenerating: boolean;
   expiringItemsCount: number;
+  userDietaryPreferences?: string[];
+  userAllergies?: string[];
 }
 
 export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
@@ -27,10 +29,22 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
   onGenerate,
   isGenerating,
   expiringItemsCount,
+  userDietaryPreferences = [],
+  userAllergies = [],
 }) => {
-  const [preferences, setPreferences] = useState<MealPlanPreferences>(
-    DEFAULT_MEAL_PLAN_PREFERENCES
-  );
+  // Merge user's dietary preferences + allergies into the default restrictions
+  const initialRestrictions = [
+    ...new Set([
+      ...DEFAULT_MEAL_PLAN_PREFERENCES.dietaryRestrictions,
+      ...userDietaryPreferences,
+      ...userAllergies.map((a) => `no ${a}`),
+    ]),
+  ];
+
+  const [preferences, setPreferences] = useState<MealPlanPreferences>({
+    ...DEFAULT_MEAL_PLAN_PREFERENCES,
+    dietaryRestrictions: initialRestrictions,
+  });
   const colors = useThemeColors();
 
   const handleMealTypeToggle = (mealType: MealType) => {
@@ -195,6 +209,30 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
                 )}
               </View>
             </Card>
+
+            {/* Dietary restrictions (auto-populated from profile) */}
+            {preferences.dietaryRestrictions.length > 0 && (
+              <Card className="mb-4">
+                <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50 mb-3">
+                  Dietary restrictions
+                </Text>
+                <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-2">
+                  From your profile preferences
+                </Text>
+                <View className="flex-row flex-wrap">
+                  {preferences.dietaryRestrictions.map((restriction) => (
+                    <View
+                      key={restriction}
+                      className="mr-2 mb-2 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                    >
+                      <Text className="text-red-700 dark:text-red-300 text-sm capitalize">
+                        {restriction}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </Card>
+            )}
 
             {/* Optimization options */}
             <Card className="mb-4">

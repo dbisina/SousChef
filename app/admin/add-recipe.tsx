@@ -419,6 +419,11 @@ export default function AdminAddRecipeScreen() {
           <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
             Ingredients *
           </Text>
+          {errors.ingredients && (
+            <Text className="text-red-500 text-sm mb-2">
+              {errors.ingredients.message || 'Please fix ingredient errors below'}
+            </Text>
+          )}
           {ingredientFields.map((field, index) => (
             <View key={field.id} className="flex-row items-center mb-2">
               <View className="flex-1 flex-row space-x-2">
@@ -450,7 +455,9 @@ export default function AdminAddRecipeScreen() {
                   name={`ingredients.${index}.name`}
                   render={({ field: { onChange, value } }) => (
                     <TextInput
-                      className="flex-1 bg-white rounded-lg px-3 py-2"
+                      className={`flex-1 bg-white rounded-lg px-3 py-2 ${
+                        errors.ingredients?.[index]?.name ? 'border border-red-400' : ''
+                      }`}
                       value={value}
                       onChangeText={onChange}
                       placeholder="Ingredient"
@@ -478,6 +485,11 @@ export default function AdminAddRecipeScreen() {
           <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
             Instructions *
           </Text>
+          {errors.instructions && (
+            <Text className="text-red-500 text-sm mb-2">
+              {errors.instructions.message || 'At least one instruction is required'}
+            </Text>
+          )}
           {instructions.map((instruction, index) => (
             <View key={index} className="flex-row items-start mb-2 bg-white rounded-lg p-3">
               <Text className="w-6 text-primary-500 font-bold">{index + 1}.</Text>
