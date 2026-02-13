@@ -146,14 +146,13 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
     set({ isGenerating: true, error: null });
 
     try {
-      const weekDates = generateWeekDates(selectedWeekStart);
-
+      // Pass the start date directly - the AI service will generate the date list
       const result = await generateMealPlan(
         preferences,
         recipes,
         pantryItems,
         expiringItems,
-        weekDates
+        selectedWeekStart
       );
 
       // Create the plan structure - add id and checked to shopping list items
@@ -325,7 +324,6 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
           });
         } catch (pantryError) {
           // Don't revert shopping list toggle if pantry add fails
-          console.error('Failed to auto-add to pantry:', pantryError);
         }
       }
     } catch (error) {
@@ -389,7 +387,6 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
     } catch (error) {
       // Revert on failure
       set({ currentPlan });
-      console.error('Failed to clear checked items:', error);
     }
   },
 
@@ -400,7 +397,6 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
       const log = await getWasteLog(userId);
       set({ wasteLog: log, isLoadingWaste: false });
     } catch (error) {
-      console.error('Error fetching waste log:', error);
       set({ isLoadingWaste: false });
     }
   },
@@ -410,7 +406,7 @@ export const useMealPlanStore = create<MealPlanStoreState>((set, get) => ({
       const stats = await getWasteStats(userId);
       set({ wasteStats: stats });
     } catch (error) {
-      console.error('Error fetching waste stats:', error);
+      // Error fetching waste stats
     }
   },
 

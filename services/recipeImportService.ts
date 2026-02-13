@@ -21,6 +21,7 @@ import {
   ThinkingCallbacks,
 } from '@/lib/gemini';
 import { extractPlatformContent, PlatformContent } from './platformExtractorService';
+import { downloadYouTubeVideo, isYouTubeDownloadAvailable } from './youtubeDownloadService';
 import { getInfoAsync } from 'expo-file-system/legacy';
 
 const MAX_SHARED_VIDEO_BYTES = 20 * 1024 * 1024; // 20 MB limit for inline video analysis
@@ -78,7 +79,6 @@ export const extractRecipeFromURL = async (
     // ──── DIRECT MEDIA / FILE HANDLERS ────
     // Handle direct image URLs or local image files (shared from Photos/Files)
     if (platform === 'image') {
-      console.log('Direct image detected, using Vision AI...');
       const isLocal = isLocalFile(url);
       const scanResult = await extractRecipeFromPhoto(url, isLocal ? 'Shared Photo' : 'Image');
       if (isLocal) await cleanupTempFile(url);
@@ -93,8 +93,6 @@ export const extractRecipeFromURL = async (
 
     // Handle direct video URLs or local video files (shared from Photos/Files)
     if (platform === 'video') {
-      console.log('Direct video detected, using Video AI...');
-
       // Guard: check file size for local files to prevent OOM
       if (isLocalFile(url)) {
         try {
@@ -107,7 +105,7 @@ export const extractRecipeFromURL = async (
             };
           }
         } catch (e) {
-          console.warn('Could not check video file size:', e);
+          // Could not check video file size
         }
       }
 
@@ -146,7 +144,7 @@ export const extractRecipeFromURL = async (
           return { success: true, recipe, confidence: recipe.extractionConfidence };
         }
       } catch (e) {
-        console.error('Direct video extraction failed:', e);
+        // Direct video extraction failed
       }
 
       // Clean up shared file on failure too
@@ -157,7 +155,6 @@ export const extractRecipeFromURL = async (
 
     // Handle direct audio URLs → download + transcribe with Gemini
     if (platform === 'audio') {
-      console.log('Direct audio URL detected, attempting AI extraction...');
       try {
         const audioResult = await extractRecipeFromAudio(url);
         if (audioResult) {
@@ -187,14 +184,13 @@ export const extractRecipeFromURL = async (
           return { success: true, recipe, confidence: recipe.extractionConfidence };
         }
       } catch (e) {
-        console.error('Audio extraction failed:', e);
+        // Audio extraction failed
       }
       return { success: false, error: 'Could not extract a recipe from this audio.', confidence: 0 };
     }
 
     // Handle JSON files / API responses
     if (platform === 'json') {
-      console.log('JSON URL detected, parsing...');
       try {
         const resp = await fetch(url);
         const text = await resp.text();
@@ -203,14 +199,13 @@ export const extractRecipeFromURL = async (
           return buildRecipeResponse(aiResult, url, 'json', ['json-import']);
         }
       } catch (e) {
-        console.error('JSON parsing failed:', e);
+        // JSON parsing failed
       }
       return { success: false, error: 'Could not extract a recipe from this JSON.', confidence: 0 };
     }
 
     // Handle XML / RSS / Atom feeds
     if (platform === 'xml') {
-      console.log('XML URL detected, parsing...');
       try {
         const resp = await fetch(url);
         const text = await resp.text();
@@ -219,14 +214,13 @@ export const extractRecipeFromURL = async (
           return buildRecipeResponse(aiResult, url, 'xml', ['xml-import']);
         }
       } catch (e) {
-        console.error('XML parsing failed:', e);
+        // XML parsing failed
       }
       return { success: false, error: 'Could not extract a recipe from this XML.', confidence: 0 };
     }
 
     // Handle plain text / markdown files
     if (platform === 'text') {
-      console.log('Text URL detected, parsing...');
       try {
         const resp = await fetch(url);
         const text = await resp.text();
@@ -235,21 +229,20 @@ export const extractRecipeFromURL = async (
           return buildRecipeResponse(aiResult, url, 'text', ['text-import']);
         }
       } catch (e) {
-        console.error('Text parsing failed:', e);
+        // Text parsing failed
       }
       return { success: false, error: 'Could not extract a recipe from this text file.', confidence: 0 };
     }
 
     // Handle PDF URLs → fetch as binary, convert to base64, use Gemini vision
     if (platform === 'pdf') {
-      console.log('PDF URL detected, using Gemini to analyze...');
       try {
         const pdfRecipe = await extractRecipeFromPDF(url);
         if (pdfRecipe) {
           return buildRecipeResponse(pdfRecipe, url, 'pdf', ['pdf-import']);
         }
       } catch (e) {
-        console.error('PDF extraction failed:', e);
+        // PDF extraction failed
       }
       return { success: false, error: 'Could not extract a recipe from this PDF.', confidence: 0 };
     }
@@ -259,20 +252,71 @@ export const extractRecipeFromURL = async (
     onProgress?.('Extracting content...');
     const platformContent = await extractPlatformContent(url, platform);
 
-    // Try to download video for short-video platforms, or YouTube when transcript is unavailable
+    // Download video for visual analysis
     let tempVideoPath: string | null = null;
     const isShortVideoPlatform = ['tiktok', 'instagram', 'x', 'threads', 'facebook', 'snapchat'].includes(platform);
-    // YouTube only sets videoUrl when its transcript is missing/too short (fallback mode)
-    const isYouTubeFallback = platform === 'youtube' && !!platformContent.videoUrl;
 
-    if (platformContent.videoUrl && (isShortVideoPlatform || isYouTubeFallback)) {
-      onProgress?.(isYouTubeFallback ? 'Transcript unavailable — downloading low-res video...' : 'Downloading video...');
-      tempVideoPath = await downloadVideoToTemp(platformContent.videoUrl);
+    // YouTube: Use Cloud Function to download video
+    if (platform === 'youtube' && isYouTubeDownloadAvailable()) {
+      onProgress?.('Downloading YouTube video (low quality)...');
+      try {
+        const youtubeResult = await downloadYouTubeVideo(url);
+        if (youtubeResult) {
+          // Download the video from the signed URL
+          tempVideoPath = await downloadVideoToTemp(youtubeResult.videoUrl);
+
+          // Verify download succeeded
+          if (tempVideoPath) {
+            const info = await getInfoAsync(tempVideoPath);
+            const sizeInMB = info.exists && info.size ? info.size / 1024 / 1024 : 0;
+
+            if (sizeInMB === 0 || sizeInMB > 20) {
+              // YouTube video invalid, falling back to thumbnail
+              await cleanupTempFile(tempVideoPath);
+              tempVideoPath = null;
+            }
+          }
+        } else {
+          // YouTube download failed, using thumbnail + transcript
+        }
+      } catch (error) {
+        // YouTube download error
+        tempVideoPath = null;
+      }
+    } else if (platform === 'youtube') {
+      // Cloud Function not configured - fall back to thumbnail analysis
+      onProgress?.('Analyzing YouTube content (thumbnail + transcript)...');
+    }
+
+    // Short platforms: Download video (works with simple HTTP downloads)
+    if (platformContent.videoUrl && isShortVideoPlatform) {
+      onProgress?.('Downloading video...');
+      try {
+        tempVideoPath = await downloadVideoToTemp(platformContent.videoUrl);
+
+        // Verify download succeeded
+        if (tempVideoPath) {
+          const info = await getInfoAsync(tempVideoPath);
+          const sizeInMB = info.exists && info.size ? info.size / 1024 / 1024 : 0;
+
+          if (sizeInMB === 0 || sizeInMB > 20) {
+            // Video download invalid, using thumbnail instead
+            await cleanupTempFile(tempVideoPath);
+            tempVideoPath = null;
+          }
+        }
+      } catch (error) {
+        // Video download failed
+        tempVideoPath = null;
+      }
     }
 
     try {
       // ── Combined Gemini analysis (video + caption + everything) ──
-      onProgress?.(tempVideoPath ? 'Analyzing video & content with AI...' : 'Analyzing content with AI...');
+      const analysisMsg = tempVideoPath
+        ? (platform === 'youtube' ? 'Analyzing video for recipe...' : 'Analyzing video & content...')
+        : 'Analyzing content...';
+      onProgress?.(analysisMsg);
 
       const contentBundle = {
         videoLocalPath: tempVideoPath,
@@ -320,7 +364,6 @@ export const extractRecipeFromURL = async (
       await cleanupTempFile(tempVideoPath);
     }
   } catch (error) {
-    console.error('Recipe extraction error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to extract recipe',
@@ -467,7 +510,6 @@ If no recipe found, return: {"error": "no recipe", "confidence": 0}`;
     if (parsed.error) return null;
     return parsed;
   } catch (error) {
-    console.error('Audio recipe extraction error:', error);
     return null;
   }
 };
@@ -518,7 +560,6 @@ If no recipe found, return: {"error": "no recipe", "confidence": 0}`;
     if (parsed.error) return null;
     return parsed;
   } catch (error) {
-    console.error('PDF recipe extraction error:', error);
     return null;
   }
 };
@@ -635,7 +676,6 @@ Extract the recipe from this cookbook page${cookbookName ? ` from "${cookbookNam
       confidence: recipe.extractionConfidence,
     };
   } catch (error) {
-    console.error('Photo extraction error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to scan recipe',
@@ -723,7 +763,6 @@ Extract and combine the recipe from these ${imageUris.length} cookbook pages${co
       confidence: recipe.extractionConfidence,
     };
   } catch (error) {
-    console.error('Multi-photo extraction error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to scan recipe from multiple pages',

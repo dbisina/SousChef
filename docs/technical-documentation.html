@@ -626,6 +626,7 @@
                         H[Firebase Auth]
                         I[Firestore Database]
                         J[Real-time Sync]
+                        K2[Cloud Functions<br />YouTube Download]
                         end
 
                         subgraph Monetization ["Monetization Layer"]
@@ -643,10 +644,12 @@
                         C --> I
                         H --> I
                         I --> J
+                        A --> K2
 
                         A --> E
                         E --> F
                         F --> G
+                        K2 --> F
 
                         K --> L
                         L --> M
@@ -672,8 +675,7 @@
                     </div>
                     <div class="glass-card">
                         <h4>Backend Services</h4>
-                        <p>Firebase infrastructure (Firestore, Auth) for user data persistence, authentication, and
-                            real-time synchronization across devices.</p>
+                        <p>Firebase infrastructure (Firestore, Auth, Cloud Functions) for user data persistence, authentication, real-time synchronization, and serverless video processing (YouTube downloads with yt-dlp).</p>
                     </div>
                     <div class="glass-card">
                         <h4>Monetization Layer</h4>
@@ -810,7 +812,13 @@
                                 <td><strong>Backend</strong></td>
                                 <td>Firebase</td>
                                 <td>10.x</td>
-                                <td>Real-time DB (Firestore) and Auth out-of-the-box. Scalable serverless config.</td>
+                                <td>Real-time DB (Firestore), Auth, Cloud Functions (Node.js 20). Scalable serverless architecture for video processing.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Video Processing</strong></td>
+                                <td>yt-dlp (via yt-dlp-wrap)</td>
+                                <td>Latest</td>
+                                <td>Reliable YouTube video downloads with bot bypass. 4-strategy failover system.</td>
                             </tr>
                             <tr>
                                 <td><strong>Monetization</strong></td>
@@ -836,7 +844,13 @@
                     <div class="glass-card">
                         <h4>Why Dual Gemini Models?</h4>
                         <p>
-                            We use **Gemini 2.0 Flash** for text tasks (stable, fast, cost-effective) and **Gemini 3 Flash Preview** for vision/multimodal (advanced image understanding). This separation optimizes both performance and cost. Multi-key failover ensures 99.9% uptime.
+                            We use <strong>Gemini 2.0 Flash</strong> for text tasks (stable, fast, cost-effective) and <strong>Gemini 3 Flash Preview</strong> for vision/multimodal (advanced image understanding). This separation optimizes both performance and cost. Multi-key failover ensures 99.9% uptime.
+                        </p>
+                    </div>
+                    <div class="glass-card">
+                        <h4>Why Firebase Cloud Functions?</h4>
+                        <p>
+                            YouTube's aggressive bot detection requires server-side processing with yt-dlp (Python tool). Cloud Functions provide scalable, serverless infrastructure for video downloads without maintaining dedicated servers.
                         </p>
                     </div>
                     <div class="glass-card">
@@ -961,6 +975,30 @@ const handleImportRecipe = async (url: string) => {
                     <p>SousChef implements automatic API key rotation with up to 5 keys. When one key reaches quota (429), hits rate limits, or returns auth errors (401/403), the system automatically rotates to the next available key. Ensures 99.9% uptime for AI features.</p>
                 </div>
 
+                <h3>YouTube Video Download Infrastructure</h3>
+                <p>
+                    YouTube recipe videos require special handling due to YouTube's bot protection. SousChef uses a Firebase Cloud Function with <strong>yt-dlp</strong> (Python-based YouTube downloader) to reliably download videos at the lowest quality for AI analysis.
+                </p>
+
+                <div class="card-grid">
+                    <div class="glass-card">
+                        <h4>Cloud Function Architecture</h4>
+                        <p>Node.js 20 Cloud Function using yt-dlp-wrap for YouTube downloads. Implements 4-strategy bot bypass (iOS, Android VR, Android embedded, TV embedded clients) with automatic failover.</p>
+                    </div>
+                    <div class="glass-card">
+                        <h4>Smart Quality Selection</h4>
+                        <p>Automatically selects lowest quality video (144p/240p) to stay under Gemini's 20MB limit while maintaining visual clarity for recipe extraction.</p>
+                    </div>
+                    <div class="glass-card">
+                        <h4>Temporary Storage</h4>
+                        <p>Videos uploaded to Firebase Storage with 1-hour signed URLs. Auto-cleanup after 2 hours prevents storage costs. Respects platform TOS.</p>
+                    </div>
+                    <div class="glass-card">
+                        <h4>Bot Detection Bypass</h4>
+                        <p>Multi-strategy approach tries iOS client, Android VR, Android embedded, and TV embedded clients sequentially until one succeeds.</p>
+                    </div>
+                </div>
+
                 <h3>Video-to-Recipe Extraction</h3>
                 <p>
                     Converting unstructured social media video content (TikTok, Instagram Reels) into structured recipe
@@ -974,13 +1012,17 @@ const handleImportRecipe = async (url: string) => {
                         graph LR
                         subgraph Input
                         A[URL Paste] --> B{Type?}
+                        B -->|YouTube| B2[Cloud Function]
+                        B2 --> B3[yt-dlp Download]
                         B -->|Social| C[Platform API]
                         B -->|Direct| D[Video DL]
                         end
 
                         subgraph Processing
-                        C --> E[Frames & Audio]
-                        E --> F[Gemini Vision]
+                        B3 --> E[Frames & Audio]
+                        C --> E
+                        D --> E
+                        E --> F[Gemini 3 Flash Preview]
                         F --> G[JSON Structure]
                         end
 
@@ -998,8 +1040,7 @@ const handleImportRecipe = async (url: string) => {
                 <div class="timeline">
                     <div class="timeline-item">
                         <h4>1. Video Download & Caching</h4>
-                        <p>Download temporary cached version respecting platform TOS. Files are cached locally in
-                            <code>FileSystem.cacheDirectory</code>.
+                        <p>YouTube videos use Firebase Cloud Function with yt-dlp for reliable downloads. Other platforms use direct API access. Files are temporarily cached in <code>FileSystem.cacheDirectory</code> or Firebase Storage (YouTube).
                         </p>
                     </div>
                     <div class="timeline-item">

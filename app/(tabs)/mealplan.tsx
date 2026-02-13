@@ -282,6 +282,29 @@ export default function MealPlanScreen() {
     );
   };
 
+  // Debug: Log current plan data
+  useEffect(() => {
+    if (currentPlan) {
+      console.log('Current Plan:', JSON.stringify({
+        id: currentPlan.id,
+        weekStartDate: currentPlan.weekStartDate,
+        daysCount: currentPlan.days.length,
+        days: currentPlan.days.map(d => ({
+          date: d.date,
+          hasBreakfast: !!d.breakfast,
+          hasLunch: !!d.lunch,
+          hasDinner: !!d.dinner,
+          hasSnack: !!d.snack,
+          breakfast: d.breakfast,
+          lunch: d.lunch,
+          dinner: d.dinner,
+          snack: d.snack,
+        })),
+        statsTotal: currentPlan.stats?.totalMeals,
+      }, null, 2));
+    }
+  }, [currentPlan]);
+
   // Show paywall for free users
   if (!canView) {
     return (

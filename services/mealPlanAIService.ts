@@ -26,7 +26,8 @@ RECIPES TO CHOOSE FROM:
 USER PREFERENCES:
 - Servings per meal: {servings}
 - Meals to include: {mealTypes}
-- Days to plan: {days}
+- Number of days to plan: {days}
+- Dates to plan for: {dates}
 - Dietary restrictions & allergies: {restrictions}
 - Cuisine preferences: {cuisines}
 - Max prep time: {maxPrepTime} minutes
@@ -81,10 +82,26 @@ Return a JSON object with this exact structure:
 IMPORTANT:
 - Only use recipes from the provided list
 - Use recipe IDs exactly as provided
+- Use the EXACT dates provided in "Dates to plan for" - do not make up or change dates
+- Generate one entry for each date in the exact YYYY-MM-DD format provided
 - Calculate amounts needed based on servings
 - Mark items as inPantry if user has them
 - toBuy should be amount needed minus pantryAmount
 - Respond ONLY with valid JSON, no additional text`;
+
+// Helper function to generate date list
+const generateDateList = (startDate: string, days: number): string[] => {
+  const dates: string[] = [];
+  const start = new Date(startDate);
+
+  for (let i = 0; i < days; i++) {
+    const currentDate = new Date(start);
+    currentDate.setDate(start.getDate() + i);
+    dates.push(currentDate.toISOString().split('T')[0]); // Format as YYYY-MM-DD
+  }
+
+  return dates;
+};
 
 // Generate an optimized meal plan using AI
 export const generateMealPlan = async (
@@ -92,8 +109,10 @@ export const generateMealPlan = async (
   recipes: Recipe[],
   pantryItems: PantryItem[],
   expiringItems: PantryItem[],
-  weekDates: string[]
+  startDate: string
 ): Promise<MealPlanAIResponse> => {
+  // Generate the list of dates based on start date and number of days
+  const weekDates = generateDateList(startDate, preferences.daysToGenerate);
   // Format expiring items for the prompt
   const expiringItemsText =
     expiringItems.length > 0
@@ -121,6 +140,9 @@ export const generateMealPlan = async (
     )
     .join('\n');
 
+  // Format the dates for the prompt
+  const datesText = weekDates.join(', ');
+
   // Build the prompt
   const prompt = MEAL_PLAN_PROMPT.replace('{expiringItems}', expiringItemsText)
     .replace('{pantryItems}', pantryItemsText)
@@ -128,6 +150,7 @@ export const generateMealPlan = async (
     .replace('{servings}', preferences.servingsPerMeal.toString())
     .replace('{mealTypes}', preferences.mealsToInclude.join(', '))
     .replace('{days}', preferences.daysToGenerate.toString())
+    .replace('{dates}', datesText)
     .replace(
       '{restrictions}',
       preferences.dietaryRestrictions.length > 0
@@ -175,7 +198,6 @@ export const generateMealPlan = async (
       shoppingList: shoppingListWithIds,
     };
   } catch (error) {
-    console.error('Error generating meal plan:', error);
     throw new Error('Failed to generate meal plan. Please try again.');
   }
 };
@@ -199,10 +221,14 @@ const validateAndFixPlan = (
     // Validate each meal
     const validatedDay: MealPlanDay = { date };
 
-    const validateMeal = (meal: MealPlanDay[MealType] | undefined) => {
+    const validateMeal = (meal: MealPlanDay[MealType] | undefined, _mealType: string) => {
       if (!meal) return undefined;
+
       const recipe = recipeMap.get(meal.recipeId);
-      if (!recipe) return undefined;
+      if (!recipe) {
+        return undefined;
+      }
+
       return {
         ...meal,
         recipeName: recipe.title,
@@ -211,16 +237,16 @@ const validateAndFixPlan = (
     };
 
     if (existingDay.breakfast) {
-      validatedDay.breakfast = validateMeal(existingDay.breakfast);
+      validatedDay.breakfast = validateMeal(existingDay.breakfast, 'breakfast');
     }
     if (existingDay.lunch) {
-      validatedDay.lunch = validateMeal(existingDay.lunch);
+      validatedDay.lunch = validateMeal(existingDay.lunch, 'lunch');
     }
     if (existingDay.dinner) {
-      validatedDay.dinner = validateMeal(existingDay.dinner);
+      validatedDay.dinner = validateMeal(existingDay.dinner, 'dinner');
     }
     if (existingDay.snack) {
-      validatedDay.snack = validateMeal(existingDay.snack);
+      validatedDay.snack = validateMeal(existingDay.snack, 'snack');
     }
 
     return validatedDay;

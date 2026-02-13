@@ -89,12 +89,13 @@ export const getMealPlanByWeek = async (
       return null;
     }
 
-    return {
+    const plan = {
       id: snapshot.docs[0].id,
       ...snapshot.docs[0].data(),
     } as WeeklyMealPlan;
+
+    return plan;
   } catch (error) {
-    console.error('Error getting meal plan:', error);
     return null;
   }
 };
@@ -111,7 +112,6 @@ export const getMealPlans = async (userId: string): Promise<WeeklyMealPlan[]> =>
       ...doc.data(),
     })) as WeeklyMealPlan[];
   } catch (error) {
-    console.error('Error getting meal plans:', error);
     return [];
   }
 };
@@ -135,10 +135,12 @@ export const saveMealPlan = async (
       };
       await setDoc(planRef, updateData, { merge: true });
 
-      return {
+      const result = {
         ...existing,
         ...updateData,
       };
+
+      return result;
     } else {
       // Create new plan
       const planId = generateId();
@@ -151,10 +153,10 @@ export const saveMealPlan = async (
       };
 
       await setDoc(doc(getMealPlansCollection(userId), planId), newPlan);
+
       return newPlan;
     }
   } catch (error) {
-    console.error('Error saving meal plan:', error);
     throw error;
   }
 };
@@ -203,7 +205,6 @@ export const updateMeal = async (
       { merge: true }
     );
   } catch (error) {
-    console.error('Error updating meal:', error);
     throw error;
   }
 };
@@ -216,7 +217,6 @@ export const deleteMealPlan = async (
   try {
     await deleteDoc(doc(getMealPlansCollection(userId), planId));
   } catch (error) {
-    console.error('Error deleting meal plan:', error);
     throw error;
   }
 };
@@ -250,7 +250,6 @@ export const updateShoppingListItem = async (
       { merge: true }
     );
   } catch (error) {
-    console.error('Error updating shopping list item:', error);
     throw error;
   }
 };
@@ -283,7 +282,6 @@ export const logWasteEntry = async (
 
     return entry;
   } catch (error) {
-    console.error('Error logging waste entry:', error);
     throw error;
   }
 };
@@ -309,7 +307,6 @@ export const getWasteLog = async (
 
     return entries;
   } catch (error) {
-    console.error('Error getting waste log:', error);
     return [];
   }
 };
@@ -322,7 +319,6 @@ export const deleteWasteEntry = async (
   try {
     await deleteDoc(doc(getWasteLogCollection(userId), entryId));
   } catch (error) {
-    console.error('Error deleting waste entry:', error);
     throw error;
   }
 };
@@ -338,7 +334,6 @@ export const getWasteStats = async (userId: string): Promise<WasteStats | null> 
 
     return statsDoc.data() as WasteStats;
   } catch (error) {
-    console.error('Error getting waste stats:', error);
     return null;
   }
 };
@@ -396,7 +391,7 @@ const updateWasteStats = async (
 
     await setDoc(getWasteStatsDoc(userId), stats);
   } catch (error) {
-    console.error('Error updating waste stats:', error);
+    // Error updating waste stats
   }
 };
 

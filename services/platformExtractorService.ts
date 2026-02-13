@@ -280,7 +280,6 @@ async function extractInstagramContent(url: string): Promise<PlatformContent> {
         const ddVideo = ddOg['og:video'] || ddOg['og:video:secure_url'];
         if (ddVideo && (ddVideo.includes('.mp4') || ddVideo.includes('instagram'))) {
           result.videoUrl = ddVideo.replace(/&amp;/g, '&');
-          console.log('Instagram video found via ddinstagram');
         }
         // Also grab a working thumbnail from ddinstagram
         if (!result.thumbnailUrl || result.thumbnailUrl.includes('cdninstagram.com')) {
@@ -304,7 +303,6 @@ async function extractInstagramContent(url: string): Promise<PlatformContent> {
         const contentType = directResp.headers.get('content-type') || '';
         if (contentType.includes('video')) {
           result.videoUrl = directResp.url; // Final redirect URL is the video
-          console.log('Instagram video found via d.ddinstagram direct');
         }
       } catch {
         // direct endpoint unavailable
@@ -421,38 +419,9 @@ async function extractYouTubeContent(url: string): Promise<PlatformContent> {
     }
   }
 
-  // If transcript is unavailable or too short, provide the lowest-resolution
-  // muxed stream URL so recipeImportService can download it as a fallback.
-  // Muxed formats (streamingData.formats) contain both audio + video, which is
-  // critical for Gemini to hear the audio.
-  const hasUsableTranscript = result.transcript && result.transcript.length > 50;
-
-  if (!hasUsableTranscript && pageHtml) {
-    const playerRespMatch2 = pageHtml.match(
-      /var ytInitialPlayerResponse\s*=\s*({[\s\S]*?});\s*(?:var|<\/script)/,
-    );
-    const playerData2 = playerRespMatch2 ? safeParse(playerRespMatch2[1]) : null;
-    const streamingData = playerData2?.streamingData;
-
-    if (streamingData) {
-      // Prefer muxed formats (have both audio + video)
-      const muxedFormats: any[] = streamingData.formats || [];
-      if (muxedFormats.length > 0) {
-        // Sort by height (ascending) to pick the lowest resolution
-        const sorted = [...muxedFormats]
-          .filter((f: any) => f.url || f.signatureCipher)
-          .sort((a: any, b: any) => (a.height || 9999) - (b.height || 9999));
-
-        const lowest = sorted[0];
-        if (lowest?.url) {
-          result.videoUrl = lowest.url;
-          console.log(
-            `YouTube fallback: using ${lowest.height || '?'}p muxed stream (transcript unavailable)`,
-          );
-        }
-      }
-    }
-  }
+  // YouTube video downloading requires youtube-dl/yt-dlp (not available in React Native)
+  // Skip video URL extraction - rely on transcript + description + thumbnail instead
+  // Note: This means video-only content (variations shown but not mentioned) will be missed
 
   return result;
 }
@@ -501,7 +470,7 @@ async function fetchYouTubeTranscript(baseUrl: string): Promise<string | undefin
       }
     }
   } catch (e) {
-    console.log('YouTube transcript fetch failed:', e);
+    // YouTube transcript fetch failed
   }
   return undefined;
 }

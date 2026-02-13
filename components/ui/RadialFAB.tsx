@@ -73,14 +73,16 @@ const ActionButton = memo<{
         onPress={onPress}
         activeOpacity={0.8}
         style={styles.actionButton}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
         <LinearGradient
           colors={action.gradient}
           style={styles.actionGradient}
+          pointerEvents="none"
         >
           <Ionicons name={action.icon as any} size={24} color="white" />
         </LinearGradient>
-        <View style={styles.labelContainer}>
+        <View style={styles.labelContainer} pointerEvents="none">
           <Text style={styles.labelText}>{action.label}</Text>
         </View>
       </TouchableOpacity>
