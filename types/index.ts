@@ -3,18 +3,73 @@ import { Timestamp } from 'firebase/firestore';
 // User types
 export type UserRole = 'user' | 'chef' | 'admin';
 
+export type HealthCondition =
+  | 'diabetic-type1'
+  | 'diabetic-type2'
+  | 'heart-disease'
+  | 'high-blood-pressure'
+  | 'gerd'
+  | 'ibs'
+  | 'celiac'
+  | 'kidney-disease'
+  | 'gout'
+  | 'pcos'
+  | 'high-cholesterol';
+
+export type DietaryPreference =
+  | 'vegetarian'
+  | 'vegan'
+  | 'gluten-free'
+  | 'dairy-free'
+  | 'keto'
+  | 'paleo'
+  | 'low-carb'
+  | 'halal'
+  | 'kosher'
+  | 'pescatarian'
+  | 'whole30'
+  | 'low-fodmap'
+  | 'anti-inflammatory'
+  | 'low-sodium'
+  | 'mediterranean-diet';
+
+export type Allergen =
+  | 'nuts'
+  | 'peanuts'
+  | 'shellfish'
+  | 'fish'
+  | 'eggs'
+  | 'soy'
+  | 'wheat'
+  | 'sesame'
+  | 'milk'
+  | 'corn'
+  | 'mustard'
+  | 'celery'
+  | 'lupin'
+  | 'mollusks'
+  | 'sulfites'
+  | 'gluten';
+
 export interface User {
   id: string;
   email: string;
   displayName: string;
   photoURL?: string;
+  bio?: string;
   role: UserRole;
+  isVerifiedChef?: boolean;
   subscriptionTier?: 'free' | 'premium' | 'pro';
   createdAt: Timestamp;
   savedRecipes?: string[];
   savedCookbooks?: string[];
   dietaryPreferences?: string[];
   allergies?: string[];
+  healthConditions?: string[];
+  following?: string[];
+  followers?: string[];
+  recipeCount?: number;
+  totalLikes?: number;
 }
 
 // Recipe types
@@ -61,6 +116,8 @@ export interface NutritionInfo {
   fiber: number;
 }
 
+export type RecipeStatus = 'draft' | 'published' | 'flagged';
+
 export interface Recipe {
   id: string;
   title: string;
@@ -69,8 +126,10 @@ export interface Recipe {
   youtubeURL?: string;
   authorId: string;
   authorName: string;
+  authorPhotoURL?: string;
   isOfficial: boolean;
   isExclusive?: boolean; // Pro-only exclusive recipes
+  status?: RecipeStatus;
   category: RecipeCategory;
   cuisine: Cuisine;
   difficulty: Difficulty;
@@ -81,10 +140,54 @@ export interface Recipe {
   instructions: string[];
   nutrition: NutritionInfo;
   tags: string[];
+  dietaryFlags?: string[]; // e.g. ['diabetic-friendly', 'low-glycemic', 'heart-healthy']
+  allergens?: string[]; // detected allergens from ingredients
   likes: number;
-  views?: number; // View count for analytics
-  saveCount?: number; // Save count for analytics
-  rating?: number; // Average rating
+  views?: number;
+  saveCount?: number;
+  rating?: number;
+  ratingCount?: number;
+  commentCount?: number;
+  createdAt: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+export interface RecipeComment {
+  id: string;
+  recipeId: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL?: string;
+  text: string;
+  rating?: number; // 1-5 star rating with comment
+  likes: number;
+  createdAt: Timestamp;
+}
+
+export interface RecipeRating {
+  id: string;
+  recipeId: string;
+  userId: string;
+  rating: number; // 1-5
+  review?: string;
+  createdAt: Timestamp;
+}
+
+export interface RecipeMadePost {
+  id: string;
+  recipeId: string;
+  authorId: string;
+  authorName: string;
+  authorPhotoURL?: string;
+  imageURL: string;
+  caption?: string;
+  likes: number;
+  createdAt: Timestamp;
+}
+
+export interface UserFollow {
+  followerId: string;
+  followingId: string;
   createdAt: Timestamp;
 }
 
@@ -191,6 +294,9 @@ export interface RecipeFilters {
   maxPrepTime?: number;
   isOfficial?: boolean;
   searchQuery?: string;
+  dietaryPreferences?: string[];
+  excludeAllergens?: string[];
+  dietaryFlags?: string[];
 }
 
 // Navigation types
@@ -230,3 +336,9 @@ export * from './wantToCook';
 
 // Re-export ad types
 export * from './ads';
+
+// Re-export weight loss types
+export * from './weightLoss';
+
+// Re-export gamification types
+export * from './gamification';

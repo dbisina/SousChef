@@ -1,4 +1,6 @@
 import { textModel } from '@/lib/gemini';
+import { useLanguageStore } from '@/stores/languageStore';
+import { SUPPORTED_LANGUAGES } from '@/lib/i18n';
 import {
   VoiceCommandType,
   VoiceParseResult,
@@ -9,6 +11,7 @@ import { Ingredient } from '@/types';
 
 // Prompt for Gemini to parse voice commands
 const VOICE_PARSE_PROMPT = `You are a cooking assistant voice parser. Your job is to understand voice commands from someone cooking in a kitchen.
+The user may speak in any language. Parse the intent regardless of language.
 
 Parse the voice command into one of these actions:
 - next_step: Move to the next instruction
@@ -18,13 +21,16 @@ Parse the voice command into one of these actions:
 - set_timer: Set a cooking timer (extract minutes)
 - current_step: Tell the user what step they're on
 - substitute: Ask for ingredient substitution (extract ingredient name)
+- add_to_pantry: User wants to add items to their pantry (extract items text)
+- add_to_cart: User wants to add items to their shopping list (extract items text)
+- ask_question: User is asking a cooking question (extract the question)
 - help: List available commands
 - unknown: Command not recognized
 
 User said: "{transcript}"
 
 Return ONLY a JSON object in this exact format (no markdown, no code blocks):
-{"command": "...", "parameters": {"minutes": null, "ingredient": null}, "confidence": 0-100}
+{"command": "...", "parameters": {"minutes": null, "ingredient": null, "question": null}, "confidence": 0-100}
 
 For set_timer, extract the number of minutes. Examples:
 - "set timer 5 minutes" -> minutes: 5
@@ -148,6 +154,39 @@ const quickParseCommand = (
     }
   }
 
+  // Add to pantry patterns
+  const pantryMatch = text.match(
+    /(?:add|put|i have|got)\s+(.+?)\s+(?:to|in|into)\s+(?:my\s+)?pantry/i
+  );
+  if (pantryMatch) {
+    return { command: 'add_to_pantry', parameters: { question: pantryMatch[1] }, confidence: 85 };
+  }
+  if (/^i have\s+(.+)/i.test(text)) {
+    const items = text.match(/^i have\s+(.+)/i);
+    if (items) {
+      return { command: 'add_to_pantry', parameters: { question: items[1] }, confidence: 80 };
+    }
+  }
+
+  // Add to cart/shopping list patterns
+  const cartMatch = text.match(
+    /(?:add|put|i need)\s+(.+?)\s+(?:to|on|in)\s+(?:my\s+)?(?:cart|shopping|list)/i
+  );
+  if (cartMatch) {
+    return { command: 'add_to_cart', parameters: { question: cartMatch[1] }, confidence: 85 };
+  }
+  if (/^i need\s+(.+)/i.test(text)) {
+    const items = text.match(/^i need\s+(.+)/i);
+    if (items) {
+      return { command: 'add_to_cart', parameters: { question: items[1] }, confidence: 80 };
+    }
+  }
+
+  // General question patterns (fallback - any question while cooking)
+  if (/\?$|^(how|what|why|when|can i|should i|is it|do i|will)/i.test(text)) {
+    return { command: 'ask_question', parameters: { question: text }, confidence: 75 };
+  }
+
   return null;
 };
 
@@ -161,6 +200,9 @@ export const getVoiceHelpText = (): string => {
     '"Where am I" - Tell me current step number',
     '"Timer 5 minutes" - Set a cooking timer',
     '"Substitute for eggs" - Get ingredient substitution',
+    '"Add eggs to pantry" - Add items to your pantry',
+    '"Add bread to cart" - Add items to shopping list',
+    '"How long should I sear this?" - Ask any cooking question',
     '"Help" - Hear available commands',
   ];
 

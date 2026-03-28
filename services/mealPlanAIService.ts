@@ -10,9 +10,12 @@ import {
 } from '@/types/mealplan';
 import { Recipe, PantryItem, Ingredient } from '@/types';
 import { generateId } from '@/lib/firebase';
+import { useLanguageStore } from '@/stores/languageStore';
+import { SUPPORTED_LANGUAGES } from '@/lib/i18n';
 
 // AI prompt for meal plan optimization
 const MEAL_PLAN_PROMPT = `You are a meal planning expert focused on reducing food waste and maximizing ingredient efficiency.
+{languageInstruction}
 
 EXPIRING SOON (MUST USE FIRST - these items will spoil if not used):
 {expiringItems}
@@ -29,14 +32,18 @@ USER PREFERENCES:
 - Number of days to plan: {days}
 - Dates to plan for: {dates}
 - Dietary restrictions & allergies: {restrictions}
+- Health conditions: {healthConditions}
 - Cuisine preferences: {cuisines}
 - Max prep time: {maxPrepTime} minutes
 - Max cook time: {maxCookTime} minutes
+- Daily calorie target: {calorieTarget}
 - Prioritize expiring items: {prioritizeExpiring}
 - Maximize ingredient overlap: {maximizeOverlap}
 
 OPTIMIZATION GOALS (in order of priority):
 1. NEVER include recipes that violate dietary restrictions or contain allergens — this is a HARD constraint
+1b. RESPECT health conditions — for diabetics: low glycemic, controlled carbs. For heart disease: low sodium, low saturated fat. For GERD: avoid acidic/spicy. For kidney disease: limit potassium/phosphorus.
+1c. If calorie target is set, keep total daily calories close to that target (within 10% range)
 2. Use ALL expiring items before they spoil
 3. Maximize ingredient reuse across meals (buy ingredients that work in multiple recipes)
 4. Minimize shopping list size by choosing recipes with overlapping ingredients
@@ -143,8 +150,16 @@ export const generateMealPlan = async (
   // Format the dates for the prompt
   const datesText = weekDates.join(', ');
 
+  // Build language instruction
+  const langCode = useLanguageStore.getState().language;
+  const langConfig = SUPPORTED_LANGUAGES.find((l) => l.code === langCode);
+  const langInstruction = langCode !== 'en' && langConfig
+    ? `IMPORTANT: Generate all recipe names, notes, and shopping list item names in ${langConfig.name} (${langConfig.nativeName}).`
+    : '';
+
   // Build the prompt
-  const prompt = MEAL_PLAN_PROMPT.replace('{expiringItems}', expiringItemsText)
+  const prompt = MEAL_PLAN_PROMPT.replace('{languageInstruction}', langInstruction)
+    .replace('{expiringItems}', expiringItemsText)
     .replace('{pantryItems}', pantryItemsText)
     .replace('{recipes}', recipesText)
     .replace('{servings}', preferences.servingsPerMeal.toString())
@@ -163,6 +178,13 @@ export const generateMealPlan = async (
         ? preferences.cuisinePreferences.join(', ')
         : 'Any'
     )
+    .replace(
+      '{healthConditions}',
+      (preferences as any).healthConditions?.length > 0
+        ? (preferences as any).healthConditions.join(', ')
+        : 'None'
+    )
+    .replace('{calorieTarget}', (preferences as any).calorieTarget?.toString() || 'not set')
     .replace('{maxPrepTime}', preferences.maxPrepTime?.toString() || 'any')
     .replace('{maxCookTime}', preferences.maxCookTime?.toString() || 'any')
     .replace('{prioritizeExpiring}', preferences.prioritizeExpiring ? 'yes' : 'no')

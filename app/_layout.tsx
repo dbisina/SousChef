@@ -18,6 +18,9 @@ import { parseShareURL, onShareURL, getSharedURL } from '@/lib/shareExtension';
 
 import '../global.css';
 
+// Initialize i18n (must be before any component renders)
+import '@/lib/i18n';
+
 // Extract a URL from shared text (may contain surrounding text)
 const extractURLFromText = (text: string): string | null => {
   // First try souschef:// scheme (from Share Extension)
@@ -175,6 +178,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="user/[id]"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
+        <Stack.Screen
           name="cook/[id]"
           options={{
             headerShown: false,
@@ -253,6 +263,20 @@ export default function RootLayout() {
         />
         <Stack.Screen
           name="settings/privacy"
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="settings/weight-loss"
+          options={{
+            headerShown: false,
+            presentation: 'card',
+          }}
+        />
+        <Stack.Screen
+          name="settings/language"
           options={{
             headerShown: false,
             presentation: 'card',

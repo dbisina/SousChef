@@ -130,6 +130,7 @@ export default function MealPlanScreen() {
           ...(user?.dietaryPreferences || []),
           ...(user?.allergies?.map((a) => `no ${a}`) || []),
         ],
+        healthConditions: user?.healthConditions || [],
         cuisinePreferences: [],
         prioritizeExpiring: true,
         maximizeOverlap: true,

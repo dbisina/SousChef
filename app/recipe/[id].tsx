@@ -30,6 +30,9 @@ import {
   NutritionCard,
   YouTubePlayer,
 } from '@/components/recipe';
+import { AllergenWarning } from '@/components/recipe/AllergenWarning';
+import { RecipeComments } from '@/components/recipe/RecipeComments';
+import { MadeThisGallery } from '@/components/recipe/MadeThisGallery';
 import { Paywall, UsageBadge } from '@/components/subscription';
 import { useThemeColors } from '@/stores/themeStore';
 import { formatTime, formatRelativeTime, getCategoryEmoji } from '@/lib/utils';
@@ -185,12 +188,28 @@ export default function RecipeDetailScreen() {
           </Text>
 
           <View className="flex-row items-center mt-2">
-            <Text className="text-neutral-500 dark:text-neutral-400">by {recipe.authorName}</Text>
+            <TouchableOpacity onPress={() => router.push(`/user/${recipe.authorId}` as any)}>
+              <Text style={{ color: colors.accent }} className="font-medium">
+                {recipe.authorName}
+              </Text>
+            </TouchableOpacity>
             <Text className="text-neutral-300 dark:text-neutral-600 mx-2">|</Text>
             <Text className="text-neutral-500 dark:text-neutral-400">
               {formatRelativeTime(recipe.createdAt)}
             </Text>
+            {recipe.rating && recipe.ratingCount ? (
+              <>
+                <Text className="text-neutral-300 dark:text-neutral-600 mx-2">|</Text>
+                <Ionicons name="star" size={14} color="#F59E0B" />
+                <Text className="text-neutral-500 dark:text-neutral-400 ml-1">
+                  {recipe.rating.toFixed(1)} ({recipe.ratingCount})
+                </Text>
+              </>
+            ) : null}
           </View>
+
+          {/* Allergen & health warnings */}
+          <AllergenWarning recipe={recipe} user={user} />
 
           {/* Badges */}
           <View className="flex-row flex-wrap gap-2 mt-4">
@@ -380,6 +399,34 @@ export default function RecipeDetailScreen() {
               </View>
             </View>
           )}
+
+          {/* Report recipe */}
+          {user && user.id !== recipe.authorId && (
+            <TouchableOpacity
+              onPress={() => {
+                Alert.alert(
+                  'Report Recipe',
+                  'Why are you reporting this recipe?',
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'Inappropriate Content', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'inappropriate') },
+                    { text: 'Not a Recipe', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'not-a-recipe') },
+                    { text: 'Spam', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'spam') },
+                  ]
+                );
+              }}
+              className="flex-row items-center mt-6"
+            >
+              <Ionicons name="flag-outline" size={16} color="#9CA3AF" />
+              <Text className="text-neutral-400 text-sm ml-1">Report</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Made This Gallery */}
+          <MadeThisGallery recipeId={recipe.id} />
+
+          {/* Comments section */}
+          <RecipeComments recipeId={recipe.id} />
         </View>
       </ScrollView>
 

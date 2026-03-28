@@ -19,8 +19,42 @@ import {
   arrayRemove,
   DocumentSnapshot,
 } from '@/lib/firebase';
-import { Recipe, RecipeFilters, RecipeFormData, Ingredient } from '@/types';
+import { Recipe, RecipeFilters, RecipeFormData, Ingredient, RecipeComment, RecipeRating } from '@/types';
 import { calculateNutrition, calculateIngredientCalories } from '@/lib/utils';
+
+// ── Allergen detection from ingredient names ──
+const ALLERGEN_KEYWORDS: Record<string, string[]> = {
+  nuts: ['almond', 'cashew', 'walnut', 'pecan', 'pistachio', 'macadamia', 'hazelnut', 'brazil nut', 'pine nut', 'chestnut'],
+  peanuts: ['peanut', 'peanut butter', 'groundnut'],
+  shellfish: ['shrimp', 'prawn', 'crab', 'lobster', 'crawfish', 'crayfish'],
+  fish: ['salmon', 'tuna', 'cod', 'tilapia', 'halibut', 'anchovy', 'sardine', 'mackerel', 'trout', 'bass', 'fish sauce', 'fish stock'],
+  eggs: ['egg', 'eggs', 'mayonnaise', 'mayo', 'meringue', 'aioli'],
+  soy: ['soy', 'soya', 'tofu', 'tempeh', 'edamame', 'miso', 'soy sauce', 'tamari'],
+  wheat: ['wheat', 'flour', 'bread', 'pasta', 'noodle', 'couscous', 'breadcrumb', 'panko', 'tortilla', 'pita', 'naan'],
+  sesame: ['sesame', 'tahini', 'sesame oil', 'sesame seed'],
+  milk: ['milk', 'cream', 'butter', 'cheese', 'yogurt', 'yoghurt', 'whey', 'casein', 'ghee', 'sour cream', 'ricotta', 'mozzarella', 'parmesan', 'cheddar'],
+  corn: ['corn', 'cornstarch', 'cornmeal', 'polenta', 'grits', 'corn syrup'],
+  mustard: ['mustard'],
+  celery: ['celery'],
+  mollusks: ['oyster', 'mussel', 'clam', 'scallop', 'squid', 'octopus', 'snail', 'escargot'],
+  sulfites: ['wine', 'dried fruit', 'vinegar'],
+  gluten: ['wheat', 'flour', 'barley', 'rye', 'oat', 'bread', 'pasta', 'couscous', 'breadcrumb', 'panko', 'beer'],
+};
+
+function detectAllergens(ingredients: Ingredient[]): string[] {
+  const detected = new Set<string>();
+  const ingredientNames = ingredients.map((i) => i.name.toLowerCase());
+
+  for (const [allergen, keywords] of Object.entries(ALLERGEN_KEYWORDS)) {
+    for (const name of ingredientNames) {
+      if (keywords.some((kw) => name.includes(kw))) {
+        detected.add(allergen);
+        break;
+      }
+    }
+  }
+  return Array.from(detected);
+}
 
 interface RecipeState {
   recipes: Recipe[];
@@ -43,14 +77,23 @@ interface RecipeState {
   fetchRecipes: (resetPagination?: boolean) => Promise<void>;
   fetchRecipeById: (id: string) => Promise<Recipe | null>;
   fetchUserRecipes: (userId: string) => Promise<Recipe[]>;
+  fetchFeedRecipes: (followingIds: string[]) => Promise<Recipe[]>;
   createRecipe: (data: RecipeFormData, imageURL: string, authorId: string, authorName: string, isOfficial?: boolean) => Promise<string>;
   updateRecipe: (id: string, data: Partial<Recipe>) => Promise<void>;
   deleteRecipe: (id: string) => Promise<void>;
+  flagRecipe: (recipeId: string, reason: string) => Promise<void>;
   likeRecipe: (recipeId: string, userId: string) => Promise<void>;
   unlikeRecipe: (recipeId: string, userId: string) => Promise<void>;
   saveRecipe: (recipeId: string, userId: string) => Promise<void>;
   unsaveRecipe: (recipeId: string, userId: string) => Promise<void>;
   searchRecipes: (searchQuery: string) => Promise<Recipe[]>;
+
+  // Community features
+  addComment: (recipeId: string, comment: Omit<RecipeComment, 'id' | 'createdAt' | 'likes'>) => Promise<void>;
+  fetchComments: (recipeId: string) => Promise<RecipeComment[]>;
+  rateRecipe: (recipeId: string, userId: string, rating: number, review?: string) => Promise<void>;
+  followUser: (currentUserId: string, targetUserId: string) => Promise<void>;
+  unfollowUser: (currentUserId: string, targetUserId: string) => Promise<void>;
 }
 
 const PAGE_SIZE = 10;
@@ -201,15 +244,22 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
       // Calculate nutrition info
       const nutrition = calculateNutrition(ingredientsWithCalories, data.servings);
 
+      // Auto-detect allergens from ingredient names
+      const allergens = detectAllergens(ingredientsWithCalories);
+
       const recipeData: Omit<Recipe, 'id'> = {
         ...data,
         imageURL,
         authorId,
         authorName,
         isOfficial,
+        status: 'published',
         ingredients: ingredientsWithCalories,
         nutrition,
+        allergens,
         likes: 0,
+        commentCount: 0,
+        ratingCount: 0,
         createdAt: Timestamp.now(),
       };
 
@@ -358,6 +408,165 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
     } catch (error) {
       console.error('Error searching recipes:', error);
       return [];
+    }
+  },
+
+  // ── Community features ──
+
+  fetchFeedRecipes: async (followingIds) => {
+    if (!followingIds.length) return [];
+    try {
+      // Firestore 'in' queries support max 30 items
+      const chunks = [];
+      for (let i = 0; i < followingIds.length; i += 30) {
+        chunks.push(followingIds.slice(i, i + 30));
+      }
+      const allRecipes: Recipe[] = [];
+      for (const chunk of chunks) {
+        const q = query(
+          collection(db, 'recipes'),
+          where('authorId', 'in', chunk),
+          where('status', '==', 'published'),
+          orderBy('createdAt', 'desc'),
+          limit(20)
+        );
+        const snapshot = await getDocs(q);
+        allRecipes.push(
+          ...snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as Recipe)
+        );
+      }
+      return allRecipes.sort((a, b) => {
+        const aTime = a.createdAt?.toMillis?.() || 0;
+        const bTime = b.createdAt?.toMillis?.() || 0;
+        return bTime - aTime;
+      });
+    } catch (error) {
+      console.error('Error fetching feed recipes:', error);
+      return [];
+    }
+  },
+
+  flagRecipe: async (recipeId, reason) => {
+    try {
+      await updateDoc(doc(db, 'recipes', recipeId), {
+        status: 'flagged',
+        flagReason: reason,
+        flaggedAt: Timestamp.now(),
+      });
+      set((state) => ({
+        recipes: state.recipes.map((r) =>
+          r.id === recipeId ? { ...r, status: 'flagged' as const } : r
+        ),
+      }));
+    } catch (error) {
+      console.error('Error flagging recipe:', error);
+    }
+  },
+
+  addComment: async (recipeId, comment) => {
+    try {
+      const commentRef = doc(collection(db, 'recipes', recipeId, 'comments'));
+      const commentData: RecipeComment = {
+        ...comment,
+        id: commentRef.id,
+        likes: 0,
+        createdAt: Timestamp.now(),
+      };
+      await setDoc(commentRef, commentData);
+      // Increment comment count on recipe
+      await updateDoc(doc(db, 'recipes', recipeId), {
+        commentCount: increment(1),
+      });
+      set((state) => ({
+        recipes: state.recipes.map((r) =>
+          r.id === recipeId ? { ...r, commentCount: (r.commentCount || 0) + 1 } : r
+        ),
+        currentRecipe:
+          state.currentRecipe?.id === recipeId
+            ? { ...state.currentRecipe, commentCount: (state.currentRecipe.commentCount || 0) + 1 }
+            : state.currentRecipe,
+      }));
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  },
+
+  fetchComments: async (recipeId) => {
+    try {
+      const q = query(
+        collection(db, 'recipes', recipeId, 'comments'),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }) as RecipeComment);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      return [];
+    }
+  },
+
+  rateRecipe: async (recipeId, userId, rating, review) => {
+    try {
+      const ratingRef = doc(db, 'recipes', recipeId, 'ratings', userId);
+      const ratingData: RecipeRating = {
+        id: ratingRef.id,
+        recipeId,
+        userId,
+        rating,
+        review,
+        createdAt: Timestamp.now(),
+      };
+      await setDoc(ratingRef, ratingData);
+
+      // Recalculate average rating
+      const ratingsSnapshot = await getDocs(
+        collection(db, 'recipes', recipeId, 'ratings')
+      );
+      const ratings = ratingsSnapshot.docs.map((d) => d.data().rating as number);
+      const avgRating = ratings.reduce((sum, r) => sum + r, 0) / ratings.length;
+
+      await updateDoc(doc(db, 'recipes', recipeId), {
+        rating: Math.round(avgRating * 10) / 10,
+        ratingCount: ratings.length,
+      });
+
+      set((state) => ({
+        currentRecipe:
+          state.currentRecipe?.id === recipeId
+            ? { ...state.currentRecipe, rating: avgRating, ratingCount: ratings.length }
+            : state.currentRecipe,
+      }));
+    } catch (error) {
+      console.error('Error rating recipe:', error);
+    }
+  },
+
+  followUser: async (currentUserId, targetUserId) => {
+    try {
+      // Add to current user's following
+      await updateDoc(doc(db, 'users', currentUserId), {
+        following: arrayUnion(targetUserId),
+      });
+      // Add to target user's followers
+      await updateDoc(doc(db, 'users', targetUserId), {
+        followers: arrayUnion(currentUserId),
+      });
+    } catch (error) {
+      console.error('Error following user:', error);
+    }
+  },
+
+  unfollowUser: async (currentUserId, targetUserId) => {
+    try {
+      await updateDoc(doc(db, 'users', currentUserId), {
+        following: arrayRemove(targetUserId),
+      });
+      await updateDoc(doc(db, 'users', targetUserId), {
+        followers: arrayRemove(currentUserId),
+      });
+    } catch (error) {
+      console.error('Error unfollowing user:', error);
     }
   },
 }));

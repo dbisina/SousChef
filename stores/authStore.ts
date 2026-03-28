@@ -62,6 +62,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       createdAt: Timestamp.now(),
       savedRecipes: [],
       dietaryPreferences: [],
+      allergies: [],
+      healthConditions: [],
     };
     set({ user: guestUser, isGuest: true, isInitialized: true });
   },
@@ -84,6 +86,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         createdAt: Timestamp.now(),
         savedRecipes: [],
         dietaryPreferences: [],
+        allergies: [],
+        healthConditions: [],
+        recipeCount: 0,
+        totalLikes: 0,
       };
 
       await setDoc(doc(db, 'users', uid), userData);
@@ -111,6 +117,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           createdAt: Timestamp.now(),
           savedRecipes: [],
           dietaryPreferences: [],
+          allergies: [],
+          healthConditions: [],
+          recipeCount: 0,
+          totalLikes: 0,
         };
         await setDoc(doc(db, 'users', userCredential.user.uid), userData);
       }

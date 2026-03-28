@@ -18,6 +18,7 @@ import { useThemeColors } from '@/stores/themeStore';
 import { getTierFeatures } from '@/services/subscriptionService';
 import { PremiumBadge } from '@/components/subscription';
 import { useRecipeStore } from '@/stores/recipeStore';
+import { useTranslation } from 'react-i18next';
 import { usePantryStore } from '@/stores/pantryStore';
 
 interface MenuItem {
@@ -40,7 +41,8 @@ interface QuickAction {
 
 export default function MoreScreen() {
   const router = useRouter();
-  const { user, signOut } = useAuthStore();
+  const { t } = useTranslation();
+  const { user, signOut, deleteAccount } = useAuthStore();
   const { subscriptionTier, isSubscribed } = useSubscription();
   const adFree = getTierFeatures(subscriptionTier).adFree;
   const colors = useThemeColors();
@@ -188,11 +190,13 @@ export default function MoreScreen() {
         </View>
         <View className="mx-5 bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden mb-5" style={styles.card}>
           {([
-            { id: 'appearance', icon: 'color-palette' as const, label: 'Appearance', subtitle: 'Theme & display', route: '/settings/appearance', color: '#8B5CF6' },
-            { id: 'dietary', icon: 'leaf' as const, label: 'Diet Preferences', subtitle: 'Allergies & restrictions', route: '/settings/dietary', color: '#10B981' },
-            { id: 'voice', icon: 'mic' as const, label: 'Voice Commands', subtitle: 'Hands-free cooking', route: '/settings/voice', color: '#EC4899' },
-            { id: 'notifications', icon: 'notifications' as const, label: 'Notifications', subtitle: 'Alerts & reminders', route: '/settings/notifications', color: '#3B82F6' },
-            { id: 'subscription', icon: 'diamond' as const, label: 'Subscription', subtitle: 'Manage your plan', route: '/subscription', color: '#F97316' },
+            { id: 'appearance', icon: 'color-palette' as const, label: t('settings.appearance'), subtitle: t('settings.appearanceSubtitle'), route: '/settings/appearance', color: '#8B5CF6' },
+            { id: 'dietary', icon: 'leaf' as const, label: t('settings.dietary'), subtitle: t('settings.dietarySubtitle'), route: '/settings/dietary', color: '#10B981' },
+            { id: 'weight-loss', icon: 'fitness' as const, label: t('settings.weightLoss'), subtitle: t('settings.weightLossSubtitle'), route: '/settings/weight-loss', color: '#22C55E' },
+            { id: 'language', icon: 'globe' as const, label: t('settings.language'), subtitle: t('settings.languageSubtitle'), route: '/settings/language', color: '#6366F1' },
+            { id: 'voice', icon: 'mic' as const, label: t('settings.voice'), subtitle: t('settings.voiceSubtitle'), route: '/settings/voice', color: '#EC4899' },
+            { id: 'notifications', icon: 'notifications' as const, label: t('settings.notifications'), subtitle: t('settings.notificationsSubtitle'), route: '/settings/notifications', color: '#3B82F6' },
+            { id: 'subscription', icon: 'diamond' as const, label: t('settings.subscription'), subtitle: t('settings.subscriptionSubtitle'), route: '/subscription', color: '#F97316' },
           ] as MenuItem[]).map((item, idx, arr) => (
             <View key={item.id}>
               {renderMenuItem(item)}
@@ -201,6 +205,98 @@ export default function MoreScreen() {
               )}
             </View>
           ))}
+        </View>
+
+        {/* Support & Legal */}
+        <View className="px-5 mb-2">
+          <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-2 ml-1">
+            {t('settings.help')}
+          </Text>
+        </View>
+        <View className="mx-5 bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden mb-5" style={styles.card}>
+          {([
+            { id: 'help', icon: 'help-circle' as const, label: t('settings.help'), route: '/settings/help', color: '#6366F1' },
+            { id: 'privacy', icon: 'shield-checkmark' as const, label: t('settings.privacy'), route: '/settings/privacy', color: '#10B981' },
+            { id: 'terms', icon: 'document-text' as const, label: t('settings.terms'), route: '/settings/terms', color: '#3B82F6' },
+          ] as MenuItem[]).map((item, idx, arr) => (
+            <View key={item.id}>
+              {renderMenuItem(item)}
+              {idx < arr.length - 1 && (
+                <View className="h-px bg-neutral-100 dark:bg-neutral-700 ml-14 mr-4" />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* Account actions */}
+        <View className="mx-5 mb-5">
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                t('settings.signOut'),
+                t('general.confirm') + '?',
+                [
+                  { text: t('general.cancel'), style: 'cancel' },
+                  {
+                    text: t('settings.signOut'),
+                    onPress: async () => {
+                      try { await signOut(); } catch {}
+                    },
+                  },
+                ]
+              );
+            }}
+            className="bg-white dark:bg-neutral-800 rounded-2xl px-4 py-3.5 flex-row items-center mb-3"
+            style={styles.card}
+          >
+            <View className="w-9 h-9 rounded-xl items-center justify-center bg-orange-100 dark:bg-orange-900/30">
+              <Ionicons name="log-out" size={18} color="#F97316" />
+            </View>
+            <Text className="flex-1 ml-3 font-medium text-orange-600 dark:text-orange-400">
+              {t('settings.signOut')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              Alert.alert(
+                t('settings.deleteAccount'),
+                'This will permanently delete your account, recipes, and all data. This action cannot be undone.',
+                [
+                  { text: t('general.cancel'), style: 'cancel' },
+                  {
+                    text: t('settings.deleteAccount'),
+                    style: 'destructive',
+                    onPress: async () => {
+                      Alert.alert(
+                        'Are you sure?',
+                        'This is permanent and cannot be reversed.',
+                        [
+                          { text: t('general.cancel'), style: 'cancel' },
+                          {
+                            text: t('general.confirm'),
+                            style: 'destructive',
+                            onPress: async () => {
+                              try { await deleteAccount(); } catch {}
+                            },
+                          },
+                        ]
+                      );
+                    },
+                  },
+                ]
+              );
+            }}
+            className="bg-white dark:bg-neutral-800 rounded-2xl px-4 py-3.5 flex-row items-center"
+            style={styles.card}
+          >
+            <View className="w-9 h-9 rounded-xl items-center justify-center bg-red-100 dark:bg-red-900/30">
+              <Ionicons name="trash" size={18} color="#EF4444" />
+            </View>
+            <Text className="flex-1 ml-3 font-medium text-red-600 dark:text-red-400">
+              {t('settings.deleteAccount')}
+            </Text>
+          </TouchableOpacity>
         </View>
 
         {/* Admin section — only for admin users */}

@@ -106,9 +106,11 @@ export interface MealPlanPreferences {
   mealsToInclude: MealType[];
   daysToGenerate: number;
   dietaryRestrictions: string[];
+  healthConditions: string[];
   cuisinePreferences: string[];
   maxPrepTime?: number; // Max prep time in minutes
   maxCookTime?: number; // Max cook time in minutes
+  calorieTarget?: number; // Daily calorie target for weight loss
   prioritizeExpiring: boolean;
   maximizeOverlap: boolean; // Maximize ingredient reuse
   budgetFriendly: boolean;
@@ -120,6 +122,7 @@ export const DEFAULT_MEAL_PLAN_PREFERENCES: MealPlanPreferences = {
   mealsToInclude: ['breakfast', 'lunch', 'dinner'],
   daysToGenerate: 7,
   dietaryRestrictions: [],
+  healthConditions: [],
   cuisinePreferences: [],
   prioritizeExpiring: true,
   maximizeOverlap: true,

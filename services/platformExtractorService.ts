@@ -57,6 +57,8 @@ export async function extractPlatformContent(
       return extractPinterestContent(url);
     case 'reddit':
       return extractRedditContent(url);
+    case 'snapchat':
+      return extractSnapchatContent(url);
     default:
       return extractGenericWebContent(url, p);
   }
@@ -75,7 +77,8 @@ const DESKTOP_UA =
 function safeParse(text: string): any | null {
   try {
     return JSON.parse(text);
-  } catch {
+  } catch (e) {
+    console.warn('[JSON] safeParse failed:', e);
     return null;
   }
 }
@@ -178,7 +181,8 @@ async function fetchOEmbed(
         thumbnail: d.thumbnail_url,
         description: d.description,
       };
-    } catch {
+    } catch (e) {
+      console.warn('[oEmbed] fetch failed for endpoint:', e);
       continue;
     }
   }
@@ -198,7 +202,8 @@ async function fetchHtml(url: string, ua: string = MOBILE_UA): Promise<string | 
     });
     if (!r.ok) return null;
     return r.text();
-  } catch {
+  } catch (e) {
+    console.warn('[fetchHtml] request failed:', e);
     return null;
   }
 }
@@ -287,8 +292,8 @@ async function extractInstagramContent(url: string): Promise<PlatformContent> {
           if (ddThumb) result.thumbnailUrl = ddThumb;
         }
       }
-    } catch {
-      // ddinstagram unavailable — try next
+    } catch (e) {
+      console.warn('[Instagram] ddinstagram failed:', e);
     }
 
     // Try d.ddinstagram.com (direct media endpoint)
@@ -304,8 +309,8 @@ async function extractInstagramContent(url: string): Promise<PlatformContent> {
         if (contentType.includes('video')) {
           result.videoUrl = directResp.url; // Final redirect URL is the video
         }
-      } catch {
-        // direct endpoint unavailable
+      } catch (e) {
+        console.warn('[Instagram] direct endpoint failed:', e);
       }
     }
   }
@@ -470,7 +475,7 @@ async function fetchYouTubeTranscript(baseUrl: string): Promise<string | undefin
       }
     }
   } catch (e) {
-    // YouTube transcript fetch failed
+    console.warn('[YouTube] transcript fetch failed:', e);
   }
   return undefined;
 }
@@ -480,6 +485,52 @@ async function fetchYouTubeTranscript(baseUrl: string): Promise<string | undefin
 // ────────────────────────────────────────────────────────
 async function extractTikTokContent(url: string): Promise<PlatformContent> {
   const result: PlatformContent = { platform: 'tiktok' };
+
+  // Strategy 0: Try proxy services first (most reliable - bypasses TikTok anti-scraping)
+  try {
+    // vxtiktok provides clean API access
+    const vxUrl = url.replace(/https?:\/\/(www\.)?tiktok\.com/i, 'https://api.vxtiktok.com');
+    const vxResp = await fetch(vxUrl, { headers: { Accept: 'application/json' } });
+    if (vxResp.ok) {
+      const vxData = await vxResp.json();
+      if (vxData) {
+        const videoData = vxData.video || vxData;
+        if (videoData.title || videoData.desc) {
+          result.captionText = videoData.desc || videoData.title;
+          result.title = videoData.title || videoData.desc;
+        }
+        if (videoData.author?.nickname) result.author = videoData.author.nickname;
+        if (videoData.video?.play || videoData.play_url) {
+          result.videoUrl = videoData.video?.play || videoData.play_url;
+        }
+        if (videoData.video?.cover || videoData.cover) {
+          result.thumbnailUrl = videoData.video?.cover || videoData.cover;
+        }
+        // If we got good data from proxy, return early
+        if (result.captionText && (result.videoUrl || result.thumbnailUrl)) {
+          return result;
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('[TikTok] vxtiktok API failed:', e);
+  }
+
+  // Try tikcdn.io as alternate proxy
+  try {
+    const tikcdnResp = await fetch(
+      `https://tikcdn.io/ssstik/${encodeURIComponent(url)}`,
+      { headers: { Accept: 'application/json', 'User-Agent': MOBILE_UA } },
+    );
+    if (tikcdnResp.ok) {
+      const tikcdnData = await tikcdnResp.json();
+      if (tikcdnData?.url) {
+        result.videoUrl = tikcdnData.url;
+      }
+    }
+  } catch (e) {
+    console.warn('[TikTok] tikcdn.io failed:', e);
+  }
 
   // Run oEmbed + page fetch in parallel
   const [oembedData, pageHtml] = await Promise.all([
@@ -579,8 +630,8 @@ async function extractTikTokContent(url: string): Promise<PlatformContent> {
             result.author = tikwmData.data.author.nickname;
         }
       }
-    } catch {
-      // tikwm unavailable — continue without video
+    } catch (e) {
+      console.warn('[TikTok] tikwm API failed:', e);
     }
   }
 
@@ -624,8 +675,8 @@ async function extractTwitterContent(url: string): Promise<PlatformContent> {
         return result; // Got everything from fxtwitter
       }
     }
-  } catch {
-    // fxtwitter failed, try vxtwitter
+  } catch (e) {
+    console.warn('[Twitter] fxtwitter API failed:', e);
   }
 
   // Fallback: vxtwitter
@@ -652,8 +703,8 @@ async function extractTwitterContent(url: string): Promise<PlatformContent> {
         return result;
       }
     }
-  } catch {
-    // vxtwitter also failed
+  } catch (e) {
+    console.warn('[Twitter] vxtwitter API failed:', e);
   }
 
   // Last resort: fetch page for og tags
@@ -830,14 +881,55 @@ async function extractRedditContent(url: string): Promise<PlatformContent> {
         }
       }
     }
-  } catch {
-    // JSON API failed, fall back to HTML
+  } catch (e) {
+    console.warn('[Reddit] JSON API failed:', e);
     const html = await fetchHtml(url, DESKTOP_UA);
     if (html) {
       const og = extractOgTags(html);
       result.title = og['og:title'];
       result.captionText = og['og:description'];
       result.thumbnailUrl = og['og:image'];
+    }
+  }
+
+  return result;
+}
+
+// ────────────────────────────────────────────────────────
+// Snapchat
+// ────────────────────────────────────────────────────────
+async function extractSnapchatContent(url: string): Promise<PlatformContent> {
+  const result: PlatformContent = { platform: 'snapchat' };
+
+  // Snapchat Spotlight/Stories - scrape page for og tags and video
+  const html = await fetchHtml(url, MOBILE_UA);
+  if (html) {
+    const og = extractOgTags(html);
+    result.title = og['og:title'] || og['title'];
+    result.captionText = og['og:description'] || og['description'];
+    result.thumbnailUrl = og['og:image'];
+
+    const videoUrl = og['og:video'] || og['og:video:secure_url'];
+    if (videoUrl && (videoUrl.includes('.mp4') || videoUrl.includes('video'))) {
+      result.videoUrl = videoUrl.replace(/&amp;/g, '&');
+    }
+
+    // Try to find video in page JSON data
+    if (!result.videoUrl) {
+      const videoMatch = html.match(/"(?:video_url|mediaUrl)"\s*:\s*"([^"]+)"/);
+      if (videoMatch?.[1]) {
+        result.videoUrl = videoMatch[1].replace(/\\u0026/g, '&').replace(/\\/g, '');
+      }
+    }
+  }
+
+  // Fallback to noembed
+  if (!result.captionText) {
+    const oembed = await fetchOEmbed(url, 'snapchat');
+    if (oembed) {
+      result.title = result.title || oembed.title;
+      result.author = oembed.author;
+      result.thumbnailUrl = result.thumbnailUrl || oembed.thumbnail;
     }
   }
 

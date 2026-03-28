@@ -10,6 +10,9 @@ export type VoiceCommandType =
   | 'current_step'
   | 'substitute'
   | 'help'
+  | 'add_to_pantry'
+  | 'add_to_cart'
+  | 'ask_question'
   | 'unknown';
 
 // Voice command examples for help display
@@ -22,6 +25,9 @@ export const VOICE_COMMAND_EXAMPLES: Record<VoiceCommandType, string[]> = {
   current_step: ['where am I', 'what step', 'current step', 'which step'],
   substitute: ['substitute for eggs', 'replace butter', 'what can I use instead of'],
   help: ['help', 'what can I say', 'commands'],
+  add_to_pantry: ['add eggs to pantry', 'I have chicken and rice', 'put milk in my pantry'],
+  add_to_cart: ['add bread to cart', 'I need eggs and butter', 'put flour on my shopping list'],
+  ask_question: ['how long should I sear this', 'is this done yet', 'what temperature'],
   unknown: [],
 };
 
@@ -37,6 +43,8 @@ export interface VoiceParseResult {
 export interface VoiceCommandParameters {
   minutes?: number;
   ingredient?: string;
+  items?: { name: string; amount: number; unit: string; category?: string }[];
+  question?: string;
 }
 
 // Voice listening state

@@ -39,6 +39,7 @@ import { Recipe } from '@/types';
 import { RecipeCard, HorizontalRecipeCard } from '@/components/recipe';
 import { HorizontalCookbookCard } from '@/components/cookbook';
 import { Loading, Card, WelcomeModal, SponsoredAdCard } from '@/components/ui';
+import { StreakWidget } from '@/components/ui/StreakWidget';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
 import { URLImportModal, WantToCookCard, CookbookScanner, ShoppingListView } from '@/components/import';
@@ -299,6 +300,9 @@ export default function HomeScreen() {
               </View>
             </View>
           </View>
+
+          {/* Streak & XP Widget */}
+          <StreakWidget />
 
           {/* HERO: Import Recipe CTA */}
           <Animated.View

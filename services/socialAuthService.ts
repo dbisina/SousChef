@@ -66,6 +66,10 @@ export const signInWithGoogle = async (
         createdAt: Timestamp.now(),
         savedRecipes: [],
         dietaryPreferences: [],
+        allergies: [],
+        healthConditions: [],
+        recipeCount: 0,
+        totalLikes: 0,
       };
       await setDoc(doc(db, 'users', firebaseUser.uid), userData);
     }
@@ -154,6 +158,10 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
         createdAt: Timestamp.now(),
         savedRecipes: [],
         dietaryPreferences: [],
+        allergies: [],
+        healthConditions: [],
+        recipeCount: 0,
+        totalLikes: 0,
       };
       await setDoc(doc(db, 'users', firebaseUser.uid), userData);
     }

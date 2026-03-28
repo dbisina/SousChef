@@ -22,6 +22,7 @@ import { Paywall, UsageBadge } from '@/components/subscription';
 import { useThemeColors } from '@/stores/themeStore';
 import { VoiceButton, VoiceOverlay, FloatingTimerStrip } from '@/components/voice';
 import { formatInstructionForSpeech } from '@/services/voiceService';
+import { useGeminiLive } from '@/hooks/useGeminiLive';
 
 type CookingStage = 'prep' | 'cooking' | 'done';
 
@@ -76,8 +77,40 @@ export default function CookingModeScreen() {
   const [paywallFeature, setPaywallFeature] = useState<'Portion Analysis' | 'Voice Hands-Free'>('Portion Analysis');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [servings, setServings] = useState(4);
+  const [useLiveAI, setUseLiveAI] = useState(false);
 
   const colors = useThemeColors();
+
+  // Gemini Live API — real-time voice conversation
+  const geminiLive = useGeminiLive({
+    recipe: recipe || undefined,
+    currentStep,
+    onTimerRequested: (minutes, label) => {
+      createTimer(label, minutes * 60);
+    },
+    onNextStep: handleNextStepFromAI,
+    onPreviousStep: handlePrevStepFromAI,
+    onServingsChanged: (s) => setServings(s),
+  });
+
+  function handleNextStepFromAI() {
+    if (recipe && currentStep < recipe.instructions.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+    }
+  }
+
+  function handlePrevStepFromAI() {
+    if (currentStep > 0) {
+      setCurrentStep((prev) => prev - 1);
+    }
+  }
+
+  // Notify Gemini Live when step changes
+  useEffect(() => {
+    if (useLiveAI && geminiLive.isConnected) {
+      geminiLive.updateContext(currentStep);
+    }
+  }, [currentStep, useLiveAI, geminiLive.isConnected]);
 
   useEffect(() => {
     if (recipe) {
@@ -86,12 +119,13 @@ export default function CookingModeScreen() {
     }
   }, [recipe]);
 
-  // Cleanup wake word mode on unmount
+  // Cleanup wake word mode and Gemini Live on unmount
   useEffect(() => {
     return () => {
       if (isWakeWordMode) {
         disableWakeWordMode();
       }
+      geminiLive.disconnect();
     };
   }, [isWakeWordMode]);
 
@@ -455,13 +489,47 @@ export default function CookingModeScreen() {
               </Card>
             )}
 
+            {/* Live AI Toggle */}
+            <TouchableOpacity
+              onPress={() => setUseLiveAI(!useLiveAI)}
+              className={`mt-4 flex-row items-center justify-between px-4 py-3 rounded-xl border ${
+                useLiveAI
+                  ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-300 dark:border-purple-700'
+                  : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
+              }`}
+            >
+              <View className="flex-row items-center flex-1">
+                <Ionicons
+                  name="sparkles"
+                  size={20}
+                  color={useLiveAI ? '#8B5CF6' : '#9CA3AF'}
+                />
+                <View className="ml-3 flex-1">
+                  <Text className={`font-semibold ${useLiveAI ? 'text-purple-700 dark:text-purple-300' : 'text-neutral-700 dark:text-neutral-300'}`}>
+                    Gemini Live AI
+                  </Text>
+                  <Text className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Real-time voice conversation while cooking
+                  </Text>
+                </View>
+              </View>
+              <View className={`w-12 h-7 rounded-full flex-row items-center px-0.5 ${useLiveAI ? 'bg-purple-500 justify-end' : 'bg-neutral-300 dark:bg-neutral-600 justify-start'}`}>
+                <View className="w-6 h-6 bg-white rounded-full shadow" />
+              </View>
+            </TouchableOpacity>
+
             {/* Start button */}
             <View className="mt-6">
               <Button
-                title="Start Cooking"
-                onPress={handleStartCooking}
+                title={useLiveAI ? "Start Cooking with AI" : "Start Cooking"}
+                onPress={() => {
+                  handleStartCooking();
+                  if (useLiveAI) {
+                    geminiLive.connect();
+                  }
+                }}
                 fullWidth
-                leftIcon={<Ionicons name="flame" size={20} color="white" />}
+                leftIcon={<Ionicons name={useLiveAI ? "sparkles" : "flame"} size={20} color="white" />}
               />
             </View>
           </View>
@@ -482,8 +550,59 @@ export default function CookingModeScreen() {
             />
           </View>
 
+          {/* Gemini Live AI conversation */}
+          {useLiveAI && geminiLive.isConnected && (
+            <View className="mb-3">
+              {/* AI response bubble */}
+              {geminiLive.lastResponse ? (
+                <View className="bg-purple-50 dark:bg-purple-900/20 rounded-2xl px-4 py-3 mb-2">
+                  <View className="flex-row items-center mb-1">
+                    <Ionicons name="sparkles" size={14} color="#8B5CF6" />
+                    <Text className="text-purple-600 dark:text-purple-400 text-xs font-medium ml-1">SousChef AI</Text>
+                  </View>
+                  <Text className="text-neutral-800 dark:text-neutral-200 text-sm">
+                    {geminiLive.lastResponse}
+                  </Text>
+                </View>
+              ) : null}
+
+              {/* Live mic button */}
+              <View className="flex-row items-center justify-center">
+                <TouchableOpacity
+                  onPress={async () => {
+                    if (geminiLive.isListening) {
+                      await geminiLive.stopListening();
+                    } else {
+                      await geminiLive.startListening();
+                    }
+                  }}
+                  className={`w-16 h-16 rounded-full items-center justify-center ${
+                    geminiLive.isListening
+                      ? 'bg-red-500'
+                      : geminiLive.isSpeaking
+                        ? 'bg-purple-400'
+                        : 'bg-purple-500'
+                  }`}
+                >
+                  <Ionicons
+                    name={geminiLive.isListening ? 'mic' : geminiLive.isSpeaking ? 'volume-high' : 'mic-outline'}
+                    size={28}
+                    color="white"
+                  />
+                </TouchableOpacity>
+                <Text className="text-xs text-neutral-400 ml-3 w-24">
+                  {geminiLive.isListening
+                    ? 'Listening...'
+                    : geminiLive.isSpeaking
+                      ? 'Speaking...'
+                      : 'Tap to talk to AI'}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {/* Voice control hint during cooking */}
-          {voiceInitialized && remainingVoice !== 0 && (
+          {!useLiveAI && voiceInitialized && remainingVoice !== 0 && (
             <View className="items-center py-2 mb-2">
               <View className="flex-row items-center">
                 <Ionicons
