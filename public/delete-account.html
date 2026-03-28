@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Account — SousChef</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #FFF7ED;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      max-width: 480px;
+      width: 100%;
+      padding: 40px 32px;
+    }
+    .logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #F97316, #FB923C);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 24px;
+    }
+    h1 { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+    .subtitle { color: #6b7280; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+    h2 { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+    ul { list-style: none; margin-bottom: 24px; }
+    ul li {
+      padding: 8px 0;
+      padding-left: 24px;
+      position: relative;
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.5;
+    }
+    ul li::before {
+      content: '•';
+      position: absolute;
+      left: 8px;
+      color: #F97316;
+      font-weight: bold;
+    }
+    .steps { background: #f9fafb; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; }
+    .steps h2 { margin-bottom: 16px; }
+    .step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      color: #374151;
+      line-height: 1.5;
+    }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      background: #F97316;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+    .email-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #F97316;
+      color: #fff;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: background .2s;
+    }
+    .email-link:hover { background: #ea580c; }
+    .note {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #9ca3af;
+      line-height: 1.5;
+    }
+    .footer {
+      margin-top: 28px;
+      text-align: center;
+      font-size: 13px;
+      color: #9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">🍳</div>
+    <h1>Delete Your Account</h1>
+    <p class="subtitle">
+      We're sorry to see you go. You can delete your SousChef account and all associated data at any time.
+    </p>
+
+    <h2>What gets deleted</h2>
+    <ul>
+      <li>Your profile information and preferences</li>
+      <li>Saved recipes and cookbooks</li>
+      <li>Meal plans and shopping lists</li>
+      <li>Pantry items and waste tracking data</li>
+      <li>Cooking streaks and gamification progress</li>
+      <li>Comments and social interactions</li>
+    </ul>
+
+    <div class="steps">
+      <h2>How to delete in the app</h2>
+      <div class="step">
+        <span class="step-num">1</span>
+        <span>Open SousChef and go to the <strong>More</strong> tab</span>
+      </div>
+      <div class="step">
+        <span class="step-num">2</span>
+        <span>Scroll down and tap <strong>Delete Account</strong></span>
+      </div>
+      <div class="step">
+        <span class="step-num">3</span>
+        <span>Confirm deletion — your account and data will be permanently removed</span>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <p style="font-size:14px; color:#374151; margin-bottom:16px;">
+      Can't access the app? Request deletion by email:
+    </p>
+    <a class="email-link" href="mailto:support@souschef.app?subject=Account%20Deletion%20Request&body=Please%20delete%20my%20SousChef%20account.%0A%0AEmail%20used%20for%20account%3A%20%5Byour%20email%5D">
+      ✉️ Request via Email
+    </a>
+    <p class="note">
+      Deletion requests are processed within 48 hours. This action is irreversible — all data will be permanently erased.
+    </p>
+
+    <div class="footer">© 2025 SousChef. All rights reserved.</div>
+  </div>
+</body>
+</html>
