@@ -103,7 +103,8 @@
         }
       ],
       "./plugins/withDisableBundleSigning",
-      "./plugins/withShareExtension"
+      "./plugins/withShareExtension",
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true
