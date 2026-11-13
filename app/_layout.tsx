@@ -361,6 +361,12 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="create"
+          options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: '#0B0B0B' } }}
+        />
+        <Stack.Screen name="reels" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen name="story/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen
           name="share"
           options={{
             headerShown: false,

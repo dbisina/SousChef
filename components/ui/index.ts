@@ -31,3 +31,4 @@ export { ProgressBar, Stepper, Dots, Ring, BarChart, UBadge, Dot } from './Indic
 export { UAvatar, AvatarStack, StoryRing, BookCover, Bubble, Thumb } from './Media';
 export { Rows, ListRow, Sheet, SheetPanel } from './Lists';
 export { FONT } from './fonts';
+export { TabBar } from './TabBar';
