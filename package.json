@@ -8,6 +8,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
     "reset": "rm -rf node_modules && rm -rf .expo && npm install",
     "postinstall": "patch-package"
   },
