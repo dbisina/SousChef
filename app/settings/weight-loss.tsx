@@ -1,32 +1,42 @@
 import React, { useState, useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-} from 'react-native';
+import { ScrollView, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { useThemeColors } from '@/stores/themeStore';
-import { Card, Button } from '@/components/ui';
+import {
+  Chip,
+  ChipRow,
+  CtaBar,
+  Field,
+  Icon,
+  Muted,
+  ProgressBar,
+  Screen,
+  SectionLabel,
+  Segmented,
+  Tag,
+  Tile,
+  Title,
+  TopBar,
+  UButton,
+  UCard,
+  FONT,
+} from '@/components/ui';
 import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
 import { ACTIVITY_MULTIPLIERS } from '@/types/weightLoss';
 
 const ACTIVITY_LEVELS = [
-  { id: 'sedentary', label: 'Sedentary', description: 'Little or no exercise' },
-  { id: 'light', label: 'Light', description: 'Exercise 1-3 days/week' },
-  { id: 'moderate', label: 'Moderate', description: 'Exercise 3-5 days/week' },
-  { id: 'active', label: 'Active', description: 'Exercise 6-7 days/week' },
-  { id: 'very-active', label: 'Very Active', description: 'Hard exercise daily' },
+  { id: 'sedentary', key: 'weightGoal.sedentary', label: 'Sedentary' },
+  { id: 'light', key: 'weightGoal.light', label: 'Light' },
+  { id: 'moderate', key: 'weightGoal.moderate', label: 'Moderate' },
+  { id: 'active', key: 'weightGoal.active', label: 'Active' },
+  { id: 'very-active', key: 'weightGoal.veryActive', label: 'Very Active' },
 ] as const;
 
 const DEFICIT_OPTIONS = [
-  { value: 250, label: '250 cal', description: '~0.5 lb/week' },
-  { value: 500, label: '500 cal', description: '~1 lb/week' },
-  { value: 750, label: '750 cal', description: '~1.5 lb/week' },
+  { value: 250, description: '~0.5 lb' },
+  { value: 500, description: '~1 lb' },
+  { value: 750, description: '~1.5 lb' },
 ];
 
 // Rough average BMR estimate (Mifflin-St Jeor simplified)
@@ -41,46 +51,34 @@ type ActivityLevelKey = keyof typeof ACTIVITY_MULTIPLIERS;
 
 export default function WeightLossScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   const { user, updateUserProfile, isLoading } = useAuthStore();
 
   const existing = (user as any)?.weightLossGoal;
 
-  const [currentWeight, setCurrentWeight] = useState<string>(
-    existing?.currentWeight?.toString() || ''
-  );
-  const [targetWeight, setTargetWeight] = useState<string>(
-    existing?.targetWeight?.toString() || ''
-  );
+  const [currentWeight, setCurrentWeight] = useState<string>(existing?.currentWeight?.toString() || '');
+  const [targetWeight, setTargetWeight] = useState<string>(existing?.targetWeight?.toString() || '');
   const [unit, setUnit] = useState<'lbs' | 'kg'>(existing?.unit || 'lbs');
-  const [activityLevel, setActivityLevel] = useState<ActivityLevelKey>(
-    existing?.activityLevel || 'moderate'
-  );
-  const [deficit, setDeficit] = useState<number>(
-    existing?.dailyCalorieDeficit || 500
-  );
+  const [activityLevel, setActivityLevel] = useState<ActivityLevelKey>(existing?.activityLevel || 'moderate');
+  const [deficit, setDeficit] = useState<number>(existing?.dailyCalorieDeficit || 500);
 
   const weightNum = parseFloat(currentWeight) || 0;
   const weightInLbs = unit === 'kg' ? weightNum * 2.20462 : weightNum;
 
   const bmr = useMemo(() => estimateBMR(weightInLbs), [weightInLbs]);
-  const tdee = useMemo(
-    () => Math.round(bmr * ACTIVITY_MULTIPLIERS[activityLevel]),
-    [bmr, activityLevel]
-  );
-  const calorieTarget = useMemo(
-    () => Math.max(1200, tdee - deficit),
-    [tdee, deficit]
-  );
+  const tdee = useMemo(() => Math.round(bmr * ACTIVITY_MULTIPLIERS[activityLevel]), [bmr, activityLevel]);
+  const calorieTarget = useMemo(() => Math.max(1200, tdee - deficit), [tdee, deficit]);
 
   const startDate = existing?.startDate;
-  const daysOnPlan = startDate
-    ? Math.floor((Date.now() - startDate) / (1000 * 60 * 60 * 24))
-    : 0;
+  const daysOnPlan = startDate ? Math.floor((Date.now() - startDate) / (1000 * 60 * 60 * 24)) : 0;
+  const pace = DEFICIT_OPTIONS.find((o) => o.value === deficit)?.description ?? '';
 
   const handleSave = async () => {
     if (!currentWeight || !targetWeight) {
-      showErrorToast('Please enter both your current and target weight.', 'Missing Info');
+      showErrorToast(
+        t('weightGoal.missingBody', 'Please enter both your current and target weight.'),
+        t('weightGoal.missingTitle', 'Missing Info')
+      );
       return;
     }
 
@@ -97,239 +95,172 @@ export default function WeightLossScreen() {
           startDate: existing?.startDate || Date.now(),
         },
       } as any);
-      showSuccessToast('Your weight loss goals have been saved!', 'Goals Updated');
+      showSuccessToast(
+        t('weightGoal.savedBody', 'Your weight loss goals have been saved!'),
+        t('weightGoal.savedTitle', 'Goals Updated')
+      );
       router.back();
-    } catch (error) {
-      showErrorToast('Could not save your goals. Please try again.', 'Save Problem');
+    } catch {
+      showErrorToast(
+        t('weightGoal.saveErrBody', 'Could not save your goals. Please try again.'),
+        t('weightGoal.saveErrTitle', 'Save Problem')
+      );
     }
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
-          Weight Loss Journey
-        </Text>
-      </View>
+    <Screen
+      bare
+      footer={
+        <CtaBar fade>
+          <UButton
+            variant="accent"
+            label={t('weightGoal.save', 'Save Goals')}
+            loading={isLoading}
+            onPress={handleSave}
+          />
+        </CtaBar>
+      }
+    >
+      <TopBar variant="compact" title={t('weightGoal.title', 'Weight Goals')} onBack={() => router.back()} />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-4">
-          {/* Info Card */}
-          <Card className="bg-green-50 border border-green-200 mb-6">
-            <View className="flex-row items-start">
-              <Ionicons name="fitness" size={20} color="#16A34A" />
-              <Text className="flex-1 text-green-700 text-sm ml-2">
-                Set your goals and track your progress. We'll recommend meals that keep you on track.
-              </Text>
-            </View>
-          </Card>
-
-          {/* Current Stats Section */}
-          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
-            Current Stats
-          </Text>
-
-          {/* Unit Toggle */}
-          <View className="flex-row mb-4">
-            {(['lbs', 'kg'] as const).map((u) => (
-              <TouchableOpacity
-                key={u}
-                onPress={() => setUnit(u)}
-                className={`px-6 py-2 rounded-full mr-2 ${
-                  unit === u
-                    ? ''
-                    : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'
-                }`}
-                style={unit === u ? { backgroundColor: colors.accent } : undefined}
-              >
-                <Text
-                  className={`font-medium ${
-                    unit === u ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                  }`}
-                >
-                  {u.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 150 }}
+      >
+        <UCard tone="black" style={{ borderRadius: 30, padding: 20, gap: 12 }}>
+          <View className="flex-row items-center justify-between">
+            <SectionLabel>{t('weightGoal.dailyTarget', 'Daily target')}</SectionLabel>
+            <Tag label={`−${deficit} cal`} />
           </View>
+          <RNText
+            accessibilityLabel={weightNum > 0 ? `${calorieTarget} cal` : undefined}
+            className="text-ink"
+            style={{ fontFamily: FONT.display, fontSize: 48, lineHeight: 48, letterSpacing: -1.44 }}
+          >
+            {weightNum > 0 ? calorieTarget.toLocaleString() : '—'}{' '}
+            <RNText className="text-muted" style={{ fontSize: 16, letterSpacing: 0 }}>
+              cal
+            </RNText>
+          </RNText>
+          <ProgressBar value={weightNum > 0 && tdee > 0 ? calorieTarget / tdee : 0} label={t('weightGoal.dailyTarget', 'Daily target')} />
+          <Muted small>
+            {weightNum > 0
+              ? t('weightGoal.tdee', 'Estimated TDEE {{tdee}} · {{pace}} a week', { tdee: tdee.toLocaleString(), pace })
+              : t('weightGoal.enterWeight', 'Enter your current weight to see your target')}
+          </Muted>
+        </UCard>
 
-          {/* Weight Inputs */}
-          <Card className="mb-4">
-            <Text className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
-              Current Weight ({unit})
-            </Text>
-            <TextInput
-              className="bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-800 dark:text-white border border-neutral-200 dark:border-neutral-700 mb-4"
-              placeholder={`e.g. ${unit === 'lbs' ? '185' : '84'}`}
-              placeholderTextColor="#9CA3AF"
+        <View className="flex-row" style={{ gap: 12 }}>
+          <View className="flex-1">
+            <Field
+              label={t('weightGoal.current', 'Current weight')}
               value={currentWeight}
               onChangeText={setCurrentWeight}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
+              placeholder={unit === 'lbs' ? '185' : '84'}
             />
-            <Text className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
-              Target Weight ({unit})
-            </Text>
-            <TextInput
-              className="bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-800 dark:text-white border border-neutral-200 dark:border-neutral-700"
-              placeholder={`e.g. ${unit === 'lbs' ? '165' : '75'}`}
-              placeholderTextColor="#9CA3AF"
+          </View>
+          <View className="flex-1">
+            <Field
+              label={t('weightGoal.target', 'Target weight')}
               value={targetWeight}
               onChangeText={setTargetWeight}
-              keyboardType="numeric"
+              keyboardType="decimal-pad"
+              placeholder={unit === 'lbs' ? '165' : '75'}
             />
-          </Card>
+          </View>
+        </View>
 
-          {/* Activity Level */}
-          <Text className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-            Activity Level
-          </Text>
-          <View className="flex-row flex-wrap mb-6">
-            {ACTIVITY_LEVELS.map((level) => (
-              <TouchableOpacity
-                key={level.id}
-                onPress={() => setActivityLevel(level.id as ActivityLevelKey)}
-                className={`mr-2 mb-2 px-4 py-2 rounded-full ${
-                  activityLevel === level.id
-                    ? ''
-                    : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'
-                }`}
-                style={activityLevel === level.id ? { backgroundColor: colors.accent } : undefined}
-              >
-                <Text
-                  className={`font-medium text-sm ${
-                    activityLevel === level.id ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                  }`}
-                >
-                  {level.label}
-                </Text>
-              </TouchableOpacity>
+        <View style={{ gap: 10 }}>
+          <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
+            <Title>{t('weightGoal.activity', 'Activity level')}</Title>
+            <View style={{ width: 132 }}>
+              <Segmented<'lbs' | 'kg'>
+                value={unit}
+                onChange={setUnit}
+                options={[
+                  { value: 'lbs', label: 'lbs' },
+                  { value: 'kg', label: 'kg' },
+                ]}
+              />
+            </View>
+          </View>
+          <View style={{ marginHorizontal: -20 }}>
+            <ChipRow>
+              {ACTIVITY_LEVELS.map((level) => (
+                <Chip
+                  key={level.id}
+                  label={t(level.key, level.label)}
+                  on={activityLevel === level.id}
+                  onPress={() => setActivityLevel(level.id as ActivityLevelKey)}
+                />
+              ))}
+            </ChipRow>
+          </View>
+        </View>
+
+        <View style={{ gap: 10 }}>
+          <Title>{t('weightGoal.pace', 'Weekly pace')}</Title>
+          <View className="flex-row" style={{ gap: 10 }}>
+            {DEFICIT_OPTIONS.map((option) => (
+              <View key={option.value} className="flex-1">
+                <Tile
+                  value={option.value}
+                  label={option.description}
+                  selected={deficit === option.value}
+                  accessibilityLabel={t('weightGoal.paceOption', '{{cal}} cal deficit, {{pace}} a week', {
+                    cal: option.value,
+                    pace: option.description,
+                  })}
+                  onPress={() => setDeficit(option.value)}
+                />
+              </View>
             ))}
           </View>
+        </View>
 
-          {/* Daily Calorie Target Section */}
-          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
-            Daily Calorie Target
-          </Text>
-
-          <Card className="mb-4">
-            {weightNum > 0 && (
-              <View className="mb-4">
-                <View className="flex-row justify-between mb-1">
-                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">Estimated TDEE</Text>
-                  <Text className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">
-                    {tdee} cal/day
-                  </Text>
-                </View>
-                <View className="flex-row justify-between mb-1">
-                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">Deficit</Text>
-                  <Text className="text-sm font-semibold text-red-500">-{deficit} cal</Text>
-                </View>
-                <View className="h-px bg-neutral-200 dark:bg-neutral-700 my-2" />
-                <View className="flex-row justify-between">
-                  <Text className="text-sm font-semibold text-neutral-700 dark:text-neutral-300">
-                    Daily Target
-                  </Text>
-                  <Text className="text-base font-bold text-green-600 dark:text-green-400">
-                    {calorieTarget} cal/day
-                  </Text>
-                </View>
+        <View style={{ gap: 10 }}>
+          <Title>{t('weightGoal.progress', 'Progress')}</Title>
+          {existing ? (
+            <View className="flex-row" style={{ gap: 10 }}>
+              <View className="flex-1">
+                <Tile value={daysOnPlan} label={t('weightGoal.daysOnPlan', 'Days on plan')} />
               </View>
-            )}
-
-            {/* Deficit Selector */}
-            <Text className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-              Calorie Deficit
-            </Text>
-            <View className="flex-row flex-wrap">
-              {DEFICIT_OPTIONS.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  onPress={() => setDeficit(option.value)}
-                  className={`mr-2 mb-2 px-4 py-2 rounded-full ${
-                    deficit === option.value
-                      ? ''
-                      : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'
-                  }`}
-                  style={deficit === option.value ? { backgroundColor: colors.accent } : undefined}
-                >
-                  <Text
-                    className={`font-medium text-sm ${
-                      deficit === option.value ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                    }`}
-                  >
-                    {option.label} ({option.description})
-                  </Text>
-                </TouchableOpacity>
-              ))}
+              <View className="flex-1">
+                <Tile
+                  value={
+                    existing.startWeight
+                      ? Math.max(0, existing.startWeight - (parseFloat(currentWeight) || existing.startWeight)).toFixed(1)
+                      : '0'
+                  }
+                  label={t('weightGoal.lost', '{{unit}} lost', { unit })}
+                />
+              </View>
+              <View className="flex-1">
+                <Tile
+                  value={
+                    targetWeight
+                      ? Math.max(0, (parseFloat(currentWeight) || 0) - parseFloat(targetWeight)).toFixed(1)
+                      : '0'
+                  }
+                  label={t('weightGoal.toGo', '{{unit}} to go', { unit })}
+                />
+              </View>
             </View>
-          </Card>
-
-          {/* Progress Section */}
-          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
-            Progress
-          </Text>
-
-          <Card className="mb-6">
-            {existing ? (
-              <View>
-                <View className="flex-row justify-between mb-3">
-                  <View className="items-center flex-1">
-                    <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-                      {daysOnPlan}
-                    </Text>
-                    <Text className="text-xs text-neutral-500 dark:text-neutral-400">Days on Plan</Text>
-                  </View>
-                  <View className="items-center flex-1">
-                    <Text className="text-2xl font-bold text-green-600 dark:text-green-400">
-                      {existing.startWeight
-                        ? Math.max(0, existing.startWeight - (parseFloat(currentWeight) || existing.startWeight)).toFixed(1)
-                        : '0'}
-                    </Text>
-                    <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {unit} Lost
-                    </Text>
-                  </View>
-                  <View className="items-center flex-1">
-                    <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-                      {targetWeight
-                        ? Math.max(0, (parseFloat(currentWeight) || 0) - parseFloat(targetWeight)).toFixed(1)
-                        : '0'}
-                    </Text>
-                    <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-                      {unit} to Go
-                    </Text>
-                  </View>
-                </View>
-                <View className="bg-neutral-100 dark:bg-neutral-700 rounded-lg p-3 items-center">
-                  <Ionicons name="bar-chart-outline" size={24} color="#9CA3AF" />
-                  <Text className="text-sm text-neutral-400 dark:text-neutral-500 mt-1">
-                    Weight chart coming soon
-                  </Text>
-                </View>
+          ) : (
+            <UCard>
+              <View className="items-center" style={{ paddingVertical: 8, gap: 8 }}>
+                <Icon name="trend" size="lg" color="muted" />
+                <Muted small center>
+                  {t('weightGoal.saveToTrack', 'Save your goals to start tracking progress')}
+                </Muted>
               </View>
-            ) : (
-              <View className="items-center py-4">
-                <Ionicons name="trending-down" size={32} color="#9CA3AF" />
-                <Text className="text-sm text-neutral-400 dark:text-neutral-500 mt-2 text-center">
-                  Save your goals to start tracking progress
-                </Text>
-              </View>
-            )}
-          </Card>
-
-          {/* Save Button */}
-          <Button
-            title="Save Goals"
-            onPress={handleSave}
-            isLoading={isLoading}
-            fullWidth
-          />
+            </UCard>
+          )}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }

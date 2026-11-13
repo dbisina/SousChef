@@ -1,286 +1,183 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
+import { Pressable, Text as RNText, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { SAMPLE } from '@/assets/sample';
+import {
+  Icon,
+  Muted,
+  PhotoCard,
+  ProgressBar,
+  Tag,
+  Tile,
+  Title,
+  UAvatar,
+  UCard,
+  FONT,
+} from '@/components/ui';
 import {
   WasteStats as WasteStatsType,
   FoodWasteEntry,
   WasteReason,
   WASTE_REASON_LABELS,
 } from '@/types/mealplan';
-import { Card } from '@/components/ui';
+import { FIXED } from '@/stores/themeStore';
+import { foodPhoto } from './foodPhoto';
 
 interface WasteStatsProps {
   stats: WasteStatsType | null;
-  onViewDetails?: () => void;
 }
 
-export const WasteStatsCard: React.FC<WasteStatsProps> = ({
-  stats,
-  onViewDetails,
-}) => {
-  const colors = useThemeColors();
+/** Hero photo card (this month's waste) plus the "Top reason" and "Most wasted" tiles. Design: Waste.html. */
+export const WasteStatsCard: React.FC<WasteStatsProps> = ({ stats }) => {
+  const { t } = useTranslation();
+
   if (!stats) {
     return (
-      <Card className="bg-neutral-50 dark:bg-neutral-800">
-        <View className="items-center py-4">
-          <Ionicons name="leaf-outline" size={32} color="#D4D4D4" />
-          <Text className="text-neutral-400 dark:text-neutral-500 mt-2">
-            No waste data yet
-          </Text>
-          <Text className="text-neutral-400 dark:text-neutral-500 text-sm text-center mt-1">
-            Start tracking your food waste to see insights
-          </Text>
+      <UCard>
+        <View className="items-center" style={{ paddingVertical: 12, gap: 8 }}>
+          <Icon name="leaf" size="lg" color="subtle" />
+          <Title>{t('planWaste.noData', 'No waste data yet')}</Title>
+          <Muted small center>
+            {t('planWaste.noDataHint', 'Start tracking your food waste to see insights')}
+          </Muted>
         </View>
-      </Card>
+      </UCard>
     );
   }
 
-  const getTrendIcon = () => {
-    switch (stats.trendDirection) {
-      case 'improving':
-        return { name: 'trending-down', color: '#22C55E' };
-      case 'worsening':
-        return { name: 'trending-up', color: '#EF4444' };
-      default:
-        return { name: 'remove', color: colors.textMuted };
-    }
-  };
-
-  const trend = getTrendIcon();
+  const reasons = Object.entries(stats.wasteByReason).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+  const topReason = reasons[0]?.[0] as WasteReason | undefined;
+  const topItem = stats.topWastedItems[0]?.name;
+  const trend =
+    stats.trendDirection === 'improving'
+      ? t('planWaste.trendDown', 'down from last month')
+      : stats.trendDirection === 'worsening'
+        ? t('planWaste.trendUp', 'up from last month')
+        : t('planWaste.trendFlat', 'steady this month');
+  const dash = '—';
 
   return (
-    <Card>
-      <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
-          Waste Overview
-        </Text>
-        {onViewDetails && (
-          <TouchableOpacity onPress={onViewDetails}>
-            <Text className="font-medium" style={{ color: colors.accent }}>View All</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Main stats */}
-      <View className="flex-row mb-4">
-        {/* This Week */}
-        <View className="flex-1 items-center p-3 bg-red-50 rounded-xl mr-2">
-          <Text className="text-2xl font-bold text-red-600">
-            ${stats.wastedThisWeek.toFixed(0)}
-          </Text>
-          <Text className="text-xs text-red-500">This Week</Text>
+    <View style={{ gap: 16 }}>
+      <PhotoCard
+        source={SAMPLE.spinach}
+        height={200}
+        topLeft={<Tag large tone="glassDark" label={t('planWaste.thisMonth', 'This month')} />}
+      >
+        <View style={{ position: 'absolute', left: 18, right: 18, bottom: 16, gap: 4, zIndex: 1 }}>
+          <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.captionSub }}>
+            {t('planWaste.wasted', 'Wasted')}
+          </RNText>
+          <RNText
+            accessibilityLabel={`$${stats.wastedThisMonth.toFixed(2)}`}
+            style={{ fontFamily: FONT.display, fontSize: 40, lineHeight: 40, letterSpacing: -0.8, color: FIXED.paper }}
+          >
+            ${stats.wastedThisMonth.toFixed(2)}
+          </RNText>
+          <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.captionSub }}>
+            {t('planWaste.itemsTrend', '{{n}} items · {{trend}}', { n: stats.itemsWastedThisMonth, trend })}
+          </RNText>
         </View>
-
-        {/* Saved */}
-        <View className="flex-1 items-center p-3 bg-green-50 rounded-xl ml-2">
-          <Text className="text-2xl font-bold text-green-600">
-            ${stats.savedByPlanning.toFixed(0)}
-          </Text>
-          <Text className="text-xs text-green-500">Saved</Text>
+      </PhotoCard>
+      <View className="flex-row" style={{ gap: 12 }}>
+        <View className="flex-1">
+          <Tile
+            label={t('planWaste.topReason', 'Top reason')}
+            value={topReason ? WASTE_REASON_LABELS[topReason] : dash}
+          />
+        </View>
+        <View className="flex-1">
+          <Tile label={t('planWaste.mostWasted', 'Most wasted')} value={topItem ?? dash} />
         </View>
       </View>
-
-      {/* Trend indicator */}
-      <View className="flex-row items-center justify-center py-2 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-        <Ionicons name={trend.name as any} size={20} color={trend.color} />
-        <Text className="ml-2 text-neutral-600 dark:text-neutral-400">
-          Trend:{' '}
-          <Text style={{ color: trend.color }} className="font-medium">
-            {stats.trendDirection.charAt(0).toUpperCase() +
-              stats.trendDirection.slice(1)}
-          </Text>
-        </Text>
-      </View>
-
-      {/* Top wasted items */}
-      {stats.topWastedItems.length > 0 && (
-        <View className="mt-4">
-          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-            Most Wasted Items
-          </Text>
-          <View className="flex-row flex-wrap">
-            {stats.topWastedItems.slice(0, 3).map((item, index) => (
-              <View
-                key={index}
-                className="bg-neutral-100 dark:bg-neutral-700 px-3 py-1 rounded-full mr-2 mb-2"
-              >
-                <Text className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {item.name} ({item.count}x)
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-    </Card>
+    </View>
   );
 };
 
-// Compact savings display
 interface SavingsDisplayProps {
   savedByPlanning: number;
   expiringItemsUsed: number;
 }
 
-export const SavingsDisplay: React.FC<SavingsDisplayProps> = ({
-  savedByPlanning,
-  expiringItemsUsed,
-}) => {
-  const colors = useThemeColors();
+/** Compact "saved by planning" line for the meal plan screen. */
+export const SavingsDisplay: React.FC<SavingsDisplayProps> = ({ savedByPlanning, expiringItemsUsed }) => {
+  const { t } = useTranslation();
   return (
-    <View className="bg-green-50 border border-green-200 rounded-xl p-4">
-      <View className="flex-row items-center mb-2">
-        <View className="w-10 h-10 rounded-full bg-green-100 items-center justify-center">
-          <Ionicons name="leaf" size={20} color="#22C55E" />
-        </View>
-        <View className="ml-3">
-          <Text className="text-green-800 font-bold text-lg">
-            ${savedByPlanning.toFixed(2)} Saved
-          </Text>
-          <Text className="text-green-600 text-sm">
-            This week's smart planning
-          </Text>
-        </View>
-      </View>
-
-      {expiringItemsUsed > 0 && (
-        <View className="flex-row items-center mt-2 pt-2 border-t border-green-200">
-          <Ionicons name="checkmark-circle" size={16} color="#22C55E" />
-          <Text className="text-green-600 text-sm ml-2">
-            {expiringItemsUsed} expiring item{expiringItemsUsed !== 1 ? 's' : ''}{' '}
-            used before spoiling
-          </Text>
-        </View>
-      )}
+    <View className="flex-row flex-wrap items-center" style={{ gap: 8 }}>
+      <Tag
+        tone="g"
+        icon="leaf"
+        label={t('plan.saved', '${{amt}} saved', { amt: savedByPlanning.toFixed(2) })}
+      />
+      {expiringItemsUsed > 0 ? (
+        <Tag
+          tone="o"
+          label={t('plan.expiringUsed', '{{n}} expiring items used', { n: expiringItemsUsed })}
+        />
+      ) : null}
     </View>
   );
 };
 
-// Waste entry row for list display
 interface WasteEntryRowProps {
   entry: FoodWasteEntry;
   onDelete?: () => void;
 }
 
-export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({
-  entry,
-  onDelete,
-}) => {
-  const colors = useThemeColors();
-  const formatDate = (timestamp: any) => {
-    const date = timestamp.toDate();
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  const getReasonIcon = (reason: WasteReason) => {
-    const icons: Record<WasteReason, string> = {
-      expired: 'calendar-outline',
-      spoiled: 'alert-circle-outline',
-      leftover: 'restaurant-outline',
-      overcooked: 'flame-outline',
-      other: 'help-circle-outline',
-    };
-    return icons[reason];
-  };
-
+/** Recent-waste row: photo, name, "2 cups · Expired", cost. */
+export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({ entry, onDelete }) => {
+  const { t } = useTranslation();
   return (
-    <View className="flex-row items-center bg-white dark:bg-neutral-800 p-4 border-b border-neutral-100 dark:border-neutral-700">
-      <View className="w-10 h-10 rounded-full bg-red-100 items-center justify-center">
-        <Ionicons
-          name={getReasonIcon(entry.reason) as any}
-          size={20}
-          color="#EF4444"
-        />
+    <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+      <UAvatar name={entry.itemName} source={foodPhoto(entry.itemName)} size={44} />
+      <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+        <Title numberOfLines={1}>{entry.itemName}</Title>
+        <Muted small numberOfLines={1}>
+          {`${entry.amount} ${entry.unit} · ${WASTE_REASON_LABELS[entry.reason]}`}
+        </Muted>
       </View>
-
-      <View className="flex-1 ml-3">
-        <Text className="text-base font-medium text-neutral-900 dark:text-neutral-50">
-          {entry.itemName}
-        </Text>
-        <View className="flex-row items-center">
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-            {entry.amount} {entry.unit}
-          </Text>
-          <View className="w-1 h-1 rounded-full bg-neutral-300 mx-2" />
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-            {WASTE_REASON_LABELS[entry.reason]}
-          </Text>
-        </View>
-      </View>
-
-      <View className="items-end">
-        <Text className="text-base font-medium text-red-500">
-          -${entry.estimatedValue.toFixed(2)}
-        </Text>
-        <Text className="text-xs text-neutral-400 dark:text-neutral-500">
-          {formatDate(entry.date)}
-        </Text>
-      </View>
-
-      {onDelete && (
-        <TouchableOpacity onPress={onDelete} className="ml-2 p-2">
-          <Ionicons name="trash-outline" size={18} color="#A3A3A3" />
-        </TouchableOpacity>
-      )}
+      <RNText className="text-ink" style={{ fontFamily: FONT.sansSemi, fontSize: 14 }}>
+        ${entry.estimatedValue.toFixed(2)}
+      </RNText>
+      {onDelete ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('planWaste.deleteEntry', 'Delete {{name}}', { name: entry.itemName })}
+          onPress={onDelete}
+          className="items-center justify-center"
+          style={({ pressed }) => ({ width: 44, height: 44, marginRight: -10, opacity: pressed ? 0.6 : 1 })}
+        >
+          <Icon name="trash" color="subtle" />
+        </Pressable>
+      ) : null}
     </View>
   );
 };
 
-// Waste reason breakdown chart
 interface WasteBreakdownProps {
   wasteByReason: Record<WasteReason, number>;
 }
 
-export const WasteBreakdown: React.FC<WasteBreakdownProps> = ({
-  wasteByReason,
-}) => {
-  const themeColors = useThemeColors();
+/** Waste by reason as labelled progress bars. */
+export const WasteBreakdown: React.FC<WasteBreakdownProps> = ({ wasteByReason }) => {
+  const { t } = useTranslation();
   const total = Object.values(wasteByReason).reduce((a, b) => a + b, 0);
   if (total === 0) return null;
-
   const reasons = Object.entries(wasteByReason)
-    .filter(([_, count]) => count > 0)
+    .filter(([, count]) => count > 0)
     .sort((a, b) => b[1] - a[1]);
 
-  const colors: Record<WasteReason, string> = {
-    expired: '#EF4444',
-    spoiled: '#F59E0B',
-    leftover: '#3B82F6',
-    overcooked: '#8B5CF6',
-    other: '#6B7280',
-  };
-
   return (
-    <View>
-      <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">
-        Waste by Reason
-      </Text>
-
+    <View style={{ gap: 12 }}>
+      <Title>{t('planWaste.byReason', 'Waste by reason')}</Title>
       {reasons.map(([reason, count]) => {
-        const percentage = Math.round((count / total) * 100);
+        const pct = Math.round((count / total) * 100);
         return (
-          <View key={reason} className="mb-3">
-            <View className="flex-row justify-between mb-1">
-              <Text className="text-sm text-neutral-700 dark:text-neutral-300">
-                {WASTE_REASON_LABELS[reason as WasteReason]}
-              </Text>
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-                {count} ({percentage}%)
-              </Text>
+          <View key={reason} style={{ gap: 6 }}>
+            <View className="flex-row justify-between">
+              <Muted small>{WASTE_REASON_LABELS[reason as WasteReason]}</Muted>
+              <Muted small>{`${count} (${pct}%)`}</Muted>
             </View>
-            <View className="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
-              <View
-                style={{
-                  width: `${percentage}%`,
-                  backgroundColor: colors[reason as WasteReason],
-                }}
-                className="h-full rounded-full"
-              />
-            </View>
+            <ProgressBar value={pct / 100} variant="accent" label={WASTE_REASON_LABELS[reason as WasteReason]} />
           </View>
         );
       })}

@@ -12,8 +12,11 @@
  * @module stores/selectors/mealPlanSelectors
  */
 
-import { MealPlanStoreState } from '../mealPlanStore';
-import { ShoppingListItem, ShoppingCategory } from '@/types/mealplan';
+import { useMealPlanStore } from '../mealPlanStore';
+import { ShoppingListItem } from '@/types/mealplan';
+
+// The store module does not export its state interface, so derive it from the hook.
+type MealPlanStoreState = ReturnType<typeof useMealPlanStore.getState>;
 
 /**
  * Select the current meal plan

@@ -1,24 +1,27 @@
 import React, { memo } from 'react';
+import { Pressable, SectionList, SectionListData, Text as RNText, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  SectionList,
-  SectionListData,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
-import {
-  ShoppingListItem,
-  ShoppingCategory,
-  SHOPPING_CATEGORY_LABELS,
-} from '@/types/mealplan';
+  Check,
+  Divider,
+  Icon,
+  Muted,
+  ProgressBar,
+  SectionLabel,
+  Title,
+  UAvatar,
+  FONT,
+} from '@/components/ui';
+import { ShoppingListItem, ShoppingCategory, SHOPPING_CATEGORY_LABELS } from '@/types/mealplan';
+import { foodPhoto } from './foodPhoto';
 
 interface ShoppingListProps {
   items: ShoppingListItem[];
   onToggleItem: (itemId: string) => void;
   onItemPress?: (item: ShoppingListItem) => void;
   showPantryIndicator?: boolean;
+  /** Extra space under the list so the last row clears a bottom bar. */
+  bottomSpace?: number;
 }
 
 export const ShoppingList: React.FC<ShoppingListProps> = ({
@@ -26,61 +29,32 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
   onToggleItem,
   onItemPress,
   showPantryIndicator = true,
+  bottomSpace = 120,
 }) => {
-  // Group items by category
+  const { t } = useTranslation();
+
   const sections = React.useMemo(() => {
     const grouped = new Map<ShoppingCategory, ShoppingListItem[]>();
-
     items.forEach((item) => {
       const existing = grouped.get(item.category) || [];
       existing.push(item);
       grouped.set(item.category, existing);
     });
-
     const result: SectionListData<ShoppingListItem>[] = [];
-
     grouped.forEach((data, category) => {
-      result.push({
-        title: SHOPPING_CATEGORY_LABELS[category] || category,
-        data,
-      });
+      result.push({ title: SHOPPING_CATEGORY_LABELS[category] || category, data });
     });
-
-    // Sort sections alphabetically
     return result.sort((a, b) => a.title.localeCompare(b.title));
   }, [items]);
 
-  const renderItem = ({ item }: { item: ShoppingListItem }) => (
-    <ShoppingListRow
-      item={item}
-      onToggle={() => onToggleItem(item.id)}
-      onPress={onItemPress ? () => onItemPress(item) : undefined}
-      showPantryIndicator={showPantryIndicator}
-    />
-  );
-
-  const renderSectionHeader = ({
-    section,
-  }: {
-    section: SectionListData<ShoppingListItem>;
-  }) => (
-    <View className="bg-neutral-100 dark:bg-neutral-700 px-4 py-2">
-      <Text className="text-sm font-semibold text-neutral-600 dark:text-neutral-400 uppercase">
-        {section.title}
-      </Text>
-    </View>
-  );
-
   if (items.length === 0) {
     return (
-      <View className="flex-1 items-center justify-center py-12">
-        <Ionicons name="cart-outline" size={48} color="#D4D4D4" />
-        <Text className="text-neutral-400 dark:text-neutral-500 mt-4 text-center">
-          No items in your shopping list
-        </Text>
-        <Text className="text-neutral-400 dark:text-neutral-500 text-sm text-center mt-1">
-          Generate a meal plan to create your list
-        </Text>
+      <View className="flex-1 items-center justify-center" style={{ paddingVertical: 48, gap: 8 }}>
+        <Icon name="cart" size="lg" color="subtle" />
+        <Title center>{t('planShop.empty', 'No items in your shopping list')}</Title>
+        <Muted small center>
+          {t('planShop.emptyHint', 'Generate a meal plan to create your list')}
+        </Muted>
       </View>
     );
   }
@@ -89,12 +63,24 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
     <SectionList
       sections={sections}
       keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      stickySectionHeadersEnabled
+      renderItem={({ item }) => (
+        <ShoppingListRow
+          item={item}
+          onToggle={() => onToggleItem(item.id)}
+          onPress={onItemPress ? () => onItemPress(item) : undefined}
+          showPantryIndicator={showPantryIndicator}
+        />
+      )}
+      renderSectionHeader={({ section }) => (
+        <View className="bg-ground" style={{ paddingTop: 18, paddingBottom: 6 }}>
+          <SectionLabel>{section.title}</SectionLabel>
+        </View>
+      )}
+      ItemSeparatorComponent={Divider}
+      stickySectionHeadersEnabled={false}
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 100 }}
-      removeClippedSubviews={true}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomSpace }}
+      removeClippedSubviews
       maxToRenderPerBatch={20}
       updateCellsBatchingPeriod={50}
       initialNumToRender={10}
@@ -102,7 +88,6 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
   );
 };
 
-// Individual shopping list row
 interface ShoppingListRowProps {
   item: ShoppingListItem;
   onToggle: () => void;
@@ -110,102 +95,66 @@ interface ShoppingListRowProps {
   showPantryIndicator: boolean;
 }
 
-const ShoppingListRow: React.FC<ShoppingListRowProps> = memo(({
-  item,
-  onToggle,
-  onPress,
-  showPantryIndicator,
-}) => {
-  const colors = useThemeColors();
-  const needsToBuy = item.toBuy > 0;
+const ShoppingListRow: React.FC<ShoppingListRowProps> = memo(
+  ({ item, onToggle, onPress, showPantryIndicator }) => {
+    const { t } = useTranslation();
+    const needsToBuy = item.toBuy > 0;
+    const parts = [needsToBuy ? `${item.toBuy} ${item.unit}` : `${item.amount} ${item.unit}`];
+    if (showPantryIndicator && item.inPantry) {
+      parts.push(t('planShop.inPantryAmt', '{{amt}} {{unit}} in pantry', { amt: item.pantryAmount, unit: item.unit }));
+    }
+    if (item.recipeNames.length > 0) {
+      parts.push(t('planShop.forRecipes', 'For: {{names}}', { names: item.recipeNames.join(', ') }));
+    }
 
-  return (
-    <TouchableOpacity
-      onPress={onPress || onToggle}
-      className={`flex-row items-center px-4 py-3 bg-white dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700 ${
-        item.checked ? 'opacity-60' : ''
-      }`}
-    >
-      {/* Checkbox */}
-      <TouchableOpacity
-        onPress={onToggle}
-        className={`w-6 h-6 rounded-full border-2 items-center justify-center mr-3 ${
-          item.checked
-            ? 'bg-secondary-500 border-secondary-500'
-            : 'border-neutral-300'
-        }`}
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={item.name}
+        accessibilityState={{ checked: item.checked }}
+        onPress={onPress || onToggle}
+        className="flex-row items-center"
+        style={({ pressed }) => ({ minHeight: 64, gap: 14, opacity: item.checked ? 0.55 : pressed ? 0.7 : 1 })}
       >
-        {item.checked && (
-          <Ionicons name="checkmark" size={14} color="white" />
-        )}
-      </TouchableOpacity>
-
-      {/* Item info */}
-      <View className="flex-1">
-        <Text
-          className={`text-base ${
-            item.checked
-              ? 'text-neutral-400 dark:text-neutral-500 line-through'
-              : 'text-neutral-900 dark:text-neutral-50'
-          }`}
-        >
-          {item.name}
-        </Text>
-
-        <View className="flex-row items-center mt-0.5">
-          {/* Amount needed */}
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-            {needsToBuy
-              ? `${item.toBuy} ${item.unit}`
-              : `${item.amount} ${item.unit}`}
-          </Text>
-
-          {/* In pantry indicator */}
-          {showPantryIndicator && item.inPantry && (
-            <View className="flex-row items-center ml-2">
-              <View className="w-1.5 h-1.5 rounded-full bg-secondary-400 mr-1" />
-              <Text className="text-xs text-secondary-600">
-                {item.pantryAmount} {item.unit} in pantry
-              </Text>
-            </View>
-          )}
+        <UAvatar name={item.name} source={foodPhoto(item.name)} size={44} />
+        <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+          <RNText
+            className="text-ink"
+            numberOfLines={1}
+            style={{
+              fontFamily: FONT.display,
+              fontSize: 15,
+              textDecorationLine: item.checked ? 'line-through' : 'none',
+            }}
+          >
+            {item.name}
+          </RNText>
+          <Muted small numberOfLines={2}>
+            {parts.join(' · ')}
+          </Muted>
         </View>
-
-        {/* Used in recipes */}
-        {item.recipeNames.length > 0 && (
-          <Text className="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5" numberOfLines={1}>
-            For: {item.recipeNames.join(', ')}
-          </Text>
-        )}
-      </View>
-
-      {/* Multi-recipe indicator */}
-      {item.recipes.length > 1 && (
-        <View className="bg-primary-100 px-2 py-1 rounded-full ml-2">
-          <Text className="text-xs font-medium" style={{ color: colors.accent }}>
+        {item.recipes.length > 1 ? (
+          <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12 }}>
             x{item.recipes.length}
-          </Text>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-}, (prevProps, nextProps) => {
-  // Only re-render if item changed or handlers changed
-  return (
-    prevProps.item.id === nextProps.item.id &&
-    prevProps.item.checked === nextProps.item.checked &&
-    prevProps.item.name === nextProps.item.name &&
-    prevProps.item.amount === nextProps.item.amount &&
-    prevProps.item.toBuy === nextProps.item.toBuy &&
-    prevProps.showPantryIndicator === nextProps.showPantryIndicator &&
-    prevProps.onToggle === nextProps.onToggle &&
-    prevProps.onPress === nextProps.onPress
-  );
-});
+          </RNText>
+        ) : null}
+        <Check checked={item.checked} onChange={onToggle} label={item.name} />
+      </Pressable>
+    );
+  },
+  (prev, next) =>
+    prev.item.id === next.item.id &&
+    prev.item.checked === next.item.checked &&
+    prev.item.name === next.item.name &&
+    prev.item.amount === next.item.amount &&
+    prev.item.toBuy === next.item.toBuy &&
+    prev.showPantryIndicator === next.showPantryIndicator &&
+    prev.onToggle === next.onToggle &&
+    prev.onPress === next.onPress
+);
 
 ShoppingListRow.displayName = 'ShoppingListRow';
 
-// Shopping list summary component
 interface ShoppingListSummaryProps {
   totalItems: number;
   checkedItems: number;
@@ -213,47 +162,19 @@ interface ShoppingListSummaryProps {
   itemsToBuy: number;
 }
 
-export const ShoppingListSummary: React.FC<ShoppingListSummaryProps> = ({
-  totalItems,
-  checkedItems,
-  itemsInPantry,
-  itemsToBuy,
-}) => {
-  const colors = useThemeColors();
-  const progress = totalItems > 0 ? (checkedItems / totalItems) * 100 : 0;
-
+/** Progress bar with a one-line count; the filter counts themselves live in the screen's segmented control. */
+export const ShoppingListSummary: React.FC<ShoppingListSummaryProps> = ({ totalItems, checkedItems, itemsToBuy }) => {
+  const { t } = useTranslation();
   return (
-    <View className="bg-white dark:bg-neutral-800 p-4 border-b border-neutral-100 dark:border-neutral-700">
-      {/* Progress bar */}
-      <View className="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden mb-3">
-        <View
-          style={{ width: `${progress}%` }}
-          className="h-full bg-secondary-500 rounded-full"
-        />
-      </View>
-
-      {/* Stats */}
-      <View className="flex-row justify-between">
-        <View className="items-center">
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
-            {checkedItems}/{totalItems}
-          </Text>
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400">Checked</Text>
-        </View>
-
-        <View className="items-center">
-          <Text className="text-lg font-bold text-secondary-600">
-            {itemsInPantry}
-          </Text>
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400">In Pantry</Text>
-        </View>
-
-        <View className="items-center">
-          <Text className="text-lg font-bold" style={{ color: colors.accent }}>
-            {itemsToBuy}
-          </Text>
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400">To Buy</Text>
-        </View>
+    <View style={{ gap: 8 }}>
+      <ProgressBar
+        value={totalItems > 0 ? checkedItems / totalItems : 0}
+        variant="accent"
+        label={t('planShop.progress', 'Checked off')}
+      />
+      <View className="flex-row items-center justify-between">
+        <Muted small>{t('planShop.checkedOf', '{{a}} of {{b}} checked', { a: checkedItems, b: totalItems })}</Muted>
+        <Muted small>{t('planShop.toBuyN', '{{n}} to buy', { n: itemsToBuy })}</Muted>
       </View>
     </View>
   );
