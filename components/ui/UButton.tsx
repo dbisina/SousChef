@@ -5,15 +5,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { FONT } from './fonts';
 import { useColor, useTokens } from './tone';
+import { FIXED } from '@/stores/themeStore';
 import type { IconName } from './icons';
 
 export type UButtonVariant = 'primary' | 'accent' | 'white' | 'ghost';
 
+// bg / fg / icon are color keys (token or FIXED names) resolved to hex with useColor. The Pressable
+// carries no className: NativeWind drops a function `style` (height, radius) on a Pressable that has one.
 const FILL: Record<UButtonVariant, { bg: string; fg: string; icon: string }> = {
-  primary: { bg: 'bg-ink', fg: 'text-ink-inverse', icon: 'ink-inverse' },
-  accent: { bg: 'bg-accent', fg: 'text-accent-ink', icon: 'accent-ink' },
-  white: { bg: 'bg-paper', fg: 'text-night', icon: 'night' },
-  ghost: { bg: 'bg-surface-2', fg: 'text-ink', icon: 'ink' },
+  primary: { bg: 'ink', fg: 'ink-inverse', icon: 'ink-inverse' },
+  accent: { bg: 'accent', fg: 'accent-ink', icon: 'accent-ink' },
+  white: { bg: 'paper', fg: 'night', icon: 'night' },
+  ghost: { bg: 'surface-2', fg: 'ink', icon: 'ink' },
 };
 
 interface UButtonProps {
@@ -49,6 +52,8 @@ export function UButton({
   const h = sm ? 44 : 58;
   const inactive = disabled || loading;
   const spin = useColor(f.icon);
+  const bg = useColor(f.bg);
+  const fg = useColor(f.fg);
   return (
     <Pressable
       accessibilityRole="button"
@@ -56,9 +61,12 @@ export function UButton({
       accessibilityState={{ disabled: !!inactive, busy: !!loading }}
       disabled={inactive}
       onPress={onPress}
-      className={`flex-row items-center justify-center ${f.bg}`}
       style={({ pressed }) => [
         {
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: bg,
           height: h,
           borderRadius: h / 2,
           gap: 10,
@@ -75,16 +83,22 @@ export function UButton({
         <>
           {icon ? <Icon name={icon} size={sm ? 'sm' : 'md'} color={f.icon} /> : null}
           <RNText
-            className={f.fg}
             numberOfLines={1}
-            style={{ fontFamily: FONT.display, fontSize: sm ? 14 : 16, letterSpacing: -0.16 }}
+            style={{ fontFamily: FONT.display, fontSize: sm ? 14 : 16, letterSpacing: -0.16, color: fg }}
           >
             {label}
           </RNText>
           {trailingIcon ? (
             <View
-              className="items-center justify-center bg-night"
-              style={{ width: 46, height: 46, borderRadius: 23, marginRight: -12 }}
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: 23,
+                marginRight: -12,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: FIXED.night,
+              }}
             >
               <Icon name={trailingIcon} color="paper" />
             </View>

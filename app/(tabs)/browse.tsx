@@ -231,6 +231,7 @@ export default function BrowseScreen() {
           </>
         }
         topRight={saveButton(featured)}
+        glassBarTone="dark"
         glassBar={
           <>
             <View className="flex-1" style={{ minWidth: 0 }}>

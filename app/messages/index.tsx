@@ -54,7 +54,6 @@ export default function MessagesScreen() {
     <Screen>
       <TopBar
         title={t('messages.title', 'Messages')}
-        onBack={() => router.back()}
         right={
           <UIconButton
             tone="black"

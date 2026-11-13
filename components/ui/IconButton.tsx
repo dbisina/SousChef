@@ -2,15 +2,16 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Icon, type IconSize } from './Icon';
 import { Glass } from './Glass';
+import { useColor } from './tone';
 import type { IconName } from './icons';
 
 export type IconButtonTone = 'default' | 'black' | 'accent' | 'white' | 'glass' | 'glassDark';
 
 const FILL: Record<Exclude<IconButtonTone, 'glass' | 'glassDark'>, string> = {
-  default: 'bg-surface-2',
-  black: 'bg-night',
-  accent: 'bg-accent',
-  white: 'bg-paper',
+  default: 'surface-2',
+  black: 'night',
+  accent: 'accent',
+  white: 'paper',
 };
 
 const ICON_COLOR: Record<IconButtonTone, string> = {
@@ -37,6 +38,7 @@ interface UIconButtonProps {
 
 /** Round icon button (.ib / .ic). Min hit area 44. */
 export function UIconButton({ icon, label, onPress, tone = 'default', size = 46, iconSize = 'md', filled, disabled }: UIconButtonProps) {
+  const fill = useColor(tone === 'glass' || tone === 'glassDark' ? undefined : FILL[tone]);
   const dim = { width: size, height: size, borderRadius: size / 2 };
   const glyph = <Icon name={icon} size={iconSize} color={ICON_COLOR[tone]} filled={filled} />;
   return (
@@ -54,7 +56,7 @@ export function UIconButton({ icon, label, onPress, tone = 'default', size = 46,
           {glyph}
         </Glass>
       ) : (
-        <View className={`items-center justify-center ${FILL[tone]}`} style={dim}>
+        <View style={[dim, { alignItems: 'center', justifyContent: 'center', backgroundColor: fill }]}>
           {glyph}
         </View>
       )}

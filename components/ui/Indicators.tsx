@@ -41,14 +41,22 @@ interface StepperProps {
 
 /** .stp: 46px pill with round minus/plus buttons. */
 export function Stepper({ value, onChange, min = 0, max = 99, label }: StepperProps) {
+  const raise = useColor('raise');
   const btn = (icon: 'minus' | 'plus', delta: number, disabled: boolean) => (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={`${delta < 0 ? 'Fewer' : 'More'} ${label}`}
       disabled={disabled}
       onPress={() => onChange(value + delta)}
-      className="items-center justify-center bg-raise"
-      style={{ width: 36, height: 36, borderRadius: 18, opacity: disabled ? 0.4 : 1 }}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: raise,
+        opacity: disabled ? 0.4 : 1,
+      }}
       hitSlop={4}
     >
       <Icon name={icon} size="sm" />

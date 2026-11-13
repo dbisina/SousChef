@@ -17,11 +17,10 @@ import {
   Tag,
   UButton,
   UIconButton,
-  useTokens,
   type IconName,
 } from '@/components/ui';
 import { SAMPLE } from '@/assets/sample';
-import { FIXED } from '@/stores/themeStore';
+import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
 
 const ONBOARDING_KEY = '@souschef_onboarding_complete';
 
@@ -90,7 +89,9 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const tokens = useTokens();
+  // This component renders the forced-dark <Screen>, so it sits above that ToneScope: useTokens() here
+  // would return the app theme (light) and turn the Skip label and photo fade white. Use the dark table.
+  const tokens = TOKEN_HEX.dark;
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<Slide>>(null);
   const [index, setIndex] = useState(0);
@@ -239,7 +240,7 @@ export default function OnboardingScreen() {
         )}
         <Pressable accessibilityRole="button" accessibilityLabel={skipLabel} onPress={completeOnboarding} hitSlop={4}>
           <Glass dark style={{ height: 42, borderRadius: 21, paddingHorizontal: 18, justifyContent: 'center' }}>
-            <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: tokens['ink'] }}>{skipLabel}</RNText>
+            <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.paper }}>{skipLabel}</RNText>
           </Glass>
         </Pressable>
       </View>

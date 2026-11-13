@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, StyleSheet, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ToneBlock, useTone } from './tone';
 import { FONT } from './fonts';
 import type { ThemeMode } from '@/stores/themeStore';
@@ -43,11 +43,16 @@ function Surface({
 }: SurfaceProps & { radius: number; pad: number; selected?: boolean }) {
   const current = useTone();
   const sub = SUBTREE[tone] ?? current;
+  // When pressable, the Pressable is the layout box (width / flex / margins); the surface fills it.
+  const flat: ViewStyle = StyleSheet.flatten(style) ?? {};
+  const { width, flex, flexGrow, flexShrink, flexBasis, alignSelf, ...visual } = flat;
+  const outer: ViewStyle = { width, flex, flexGrow, flexShrink, flexBasis, alignSelf };
+  const innerStyle: StyleProp<ViewStyle> = onPress ? visual : style;
   const body = (
     <ToneBlock
       tone={sub}
       className={`${selected ? 'bg-ground border-[1.5px] border-ink' : FILL[tone]} ${className ?? ''}`}
-      style={[{ borderRadius: radius, padding: pad }, style]}
+      style={[{ borderRadius: radius, padding: pad }, innerStyle, onPress ? { flexGrow: 1 } : null]}
     >
       {children}
     </ToneBlock>
@@ -58,7 +63,7 @@ function Surface({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={onPress}
-      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+      style={({ pressed }) => [outer, { opacity: pressed ? 0.85 : 1 }]}
     >
       {body}
     </Pressable>

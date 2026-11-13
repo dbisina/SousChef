@@ -1,9 +1,9 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text as RNText, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, Text as RNText, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { FONT } from './fonts';
-import { ToneBlock, useTone } from './tone';
+import { ToneBlock, useColor, useTone } from './tone';
 import { FIXED } from '@/stores/themeStore';
 import type { IconName } from './icons';
 
@@ -95,9 +95,12 @@ interface SheetProps {
 export function Sheet({ visible, onClose, title, children }: SheetProps) {
   const tone = useTone();
   const insets = useSafeAreaInsets();
+  const { height: winH } = useWindowDimensions();
+  const bg = useColor('ground');
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <ToneBlock tone={tone} style={{ flex: 1, justifyContent: 'flex-end' }}>
+      {/* Absolute fill (not flex:1): the modal root has no definite height on web, so flex:1 / maxHeight:% let the sheet grow past the viewport. */}
+      <ToneBlock tone={tone} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'flex-end' }}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Close ${title}`}
@@ -107,15 +110,15 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
         <View
           accessibilityViewIsModal
           accessibilityLabel={title}
-          className="bg-ground"
           style={{
+            backgroundColor: bg,
             borderTopLeftRadius: 34,
             borderTopRightRadius: 34,
             paddingTop: 24,
             paddingHorizontal: 20,
             paddingBottom: Math.max(insets.bottom, 20),
             gap: 16,
-            maxHeight: '88%',
+            maxHeight: Math.round(winH * 0.88),
           }}
         >
           {children}

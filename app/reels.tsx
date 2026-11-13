@@ -64,6 +64,7 @@ export default function ReelsScreen() {
           <Muted center>{t('reels.emptyFollowing', 'Follow cooks to see their reels here.')}</Muted>
         </View>
       ) : (
+        <View style={{ flex: 1, overflow: 'hidden' }}>
         <FlatList
           data={list}
           keyExtractor={(r) => r.id}
@@ -78,8 +79,9 @@ export default function ReelsScreen() {
           viewabilityConfig={viewConfig}
           extraData={current}
         />
+        </View>
       )}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 3 }} pointerEvents="box-none">
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, elevation: 10 }} pointerEvents="box-none">
         <TopBar
           variant="compact"
           left={<UIconButton tone="glassDark" icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />}

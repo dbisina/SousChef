@@ -102,11 +102,21 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
               onPress={() => toggleFollow(author.id)}
               hitSlop={6}
             >
-              <Glass dark style={{ height: 32, borderRadius: 16, paddingHorizontal: 14, justifyContent: 'center' }}>
-                <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.paper }}>
+              <View
+                style={{
+                  height: 32,
+                  borderRadius: 16,
+                  paddingHorizontal: 14,
+                  justifyContent: 'center',
+                  backgroundColor: following ? FIXED.glassDark : FIXED.paper,
+                  borderWidth: following ? 1 : 0,
+                  borderColor: FIXED.glassEdge,
+                }}
+              >
+                <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: following ? FIXED.paper : FIXED.night }}>
                   {following ? t('reels.following', 'Following') : t('reels.follow', 'Follow')}
                 </RNText>
-              </Glass>
+              </View>
             </Pressable>
           </View>
         ) : null}

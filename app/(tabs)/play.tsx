@@ -118,8 +118,8 @@ export default function PlayScreen() {
 
         <UCard tone="black" onPress={() => go('/play/daily-dish')} accessibilityLabel={t('play.dailyDish', 'Daily Dish #{{n}}', { n: puzzleNumber })} style={{ padding: 14, borderRadius: 26 }}>
           <View className="flex-row items-center" style={{ gap: 14 }}>
-            <View className="items-center justify-center bg-tag-o" style={{ width: 52, height: 52, borderRadius: 26 }}>
-              <Icon name="grid" color="tag-o-fg" />
+            <View style={{ width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: FIXED.accent }}>
+              <Icon name="grid" color="night" />
             </View>
             <View className="flex-1" style={{ minWidth: 0 }}>
               <Title>{t('play.dailyDish', 'Daily Dish #{{n}}', { n: puzzleNumber })}</Title>

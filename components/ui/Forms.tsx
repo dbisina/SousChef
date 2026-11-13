@@ -19,8 +19,16 @@ export function UInput({ icon, right, label, ...rest }: UInputProps) {
   const t = useTokens();
   return (
     <View
-      className="flex-row items-center bg-surface-2"
-      style={{ height: 56, borderRadius: 28, paddingStart: 20, paddingRight: 6, gap: 10 }}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: t['surface-2'],
+        height: 56,
+        borderRadius: 28,
+        paddingStart: 20,
+        paddingRight: 6,
+        gap: 10,
+      }}
     >
       {icon ? <Icon name={icon} color="muted" /> : null}
       <TextInput
@@ -28,8 +36,7 @@ export function UInput({ icon, right, label, ...rest }: UInputProps) {
         placeholderTextColor={FIXED.placeholder}
         selectionColor={t.accent}
         {...rest}
-        className="flex-1 text-ink"
-        style={{ fontFamily: FONT.sans, fontSize: 15, height: '100%', minWidth: 0 }}
+        style={{ flex: 1, color: t.ink, fontFamily: FONT.sans, fontSize: 15, height: '100%', minWidth: 0 }}
       />
       {right}
     </View>
@@ -46,7 +53,7 @@ export function Field({ label, error, multiline, ...rest }: FieldProps) {
   const t = useTokens();
   return (
     <View style={{ gap: 7, minWidth: 0 }}>
-      <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12, paddingStart: 4 }}>
+      <RNText style={{ color: t.muted, fontFamily: FONT.sansMedium, fontSize: 12, paddingStart: 4 }}>
         {label}
       </RNText>
       <TextInput
@@ -55,8 +62,9 @@ export function Field({ label, error, multiline, ...rest }: FieldProps) {
         selectionColor={t.accent}
         multiline={multiline}
         {...rest}
-        className="bg-surface-2 text-ink"
         style={{
+          backgroundColor: t['surface-2'],
+          color: t.ink,
           height: multiline ? 80 : 54,
           borderRadius: 18,
           paddingHorizontal: 18,
@@ -67,7 +75,7 @@ export function Field({ label, error, multiline, ...rest }: FieldProps) {
         }}
       />
       {error ? (
-        <RNText className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, paddingStart: 4 }}>
+        <RNText style={{ color: t['tag-r-fg'], fontFamily: FONT.sans, fontSize: 12, paddingStart: 4 }}>
           {error}
         </RNText>
       ) : null}
@@ -83,11 +91,11 @@ interface SegmentedProps<T extends string> {
 
 /** .seg: pill group, 46px segments, selected = ink fill. */
 export function Segmented<T extends string>({ options, value, onChange }: SegmentedProps<T>) {
+  const t = useTokens();
   return (
     <View
       accessibilityRole="tablist"
-      className="flex-row bg-surface-2"
-      style={{ borderRadius: 27, padding: 4 }}
+      style={{ flexDirection: 'row', backgroundColor: t['surface-2'], borderRadius: 27, padding: 4 }}
     >
       {options.map((o) => {
         const on = o.value === value;
@@ -98,13 +106,20 @@ export function Segmented<T extends string>({ options, value, onChange }: Segmen
             accessibilityLabel={o.label}
             accessibilityState={{ selected: on }}
             onPress={() => onChange(o.value)}
-            className={`flex-1 flex-row items-center justify-center ${on ? 'bg-ink' : ''}`}
-            style={{ height: 46, borderRadius: 23, gap: 6 }}
+            style={{
+              flex: 1,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: on ? t.ink : 'transparent',
+              height: 46,
+              borderRadius: 23,
+              gap: 6,
+            }}
           >
             {o.icon ? <Icon name={o.icon} size="sm" color={on ? 'ink-inverse' : 'muted'} /> : null}
             <RNText
-              className={on ? 'text-ink-inverse' : 'text-muted'}
-              style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}
+              style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: on ? t['ink-inverse'] : t.muted }}
               numberOfLines={1}
             >
               {o.label}
@@ -126,7 +141,8 @@ interface USwitchProps {
 /** .sw: 50x30 track. On = ink (light) / orange (dark). */
 export function USwitch({ value, onValueChange, label, disabled }: USwitchProps) {
   const dark = useTone() === 'dark';
-  const track = value ? (dark ? 'bg-accent' : 'bg-ink') : dark ? 'bg-track' : 'bg-line';
+  const t = useTokens();
+  const track = value ? (dark ? t.accent : t.ink) : dark ? t.track : t.line;
   return (
     <Pressable
       accessibilityRole="switch"
@@ -135,12 +151,11 @@ export function USwitch({ value, onValueChange, label, disabled }: USwitchProps)
       disabled={disabled}
       onPress={() => onValueChange(!value)}
       hitSlop={7}
-      className={track}
-      style={{ width: 50, height: 30, borderRadius: 15, opacity: disabled ? 0.4 : 1 }}
+      style={{ width: 50, height: 30, borderRadius: 15, backgroundColor: track, opacity: disabled ? 0.4 : 1 }}
     >
       <View
-        className="bg-paper"
         style={{
+          backgroundColor: FIXED.paper,
           position: 'absolute',
           top: 3,
           left: value ? 23 : 3,
@@ -167,6 +182,7 @@ interface CheckProps {
 /** .ck: 26px round check. Checked = ink fill (light) / orange fill (dark). */
 export function Check({ checked, onChange, label }: CheckProps) {
   const dark = useTone() === 'dark';
+  const t = useTokens();
   return (
     <Pressable
       accessibilityRole="checkbox"
@@ -175,8 +191,16 @@ export function Check({ checked, onChange, label }: CheckProps) {
       disabled={!onChange}
       onPress={() => onChange?.(!checked)}
       hitSlop={9}
-      className={`items-center justify-center ${checked ? (dark ? 'bg-accent' : 'bg-ink') : 'border-[1.5px] border-line'}`}
-      style={{ width: 26, height: 26, borderRadius: 13 }}
+      style={{
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: checked ? (dark ? t.accent : t.ink) : 'transparent',
+        borderWidth: checked ? 0 : 1.5,
+        borderColor: t.line,
+      }}
     >
       {checked ? <Icon name="check" size="sm" color={dark ? 'accent-ink' : 'ink-inverse'} /> : null}
     </Pressable>
