@@ -21,7 +21,7 @@ interface InputProps extends TextInputProps {
   variant?: 'default' | 'glass';
 }
 
-export const Input = forwardRef<TextInput, InputProps>(
+export const Input = forwardRef<React.ComponentRef<typeof TextInput>, InputProps>(
   (
     {
       label,
@@ -164,7 +164,7 @@ interface SearchInputProps extends TextInputProps {
   onClear?: () => void;
 }
 
-export const SearchInput = forwardRef<TextInput, SearchInputProps>(
+export const SearchInput = forwardRef<React.ComponentRef<typeof TextInput>, SearchInputProps>(
   ({ onClear, value, className, ...props }, ref) => {
     return (
       <View

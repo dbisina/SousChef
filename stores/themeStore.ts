@@ -213,7 +213,7 @@ interface ThemeStore {
   syncSystemTheme: () => void;
 }
 
-const getEffective = (theme: ThemeOption, system: ColorSchemeName): ThemeMode => {
+const getEffective = (theme: ThemeOption, system: ColorSchemeName | null | undefined): ThemeMode => {
   if (theme === 'system') return system === 'dark' ? 'dark' : 'light';
   return theme;
 };

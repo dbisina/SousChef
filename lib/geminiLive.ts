@@ -6,8 +6,8 @@
  *
  * Architecture:
  * - WebSocket connection to Gemini's multimodal live endpoint
- * - Audio capture via expo-av (PCM 16-bit, 16kHz mono)
- * - Audio playback via expo-av for Gemini's voice responses
+ * - Audio capture via expo-audio (PCM 16-bit, 16kHz mono)
+ * - Audio playback via expo-audio for Gemini's voice responses
  * - Optional camera frames sent as base64 JPEG
  * - Session context maintained server-side for natural conversation flow
  *
@@ -17,7 +17,17 @@
  *   voice stream → Gemini Live → voice stream back (real-time)
  */
 
-import { Audio } from 'expo-av';
+import {
+  createAudioPlayer,
+  setAudioModeAsync,
+  AudioQuality,
+  IOSOutputFormat,
+  type AudioPlayer,
+  type AudioRecorder,
+  type RecordingOptions,
+} from 'expo-audio';
+// The recorder is created imperatively (this class is not a component, so useAudioRecorder is unavailable).
+import AudioModule from 'expo-audio/build/AudioModule';
 import { cacheDirectory } from 'expo-file-system/legacy';
 
 // ── Configuration ──
@@ -60,8 +70,8 @@ export class GeminiLiveSession {
   private state: ConnectionState = 'disconnected';
   private callbacks: LiveSessionCallbacks;
   private config: LiveSessionConfig;
-  private recording: Audio.Recording | null = null;
-  private audioPlayer: Audio.Sound | null = null;
+  private recording: AudioRecorder | null = null;
+  private audioPlayer: AudioPlayer | null = null;
   private isRecording = false;
   private isSpeaking = false;
   private textBuffer = '';
@@ -289,34 +299,36 @@ export class GeminiLiveSession {
     if (this.isRecording) return;
 
     try {
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       });
 
-      const { recording } = await Audio.Recording.createAsync({
-        isMeteringEnabled: false,
+      const options: RecordingOptions = {
+        extension: '.wav',
+        sampleRate: 16000,
+        numberOfChannels: 1,
+        bitRate: 256000,
         android: {
           extension: '.wav',
-          outputFormat: Audio.AndroidOutputFormat.DEFAULT,
-          audioEncoder: Audio.AndroidAudioEncoder.DEFAULT,
+          outputFormat: 'default',
+          audioEncoder: 'default',
           sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
         },
         ios: {
           extension: '.wav',
-          outputFormat: Audio.IOSOutputFormat.LINEARPCM,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
+          outputFormat: IOSOutputFormat.LINEARPCM,
+          audioQuality: AudioQuality.HIGH,
           sampleRate: 16000,
-          numberOfChannels: 1,
-          bitRate: 256000,
           linearPCMBitDepth: 16,
           linearPCMIsBigEndian: false,
           linearPCMIsFloat: false,
         },
         web: {},
-      });
+      };
+      const recording = new AudioModule.AudioRecorder(options);
+      await recording.prepareToRecordAsync();
+      recording.record();
 
       this.recording = recording;
       this.isRecording = true;
@@ -336,7 +348,7 @@ export class GeminiLiveSession {
 
     this.isRecording = false;
     try {
-      await this.recording.stopAndUnloadAsync();
+      await this.recording.stop();
       this.recording = null;
     } catch (error) {
       console.warn('[GeminiLive] Recording stop error:', error);
@@ -346,7 +358,7 @@ export class GeminiLiveSession {
   private startAudioStreaming(): void {
     // Audio streaming is handled by the recording's onRecordingStatusUpdate
     // In the real implementation, you'd send audio chunks periodically
-    // For React Native, expo-av doesn't support raw PCM streaming directly,
+    // For React Native, expo-audio doesn't support raw PCM streaming directly,
     // so we use a record-send-record cycle
   }
 
@@ -362,18 +374,16 @@ export class GeminiLiveSession {
 
       // Create a Sound from the audio data
       // Note: In production, you'd use a streaming audio player
-      const { sound } = await Audio.Sound.createAsync(
-        { uri: `data:audio/wav;base64,${audioBase64}` },
-        { shouldPlay: true }
-      );
+      const sound = createAudioPlayer({ uri: `data:audio/wav;base64,${audioBase64}` });
+      sound.play();
 
       this.audioPlayer = sound;
       this.isSpeaking = true;
 
-      sound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
+      sound.addListener('playbackStatusUpdate', (status) => {
+        if (status.didJustFinish) {
           this.isSpeaking = false;
-          sound.unloadAsync();
+          sound.remove();
         }
       });
     } catch (error) {
@@ -385,8 +395,8 @@ export class GeminiLiveSession {
   async stopPlayback(): Promise<void> {
     if (this.audioPlayer) {
       try {
-        await this.audioPlayer.stopAsync();
-        await this.audioPlayer.unloadAsync();
+        this.audioPlayer.pause();
+        this.audioPlayer.remove();
       } catch { /* already unloaded */ }
       this.audioPlayer = null;
       this.isSpeaking = false;

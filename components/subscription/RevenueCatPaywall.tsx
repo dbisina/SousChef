@@ -2,6 +2,7 @@ import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { RevenueCatUI, PAYWALL_RESULT } from '@/lib/revenuecat';
 import { PurchasesOffering, PurchasesError } from 'react-native-purchases';
+import { CustomVariableValue } from 'react-native-purchases-ui';
 
 interface RevenueCatPaywallProps {
   offering?: PurchasesOffering;
@@ -68,7 +69,11 @@ export const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
 
   const paywallOptions = {
     ...(offering && { offering }),
-    ...(customVariables && { customVariables }),
+    ...(customVariables && {
+      customVariables: Object.fromEntries(
+        Object.entries(customVariables).map(([k, v]) => [k, CustomVariableValue.string(v)])
+      ),
+    }),
   };
 
   return (

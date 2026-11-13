@@ -64,7 +64,7 @@ export const useVoiceControl = () => {
   const { subscriptionTier } = useSubscriptionStore();
   const [isInitialized, setIsInitialized] = useState(false);
   const [accessDenied, setAccessDenied] = useState<VoiceAccessResult | null>(null);
-  const appStateRef = useRef(AppState.currentState);
+  const appStateRef = useRef<string>(AppState.currentState ?? 'active');
   const wakeWordCallbackRef = useRef<((command: string) => void) | null>(null);
 
   // Initialize voice recognition

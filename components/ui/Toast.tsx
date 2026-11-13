@@ -22,7 +22,7 @@ const TYPE_CONFIG: Record<ToastType, { icon: string; color: string; bg: string }
   warning: { icon: 'warning', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.1)' },
 };
 
-export const Toast: React.FC = memo(() => {
+export const Toast: React.FC = memo(function Toast() {
   const { visible, message, type, title, hideToast } = useToastStore();
   const colors = useThemeColors();
   const translateY = useSharedValue(-100);

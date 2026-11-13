@@ -192,7 +192,7 @@ const PHASE_CONFIG: Record<ThinkingPhase, { label: string; icon: string }> = {
 const ThinkingNotesView: React.FC<{ accentColor: string }> = ({ accentColor }) => {
   const notes = useWantToCookStore((s) => s.thinkingNotes);
   const phase = useWantToCookStore((s) => s.thinkingPhase);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   useEffect(() => {
     // Auto-scroll to bottom when new notes arrive

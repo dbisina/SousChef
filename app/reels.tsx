@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, Pressable, Text as RNText, View, useWindowDimensions, type ViewToken } from 'react-native';
+import { FlatList, Pressable, Text as RNText, View, useWindowDimensions, type ListViewToken as ViewToken } from 'react-native';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Glass, Muted, Screen, TopBar, UIconButton } from '@/components/ui';

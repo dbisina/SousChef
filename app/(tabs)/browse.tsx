@@ -403,7 +403,7 @@ export default function BrowseScreen() {
           onEndReachedThreshold={0.5}
           ListHeaderComponent={renderListHeader}
           ListFooterComponent={renderFooter}
-          ListEmptyComponent={featured ? null : renderEmpty}
+          ListEmptyComponent={featured ? undefined : renderEmpty}
         />
       ) : (
         <FlatList

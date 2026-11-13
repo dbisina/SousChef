@@ -177,7 +177,7 @@ export const RadialFAB: React.FC<RadialFABProps> = ({ actions }) => {
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill as object,
     backgroundColor: 'black',
     zIndex: 998,
   },

@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, Text as RNText, View, useWindowDimensions, type ViewToken } from 'react-native';
+import { FlatList, Image, Pressable, Text as RNText, View, useWindowDimensions, type ListViewToken as ViewToken } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -98,7 +98,7 @@ export default function OnboardingScreen() {
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     const first = viewableItems[0];
-    if (first && first.index !== null) setIndex(first.index);
+    if (first && typeof first.index === 'number') setIndex(first.index);
   }, []);
   const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 

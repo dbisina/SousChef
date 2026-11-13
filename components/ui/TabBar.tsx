@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, Pressable, Text as RNText, View } from 'react-native';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
@@ -40,7 +40,7 @@ const PARENT: Record<string, string> = {
  * Floating nav pill (tokens.css .nav): 70px, 7px padding, black; dark theme #1C1C1C with a 1px #2A2A2A edge.
  * Active tab = white pill with label; Create = orange circle that opens /create.
  */
-export function TabBar({ state, navigation }: BottomTabBarProps) {
+export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tone = useTone();
@@ -99,8 +99,8 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
           const onPress = () => {
             const target = state.routes.find((r) => r.name === route);
             if (!target) return;
-            const event = navigation.emit({ type: 'tabPress', target: target.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route);
+            const event = emitter.emit({ type: 'tabPress', target: target.key, canPreventDefault: true });
+            if (!focused && !event.defaultPrevented) navigateToTab(target.key);
           };
           return (
             <Pressable

@@ -21,7 +21,7 @@ export default function ChatScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const tokens = useTokens();
-  const scroller = useRef<ScrollView>(null);
+  const scroller = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const conversation = useMessageStore((s) => s.conversations.find((c) => c.id === id));
   const allMessages = useMessageStore((s) => s.messages);

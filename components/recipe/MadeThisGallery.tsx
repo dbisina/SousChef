@@ -126,13 +126,13 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
-        ListHeaderComponent={user ? renderAddCard : null}
+        ListHeaderComponent={user ? renderAddCard : undefined}
         ListEmptyComponent={
           !user ? (
             <Text className="text-subtle" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
               {t('cooking.signInToShare', 'Sign in to share your creation!')}
             </Text>
-          ) : null
+          ) : undefined
         }
       />
 
