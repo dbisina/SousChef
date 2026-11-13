@@ -17,9 +17,8 @@ interface Row {
   href: Href;
 }
 
-// Import-a-link used to be a modal on the old tab bar; it lands on the recipe editor until it gets its own route.
 const TILES: Tile[] = [
-  { title: 'Import a link', subtitle: 'Video or website', photo: 'phone', href: '/(tabs)/upload' as Href },
+  { title: 'Import a link', subtitle: 'Video or website', photo: 'phone', href: '/import' as Href },
   { title: 'New post', subtitle: 'Recipe, photo, video', photo: 'gnocchi', href: '/post/new' as Href },
   { title: 'Start a game', subtitle: 'Mystery Kitchen', photo: 'friends', href: '/play/mystery/lobby' as Href },
   { title: 'Scan a cookbook', subtitle: 'Pages to recipes', photo: 'cookbook', href: '/cookbook-library' as Href },

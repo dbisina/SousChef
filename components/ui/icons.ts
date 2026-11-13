@@ -218,6 +218,13 @@ export const ICONS = {
     { t: 'c', cx: 12, cy: 12, r: 3 },
     { t: 'p', d: 'M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1' },
   ] },
+  eye: { shapes: [
+    { t: 'p', d: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z' },
+    { t: 'c', cx: 12, cy: 12, r: 3 },
+  ] },
+  eyeOff: { shapes: [
+    { t: 'p', d: 'M3 3l18 18M10.6 6.1A9.7 9.7 0 0 1 12 6c6.4 0 10 6 10 6a17 17 0 0 1-3.3 4M6.5 7.5C3.8 9.2 2 12 2 12s3.6 7 10 7c1.6 0 3-.4 4.3-1M9.9 9.9a3 3 0 0 0 4.2 4.2' },
+  ] },
 } satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof ICONS;

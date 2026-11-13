@@ -1,37 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { usePantry, usePantrySearch, usePantryAlerts } from '@/hooks/usePantry';
 import { useAuthStore } from '@/stores/authStore';
-import { useThemeColors } from '@/stores/themeStore';
 import { PantryItem, PantryCategory } from '@/types';
-import { PantryItemCard, CategoryHeader, AddPantryItemModal, EditPantryItemModal } from '@/components/pantry';
-import { Button, Loading, EmptyPantry, Card } from '@/components/ui';
+import { PantryItemCard, AddPantryItemModal, EditPantryItemModal } from '@/components/pantry';
+import { CATEGORY_ORDER, useCategoryLabel } from '@/components/pantry/shared';
+import {
+  Chip,
+  ChipRow,
+  Muted,
+  PhotoCard,
+  Rows,
+  Screen,
+  Tag,
+  Title,
+  TopBar,
+  UButton,
+  UIconButton,
+  UInput,
+  useColor,
+} from '@/components/ui';
+import { SAMPLE } from '@/assets/sample';
 
 export default function PantryScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const categoryLabel = useCategoryLabel();
+  const spinner = useColor('muted');
   const { user } = useAuthStore();
-  const {
-    items,
-    isLoading,
-    itemsByCategory,
-    addItem,
-    updateItem,
-    deleteItem,
-    refresh,
-  } = usePantry();
-  const { query, search, clear } = usePantrySearch();
+  const { items, isLoading, itemsByCategory, addItem, updateItem, deleteItem, refresh } = usePantry();
+  const { search, clear } = usePantrySearch();
   const { expiringItems, expiredItems, hasAlerts } = usePantryAlerts();
 
   const [isAddModalVisible, setAddModalVisible] = useState(false);
@@ -54,12 +54,12 @@ export default function PantryScreen() {
 
   const handleDelete = (itemId: string, itemName: string) => {
     Alert.alert(
-      'Delete Item',
-      `Are you sure you want to remove ${itemName} from your pantry?`,
+      t('pantryUi.deleteTitle', 'Delete Item'),
+      t('pantryUi.deleteBody', 'Are you sure you want to remove {{name}} from your pantry?', { name: itemName }),
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('general.cancel', 'Cancel'), style: 'cancel' },
         {
-          text: 'Delete',
+          text: t('general.delete', 'Delete'),
           style: 'destructive',
           onPress: () => deleteItem(itemId),
         },
@@ -69,15 +69,13 @@ export default function PantryScreen() {
 
   const handleSearchChange = (text: string) => {
     setSearchText(text);
-    search(text);
+    if (text.trim()) search(text);
+    else clear();
   };
 
-  // Get items to display based on filters
   const getDisplayedItems = (): PantryItem[] => {
     if (searchText.trim()) {
-      return items.filter((item) =>
-        item.name.toLowerCase().includes(searchText.toLowerCase())
-      );
+      return items.filter((item) => item.name.toLowerCase().includes(searchText.toLowerCase()));
     }
     if (selectedCategory) {
       return itemsByCategory[selectedCategory] || [];
@@ -86,220 +84,133 @@ export default function PantryScreen() {
   };
 
   const displayedItems = getDisplayedItems();
+  const alertItems = expiringItems.length > 0 ? expiringItems : expiredItems;
+  const alertNames = alertItems
+    .slice(0, 3)
+    .map((i) => i.name)
+    .join(', ');
 
-  // Group items by category for display
-  const renderSectionedList = () => {
-    if (searchText.trim() || selectedCategory) {
-      // Simple flat list for filtered results
-      return (
-        <FlatList
-          data={displayedItems}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <PantryItemCard
-              item={item}
-              onPress={() => setEditingItem(item)}
-              onDelete={() => handleDelete(item.id, item.name)}
-            />
-          )}
-          ListEmptyComponent={
-            <View className="items-center py-8">
-              <Text className="text-neutral-500 dark:text-neutral-400">No items found</Text>
-            </View>
-          }
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
-          }
-          contentContainerStyle={{ paddingBottom: 120 }}
+  return (
+    <Screen bare>
+      <TopBar
+        title={t('pantryUi.title', 'Pantry')}
+        right={
+          <UIconButton
+            icon="plus"
+            tone="black"
+            label={t('pantryUi.addItem', 'Add item')}
+            onPress={() => setAddModalVisible(true)}
+          />
+        }
+      />
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 130 }}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <UInput
+          icon="search"
+          label={t('pantryUi.searchLabel', 'Search pantry')}
+          placeholder={t('pantryUi.searchPlaceholder', 'Search {{n}} items', { n: items.length })}
+          value={searchText}
+          onChangeText={handleSearchChange}
+          autoCorrect={false}
+          returnKeyType="search"
         />
-      );
-    }
 
-    // Sectioned list by category
-    const categories = Object.keys(itemsByCategory) as PantryCategory[];
+        {hasAlerts ? (
+          <PhotoCard
+            source={SAMPLE.spinach}
+            height={168}
+            accessibilityLabel={t('pantryUi.findRecipes', 'Find recipes')}
+            onPress={() => router.push('/(tabs)/browse')}
+            topLeft={
+              <>
+                {expiringItems.length > 0 ? (
+                  <Tag
+                    tone="glass"
+                    large
+                    icon="warning"
+                    label={t('pantryUi.expiringCount', '{{n}} expiring soon', { n: expiringItems.length })}
+                  />
+                ) : null}
+                {expiredItems.length > 0 ? (
+                  <Tag
+                    tone="glass"
+                    large
+                    label={t('pantryUi.expiredCount', '{{n}} expired', { n: expiredItems.length })}
+                  />
+                ) : null}
+              </>
+            }
+            glassBar={
+              <>
+                <View className="flex-1" style={{ minWidth: 0 }}>
+                  <Title numberOfLines={1}>{t('pantryUi.useTonight', 'Use them tonight')}</Title>
+                  <Muted small numberOfLines={1}>
+                    {alertNames}
+                  </Muted>
+                </View>
+                <Tag tone="glass" large label={t('pantryUi.findRecipes', 'Find recipes')} />
+              </>
+            }
+          />
+        ) : null}
 
-    return (
-      <FlatList
-        data={categories}
-        keyExtractor={(cat) => cat}
-        renderItem={({ item: category }) => (
-          <View>
-            <CategoryHeader
-              category={category}
-              itemCount={itemsByCategory[category]?.length || 0}
-            />
-            {itemsByCategory[category]?.map((item, index) => (
+        <View style={{ marginHorizontal: -20 }}>
+        <ChipRow>
+          <Chip
+            label={t('pantryUi.all', 'All')}
+            on={selectedCategory === null}
+            onPress={() => setSelectedCategory(null)}
+          />
+          {CATEGORY_ORDER.map((cat) => (
+            <Chip key={cat} label={categoryLabel(cat)} on={selectedCategory === cat} onPress={() => setSelectedCategory(cat)} />
+          ))}
+        </ChipRow>
+        </View>
+
+        {isLoading && items.length === 0 ? (
+          <View style={{ paddingVertical: 48 }}>
+            <ActivityIndicator color={spinner} />
+          </View>
+        ) : items.length === 0 ? (
+          <View className="items-center" style={{ gap: 12, paddingVertical: 40 }}>
+            <Title>{t('pantryUi.emptyTitle', 'Your pantry is empty')}</Title>
+            <Muted center>{t('pantryUi.emptyBody', 'Add what you have at home and we will suggest recipes.')}</Muted>
+            <UButton size="sm" icon="plus" label={t('pantryUi.addItem', 'Add item')} onPress={() => setAddModalVisible(true)} />
+          </View>
+        ) : displayedItems.length === 0 ? (
+          <View className="items-center" style={{ paddingVertical: 32 }}>
+            <Muted>{t('pantryUi.noneFound', 'No items found')}</Muted>
+          </View>
+        ) : (
+          <Rows>
+            {displayedItems.map((item) => (
               <PantryItemCard
-                key={`${category}-${item.id}-${index}`}
+                key={item.id}
                 item={item}
                 onPress={() => setEditingItem(item)}
                 onDelete={() => handleDelete(item.id, item.name)}
               />
             ))}
-          </View>
+          </Rows>
         )}
-        ListEmptyComponent={
-          <EmptyPantry onAction={() => setAddModalVisible(true)} />
-        }
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
-        }
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 120 }}
-      />
-    );
-  };
+      </ScrollView>
 
-  return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* Header */}
-      <View className="px-4 pt-4 pb-2">
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">My Pantry</Text>
-          <TouchableOpacity
-            onPress={() => setAddModalVisible(true)}
-            className="w-10 h-10 rounded-full items-center justify-center"
-            style={{ backgroundColor: colors.accent }}
-          >
-            <Ionicons name="add" size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+      <AddPantryItemModal visible={isAddModalVisible} onClose={() => setAddModalVisible(false)} onAdd={addItem} />
 
-        {/* Search bar */}
-        <View className="flex-row items-center bg-white dark:bg-neutral-800 rounded-xl px-4 py-3 shadow-sm">
-          <Ionicons name="search" size={20} color={colors.textMuted} />
-          <TextInput
-            placeholder="Search pantry..."
-            value={searchText}
-            onChangeText={handleSearchChange}
-            className="flex-1 ml-3 text-base text-neutral-900 dark:text-neutral-100"
-            placeholderTextColor={colors.textMuted}
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity onPress={() => { setSearchText(''); clear(); }}>
-              <Ionicons name="close-circle" size={20} color={colors.textMuted} />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* Alerts */}
-      {hasAlerts && (
-        <View className="px-4 mb-2">
-          {expiredItems.length > 0 && (
-            <Card className="bg-red-50 border border-red-200 mb-2">
-              <View className="flex-row items-center">
-                <Ionicons name="warning" size={20} color="#DC2626" />
-                <Text className="flex-1 ml-2 text-red-700">
-                  {expiredItems.length} item(s) have expired
-                </Text>
-              </View>
-            </Card>
-          )}
-          {expiringItems.length > 0 && (
-            <Card className="bg-amber-50 border border-amber-200">
-              <View className="flex-row items-center">
-                <Ionicons name="alert-circle" size={20} color="#D97706" />
-                <Text className="flex-1 ml-2 text-amber-700">
-                  {expiringItems.length} item(s) expiring soon
-                </Text>
-              </View>
-            </Card>
-          )}
-        </View>
-      )}
-
-      {/* Category filter chips */}
-      <View className="px-4 py-2">
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={[null, ...CATEGORY_ORDER]}
-          keyExtractor={(item) => item || 'all'}
-          renderItem={({ item: category }) => (
-            <TouchableOpacity
-              onPress={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-full mr-2 ${
-                selectedCategory === category
-                  ? ''
-                  : 'bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700'
-              }`}
-              style={selectedCategory === category ? { backgroundColor: colors.accent } : undefined}
-            >
-              <Text
-                className={
-                  selectedCategory === category
-                    ? 'text-white font-medium'
-                    : 'text-neutral-700 dark:text-neutral-300'
-                }
-              >
-                {category ? category.charAt(0).toUpperCase() + category.slice(1) : 'All'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      {/* Items list */}
-      <View className="flex-1 px-4">
-        {isLoading && items.length === 0 ? (
-          <Loading fullScreen message="Loading pantry..." />
-        ) : (
-          renderSectionedList()
-        )}
-      </View>
-
-      {/* Summary bar */}
-      {items.length > 0 && (
-        <View className="px-4 py-3 bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-neutral-500 dark:text-neutral-400">
-              {items.length} item{items.length !== 1 ? 's' : ''} in pantry
-            </Text>
-            <TouchableOpacity
-              onPress={() => router.push('/(tabs)/browse')}
-              className="flex-row items-center"
-            >
-              <Text className="font-medium mr-1" style={{ color: colors.accent }}>
-                Find Recipes
-              </Text>
-              <Ionicons name="arrow-forward" size={16} color={colors.accent} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* Add item modal */}
-      <AddPantryItemModal
-        visible={isAddModalVisible}
-        onClose={() => setAddModalVisible(false)}
-        onAdd={addItem}
-      />
-
-      {/* Edit item modal */}
       <EditPantryItemModal
         visible={!!editingItem}
         item={editingItem}
         onClose={() => setEditingItem(null)}
         onSave={updateItem}
         onDelete={(itemId) => {
-          const name = editingItem?.name || 'Item';
+          const name = editingItem?.name || t('pantryUi.itemFallback', 'Item');
           handleDelete(itemId, name);
         }}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const CATEGORY_ORDER: PantryCategory[] = [
-  'produce',
-  'dairy',
-  'meat',
-  'seafood',
-  'grains',
-  'spices',
-  'condiments',
-  'canned',
-  'frozen',
-  'beverages',
-  'other',
-];
