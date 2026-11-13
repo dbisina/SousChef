@@ -28,7 +28,7 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages }: Ho
     >
       <View className="flex-row items-center" style={{ gap: 10 }}>
         <Image
-          source={require('../../assets/icon.jpg')}
+          source={require('../../assets/icon.png')}
           style={{ width: 36, height: 36, borderRadius: 11 }}
           accessible={false}
         />

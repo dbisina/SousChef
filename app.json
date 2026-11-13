@@ -103,6 +103,7 @@
         }
       ],
       "./plugins/withDisableBundleSigning",
+      "./plugins/withPodsMinDeploymentTarget",
       "./plugins/withShareExtension",
       "expo-localization"
     ],

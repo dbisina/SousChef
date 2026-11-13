@@ -118,7 +118,7 @@ export default function DoctorReportScreen() {
             <Muted small>{`${period} · ${report.condition}`}</Muted>
           </View>
           <Image
-            source={require('@/assets/icon.jpg')}
+            source={require('@/assets/icon.png')}
             accessibilityLabel="SousChef"
             style={{ width: 30, height: 30, borderRadius: 9 }}
           />
