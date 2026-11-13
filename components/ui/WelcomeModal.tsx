@@ -7,8 +7,6 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useSharedValue,
@@ -17,7 +15,14 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
-import { Button } from './Button';
+import { useTranslation } from 'react-i18next';
+import { Dim, H1, Muted, Title } from './Typography';
+import { Icon } from './Icon';
+import type { IconName } from './icons';
+import { Tag } from './Chips';
+import { UButton } from './UButton';
+import { ToneBlock } from './tone';
+import { FIXED, useThemeStore } from '@/stores/themeStore';
 import { SponsoredAdCard } from './SponsoredAdCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
@@ -37,6 +42,8 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
   const backdropOpacity = useSharedValue(0);
   const { isSubscribed, isInitialized, subscriptionTier } = useSubscription();
   const features = getTierFeatures(subscriptionTier);
+  const { t } = useTranslation();
+  const theme = useThemeStore((st) => st.effectiveTheme);
 
   useEffect(() => {
     if (isInitialized) {
@@ -104,161 +111,107 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      {/* Backdrop */}
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          animatedBackdropStyle,
-        ]}
-      />
-
-      {/* Modal Content */}
-      <View className="flex-1 justify-end">
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={hideModal}>
+      <ToneBlock tone={theme} style={{ flex: 1 }}>
+        {/* Backdrop */}
         <Animated.View
           style={[
-            {
-              height: MODAL_HEIGHT,
-              backgroundColor: 'white',
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              overflow: 'hidden',
-            },
-            animatedModalStyle,
+            { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: FIXED.scrim },
+            animatedBackdropStyle,
           ]}
-        >
-          {/* Handle bar */}
-          <View className="items-center pt-3 pb-2">
-            <View className="w-10 h-1 rounded-full bg-neutral-300" />
-          </View>
+        />
 
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 24 }}
+        {/* Modal Content */}
+        <View className="flex-1 justify-end">
+          <Animated.View
+            className="bg-ground"
+            style={[
+              { height: MODAL_HEIGHT, borderTopLeftRadius: 30, borderTopRightRadius: 30, overflow: 'hidden' },
+              animatedModalStyle,
+            ]}
           >
-            {/* Header */}
-            <View className="items-center px-6 pt-4">
-              <View className="w-20 h-20 rounded-full bg-primary-100 items-center justify-center mb-4">
-                <Ionicons name="restaurant" size={40} color="#FF6B35" />
+            {/* Handle bar */}
+            <View className="items-center" style={{ paddingTop: 12, paddingBottom: 8 }}>
+              <View className="bg-line" style={{ width: 40, height: 4, borderRadius: 2 }} />
+            </View>
+
+            <ScrollView
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 24, paddingHorizontal: 20, gap: 14 }}
+            >
+              {/* Header */}
+              <View style={{ gap: 8, paddingTop: 8 }}>
+                <H1>
+                  <Dim>{t('welcome.modal.line1', 'Welcome to')}</Dim>
+                  {'\n'}
+                  SousChef
+                </H1>
+                <Muted>{t('welcome.modal.subtitle', 'Your AI-powered cooking companion for delicious meals')}</Muted>
               </View>
-              <Text className="text-2xl font-bold text-neutral-900 text-center">
-                Welcome to SousChef!
-              </Text>
-              <Text className="text-neutral-500 text-center mt-2 px-4">
-                Your AI-powered cooking companion for delicious meals
-              </Text>
-            </View>
 
-            {/* Features highlight - Top 2 */}
-            <View className="px-6 mt-6">
               <FeatureItem
-                icon="scan-outline"
-                title="Scan Any Food"
-                description="Instantly get calorie info and nutritional breakdown"
-                color="#FF6B35"
+                icon="scan"
+                title={t('welcome.modal.scanTitle', 'Scan Any Food')}
+                description={t('welcome.modal.scanBody', 'Instantly get calorie info and nutritional breakdown')}
               />
               <FeatureItem
-                icon="mic-outline"
-                title="Voice Control"
-                description="Hands-free cooking with voice commands"
-                color="#22C55E"
+                icon="mic"
+                title={t('welcome.modal.voiceTitle', 'Voice Control')}
+                description={t('welcome.modal.voiceBody', 'Hands-free cooking with voice commands')}
               />
-            </View>
 
-            {/* Sponsored Ad — hidden for ad-free subscribers */}
-            {!features.adFree && (
-              <SponsoredAdCard placement="welcome_modal" />
-            )}
+              {/* Sponsored Ad - hidden for ad-free subscribers */}
+              {!features.adFree && <SponsoredAdCard placement="welcome_modal" />}
 
-            {/* Feature - Bottom */}
-            <View className="px-6 mt-4">
               <FeatureItem
-                icon="calendar-outline"
-                title="Meal Planning"
-                description="Plan your week and generate shopping lists"
-                color="#3B82F6"
+                icon="grid"
+                title={t('welcome.modal.planTitle', 'Meal Planning')}
+                description={t('welcome.modal.planBody', 'Plan your week and generate shopping lists')}
               />
-            </View>
 
-            {/* Upgrade to Pro Section */}
-            <View className="mx-6 mt-6  bg-amber-100/50 rounded-3xl">
-              <LinearGradient
-                colors={['#FFF7ED', '#FFEDD5']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="p-[15px] rounded-3xl"
-                style={{
-                  shadowColor: '#F97316',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 10,
-                  elevation: 4,
-                }}
-              >
-                <View className=" pl-4 pt-4 flex-row items-center ">
-                  <View className="w-14 h-14 rounded-2xl bg-primary-500 items-center justify-center shadow-sm">
-                    <Ionicons name="star" size={28} color="white" />
+              {/* Upgrade to Pro */}
+              <View className="bg-tag-o" style={{ borderRadius: 28, padding: 18, gap: 10 }}>
+                <View className="flex-row items-center" style={{ gap: 14 }}>
+                  <View className="items-center justify-center bg-accent" style={{ width: 46, height: 46, borderRadius: 23 }}>
+                    <Icon name="star" color="accent-ink" />
                   </View>
-                  <View className="flex-1 ml-4">
-                    <Text className="text-lg font-bold text-neutral-900">
-                      Upgrade to Pro
-                    </Text>
-                    <Text className="text-sm text-neutral-600 mt-1 leading-5">
-                      Unlock unlimited AI features and exclusive recipes!
-                    </Text>
+                  <View className="flex-1" style={{ gap: 2 }}>
+                    <Title className="text-tag-o-fg">{t('welcome.modal.proTitle', 'Upgrade to Pro')}</Title>
+                    <Muted small className="text-tag-o-fg">
+                      {t('welcome.modal.proBody', 'Unlock unlimited AI features and exclusive recipes!')}
+                    </Muted>
                   </View>
                 </View>
-                <View className="p-4 flex-row items-center mt-4 pt-4 border-t border-primary-200/50">
-                  <View className="bg-primary-100 px-2 py-1 rounded-md mr-2">
-                     <Ionicons name="checkmark" size={12} color="#C2410C" />
-                  </View>
-                  <Text className="text-primary-800 font-medium text-sm">7-day free trial available</Text>
-                </View>
-              </LinearGradient>
-            </View>
-          </ScrollView>
+                <Tag tone="o" icon="check" label={t('welcome.modal.trial', '7-day free trial available')} />
+              </View>
+            </ScrollView>
 
-          {/* Button */}
-          <View className="px-6 pb-8 pt-4 border-t border-neutral-100">
-            <Button
-              title="Okay, got it!"
-              onPress={hideModal}
-              fullWidth
-              size="lg"
-            />
-          </View>
-        </Animated.View>
-      </View>
+            {/* Button */}
+            <View style={{ paddingHorizontal: 20, paddingBottom: 32, paddingTop: 12 }}>
+              <UButton label={t('welcome.modal.ok', 'Okay, got it!')} onPress={hideModal} />
+            </View>
+          </Animated.View>
+        </View>
+      </ToneBlock>
     </Modal>
   );
 };
 
 interface FeatureItemProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   description: string;
-  color: string;
 }
 
-const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, color }) => (
-  <View className="flex-row items-center p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
-    <View
-      className="w-12 h-12 rounded-xl items-center justify-center"
-      style={{ backgroundColor: `${color}15` }}
-    >
-      <Ionicons name={icon} size={24} color={color} />
+const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description }) => (
+  <View className="flex-row items-center bg-surface-2" style={{ borderRadius: 24, padding: 16, gap: 14 }}>
+    <View className="items-center justify-center bg-surface-3" style={{ width: 46, height: 46, borderRadius: 23 }}>
+      <Icon name={icon} />
     </View>
-    <View className="flex-1 ml-3">
-      <Text className="font-bold text-neutral-900 text-base">{title}</Text>
-      <Text className="text-sm text-neutral-500 leading-5 mt-0.5">{description}</Text>
+    <View className="flex-1" style={{ gap: 2 }}>
+      <Title>{title}</Title>
+      <Muted small>{description}</Muted>
     </View>
   </View>
 );

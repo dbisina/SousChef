@@ -1,0 +1,102 @@
+{
+  "welcome": {
+    "skip": "Skip",
+    "next": "Next",
+    "back": "Back",
+    "getStarted": "Get started",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "s1": {
+      "line1": "Import recipes",
+      "line2": "from anywhere",
+      "body": "Paste a link or snap a cookbook page. SousChef turns it into ingredients, steps and timers.",
+      "chipTiktok": "TikTok",
+      "chipYoutube": "YouTube link",
+      "chipCookbook": "Cookbook page"
+    },
+    "s2": {
+      "line1": "Smart pantry",
+      "line2": "& shopping",
+      "body": "Know what you have, what is about to expire and exactly what to buy this week.",
+      "chipShopping": "Auto shopping list",
+      "chipPantry": "Pantry match",
+      "chipExpiry": "Expiry alerts"
+    },
+    "s3": {
+      "line1": "Cook hands-free",
+      "line2": "with your voice",
+      "body": "Say “next step” or “set a timer” and keep your hands on the food, not the screen.",
+      "chipNext": "“Next step”",
+      "chipTimer": "Set a 5 min timer",
+      "chipSwap": "Swap the cream"
+    },
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Your cooking companion",
+      "email": "Email",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "forgot": "Forgot password?",
+      "signIn": "Sign In",
+      "or": "or",
+      "google": "Continue with Google",
+      "skip": "Skip for now — try it first",
+      "noAccount": "Don’t have an account?",
+      "signUp": "Sign up"
+    },
+    "register": {
+      "line1": "Create your",
+      "line2": "account",
+      "subtitle": "Save recipes and sync them across devices.",
+      "name": "Full Name",
+      "passwordPlaceholder": "Create a password",
+      "confirm": "Confirm Password",
+      "confirmPlaceholder": "Confirm your password",
+      "create": "Create Account",
+      "termsPrefix": "By continuing you agree to our",
+      "terms": "Terms of Service",
+      "and": "and",
+      "privacy": "Privacy Policy",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "setup": {
+      "step": "Step 2 of 3",
+      "line1": "Let’s set up",
+      "line2": "your kitchen",
+      "dietLabel": "How do you eat?",
+      "everything": "Everything",
+      "diet": {
+        "vegetarian": "Vegetarian",
+        "halal": "Halal",
+        "glutenFree": "Gluten-free"
+      },
+      "conditionsLabel": "Anything to track? (private, optional)",
+      "condition": {
+        "diabetes2": "Type 2 diabetes",
+        "bloodPressure": "High blood pressure",
+        "cholesterol": "High cholesterol",
+        "weight": "Weight"
+      },
+      "deliveryTitle": "Food delivery near you",
+      "deliveryHint": "Restaurants that deliver within this distance appear in your feed.",
+      "continue": "Continue",
+      "saveError": "We couldn’t save your choices. You can set them later in Settings.",
+      "saveErrorTitle": "Save problem"
+    },
+    "modal": {
+      "line1": "Welcome to",
+      "subtitle": "Your AI-powered cooking companion for delicious meals",
+      "scanTitle": "Scan Any Food",
+      "scanBody": "Instantly get calorie info and nutritional breakdown",
+      "voiceTitle": "Voice Control",
+      "voiceBody": "Hands-free cooking with voice commands",
+      "planTitle": "Meal Planning",
+      "planBody": "Plan your week and generate shopping lists",
+      "proTitle": "Upgrade to Pro",
+      "proBody": "Unlock unlimited AI features and exclusive recipes!",
+      "trial": "7-day free trial available",
+      "ok": "Okay, got it!"
+    }
+  }
+}
