@@ -6,13 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "scheme": "souschef",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FFF7ED"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lyon98.souschef",
@@ -69,6 +63,14 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FFF7ED"
+        }
+      ],
       "expo-apple-authentication",
       [
         "expo-camera",
@@ -86,7 +88,7 @@
         "expo-build-properties",
         {
           "ios": {
-            "deploymentTarget": "15.1",
+            "deploymentTarget": "16.4",
             "useFrameworks": "static"
           },
           "android": {
@@ -105,7 +107,9 @@
       "./plugins/withDisableBundleSigning",
       "./plugins/withPodsMinDeploymentTarget",
       "./plugins/withShareExtension",
-      "expo-localization"
+      "expo-localization",
+      "expo-web-browser",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true

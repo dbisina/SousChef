@@ -14,7 +14,7 @@ const path = require('path');
 const MARKER = 'withPodsMinDeploymentTarget';
 
 const withPodsMinDeploymentTarget = (config, props = {}) => {
-    const minTarget = props.minTarget || '15.1';
+    const minTarget = props.minTarget || '16.4';
 
     return withDangerousMod(config, [
         'ios',
