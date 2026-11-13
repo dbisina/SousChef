@@ -3,6 +3,9 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold } from '@expo-google-fonts/outfit';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { onAuthStateChanged } from 'firebase/auth';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
@@ -18,8 +21,12 @@ import { parseShareURL, onShareURL, getSharedURL } from '@/lib/shareExtension';
 
 import '../global.css';
 
+
 // Initialize i18n (must be before any component renders)
 import '@/lib/i18n';
+
+// Hold the native splash until fonts are ready (released in RootLayout).
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Extract a URL from shared text (may contain surrounding text)
 const extractURLFromText = (text: string): string | null => {
@@ -35,6 +42,15 @@ export default function RootLayout() {
   const { isInitialized, setUser, fetchUserData, setInitialized } = useAuthStore();
   const { setSharedURL } = useShareIntentStore();
   const colors = useThemeColors();
+  const [fontsLoaded, fontError] = useFonts({
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
+  const fontsReady = fontsLoaded || !!fontError;
   const notificationListener = useRef<Notifications.EventSubscription>(null);
   const responseListener = useRef<Notifications.EventSubscription>(null);
 
@@ -134,6 +150,12 @@ export default function RootLayout() {
     };
     initSubscription();
   }, []);
+
+  useEffect(() => {
+    if (fontsReady) SplashScreen.hideAsync().catch(() => {});
+  }, [fontsReady]);
+
+  if (!fontsReady) return null;
 
   if (!isInitialized) {
     return (
