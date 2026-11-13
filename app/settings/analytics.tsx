@@ -1,21 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-} from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useAuthStore } from '@/stores/authStore';
-import { useThemeColors } from '@/stores/themeStore';
-import { Card, Loading } from '@/components/ui';
+import {
+  BarChart,
+  FONT,
+  H2,
+  ListRow,
+  Loading,
+  Muted,
+  ProgressBar,
+  Rows,
+  Screen,
+  Segmented,
+  Tag,
+  Thumb,
+  Tile,
+  Title,
+  TopBar,
+} from '@/components/ui';
 import { Recipe } from '@/types';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface AnalyticsData {
   totalRecipes: number;
@@ -29,7 +35,7 @@ interface AnalyticsData {
 
 export default function AnalyticsScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { recipes } = useRecipeStore();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
@@ -38,6 +44,7 @@ export default function AnalyticsScreen() {
 
   useEffect(() => {
     calculateAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipes, timeRange]);
 
   const calculateAnalytics = () => {
@@ -94,204 +101,110 @@ export default function AnalyticsScreen() {
     setIsLoading(false);
   };
 
+  const title = t('account.analytics.title', 'Analytics');
+
   if (isLoading || !analytics) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-        <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-          <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-            <Ionicons name="arrow-back" size={24} color={colors.icon} />
-          </TouchableOpacity>
-          <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
-            Recipe Analytics
-          </Text>
-        </View>
-        <Loading fullScreen message="Loading analytics..." />
-      </SafeAreaView>
+      <Screen bare>
+        <TopBar variant="compact" title={title} onBack={() => router.back()} />
+        <Loading fullScreen message={t('account.analytics.loading', 'Loading analytics...')} />
+      </Screen>
     );
   }
 
   const maxViews = Math.max(...analytics.recentActivity.map((a) => a.views));
+  const peak = analytics.recentActivity.findIndex((a) => a.views === maxViews);
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
-          Recipe Analytics
-        </Text>
-      </View>
+    <Screen bare>
+      <TopBar variant="compact" title={title} onBack={() => router.back()} />
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 14 }}>
+        <Segmented<'week' | 'month' | 'all'>
+          value={timeRange}
+          onChange={setTimeRange}
+          options={[
+            { value: 'week', label: t('account.analytics.week', 'Week') },
+            { value: 'month', label: t('account.analytics.month', 'Month') },
+            { value: 'all', label: t('account.analytics.all', 'All Time') },
+          ]}
+        />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-4">
-          {/* Time Range Selector */}
-          <View className="flex-row bg-neutral-200 dark:bg-neutral-700 rounded-xl p-1 mb-6">
-            {(['week', 'month', 'all'] as const).map((range) => (
-              <TouchableOpacity
-                key={range}
-                onPress={() => setTimeRange(range)}
-                className={`flex-1 py-2 rounded-lg ${
-                  timeRange === range ? 'bg-white dark:bg-neutral-600' : ''
-                }`}
+        <View className="flex-row" style={{ gap: 12 }}>
+          <View className="flex-1" style={{ gap: 12 }}>
+            <Tile tone="black" value={analytics.totalViews.toLocaleString()} label={t('account.analytics.views', 'Total views')} />
+            <Tile value={analytics.totalRecipes.toString()} label={t('account.analytics.recipes', 'Recipes')} />
+          </View>
+          <View className="flex-1" style={{ gap: 12 }}>
+            <Tile value={analytics.totalSaves.toLocaleString()} label={t('account.analytics.saves', 'Saves')} />
+            <Tile value={analytics.averageRating.toFixed(1)} label={t('account.analytics.rating', 'Avg rating')} />
+          </View>
+        </View>
+
+        <View style={{ gap: 10 }}>
+          <View className="flex-row items-center justify-between">
+            <Title>{t('account.analytics.viewsWeek', 'Views this week')}</Title>
+            <Tag tone="g" label={t('account.analytics.up', 'Up')} />
+          </View>
+          <BarChart
+            height={96}
+            label={t('account.analytics.viewsWeek', 'Views this week')}
+            data={analytics.recentActivity.map((a, i) => ({
+              value: maxViews > 0 ? a.views / maxViews : 0,
+              tone: i === peak ? ('ink' as const) : ('default' as const),
+            }))}
+          />
+          <View className="flex-row" style={{ gap: 6 }}>
+            {analytics.recentActivity.map((day, i) => (
+              <Text
+                key={i}
+                className={i === peak ? 'text-ink' : 'text-muted'}
+                style={{ flex: 1, textAlign: 'center', fontFamily: i === peak ? FONT.sansMedium : FONT.sans, fontSize: 12 }}
               >
-                <Text
-                  className={`text-center font-medium ${
-                    timeRange === range ? 'text-neutral-900 dark:text-neutral-50' : 'text-neutral-500 dark:text-neutral-400'
-                  }`}
-                >
-                  {range === 'week' ? 'Week' : range === 'month' ? 'Month' : 'All Time'}
-                </Text>
-              </TouchableOpacity>
+                {day.date.slice(0, 1)}
+              </Text>
             ))}
           </View>
+        </View>
 
-          {/* Stats Grid */}
-          <View className="flex-row flex-wrap -mx-1 mb-6">
-            <StatCard
-              icon="restaurant"
-              label="Total Recipes"
-              value={analytics.totalRecipes.toString()}
-              color="#FF6B35"
-            />
-            <StatCard
-              icon="eye"
-              label="Total Views"
-              value={analytics.totalViews.toLocaleString()}
-              color="#3B82F6"
-            />
-            <StatCard
-              icon="bookmark"
-              label="Total Saves"
-              value={analytics.totalSaves.toLocaleString()}
-              color="#22C55E"
-            />
-            <StatCard
-              icon="star"
-              label="Avg Rating"
-              value={analytics.averageRating.toFixed(1)}
-              color="#F59E0B"
-            />
-          </View>
+        {analytics.topRecipes.length > 0 ? (
+          <>
+            <H2>{t('account.analytics.top', 'Top recipes')}</H2>
+            <Rows>
+              {analytics.topRecipes.map((recipe) => (
+                <ListRow
+                  key={recipe.id}
+                  leading={<Thumb source={recipe.imageURL ? { uri: recipe.imageURL } : undefined} name={recipe.title} size={52} />}
+                  title={recipe.title}
+                  subtitle={t('account.analytics.viewsSaves', '{{views}} views · {{saves}} saves', {
+                    views: recipe.views || 0,
+                    saves: recipe.saveCount || 0,
+                  })}
+                  onPress={() => router.push(`/recipe/${recipe.id}`)}
+                />
+              ))}
+            </Rows>
+          </>
+        ) : null}
 
-          {/* Activity Chart */}
-          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
-            Views This Week
-          </Text>
-          <Card className="mb-6">
-            <View className="flex-row items-end justify-between h-32">
-              {analytics.recentActivity.map((day, index) => (
-                <View key={index} className="items-center flex-1">
-                  <View
-                    className="w-8 rounded-t-lg"
-                    style={{
-                      height: `${(day.views / maxViews) * 100}%`,
-                      minHeight: 4,
-                      backgroundColor: colors.accent,
-                    }}
-                  />
-                  <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">{day.date}</Text>
+        {analytics.categoryBreakdown.length > 0 ? (
+          <>
+            <H2>{t('account.analytics.categories', 'Category breakdown')}</H2>
+            <View style={{ gap: 14 }}>
+              {analytics.categoryBreakdown.map((item) => (
+                <View key={item.category} style={{ gap: 8 }}>
+                  <View className="flex-row items-center justify-between">
+                    <Text className="text-ink capitalize" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
+                      {item.category}
+                    </Text>
+                    <Muted>{item.count}</Muted>
+                  </View>
+                  <ProgressBar value={analytics.totalRecipes ? item.count / analytics.totalRecipes : 0} label={item.category} />
                 </View>
               ))}
             </View>
-          </Card>
-
-          {/* Top Recipes */}
-          {analytics.topRecipes.length > 0 && (
-            <>
-              <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
-                Top Performing Recipes
-              </Text>
-              <Card padding="none" className="mb-6">
-                {analytics.topRecipes.map((recipe, index) => (
-                  <TouchableOpacity
-                    key={recipe.id}
-                    onPress={() => router.push(`/recipe/${recipe.id}`)}
-                    className={`flex-row items-center px-4 py-3 ${
-                      index < analytics.topRecipes.length - 1 ? 'border-b border-neutral-100 dark:border-neutral-700' : ''
-                    }`}
-                  >
-                    <Text className="w-6 text-lg font-bold text-neutral-400 dark:text-neutral-500">
-                      {index + 1}
-                    </Text>
-                    <View className="flex-1 ml-2">
-                      <Text className="font-medium text-neutral-900 dark:text-neutral-100" numberOfLines={1}>
-                        {recipe.title}
-                      </Text>
-                      <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-                        {recipe.views || 0} views • {recipe.saveCount || 0} saves
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color="#A3A3A3" />
-                  </TouchableOpacity>
-                ))}
-              </Card>
-            </>
-          )}
-
-          {/* Category Breakdown */}
-          {analytics.categoryBreakdown.length > 0 && (
-            <>
-              <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 uppercase mb-3">
-                Category Breakdown
-              </Text>
-              <Card>
-                {analytics.categoryBreakdown.map((item, index) => (
-                  <View
-                    key={item.category}
-                    className={`flex-row items-center justify-between ${
-                      index > 0 ? 'mt-3' : ''
-                    }`}
-                  >
-                    <View className="flex-row items-center flex-1">
-                      <Text className="text-neutral-700 dark:text-neutral-300 capitalize">{item.category}</Text>
-                    </View>
-                    <View className="flex-row items-center">
-                      <View
-                        className="h-2 rounded-full mr-2"
-                        style={{
-                          width: (item.count / analytics.totalRecipes) * 100,
-                          maxWidth: 100,
-                          minWidth: 20,
-                          backgroundColor: colors.accent,
-                        }}
-                      />
-                      <Text className="text-neutral-500 dark:text-neutral-400 w-8 text-right">{item.count}</Text>
-                    </View>
-                  </View>
-                ))}
-              </Card>
-            </>
-          )}
-        </View>
+          </>
+        ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-interface StatCardProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  value: string;
-  color: string;
-}
-
-const StatCard: React.FC<StatCardProps> = ({ icon, label, value, color }) => (
-  <View className="w-1/2 p-1">
-    <Card>
-      <View className="flex-row items-center">
-        <View
-          className="w-10 h-10 rounded-full items-center justify-center"
-          style={{ backgroundColor: `${color}15` }}
-        >
-          <Ionicons name={icon} size={20} color={color} />
-        </View>
-        <View className="ml-3">
-          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">{value}</Text>
-          <Text className="text-xs text-neutral-500 dark:text-neutral-400">{label}</Text>
-        </View>
-      </View>
-    </Card>
-  </View>
-);

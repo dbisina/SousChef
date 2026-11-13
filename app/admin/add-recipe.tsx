@@ -1,25 +1,34 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  Alert,
-} from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecipeStore } from '@/stores/recipeStore';
+import { FIXED } from '@/stores/themeStore';
 import { uploadImage } from '@/lib/cloudinary';
 import { RecipeCategory, Cuisine, Difficulty } from '@/types';
-import { Button, Input, Card } from '@/components/ui';
+import {
+  Chip,
+  CtaBar,
+  Field,
+  FONT,
+  H2,
+  Icon,
+  Muted,
+  Screen,
+  Tag,
+  Title,
+  TopBar,
+  UButton,
+  UIconButton,
+  UInput,
+  useTokens,
+} from '@/components/ui';
 import { youtubeUrlPattern } from '@/components/recipe';
 
 const recipeSchema = z.object({
@@ -46,34 +55,83 @@ const recipeSchema = z.object({
 
 type RecipeFormData = z.infer<typeof recipeSchema>;
 
+const CATEGORIES = [
+  { label: 'Breakfast', value: 'breakfast' },
+  { label: 'Lunch', value: 'lunch' },
+  { label: 'Dinner', value: 'dinner' },
+  { label: 'Dessert', value: 'dessert' },
+  { label: 'Snack', value: 'snack' },
+  { label: 'Appetizer', value: 'appetizer' },
+  { label: 'Side', value: 'side' },
+];
+
+const CUISINES = [
+  { label: 'American', value: 'american' },
+  { label: 'Italian', value: 'italian' },
+  { label: 'Mexican', value: 'mexican' },
+  { label: 'Chinese', value: 'chinese' },
+  { label: 'Japanese', value: 'japanese' },
+  { label: 'Indian', value: 'indian' },
+  { label: 'Thai', value: 'thai' },
+  { label: 'French', value: 'french' },
+  { label: 'Mediterranean', value: 'mediterranean' },
+  { label: 'Korean', value: 'korean' },
+  { label: 'Vietnamese', value: 'vietnamese' },
+];
+
+/** Compact input used inside the ingredient rows. */
+function MiniInput({
+  value,
+  onChangeText,
+  placeholder,
+  width,
+  keyboardType,
+  center,
+  label,
+  invalid,
+}: {
+  value: string;
+  onChangeText: (t: string) => void;
+  placeholder?: string;
+  width?: number;
+  keyboardType?: 'default' | 'decimal-pad';
+  center?: boolean;
+  label: string;
+  invalid?: boolean;
+}) {
+  const tokens = useTokens();
+  return (
+    <TextInput
+      accessibilityLabel={label}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={FIXED.placeholder}
+      selectionColor={tokens.accent}
+      keyboardType={keyboardType}
+      className={`bg-raise text-ink ${invalid ? 'border-[1.5px] border-tag-r-fg' : ''}`}
+      style={{
+        height: 44,
+        borderRadius: 14,
+        paddingHorizontal: 10,
+        fontFamily: FONT.sans,
+        fontSize: 14,
+        textAlign: center ? 'center' : 'left',
+        ...(width ? { width } : { flex: 1 }),
+      }}
+    />
+  );
+}
+
 export default function AdminAddRecipeScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { createRecipe } = useRecipeStore();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newInstruction, setNewInstruction] = useState('');
   const [newTag, setNewTag] = useState('');
-
-  // Check if user has admin/chef permissions
-  if (!user || (user.role !== 'admin' && user.role !== 'chef')) {
-    return (
-      <SafeAreaView className="flex-1 bg-white items-center justify-center px-4">
-        <Ionicons name="lock-closed" size={64} color="#EF4444" />
-        <Text className="text-xl font-semibold text-neutral-900 mt-4">
-          Access Denied
-        </Text>
-        <Text className="text-neutral-500 text-center mt-2">
-          Only chefs and admins can add official recipes.
-        </Text>
-        <Button
-          title="Go Back"
-          onPress={() => router.back()}
-          className="mt-6"
-        />
-      </SafeAreaView>
-    );
-  }
 
   const {
     control,
@@ -107,6 +165,20 @@ export default function AdminAddRecipeScreen() {
   const instructions = watch('instructions');
   const tags = watch('tags');
 
+  // Check if user has admin/chef permissions
+  if (!user || (user.role !== 'admin' && user.role !== 'chef')) {
+    return (
+      <Screen>
+        <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 24, gap: 12 }}>
+          <Icon name="lock" size="lg" color="tag-r-fg" />
+          <Title>{t('account.add.denied', 'Access Denied')}</Title>
+          <Muted center>{t('account.add.deniedBody', 'Only chefs and admins can add official recipes.')}</Muted>
+          <UButton size="sm" label={t('account.add.goBack', 'Go Back')} onPress={() => router.back()} />
+        </View>
+      </Screen>
+    );
+  }
+
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -139,12 +211,12 @@ export default function AdminAddRecipeScreen() {
   };
 
   const removeTag = (tag: string) => {
-    setValue('tags', tags.filter((t) => t !== tag));
+    setValue('tags', tags.filter((x) => x !== tag));
   };
 
   const onSubmit = async (data: RecipeFormData) => {
     if (!imageUri) {
-      Alert.alert('Image required', 'Please add a photo of your recipe');
+      Alert.alert(t('account.add.imageRequired', 'Image required'), t('account.add.imageRequiredBody', 'Please add a photo of your recipe'));
       return;
     }
 
@@ -166,83 +238,80 @@ export default function AdminAddRecipeScreen() {
         true // isOfficial = true for admin uploads
       );
 
-      Alert.alert('Success', 'Official recipe created successfully!', [
-        { text: 'OK', onPress: () => router.back() },
+      Alert.alert(t('account.ads.success', 'Success'), t('account.add.created', 'Official recipe created successfully!'), [
+        { text: t('account.ok', 'OK'), onPress: () => router.back() },
       ]);
     } catch (error) {
-      Alert.alert('Error', 'Failed to create recipe. Please try again.');
+      Alert.alert(t('account.error', 'Error'), t('account.add.createFailed', 'Failed to create recipe. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const label = (text: string) => (
+    <Muted small style={{ paddingStart: 4 }}>
+      {text}
+    </Muted>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white border-b border-neutral-100">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="close" size={28} color="#404040" />
-        </TouchableOpacity>
-        <View className="flex-row items-center">
-          <View className="w-6 h-6 rounded-full bg-primary-500 items-center justify-center mr-2">
-            <Ionicons name="checkmark" size={16} color="white" />
-          </View>
-          <Text className="text-lg font-bold text-neutral-900">
-            Add Official Recipe
-          </Text>
-        </View>
-        <View className="w-7" />
-      </View>
-
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 py-4">
-          {/* Official badge notice */}
-          <Card className="bg-primary-50 border border-primary-200 mb-4">
-            <View className="flex-row items-center">
-              <Ionicons name="ribbon" size={24} color="#FF6B35" />
-              <View className="ml-3 flex-1">
-                <Text className="font-semibold text-primary-700">
-                  Official Recipe
-                </Text>
-                <Text className="text-sm text-primary-600">
-                  This recipe will be marked as a Chef's Pick
-                </Text>
-              </View>
-            </View>
-          </Card>
-
+    <Screen
+      bare
+      footer={
+        <CtaBar fade>
+          <UButton
+            variant="accent"
+            label={t('account.add.publish', 'Publish Recipe')}
+            loading={isSubmitting}
+            onPress={handleSubmit(onSubmit)}
+          />
+        </CtaBar>
+      }
+    >
+      <TopBar
+        variant="compact"
+        title={t('account.add.title', 'Official Recipe')}
+        left={<UIconButton icon="close" label={t('account.close', 'Close')} onPress={() => router.back()} />}
+        right={<Tag tone="k" label={t('account.add.chefsPick', "Chef's Pick")} />}
+      />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150, gap: 14 }}
+        >
           {/* Image picker */}
-          <Text className="text-sm font-medium text-neutral-700 mb-2">
-            Recipe Photo *
-          </Text>
-          {imageUri ? (
-            <TouchableOpacity onPress={pickImage} className="mb-4">
-              <Image
-                source={{ uri: imageUri }}
-                className="w-full h-48 rounded-xl"
-                resizeMode="cover"
-              />
-              <View className="absolute bottom-2 right-2 bg-black/50 px-3 py-1 rounded-full">
-                <Text className="text-white text-sm">Change</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={imageUri ? t('account.add.changePhoto', 'Change') : t('account.add.addPhoto', 'Add Recipe Photo')}
+            onPress={pickImage}
+            className="bg-surface-3 items-center justify-center"
+            style={{ height: 190, borderRadius: 30, overflow: 'hidden' }}
+          >
+            {imageUri ? (
+              <Image source={{ uri: imageUri }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} contentFit="cover" accessible={false} />
+            ) : (
+              <View className="items-center" style={{ gap: 8 }}>
+                <Icon name="image" size="lg" color="muted" />
+                <Muted>{t('account.add.addPhoto', 'Add Recipe Photo')}</Muted>
               </View>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={pickImage}
-              className="bg-white rounded-xl p-8 items-center border-2 border-dashed border-neutral-200 mb-4"
-            >
-              <Ionicons name="image-outline" size={40} color="#737373" />
-              <Text className="text-neutral-500 mt-2">Add Recipe Photo</Text>
-            </TouchableOpacity>
-          )}
+            )}
+            <View style={{ position: 'absolute', top: 14, left: 14 }}>
+              <Tag tone="glassDark" large label={t('account.add.photoLabel', 'Recipe photo *')} />
+            </View>
+            {imageUri ? (
+              <View style={{ position: 'absolute', right: 14, bottom: 14 }}>
+                <Tag tone="glass" large icon="camera" label={t('account.add.changePhoto', 'Change')} />
+              </View>
+            ) : null}
+          </Pressable>
 
-          {/* Form fields - same as upload screen */}
           <Controller
             control={control}
             name="title"
             render={({ field: { onChange, value } }) => (
-              <Input
-                label="Recipe Title *"
+              <Field
+                label={t('account.add.recipeTitle', 'Recipe Title *')}
                 placeholder="e.g., Classic Beef Bourguignon"
                 value={value}
                 onChangeText={onChange}
@@ -255,13 +324,12 @@ export default function AdminAddRecipeScreen() {
             control={control}
             name="description"
             render={({ field: { onChange, value } }) => (
-              <Input
-                label="Description *"
+              <Field
+                label={t('account.add.description', 'Description *')}
                 placeholder="A rich French beef stew..."
                 value={value}
                 onChangeText={onChange}
                 multiline
-                numberOfLines={3}
                 error={errors.description?.message}
               />
             )}
@@ -271,8 +339,8 @@ export default function AdminAddRecipeScreen() {
             control={control}
             name="youtubeURL"
             render={({ field: { onChange, value } }) => (
-              <Input
-                label="YouTube Video (optional)"
+              <Field
+                label={t('account.add.youtube', 'YouTube Video (optional)')}
                 placeholder="https://youtube.com/watch?v=..."
                 value={value}
                 onChangeText={onChange}
@@ -283,86 +351,48 @@ export default function AdminAddRecipeScreen() {
             )}
           />
 
-          {/* Category and Cuisine */}
-          <View className="flex-row space-x-3 mb-4">
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">Category</Text>
-              <Controller
-                control={control}
-                name="category"
-                render={({ field: { onChange, value } }) => (
-                  <View className="bg-white rounded-lg">
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                      {CATEGORIES.map((cat) => (
-                        <TouchableOpacity
-                          key={cat.value}
-                          onPress={() => onChange(cat.value)}
-                          className={`px-3 py-2 mr-2 rounded-lg ${
-                            value === cat.value ? 'bg-primary-500' : 'bg-neutral-100'
-                          }`}
-                        >
-                          <Text
-                            className={value === cat.value ? 'text-white' : 'text-neutral-700'}
-                          >
-                            {cat.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </ScrollView>
-                  </View>
-                )}
-              />
-            </View>
+          {/* Category */}
+          <View style={{ gap: 8 }}>
+            {label(t('account.add.category', 'Category'))}
+            <Controller
+              control={control}
+              name="category"
+              render={({ field: { onChange, value } }) => (
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                  {CATEGORIES.map((cat) => (
+                    <Chip key={cat.value} label={cat.label} on={value === cat.value} onPress={() => onChange(cat.value)} />
+                  ))}
+                </View>
+              )}
+            />
           </View>
 
           {/* Cuisine */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-neutral-700 mb-2">Cuisine</Text>
+          <View style={{ gap: 8 }}>
+            {label(t('account.add.cuisine', 'Cuisine'))}
             <Controller
               control={control}
               name="cuisine"
               render={({ field: { onChange, value } }) => (
-                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                  {CUISINES.map((cuisine) => (
-                    <TouchableOpacity
-                      key={cuisine.value}
-                      onPress={() => onChange(cuisine.value)}
-                      className={`px-3 py-2 mr-2 rounded-lg ${
-                        value === cuisine.value ? 'bg-primary-500' : 'bg-white'
-                      }`}
-                    >
-                      <Text
-                        className={value === cuisine.value ? 'text-white' : 'text-neutral-700'}
-                      >
-                        {cuisine.label}
-                      </Text>
-                    </TouchableOpacity>
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                  {CUISINES.map((c) => (
+                    <Chip key={c.value} label={c.label} on={value === c.value} onPress={() => onChange(c.value)} />
                   ))}
-                </ScrollView>
+                </View>
               )}
             />
           </View>
 
           {/* Difficulty */}
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-neutral-700 mb-2">Difficulty</Text>
+          <View style={{ gap: 8 }}>
+            {label(t('account.add.difficulty', 'Difficulty'))}
             <Controller
               control={control}
               name="difficulty"
               render={({ field: { onChange, value } }) => (
-                <View className="flex-row">
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                   {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
-                    <TouchableOpacity
-                      key={d}
-                      onPress={() => onChange(d)}
-                      className={`flex-1 py-3 items-center rounded-lg mr-2 ${
-                        value === d ? 'bg-primary-500' : 'bg-white'
-                      }`}
-                    >
-                      <Text className={value === d ? 'text-white font-medium' : 'text-neutral-700'}>
-                        {d.charAt(0).toUpperCase() + d.slice(1)}
-                      </Text>
-                    </TouchableOpacity>
+                    <Chip key={d} label={d.charAt(0).toUpperCase() + d.slice(1)} on={value === d} onPress={() => onChange(d)} />
                   ))}
                 </View>
               )}
@@ -370,17 +400,17 @@ export default function AdminAddRecipeScreen() {
           </View>
 
           {/* Time and servings */}
-          <View className="flex-row space-x-3 mb-4">
+          <View className="flex-row" style={{ gap: 10 }}>
             <Controller
               control={control}
               name="prepTime"
               render={({ field: { onChange, value } }) => (
                 <View className="flex-1">
-                  <Input
-                    label="Prep Time (min)"
+                  <Field
+                    label={t('account.add.prep', 'Prep (min)')}
                     keyboardType="number-pad"
                     value={value.toString()}
-                    onChangeText={(t) => onChange(parseInt(t) || 0)}
+                    onChangeText={(v) => onChange(parseInt(v) || 0)}
                   />
                 </View>
               )}
@@ -390,11 +420,11 @@ export default function AdminAddRecipeScreen() {
               name="cookTime"
               render={({ field: { onChange, value } }) => (
                 <View className="flex-1">
-                  <Input
-                    label="Cook Time (min)"
+                  <Field
+                    label={t('account.add.cook', 'Cook (min)')}
                     keyboardType="number-pad"
                     value={value.toString()}
-                    onChangeText={(t) => onChange(parseInt(t) || 0)}
+                    onChangeText={(v) => onChange(parseInt(v) || 0)}
                   />
                 </View>
               )}
@@ -404,11 +434,11 @@ export default function AdminAddRecipeScreen() {
               name="servings"
               render={({ field: { onChange, value } }) => (
                 <View className="flex-1">
-                  <Input
-                    label="Servings"
+                  <Field
+                    label={t('account.add.servings', 'Servings')}
                     keyboardType="number-pad"
                     value={value.toString()}
-                    onChangeText={(t) => onChange(parseInt(t) || 1)}
+                    onChangeText={(v) => onChange(parseInt(v) || 1)}
                   />
                 </View>
               )}
@@ -416,26 +446,43 @@ export default function AdminAddRecipeScreen() {
           </View>
 
           {/* Ingredients */}
-          <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
-            Ingredients *
-          </Text>
-          {errors.ingredients && (
-            <Text className="text-red-500 text-sm mb-2">
-              {errors.ingredients.message || 'Please fix ingredient errors below'}
+          <View className="flex-row items-center justify-between">
+            <H2>{t('account.add.ingredients', 'Ingredients *')}</H2>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => appendIngredient({ name: '', amount: 1, unit: 'cup', optional: false })}
+              className="flex-row items-center"
+              style={{ gap: 4, height: 44 }}
+            >
+              <Icon name="plus" size="sm" />
+              <Text className="text-ink" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
+                {t('account.add.addIngredient', 'Add')}
+              </Text>
+            </Pressable>
+          </View>
+          {errors.ingredients ? (
+            <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+              {errors.ingredients.message || t('account.add.fixIngredients', 'Please fix ingredient errors below')}
             </Text>
-          )}
-          {ingredientFields.map((field, index) => (
-            <View key={field.id} className="flex-row items-center mb-2">
-              <View className="flex-1 flex-row space-x-2">
+          ) : null}
+          <View className="bg-surface" style={{ borderRadius: 26, paddingHorizontal: 12, paddingVertical: 4 }}>
+            {ingredientFields.map((field, index) => (
+              <View
+                key={field.id}
+                className={`flex-row items-center ${index > 0 ? 'border-t border-divider' : ''}`}
+                style={{ minHeight: 60, gap: 8 }}
+              >
                 <Controller
                   control={control}
                   name={`ingredients.${index}.amount`}
                   render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      className="w-14 bg-white rounded-lg px-2 py-2 text-center"
+                    <MiniInput
+                      label={t('account.add.amount', 'Amount')}
+                      width={56}
+                      center
                       keyboardType="decimal-pad"
                       value={value.toString()}
-                      onChangeText={(t) => onChange(parseFloat(t) || 0)}
+                      onChangeText={(v) => onChange(parseFloat(v) || 0)}
                     />
                   )}
                 />
@@ -443,140 +490,100 @@ export default function AdminAddRecipeScreen() {
                   control={control}
                   name={`ingredients.${index}.unit`}
                   render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      className="w-14 bg-white rounded-lg px-2 py-2 text-center"
-                      value={value}
-                      onChangeText={onChange}
-                    />
+                    <MiniInput label={t('account.add.unit', 'Unit')} width={56} center value={value} onChangeText={onChange} />
                   )}
                 />
                 <Controller
                   control={control}
                   name={`ingredients.${index}.name`}
                   render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      className={`flex-1 bg-white rounded-lg px-3 py-2 ${
-                        errors.ingredients?.[index]?.name ? 'border border-red-400' : ''
-                      }`}
+                    <MiniInput
+                      label={t('account.add.ingredient', 'Ingredient')}
                       value={value}
                       onChangeText={onChange}
-                      placeholder="Ingredient"
+                      placeholder={t('account.add.ingredient', 'Ingredient')}
+                      invalid={!!errors.ingredients?.[index]?.name}
                     />
                   )}
                 />
+                <UIconButton
+                  icon="close"
+                  tone="white"
+                  size={34}
+                  label={t('account.add.removeIngredient', 'Remove ingredient')}
+                  onPress={() => removeIngredient(index)}
+                />
               </View>
-              <TouchableOpacity
-                onPress={() => removeIngredient(index)}
-                className="ml-2 p-2"
-              >
-                <Ionicons name="close-circle" size={24} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ))}
-          <TouchableOpacity
-            onPress={() => appendIngredient({ name: '', amount: 1, unit: 'cup', optional: false })}
-            className="flex-row items-center py-2"
-          >
-            <Ionicons name="add-circle-outline" size={24} color="#FF6B35" />
-            <Text className="text-primary-500 ml-2">Add Ingredient</Text>
-          </TouchableOpacity>
-
-          {/* Instructions */}
-          <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
-            Instructions *
-          </Text>
-          {errors.instructions && (
-            <Text className="text-red-500 text-sm mb-2">
-              {errors.instructions.message || 'At least one instruction is required'}
-            </Text>
-          )}
-          {instructions.map((instruction, index) => (
-            <View key={index} className="flex-row items-start mb-2 bg-white rounded-lg p-3">
-              <Text className="w-6 text-primary-500 font-bold">{index + 1}.</Text>
-              <Text className="flex-1 text-neutral-700">{instruction}</Text>
-              <TouchableOpacity onPress={() => removeInstruction(index)}>
-                <Ionicons name="close-circle" size={20} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ))}
-          <View className="flex-row items-center">
-            <TextInput
-              className="flex-1 bg-white rounded-lg px-4 py-3"
-              value={newInstruction}
-              onChangeText={setNewInstruction}
-              placeholder="Add a cooking step..."
-              multiline
-            />
-            <TouchableOpacity onPress={addInstruction} className="ml-2 p-2">
-              <Ionicons name="add-circle" size={28} color="#FF6B35" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Tags */}
-          <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
-            Tags
-          </Text>
-          <View className="flex-row flex-wrap mb-2">
-            {tags.map((tag) => (
-              <TouchableOpacity
-                key={tag}
-                onPress={() => removeTag(tag)}
-                className="bg-primary-100 px-3 py-1 rounded-full mr-2 mb-2 flex-row items-center"
-              >
-                <Text className="text-primary-700">{tag}</Text>
-                <Ionicons name="close" size={16} color="#FF6B35" />
-              </TouchableOpacity>
             ))}
           </View>
-          <View className="flex-row items-center">
-            <TextInput
-              className="flex-1 bg-white rounded-lg px-4 py-3"
-              value={newTag}
-              onChangeText={setNewTag}
-              placeholder="Add a tag..."
-              onSubmitEditing={addTag}
-            />
-            <TouchableOpacity onPress={addTag} className="ml-2 p-2">
-              <Ionicons name="add-circle" size={28} color="#FF6B35" />
-            </TouchableOpacity>
-          </View>
 
-          {/* Submit */}
-          <View className="mt-8 mb-4">
-            <Button
-              title="Publish Official Recipe"
-              onPress={handleSubmit(onSubmit)}
-              isLoading={isSubmitting}
-              fullWidth
-              leftIcon={<Ionicons name="checkmark-circle" size={20} color="white" />}
-            />
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          {/* Instructions */}
+          <H2>{t('account.add.instructions', 'Instructions *')}</H2>
+          {errors.instructions ? (
+            <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+              {errors.instructions.message || t('account.add.needInstruction', 'At least one instruction is required')}
+            </Text>
+          ) : null}
+          {instructions.length > 0 ? (
+            <View className="bg-surface" style={{ borderRadius: 26, paddingHorizontal: 16, paddingVertical: 4 }}>
+              {instructions.map((instruction, index) => (
+                <View
+                  key={index}
+                  className={`flex-row items-start ${index > 0 ? 'border-t border-divider' : ''}`}
+                  style={{ paddingVertical: 14, gap: 12 }}
+                >
+                  <Text className="text-accent-text" style={{ width: 22, fontFamily: FONT.display, fontSize: 15 }}>
+                    {index + 1}
+                  </Text>
+                  <Text className="flex-1 text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
+                    {instruction}
+                  </Text>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('account.add.removeStep', 'Remove step')}
+                    onPress={() => removeInstruction(index)}
+                    hitSlop={12}
+                  >
+                    <Icon name="close" size="sm" color="muted" />
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          ) : null}
+          <UInput
+            label={t('account.add.stepLabel', 'New cooking step')}
+            placeholder={t('account.add.stepPlaceholder', 'Add a cooking step...')}
+            value={newInstruction}
+            onChangeText={setNewInstruction}
+            multiline
+            right={<UIconButton icon="plus" tone="accent" label={t('account.add.addStep', 'Add step')} onPress={addInstruction} />}
+          />
+
+          {/* Tags */}
+          <H2>{t('account.add.tags', 'Tags')}</H2>
+          {tags.length > 0 ? (
+            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+              {tags.map((tag) => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  icon="close"
+                  accessibilityLabel={t('account.add.removeTag', 'Remove tag {{tag}}', { tag })}
+                  onPress={() => removeTag(tag)}
+                />
+              ))}
+            </View>
+          ) : null}
+          <UInput
+            label={t('account.add.tagLabel', 'New tag')}
+            placeholder={t('account.add.tagPlaceholder', 'Add a tag...')}
+            value={newTag}
+            onChangeText={setNewTag}
+            onSubmitEditing={addTag}
+            right={<UIconButton icon="plus" tone="accent" label={t('account.add.addTag', 'Add tag')} onPress={addTag} />}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Screen>
   );
 }
-
-const CATEGORIES = [
-  { label: 'Breakfast', value: 'breakfast' },
-  { label: 'Lunch', value: 'lunch' },
-  { label: 'Dinner', value: 'dinner' },
-  { label: 'Dessert', value: 'dessert' },
-  { label: 'Snack', value: 'snack' },
-  { label: 'Appetizer', value: 'appetizer' },
-  { label: 'Side', value: 'side' },
-];
-
-const CUISINES = [
-  { label: 'American', value: 'american' },
-  { label: 'Italian', value: 'italian' },
-  { label: 'Mexican', value: 'mexican' },
-  { label: 'Chinese', value: 'chinese' },
-  { label: 'Japanese', value: 'japanese' },
-  { label: 'Indian', value: 'indian' },
-  { label: 'Thai', value: 'thai' },
-  { label: 'French', value: 'french' },
-  { label: 'Mediterranean', value: 'mediterranean' },
-  { label: 'Korean', value: 'korean' },
-  { label: 'Vietnamese', value: 'vietnamese' },
-];

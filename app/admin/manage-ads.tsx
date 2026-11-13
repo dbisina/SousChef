@@ -1,24 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  RefreshControl,
-} from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image } from 'expo-image';
 import { Timestamp } from 'firebase/firestore';
-import { useThemeColors } from '@/stores/themeStore';
+import { useTranslation } from 'react-i18next';
+import { useThemeColors, FIXED } from '@/stores/themeStore';
 import { useAdStore } from '@/stores/adStore';
-import { Button, Card } from '@/components/ui';
+import {
+  Chip,
+  CtaBar,
+  Display,
+  Field,
+  FONT,
+  H2,
+  ListRow,
+  Muted,
+  PhotoCard,
+  Rows,
+  Screen,
+  Sheet,
+  Tag,
+  Thumb,
+  Tile,
+  Title,
+  TopBar,
+  UButton,
+  UIconButton,
+} from '@/components/ui';
 import {
   getAllAds,
   createSponsoredAd,
@@ -35,8 +43,12 @@ import {
 
 type ScreenMode = 'list' | 'create';
 
+const DEFAULT_ACCENT: string = FIXED.accent;
+type TagTone = NonNullable<React.ComponentProps<typeof Tag>['tone']>;
+
 export default function ManageAdsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const colors = useThemeColors();
   const { clearAds } = useAdStore();
 
@@ -44,6 +56,7 @@ export default function ManageAdsScreen() {
   const [ads, setAds] = useState<SponsoredAd[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedAd, setSelectedAd] = useState<SponsoredAd | null>(null);
 
   // ── Create form state ──
   const [advertiserName, setAdvertiserName] = useState('');
@@ -53,7 +66,7 @@ export default function ManageAdsScreen() {
   const [imageURL, setImageURL] = useState('');
   const [ctaText, setCtaText] = useState('Shop Now');
   const [ctaURL, setCtaURL] = useState('');
-  const [accentColor, setAccentColor] = useState('#22C55E');
+  const [accentColor, setAccentColor] = useState(DEFAULT_ACCENT);
   const [budgetDollars, setBudgetDollars] = useState('');
   const [cpmDollars, setCpmDollars] = useState('5');
   const [durationDays, setDurationDays] = useState('30');
@@ -70,7 +83,7 @@ export default function ManageAdsScreen() {
 
   useEffect(() => {
     fetchAds();
-  }, []);
+  }, [fetchAds]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -93,20 +106,22 @@ export default function ManageAdsScreen() {
     setImageURL('');
     setCtaText('Shop Now');
     setCtaURL('');
-    setAccentColor('#22C55E');
+    setAccentColor(DEFAULT_ACCENT);
     setBudgetDollars('');
     setCpmDollars('5');
     setDurationDays('30');
     setSelectedPlacements(new Set(['welcome_modal', 'home_feed']));
   };
 
+  const missing = (body: string) => Alert.alert(t('account.ads.missing', 'Missing'), body);
+
   const handleCreate = async () => {
-    if (!advertiserName.trim()) return Alert.alert('Missing', 'Advertiser name is required.');
-    if (!title.trim()) return Alert.alert('Missing', 'Ad title is required.');
-    if (!subtitle.trim()) return Alert.alert('Missing', 'Ad subtitle is required.');
-    if (!imageURL.trim()) return Alert.alert('Missing', 'Image URL is required.');
-    if (!ctaURL.trim()) return Alert.alert('Missing', 'CTA URL is required.');
-    if (selectedPlacements.size === 0) return Alert.alert('Missing', 'Select at least one placement.');
+    if (!advertiserName.trim()) return missing(t('account.ads.needAdvertiser', 'Advertiser name is required.'));
+    if (!title.trim()) return missing(t('account.ads.needTitle', 'Ad title is required.'));
+    if (!subtitle.trim()) return missing(t('account.ads.needSubtitle', 'Ad subtitle is required.'));
+    if (!imageURL.trim()) return missing(t('account.ads.needImage', 'Image URL is required.'));
+    if (!ctaURL.trim()) return missing(t('account.ads.needCta', 'CTA URL is required.'));
+    if (selectedPlacements.size === 0) return missing(t('account.ads.needPlacement', 'Select at least one placement.'));
 
     setSubmitting(true);
     try {
@@ -130,386 +145,263 @@ export default function ManageAdsScreen() {
         endDate,
         budgetCents: Math.round((parseFloat(budgetDollars) || 0) * 100),
         cpmCents: Math.round((parseFloat(cpmDollars) || 5) * 100),
-        accentColor: accentColor.trim() || '#22C55E',
+        accentColor: accentColor.trim() || DEFAULT_ACCENT,
       });
 
       clearAds(); // Clear cached ads so fresh ones load
-      Alert.alert('Success', 'Sponsored ad created and is now live!');
+      Alert.alert(t('account.ads.success', 'Success'), t('account.ads.created', 'Sponsored ad created and is now live!'));
       resetForm();
       setMode('list');
       fetchAds();
-    } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to create ad.');
+    } catch (error: unknown) {
+      Alert.alert(
+        t('account.error', 'Error'),
+        error instanceof Error && error.message ? error.message : t('account.ads.createFailed', 'Failed to create ad.')
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleToggleStatus = async (ad: SponsoredAd) => {
+    setSelectedAd(null);
     try {
       await toggleAdStatus(ad.id, ad.status);
       clearAds();
       fetchAds();
     } catch {
-      Alert.alert('Error', 'Failed to update ad status.');
+      Alert.alert(t('account.error', 'Error'), t('account.ads.statusFailed', 'Failed to update ad status.'));
     }
   };
 
   const handleDelete = (ad: SponsoredAd) => {
-    Alert.alert('Delete Ad', `Delete "${ad.title}" by ${ad.advertiserName}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await deleteSponsoredAd(ad.id);
-            clearAds();
-            fetchAds();
-          } catch {
-            Alert.alert('Error', 'Failed to delete ad.');
-          }
+    setSelectedAd(null);
+    Alert.alert(
+      t('account.ads.deleteTitle', 'Delete Ad'),
+      t('account.ads.deleteBody', 'Delete "{{title}}" by {{advertiser}}?', { title: ad.title, advertiser: ad.advertiserName }),
+      [
+        { text: t('account.cancel', 'Cancel'), style: 'cancel' },
+        {
+          text: t('account.delete', 'Delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteSponsoredAd(ad.id);
+              clearAds();
+              fetchAds();
+            } catch {
+              Alert.alert(t('account.error', 'Error'), t('account.ads.deleteFailed', 'Failed to delete ad.'));
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
+  };
+
+  const statusTag = (status: AdStatus) => {
+    const config: Record<AdStatus, { tone: TagTone; label: string }> = {
+      active: { tone: 'g', label: t('account.ads.statusActive', 'Active') },
+      paused: { tone: 'o', label: t('account.ads.statusPaused', 'Paused') },
+      expired: { tone: 'default', label: t('account.ads.statusExpired', 'Expired') },
+      pending_review: { tone: 'default', label: t('account.ads.statusPending', 'Pending') },
+    };
+    const c = config[status] || config.expired;
+    return <Tag tone={c.tone} label={c.label} />;
   };
 
   // ── LIST MODE ──
   if (mode === 'list') {
+    const featured = ads[0];
+    const rest = ads.slice(1);
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900" edges={['bottom']}>
-        <Stack.Screen
-          options={{
-            title: 'Manage Ads',
-            headerBackTitle: 'Profile',
-            headerRight: () => (
-              <TouchableOpacity onPress={() => setMode('create')} className="mr-2">
-                <Ionicons name="add-circle" size={28} color={colors.accent} />
-              </TouchableOpacity>
-            ),
-          }}
+      <Screen bare>
+        <Stack.Screen options={{ headerShown: false }} />
+        <TopBar
+          variant="compact"
+          title={t('account.ads.title', 'Sponsored Ads')}
+          onBack={() => router.back()}
+          right={<UIconButton icon="plus" tone="black" label={t('account.ads.create', 'Create ad')} onPress={() => setMode('create')} />}
         />
-
         <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-5 pb-10 pt-4"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 14 }}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} />}
         >
-          {/* Summary */}
-          <View className="flex-row gap-3 mb-6">
-            <View className="flex-1 bg-green-50 dark:bg-green-900/20 rounded-xl p-4 items-center">
-              <Text className="text-2xl font-bold text-green-700 dark:text-green-400">
-                {ads.filter((a) => a.status === 'active').length}
-              </Text>
-              <Text className="text-xs text-green-600 dark:text-green-500 mt-1">Active</Text>
+          <View className="flex-row" style={{ gap: 10 }}>
+            <View className="flex-1">
+              <Tile value={ads.filter((a) => a.status === 'active').length} label={t('account.ads.active', 'Active')} />
             </View>
-            <View className="flex-1 bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 items-center">
-              <Text className="text-2xl font-bold text-amber-700 dark:text-amber-400">
-                {ads.reduce((sum, a) => sum + a.impressions, 0).toLocaleString()}
-              </Text>
-              <Text className="text-xs text-amber-600 dark:text-amber-500 mt-1">Impressions</Text>
+            <View className="flex-1">
+              <Tile value={ads.reduce((sum, a) => sum + a.impressions, 0).toLocaleString()} label={t('account.ads.views', 'Views')} />
             </View>
-            <View className="flex-1 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 items-center">
-              <Text className="text-2xl font-bold text-blue-700 dark:text-blue-400">
-                {ads.reduce((sum, a) => sum + a.clicks, 0).toLocaleString()}
-              </Text>
-              <Text className="text-xs text-blue-600 dark:text-blue-500 mt-1">Clicks</Text>
+            <View className="flex-1">
+              <Tile value={ads.reduce((sum, a) => sum + a.clicks, 0).toLocaleString()} label={t('account.ads.clicks', 'Clicks')} />
             </View>
           </View>
 
-          {/* Ad List */}
           {loading ? (
-            <View className="items-center py-12">
-              <Text className="text-neutral-400">Loading ads...</Text>
-            </View>
+            <Muted center>{t('account.ads.loading', 'Loading ads...')}</Muted>
           ) : ads.length === 0 ? (
-            <View className="items-center py-12">
-              <View className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center mb-4">
-                <Ionicons name="megaphone-outline" size={40} color="#9CA3AF" />
-              </View>
-              <Text className="text-lg font-semibold text-neutral-700 dark:text-neutral-300 text-center">
-                No Sponsored Ads
-              </Text>
-              <Text className="text-neutral-500 text-center mt-2 px-8 mb-6">
-                Create your first ad to start monetizing free-tier users.
-              </Text>
-              <Button title="Create First Ad" onPress={() => setMode('create')} />
+            <View className="items-center" style={{ paddingVertical: 40, gap: 10 }}>
+              <Display size={22} center>
+                {t('account.ads.none', 'No Sponsored Ads')}
+              </Display>
+              <Muted center>
+                {t('account.ads.noneBody', 'Create your first ad to start monetizing free-tier users.')}
+              </Muted>
+              <UButton size="sm" label={t('account.ads.createFirst', 'Create First Ad')} onPress={() => setMode('create')} />
             </View>
           ) : (
-            ads.map((ad) => {
-              const metrics = getAdMetrics(ad);
-              return (
-                <View
-                  key={ad.id}
-                  className="mb-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-700 overflow-hidden"
-                >
-                  {/* Preview row */}
-                  <View className="flex-row p-4">
-                    <Image
-                      source={{ uri: ad.imageURL }}
-                      className="w-16 h-16 rounded-xl"
-                      resizeMode="cover"
-                    />
-                    <View className="flex-1 ml-3">
-                      <View className="flex-row items-center">
-                        <Text className="text-sm font-bold text-neutral-800 dark:text-white flex-1" numberOfLines={1}>
-                          {ad.title}
-                        </Text>
-                        <StatusBadge status={ad.status} />
-                      </View>
-                      <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5" numberOfLines={1}>
-                        {ad.advertiserName} · {ad.subtitle}
-                      </Text>
-                      <View className="flex-row mt-2 gap-3">
-                        <MiniStat label="Views" value={metrics.impressions.toLocaleString()} />
-                        <MiniStat label="Clicks" value={metrics.clicks.toLocaleString()} />
-                        <MiniStat label="CTR" value={`${metrics.ctr}%`} />
-                      </View>
-                    </View>
-                  </View>
-
-                  {/* Placements */}
-                  <View className="px-4 pb-2">
-                    <View className="flex-row flex-wrap gap-1">
-                      {ad.placements.map((p) => (
-                        <View key={p} className="bg-neutral-200/50 dark:bg-neutral-700 px-2 py-0.5 rounded-md">
-                          <Text className="text-[10px] text-neutral-600 dark:text-neutral-400">
-                            {AD_PLACEMENT_LABELS[p]}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-
-                  {/* Actions row */}
-                  <View className="flex-row border-t border-neutral-200 dark:border-neutral-600">
-                    <TouchableOpacity
-                      onPress={() => handleToggleStatus(ad)}
-                      className="flex-1 flex-row items-center justify-center py-3"
-                    >
-                      <Ionicons
-                        name={ad.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'}
-                        size={18}
-                        color={ad.status === 'active' ? '#F59E0B' : '#22C55E'}
+            <>
+              {featured ? (
+                <PhotoCard
+                  source={{ uri: featured.imageURL }}
+                  height={210}
+                  topLeft={statusTag(featured.status)}
+                  topRight={<Tag tone="glassDark" label={t('account.ads.sponsored', 'Sponsored')} />}
+                  title={featured.title}
+                  subtitle={t('account.ads.featuredMeta', '{{advertiser}} · {{views}} views · {{ctr}}% CTR', {
+                    advertiser: featured.advertiserName,
+                    views: getAdMetrics(featured).impressions.toLocaleString(),
+                    ctr: getAdMetrics(featured).ctr,
+                  })}
+                  onPress={() => setSelectedAd(featured)}
+                  accessibilityLabel={featured.title}
+                />
+              ) : null}
+              {rest.length > 0 ? (
+                <Rows>
+                  {rest.map((ad) => {
+                    const m = getAdMetrics(ad);
+                    return (
+                      <ListRow
+                        key={ad.id}
+                        leading={<Thumb source={{ uri: ad.imageURL }} name={ad.title} size={52} />}
+                        title={ad.title}
+                        subtitle={t('account.ads.rowMeta', '{{views}} views · {{ctr}}% CTR', {
+                          views: m.impressions.toLocaleString(),
+                          ctr: m.ctr,
+                        })}
+                        right={statusTag(ad.status)}
+                        onPress={() => setSelectedAd(ad)}
                       />
-                      <Text
-                        className={`ml-1.5 text-sm font-medium ${
-                          ad.status === 'active' ? 'text-amber-600' : 'text-green-600'
-                        }`}
-                      >
-                        {ad.status === 'active' ? 'Pause' : 'Activate'}
-                      </Text>
-                    </TouchableOpacity>
-                    <View className="w-px bg-neutral-200 dark:bg-neutral-600" />
-                    <TouchableOpacity
-                      onPress={() => handleDelete(ad)}
-                      className="flex-1 flex-row items-center justify-center py-3"
-                    >
-                      <Ionicons name="trash-outline" size={18} color="#EF4444" />
-                      <Text className="ml-1.5 text-sm font-medium text-red-500">Delete</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              );
-            })
+                    );
+                  })}
+                </Rows>
+              ) : null}
+            </>
           )}
         </ScrollView>
-      </SafeAreaView>
+
+        <Sheet visible={!!selectedAd} onClose={() => setSelectedAd(null)} title={selectedAd?.title ?? t('account.ads.title', 'Sponsored Ads')}>
+          {selectedAd ? (
+            <>
+              <View style={{ gap: 4 }}>
+                <Title>{selectedAd.title}</Title>
+                <Muted small>
+                  {selectedAd.advertiserName} · {selectedAd.subtitle}
+                </Muted>
+              </View>
+              <View className="flex-row flex-wrap" style={{ gap: 6 }}>
+                {selectedAd.placements.map((p) => (
+                  <Tag key={p} label={AD_PLACEMENT_LABELS[p]} />
+                ))}
+              </View>
+              <UButton
+                variant="primary"
+                label={selectedAd.status === 'active' ? t('account.ads.pause', 'Pause') : t('account.ads.activate', 'Activate')}
+                onPress={() => handleToggleStatus(selectedAd)}
+              />
+              <UButton variant="ghost" icon="trash" label={t('account.delete', 'Delete')} onPress={() => handleDelete(selectedAd)} />
+            </>
+          ) : null}
+        </Sheet>
+      </Screen>
     );
   }
 
   // ── CREATE MODE ──
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900" edges={['bottom']}>
-      <Stack.Screen
-        options={{
-          title: 'Create Sponsored Ad',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => { resetForm(); setMode('list'); }} className="ml-2">
-              <Ionicons name="arrow-back" size={24} color={colors.text} />
-            </TouchableOpacity>
-          ),
+    <Screen
+      bare
+      footer={
+        <CtaBar fade vertical>
+          <UButton
+            variant="accent"
+            label={submitting ? t('account.ads.creating', 'Creating...') : t('account.ads.publish', 'Publish Ad')}
+            loading={submitting}
+            onPress={handleCreate}
+          />
+        </CtaBar>
+      }
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+      <TopBar
+        variant="compact"
+        title={t('account.ads.createTitle', 'Create Sponsored Ad')}
+        onBack={() => {
+          resetForm();
+          setMode('list');
         }}
       />
-
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-5 pb-10 pt-4"
+          showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150, gap: 14 }}
         >
-          {/* Hero */}
-          <LinearGradient colors={['#FFF7ED', '#FFEDD5']} className="rounded-2xl p-5 mb-6">
-            <View className="flex-row items-center mb-1">
-              <Ionicons name="megaphone" size={20} color="#EA580C" />
-              <Text className="text-base font-bold text-orange-800 ml-2">New Sponsored Ad</Text>
+          <Muted>{t('account.ads.createIntro', 'Fill in the creative details below. The ad goes live immediately once created.')}</Muted>
+
+          <H2>{t('account.ads.advertiser', 'Advertiser')}</H2>
+          <Field label={t('account.ads.brand', 'Brand / Advertiser Name *')} value={advertiserName} onChangeText={setAdvertiserName} placeholder="FreshCart" />
+          <Field label={t('account.ads.logo', 'Logo URL (optional)')} value={advertiserLogo} onChangeText={setAdvertiserLogo} placeholder="https://..." keyboardType="url" autoCapitalize="none" />
+
+          <H2>{t('account.ads.creative', 'Creative')}</H2>
+          <Field label={t('account.ads.headline', 'Headline *')} value={title} onChangeText={setTitle} placeholder="Farm Fresh to Your Door" />
+          <Field label={t('account.ads.subtitle', 'Subtitle *')} value={subtitle} onChangeText={setSubtitle} placeholder="Organic ingredients, 20% off first order" />
+          <Field label={t('account.ads.imageUrl', 'Image URL *')} value={imageURL} onChangeText={setImageURL} placeholder="https://images.unsplash.com/..." keyboardType="url" autoCapitalize="none" />
+          {imageURL.trim().length > 10 ? (
+            <View style={{ borderRadius: 24, overflow: 'hidden' }}>
+              <Image source={{ uri: imageURL.trim() }} style={{ width: '100%', height: 160 }} contentFit="cover" accessible={false} />
             </View>
-            <Text className="text-sm text-orange-700 leading-5">
-              Fill in the creative details below. The ad goes live immediately once created.
-            </Text>
-          </LinearGradient>
+          ) : null}
+          <Field label={t('account.ads.ctaText', 'CTA Button Text')} value={ctaText} onChangeText={setCtaText} placeholder="Shop Now" />
+          <Field label={t('account.ads.ctaUrl', 'CTA Link URL *')} value={ctaURL} onChangeText={setCtaURL} placeholder="https://freshcart.com/?ref=souschef" keyboardType="url" autoCapitalize="none" />
 
-          {/* Advertiser */}
-          <SectionHeader title="Advertiser" />
-          <FormInput label="Brand / Advertiser Name *" value={advertiserName} onChangeText={setAdvertiserName} placeholder="FreshCart" />
-          <FormInput label="Logo URL (optional)" value={advertiserLogo} onChangeText={setAdvertiserLogo} placeholder="https://..." keyboardType="url" />
-
-          {/* Creative */}
-          <SectionHeader title="Creative" />
-          <FormInput label="Headline *" value={title} onChangeText={setTitle} placeholder="Farm Fresh to Your Door" />
-          <FormInput label="Subtitle *" value={subtitle} onChangeText={setSubtitle} placeholder="Organic ingredients — 20% off first order" />
-          <FormInput label="Image URL *" value={imageURL} onChangeText={setImageURL} placeholder="https://images.unsplash.com/..." keyboardType="url" />
-
-          {/* Image preview */}
-          {imageURL.trim().length > 10 && (
-            <View className="mb-4 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-700">
-              <Image
-                source={{ uri: imageURL.trim() }}
-                className="w-full h-40"
-                resizeMode="cover"
-              />
-            </View>
-          )}
-
-          <FormInput label="CTA Button Text" value={ctaText} onChangeText={setCtaText} placeholder="Shop Now" />
-          <FormInput label="CTA Link URL *" value={ctaURL} onChangeText={setCtaURL} placeholder="https://freshcart.com/?ref=souschef" keyboardType="url" />
-
-          {/* Styling */}
-          <SectionHeader title="Styling" />
-          <FormInput label="Accent Color (hex)" value={accentColor} onChangeText={setAccentColor} placeholder="#22C55E" />
-          {accentColor && (
-            <View className="flex-row items-center mb-4 gap-3">
-              <View className="w-8 h-8 rounded-full border border-neutral-200" style={{ backgroundColor: accentColor }} />
-              <Text className="text-xs text-neutral-500">CTA button color preview</Text>
-            </View>
-          )}
-
-          {/* Budget & Duration */}
-          <SectionHeader title="Budget & Duration" />
-          <View className="flex-row gap-3 mb-4">
-            <View className="flex-1">
-              <FormInput label="Total Budget ($)" value={budgetDollars} onChangeText={setBudgetDollars} placeholder="5000" keyboardType="numeric" />
-            </View>
-            <View className="flex-1">
-              <FormInput label="CPM ($)" value={cpmDollars} onChangeText={setCpmDollars} placeholder="5" keyboardType="numeric" />
-            </View>
-          </View>
-          <FormInput label="Duration (days)" value={durationDays} onChangeText={setDurationDays} placeholder="30" keyboardType="numeric" />
-
-          {/* Placements */}
-          <SectionHeader title="Placements *" />
-          <View className="gap-2 mb-6">
-            {(Object.entries(AD_PLACEMENT_LABELS) as [AdPlacement, string][]).map(([key, label]) => {
-              const selected = selectedPlacements.has(key);
-              return (
-                <TouchableOpacity
-                  key={key}
-                  onPress={() => togglePlacement(key)}
-                  className={`flex-row items-center px-4 py-3 rounded-xl border ${
-                    selected
-                      ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-400'
-                      : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
-                  }`}
-                >
-                  <Ionicons
-                    name={selected ? 'checkbox' : 'square-outline'}
-                    size={22}
-                    color={selected ? '#EA580C' : '#9CA3AF'}
-                  />
-                  <Text
-                    className={`ml-3 text-sm font-medium ${
-                      selected ? 'text-orange-700 dark:text-orange-400' : 'text-neutral-700 dark:text-neutral-300'
-                    }`}
-                  >
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Submit */}
-          <TouchableOpacity onPress={handleCreate} disabled={submitting} activeOpacity={0.85}>
-            <LinearGradient
-              colors={['#F97316', '#EA580C']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="rounded-xl py-4 items-center"
-            >
-              <Text className="text-white font-bold text-base">
-                {submitting ? 'Creating...' : 'Publish Ad'}
+          <H2>{t('account.ads.styling', 'Styling')}</H2>
+          <Field label={t('account.ads.accent', 'Accent Color (hex)')} value={accentColor} onChangeText={setAccentColor} placeholder={DEFAULT_ACCENT} autoCapitalize="none" />
+          {accentColor ? (
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+              <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: accentColor }} />
+              <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+                {t('account.ads.accentPreview', 'CTA button color preview')}
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+            </View>
+          ) : null}
 
-          <Text className="text-xs text-neutral-400 text-center mt-3 mb-4">
-            Ad will go live immediately in selected placements.
-          </Text>
+          <H2>{t('account.ads.budgetDuration', 'Budget & Duration')}</H2>
+          <View className="flex-row" style={{ gap: 12 }}>
+            <View className="flex-1">
+              <Field label={t('account.ads.budget', 'Total Budget ($)')} value={budgetDollars} onChangeText={setBudgetDollars} placeholder="5000" keyboardType="numeric" />
+            </View>
+            <View className="flex-1">
+              <Field label={t('account.ads.cpm', 'CPM ($)')} value={cpmDollars} onChangeText={setCpmDollars} placeholder="5" keyboardType="numeric" />
+            </View>
+          </View>
+          <Field label={t('account.ads.duration', 'Duration (days)')} value={durationDays} onChangeText={setDurationDays} placeholder="30" keyboardType="numeric" />
+
+          <H2>{t('account.ads.placements', 'Placements *')}</H2>
+          <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+            {(Object.entries(AD_PLACEMENT_LABELS) as [AdPlacement, string][]).map(([key, label]) => (
+              <Chip key={key} label={label} on={selectedPlacements.has(key)} onPress={() => togglePlacement(key)} />
+            ))}
+          </View>
+
+          <Muted small center>
+            {t('account.ads.goLive', 'Ad will go live immediately in selected placements.')}
+          </Muted>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-}
-
-// ── Subcomponents ──
-
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <Text className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase mb-3 mt-4 tracking-wide">
-      {title}
-    </Text>
-  );
-}
-
-function FormInput({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  keyboardType,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (t: string) => void;
-  placeholder: string;
-  keyboardType?: 'default' | 'email-address' | 'url' | 'numeric';
-}) {
-  return (
-    <View className="mb-4">
-      <Text className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">{label}</Text>
-      <TextInput
-        className="bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-800 dark:text-white border border-neutral-200 dark:border-neutral-700"
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType || 'default'}
-        autoCapitalize={keyboardType === 'url' || keyboardType === 'email-address' ? 'none' : 'sentences'}
-      />
-    </View>
-  );
-}
-
-function StatusBadge({ status }: { status: AdStatus }) {
-  const config: Record<AdStatus, { bg: string; text: string; label: string }> = {
-    active: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-400', label: 'Active' },
-    paused: { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', label: 'Paused' },
-    expired: { bg: 'bg-neutral-100 dark:bg-neutral-700', text: 'text-neutral-500 dark:text-neutral-400', label: 'Expired' },
-    pending_review: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', label: 'Pending' },
-  };
-  const c = config[status] || config.expired;
-  return (
-    <View className={`px-2 py-0.5 rounded-full ${c.bg}`}>
-      <Text className={`text-[10px] font-semibold ${c.text}`}>{c.label}</Text>
-    </View>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: string }) {
-  return (
-    <View>
-      <Text className="text-xs font-bold text-neutral-700 dark:text-neutral-300">{value}</Text>
-      <Text className="text-[10px] text-neutral-400">{label}</Text>
-    </View>
+    </Screen>
   );
 }

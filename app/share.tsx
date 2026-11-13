@@ -1,19 +1,23 @@
 import { useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useShareIntentStore } from '@/stores/shareIntentStore';
-import { useThemeColors } from '@/stores/themeStore';
+import { Screen, useColor } from '@/components/ui';
 
 /**
  * Handles souschef://share?url=<encoded_url> deep links from the iOS Share Extension.
  * Captures the shared URL, stores it, and redirects to the home screen where
  * the import modal will open automatically.
  */
+function Spinner() {
+  const accent = useColor('accent');
+  return <ActivityIndicator size="large" color={accent} />;
+}
+
 export default function ShareScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ url?: string }>();
   const { setSharedURL } = useShareIntentStore();
-  const colors = useThemeColors();
 
   useEffect(() => {
     if (params.url) {
@@ -29,8 +33,10 @@ export default function ShareScreen() {
   }, []);
 
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-      <ActivityIndicator size="large" color={colors.accent} />
-    </View>
+    <Screen bare>
+      <View className="flex-1 items-center justify-center">
+        <Spinner />
+      </View>
+    </Screen>
   );
 }

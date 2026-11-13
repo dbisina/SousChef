@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-} from 'react-native';
+import React, { useState } from 'react';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   useSubscription,
   useRemainingUsage,
@@ -16,35 +9,43 @@ import {
   useCustomerCenter,
 } from '@/hooks/useSubscription';
 import { TIER_FEATURES } from '@/types/subscription';
-import {
-  Paywall,
-  PremiumBadge,
-  SubscriptionCard,
-  UsageIndicator,
-} from '@/components/subscription';
+import { Paywall, PremiumBadge, UsageIndicator } from '@/components/subscription';
 import { useThemeColors } from '@/stores/themeStore';
-import { Loading } from '@/components/ui';
+import {
+  CtaBar,
+  Display,
+  H2,
+  Icon,
+  Loading,
+  Muted,
+  Screen,
+  SectionLabel,
+  Tag,
+  TopBar,
+  UButton,
+  UCard,
+  Rows,
+  FONT,
+} from '@/components/ui';
 import { getSubscriptionExpiryDate, willSubscriptionRenew } from '@/lib/revenuecat';
 import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
 
 export default function SubscriptionScreen() {
+  const { t } = useTranslation();
   const {
     subscriptionTier,
     isSubscribed,
     isPremium,
     isPro,
     customerInfo,
-    features,
     tierName,
-    tierColor,
     isLoading,
     openManagement,
     refreshCustomerInfo,
     refreshUsage,
   } = useSubscription();
 
-  const { remainingAI, remainingPortion, aiUsageToday, portionUsageToday } =
-    useRemainingUsage();
+  const { remainingAI, remainingPortion } = useRemainingUsage();
 
   const colors = useThemeColors();
 
@@ -55,7 +56,7 @@ export default function SubscriptionScreen() {
     useCustomerCenter();
 
   const [showPaywall, setShowPaywall] = useState(false);
-  const [useRevenueCatUI, setUseRevenueCatUI] = useState(true); // Toggle between custom and RC paywall
+  const [useRevenueCatUI] = useState(true); // Toggle between custom and RC paywall
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -69,7 +70,23 @@ export default function SubscriptionScreen() {
     if (useRevenueCatUI) {
       const result = await presentPaywall();
       if (result.status === 'purchased' || result.status === 'restored') {
-        showSuccessToast('Welcome aboard! 🌟 Thank you for subscribing to SousChef. We\'re so excited to have you!', 'Success!');
+        showSuccessToast(
+          t('account.sub.welcomeAboard', "Welcome aboard! Thank you for subscribing to SousChef. We're so excited to have you!"),
+          t('account.sub.successTitle', 'Success!')
+        );
+      }
+    } else {
+      setShowPaywall(true);
+    }
+  };
+
+  // Compare plans / upgrade to Pro
+  const handleSeePlans = async () => {
+    if (useRevenueCatUI) {
+      if (isPremium) {
+        await presentPaywallForPro();
+      } else {
+        await presentPaywall();
       }
     } else {
       setShowPaywall(true);
@@ -84,10 +101,16 @@ export default function SubscriptionScreen() {
           console.log('Feedback survey completed:', feedbackSurveyOptionId);
         },
         onRestoreCompleted: () => {
-          showSuccessToast('Welcome back! ✨ Your purchases have been successfully restored.', 'Restored');
+          showSuccessToast(
+            t('account.sub.restored', 'Welcome back! Your purchases have been successfully restored.'),
+            t('account.sub.restoredTitle', 'Restored')
+          );
         },
         onRestoreFailed: () => {
-          showErrorToast('Hmm, we couldn\'t restore your purchases. Let\'s try once more? 🔄', 'Restore Problem');
+          showErrorToast(
+            t('account.sub.restoreFailed', "Hmm, we couldn't restore your purchases. Let's try once more?"),
+            t('account.sub.restoreProblem', 'Restore Problem')
+          );
         },
       });
     } catch (error) {
@@ -104,243 +127,137 @@ export default function SubscriptionScreen() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 bg-neutral-50 dark:bg-neutral-900 items-center justify-center">
-        <Loading />
-      </View>
+      <Screen bare>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View className="flex-1 items-center justify-center">
+          <Loading />
+        </View>
+      </Screen>
     );
   }
 
+  const planNote = isSubscribed
+    ? expiryDate
+      ? t('account.sub.renewLine', '{{renews}} {{date}} · Auto-renew {{state}}', {
+          renews: willRenew ? t('account.sub.renewsOn', 'Renews on') : t('account.sub.expiresOn', 'Expires on'),
+          date: expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+          state: willRenew ? t('account.sub.on', 'On') : t('account.sub.off', 'Off'),
+        })
+      : t('account.sub.active', 'Active subscription')
+    : t('account.sub.notSubscribed', 'Not subscribed · no renewal');
+
+  const limitOf = (v: number | 'unlimited') => (v === 'unlimited' ? undefined : v);
+
+  const valueRow = (label: string, value: string) => (
+    <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+      <Text className="flex-1 text-ink" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
+        {label}
+      </Text>
+      <Text className="text-ink" style={{ fontFamily: FONT.sansMedium, fontSize: 14 }}>
+        {value}
+      </Text>
+    </View>
+  );
+
+  const flagRow = (label: string, enabled: boolean) => (
+    <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+      <Text className="flex-1 text-ink" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
+        {label}
+      </Text>
+      {enabled ? (
+        <Tag tone="g" label={t('account.sub.included', 'Included')} />
+      ) : (
+        <Tag icon="lock" label={t('account.sub.pro', 'Pro')} />
+      )}
+    </View>
+  );
+
+  const unlimitedOr = (v: number | 'unlimited') => (v === 'unlimited' ? t('account.usage.unlimited', 'Unlimited') : `${v}`);
+
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: 'Subscription',
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <Ionicons name="arrow-back" size={24} color={colors.icon} />
-            </TouchableOpacity>
-          ),
-        }}
-      />
-
+    <Screen
+      bare
+      footer={
+        <CtaBar>
+          {isSubscribed ? (
+            <UButton
+              variant="primary"
+              label={isCustomerCenterPresenting ? t('account.sub.opening', 'Opening...') : t('account.sub.manageSub', 'Manage Subscription')}
+              loading={isCustomerCenterPresenting}
+              onPress={handleManageSubscription}
+            />
+          ) : (
+            <UButton
+              variant="accent"
+              label={isPaywallPresenting ? t('account.sub.loading', 'Loading...') : t('account.sub.upgradePro', 'Upgrade to Pro')}
+              loading={isPaywallPresenting}
+              onPress={handleUpgrade}
+            />
+          )}
+        </CtaBar>
+      }
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+      <TopBar variant="compact" title={t('account.sub.title', 'Subscription')} onBack={() => router.back()} />
       <ScrollView
-        className="flex-1 bg-neutral-50 dark:bg-neutral-900"
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
-        }
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 140, gap: 16 }}
       >
-        {/* Current Plan Section */}
-        <View className="px-4 pt-6 pb-4">
-          <View className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-sm border border-neutral-100 dark:border-neutral-700">
-            <View className="items-center mb-6">
-              <View
-                className={`w-20 h-20 rounded-full items-center justify-center mb-4 ${
-                  isPro
-                    ? 'bg-purple-100'
-                    : isPremium
-                    ? 'bg-primary-100'
-                    : 'bg-neutral-100'
-                }`}
-              >
-                <Ionicons
-                  name={isPro ? 'diamond' : isPremium ? 'star' : 'person'}
-                  size={40}
-                  color={tierColor}
-                />
-              </View>
-              <View className="flex-row items-center">
-                <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 mr-2">
-                  {tierName}
-                </Text>
-                {isSubscribed && (
-                  <PremiumBadge tier={subscriptionTier} size="medium" showIcon={false} />
-                )}
-              </View>
-              <Text className="text-neutral-500 dark:text-neutral-400 mt-1">
-                {isSubscribed ? 'Active subscription' : 'Free plan'}
-              </Text>
-            </View>
-
-            {/* Subscription Details */}
-            {isSubscribed && expiryDate && (
-              <View className="border-t border-neutral-100 dark:border-neutral-700 pt-4 mb-4">
-                <View className="flex-row justify-between items-center mb-2">
-                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-                    {willRenew ? 'Renews on' : 'Expires on'}
-                  </Text>
-                  <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                    {expiryDate.toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </Text>
-                </View>
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-sm text-neutral-500 dark:text-neutral-400">Auto-renew</Text>
-                  <View className="flex-row items-center">
-                    <View
-                      className={`w-2 h-2 rounded-full mr-2 ${
-                        willRenew ? 'bg-green-500' : 'bg-yellow-500'
-                      }`}
-                    />
-                    <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                      {willRenew ? 'On' : 'Off'}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            )}
-
-            {/* Actions */}
-            {isSubscribed ? (
-              <TouchableOpacity
-                onPress={handleManageSubscription}
-                disabled={isCustomerCenterPresenting}
-                className={`bg-neutral-100 dark:bg-neutral-700 py-3 rounded-xl ${
-                  isCustomerCenterPresenting ? 'opacity-50' : ''
-                }`}
-              >
-                <Text className="text-center font-semibold text-neutral-700 dark:text-neutral-300">
-                  {isCustomerCenterPresenting ? 'Opening...' : 'Manage Subscription'}
-                </Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={handleUpgrade}
-                disabled={isPaywallPresenting}
-                className={`py-3 rounded-xl ${
-                  isPaywallPresenting ? 'opacity-50' : ''
-                }`}
-                style={{ backgroundColor: colors.accent }}
-              >
-                <Text className="text-center font-semibold text-white">
-                  {isPaywallPresenting ? 'Loading...' : 'Upgrade to Premium'}
-                </Text>
-              </TouchableOpacity>
-            )}
+        <UCard tone="black" style={{ gap: 8, borderRadius: 30, padding: 20 }}>
+          <SectionLabel>{t('account.sub.currentPlan', 'Current plan')}</SectionLabel>
+          <View className="flex-row items-center" style={{ gap: 10 }}>
+            <Display size={32}>{tierName}</Display>
+            {isSubscribed ? <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} /> : null}
           </View>
+          <Muted small>{planNote}</Muted>
+        </UCard>
+
+        <H2>{t('account.sub.todayUsage', "Today's usage")}</H2>
+        <View style={{ gap: 14 }}>
+          <UsageIndicator
+            label={t('account.sub.aiSubs', 'AI Substitutions')}
+            remaining={remainingAI}
+            limit={limitOf(currentFeatures.aiSubstitutionsPerDay as number | 'unlimited')}
+          />
+          <UsageIndicator
+            label={t('account.sub.portion', 'Portion Analysis')}
+            remaining={remainingPortion}
+            limit={limitOf(currentFeatures.portionAnalysisPerDay as number | 'unlimited')}
+          />
         </View>
 
-        {/* Daily Usage Section */}
-        <View className="px-4 pb-4">
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
-            Today's Usage
-          </Text>
-          <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm border border-neutral-100 dark:border-neutral-700 space-y-4">
-            <UsageIndicator
-              label="AI Substitutions"
-              remaining={remainingAI}
-              limit={
-                currentFeatures.aiSubstitutionsPerDay === 'unlimited'
-                  ? undefined
-                  : (currentFeatures.aiSubstitutionsPerDay as number)
-              }
-              icon="sparkles"
-            />
-            <UsageIndicator
-              label="Portion Analysis"
-              remaining={remainingPortion}
-              limit={
-                currentFeatures.portionAnalysisPerDay === 'unlimited'
-                  ? undefined
-                  : (currentFeatures.portionAnalysisPerDay as number)
-              }
-              icon="camera"
-            />
-          </View>
-        </View>
+        <H2>{t('account.sub.yourFeatures', 'Your features')}</H2>
+        <Rows>
+          {valueRow(t('account.sub.maxRecipes', 'Max Recipes'), unlimitedOr(currentFeatures.maxRecipes))}
+          {valueRow(t('account.sub.maxPantry', 'Max Pantry Items'), unlimitedOr(currentFeatures.maxPantryItems))}
+          {flagRow(t('account.sub.aiSubs', 'AI Substitutions'), currentFeatures.aiSubstitutions)}
+          {flagRow(t('account.sub.portion', 'Portion Analysis'), currentFeatures.portionAnalysis)}
+          {flagRow(t('account.sub.mealPlanning', 'Meal Planning'), currentFeatures.mealPlanning)}
+          {flagRow(t('account.sub.offline', 'Offline Access'), currentFeatures.offlineAccess)}
+          {flagRow(t('account.sub.nutrition', 'Advanced Nutrition'), currentFeatures.advancedNutrition)}
+        </Rows>
 
-        {/* Features Section */}
-        <View className="px-4 pb-4">
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-3">
-            Your Features
-          </Text>
-          <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm border border-neutral-100 dark:border-neutral-700">
-            <FeatureRow
-              label="Max Recipes"
-              value={
-                currentFeatures.maxRecipes === 'unlimited'
-                  ? 'Unlimited'
-                  : `${currentFeatures.maxRecipes}`
-              }
-              enabled={true}
-            />
-            <FeatureRow
-              label="Max Pantry Items"
-              value={
-                currentFeatures.maxPantryItems === 'unlimited'
-                  ? 'Unlimited'
-                  : `${currentFeatures.maxPantryItems}`
-              }
-              enabled={true}
-            />
-            <FeatureRow
-              label="AI Substitutions"
-              value={currentFeatures.aiSubstitutions ? 'Yes' : 'No'}
-              enabled={currentFeatures.aiSubstitutions}
-            />
-            <FeatureRow
-              label="Portion Analysis"
-              value={currentFeatures.portionAnalysis ? 'Yes' : 'No'}
-              enabled={currentFeatures.portionAnalysis}
-            />
-            <FeatureRow
-              label="Offline Access"
-              value={currentFeatures.offlineAccess ? 'Yes' : 'No'}
-              enabled={currentFeatures.offlineAccess}
-            />
-            <FeatureRow
-              label="Advanced Nutrition"
-              value={currentFeatures.advancedNutrition ? 'Yes' : 'No'}
-              enabled={currentFeatures.advancedNutrition}
-            />
-            <FeatureRow
-              label="Meal Planning"
-              value={currentFeatures.mealPlanning ? 'Yes' : 'No'}
-              enabled={currentFeatures.mealPlanning}
-              isLast
-            />
-          </View>
-        </View>
-
-        {/* Compare Plans */}
-        {!isPro && (
-          <View className="px-4 pb-8">
-            <TouchableOpacity
-              onPress={async () => {
-                if (useRevenueCatUI) {
-                  if (isPremium) {
-                    await presentPaywallForPro();
-                  } else {
-                    await presentPaywall();
-                  }
-                } else {
-                  setShowPaywall(true);
-                }
-              }}
-              disabled={isPaywallPresenting}
-              className={`border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 rounded-2xl p-4 flex-row items-center ${
-                isPaywallPresenting ? 'opacity-50' : ''
-              }`}
-            >
-              <View className="w-12 h-12 rounded-full bg-white dark:bg-neutral-700 items-center justify-center shadow-sm">
-                <Ionicons name="rocket" size={24} color={colors.accent} />
-              </View>
-              <View className="flex-1 ml-4">
-                <Text className="font-bold text-neutral-900 dark:text-neutral-50">
-                  {isPremium ? 'Upgrade to Pro' : 'See All Plans'}
+        {!isPro ? (
+          <UCard
+            onPress={handleSeePlans}
+            accessibilityLabel={isPremium ? t('account.sub.upgradeProTitle', 'Upgrade to Pro') : t('account.sub.seeAllPlans', 'See All Plans')}
+          >
+            <View className="flex-row items-center" style={{ gap: 14, opacity: isPaywallPresenting ? 0.5 : 1 }}>
+              <View className="flex-1" style={{ gap: 2 }}>
+                <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+                  {isPremium ? t('account.sub.upgradeProTitle', 'Upgrade to Pro') : t('account.sub.seeAllPlans', 'See All Plans')}
                 </Text>
-                <Text className="text-sm text-neutral-500 dark:text-neutral-400">
+                <Muted small>
                   {isPremium
-                    ? 'Get unlimited AI features and meal planning'
-                    : 'Compare Premium and Pro features'}
-                </Text>
+                    ? t('account.sub.proBody', 'Get unlimited AI features and meal planning')
+                    : t('account.sub.compareBody', 'Compare Premium and Pro features')}
+                </Muted>
               </View>
-              <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        )}
+              <Icon name="chevronRight" color="subtle" />
+            </View>
+          </UCard>
+        ) : null}
       </ScrollView>
 
       <Paywall
@@ -348,42 +265,6 @@ export default function SubscriptionScreen() {
         onClose={() => setShowPaywall(false)}
         requiredTier={isPremium ? 'pro' : 'premium'}
       />
-    </>
+    </Screen>
   );
 }
-
-interface FeatureRowProps {
-  label: string;
-  value: string;
-  enabled: boolean;
-  isLast?: boolean;
-}
-
-const FeatureRow: React.FC<FeatureRowProps> = ({
-  label,
-  value,
-  enabled,
-  isLast = false,
-}) => (
-  <View
-    className={`flex-row justify-between items-center py-3 ${
-      !isLast ? 'border-b border-neutral-100 dark:border-neutral-700' : ''
-    }`}
-  >
-    <Text className="text-neutral-700 dark:text-neutral-300">{label}</Text>
-    <View className="flex-row items-center">
-      <Text
-        className={`font-medium mr-2 ${
-          enabled ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-400 dark:text-neutral-500'
-        }`}
-      >
-        {value}
-      </Text>
-      <Ionicons
-        name={enabled ? 'checkmark-circle' : 'close-circle'}
-        size={18}
-        color={enabled ? '#22C55E' : '#D4D4D4'}
-      />
-    </View>
-  </View>
-);
