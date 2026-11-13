@@ -307,8 +307,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="subscription"
           options={{
-            headerShown: true,
-            title: 'Subscription',
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -364,6 +363,7 @@ export default function RootLayout() {
           name="create"
           options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: '#0B0B0B' } }}
         />
+        <Stack.Screen name="import" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="reels" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen name="story/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen

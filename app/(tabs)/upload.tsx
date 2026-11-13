@@ -143,7 +143,7 @@ export default function UploadScreen() {
   const takePhoto = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      showWarningToast('We need camera access to take a photo of your masterpiece! 📸', 'Permission Needed');
+      showWarningToast('We need camera access to take a photo of your masterpiece!', 'Permission Needed');
       return;
     }
 
@@ -182,12 +182,12 @@ export default function UploadScreen() {
 
   const onSubmit = async (data: RecipeFormData) => {
     if (!imageUri) {
-      showInfoToast("Don't forget to add a photo! We'd love to see your creation. 🖼️", 'Photo Needed');
+      showInfoToast("Don't forget to add a photo! We'd love to see your creation.", 'Photo Needed');
       return;
     }
 
     if (!user) {
-      showWarningToast('Please sign in so we can save your recipe to your cookbook! 🧑‍🍳', 'Sign In Needed');
+      showWarningToast('Please sign in so we can save your recipe to your cookbook!', 'Sign In Needed');
       return;
     }
 
@@ -210,10 +210,10 @@ export default function UploadScreen() {
         user.role === 'chef' || user.role === 'admin'
       );
 
-      showSuccessToast('Wonderful! Your recipe is now in your cookbook. ✨', 'Great Work!');
+      showSuccessToast('Wonderful! Your recipe is now in your cookbook.', 'Great Work!');
       router.push('/(tabs)');
     } catch (error) {
-      showErrorToast("Oops! We hit a snag uploading your recipe. Let's try once more? 🔄", 'Upload Problem');
+      showErrorToast("Oops! We hit a snag uploading your recipe. Let's try once more?", 'Upload Problem');
     } finally {
       setIsSubmitting(false);
     }

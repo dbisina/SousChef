@@ -239,7 +239,7 @@ export default function SeedDataScreen() {
         setProgress(currentStep / totalSteps);
       }
       
-      addLog(`\n🎉 DONE! Users: ${userCount}, Recipes: ${recipeCount}, Cookbooks: ${cookbookCount}`);
+      addLog(`\nDONE! Users: ${userCount}, Recipes: ${recipeCount}, Cookbooks: ${cookbookCount}`);
       Alert.alert('Seeding Complete', `Added ${recipeCount} recipes and ${cookbookCount} cookbooks.`);
       
     } catch (error) {

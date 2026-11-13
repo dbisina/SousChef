@@ -44,7 +44,7 @@ export default function WantToCookScreen() {
         }));
 
       addToShoppingList(ingredients);
-      showSuccessToast('Ingredients are on your list! 🛒 See you at the store.', 'Added!');
+      showSuccessToast('Ingredients are on your list! See you at the store.', 'Added!');
     },
     [addToShoppingList]
   );

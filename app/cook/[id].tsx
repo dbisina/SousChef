@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, ScrollView, Alert, Pressable, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Timestamp } from 'firebase/firestore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Image } from 'expo-image';
-import { Ingredient } from '@/types';
+import { Ingredient, Recipe } from '@/types';
+import { useCookbookLibraryStore } from '@/stores/cookbookLibraryStore';
 import { useRecipe } from '@/hooks/useRecipes';
 import { usePortionAnalysis, useCookingTips } from '@/hooks/useAI';
 import { useRemainingUsage } from '@/hooks/useSubscription';
@@ -95,12 +97,62 @@ function BadgedButton({ count, children }: { count?: number | 'unlimited'; child
 }
 
 export default function CookingModeScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, cookbookId } = useLocalSearchParams<{ id: string; cookbookId?: string }>();
   const router = useRouter();
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
   const spinner = useColor('muted');
-  const { recipe, isLoading } = useRecipe(id);
+  const { recipe: storeRecipe, isLoading: storeLoading } = useRecipe(id);
+  const shelfRecipe = useCookbookLibraryStore((s) => {
+    const books = cookbookId ? s.cookbooks.filter((c) => c.id === cookbookId) : s.cookbooks;
+    for (const b of books) {
+      const r = b.recipes.find((x) => x.id === id);
+      if (r) return { book: b, recipe: r };
+    }
+    return undefined;
+  });
+  // Shelf (cookbook library) recipes live in a local store, not Firestore.
+  const recipe = useMemo<Recipe | null>(() => {
+    if (storeRecipe && storeRecipe.id === id) return storeRecipe;
+    const c = shelfRecipe?.recipe.fullContent;
+    if (!shelfRecipe || !c) return storeRecipe ?? null;
+    const servings = c.servings > 0 ? c.servings : 4;
+    return {
+      id: shelfRecipe.recipe.id,
+      title: shelfRecipe.recipe.name,
+      description: c.description,
+      imageURL: c.imageURL ?? shelfRecipe.book.coverImageURL ?? '',
+      authorId: '',
+      authorName: shelfRecipe.book.author ?? shelfRecipe.book.title,
+      isOfficial: false,
+      category: 'dinner',
+      cuisine: 'other',
+      difficulty: c.difficulty,
+      prepTime: c.prepTime,
+      cookTime: c.cookTime,
+      servings,
+      ingredients: c.ingredients.map((i) => ({
+        name: i.name,
+        amount: parseFloat(i.amount) || 0,
+        unit: i.unit,
+        calories: 0,
+        optional: false,
+      })),
+      instructions: c.instructions,
+      nutrition: {
+        caloriesPerServing: c.nutrition?.caloriesPerServing ?? 0,
+        totalCalories: (c.nutrition?.caloriesPerServing ?? 0) * servings,
+        protein: c.nutrition?.protein ?? 0,
+        carbs: c.nutrition?.carbs ?? 0,
+        fat: c.nutrition?.fat ?? 0,
+        fiber: 0,
+      },
+      tags: [],
+      likes: 0,
+      createdAt: Timestamp.now(),
+    };
+  }, [storeRecipe, shelfRecipe, id]);
+  const isLoading = !recipe && storeLoading;
   const { tips, fetchTips } = useCookingTips();
   const { result: portionResult, isAnalyzing, analyzeImage, clear: clearPortionResult, accessDenied } = usePortionAnalysis();
   const { remainingPortion } = useRemainingUsage();

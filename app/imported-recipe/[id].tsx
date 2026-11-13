@@ -88,13 +88,13 @@ export default function ImportedRecipeDetailScreen() {
 
     addToShoppingList(ingredients);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    showSuccessToast('Ingredients are on your list! 🛒 See you at the store.', 'Added!');
+    showSuccessToast('Ingredients are on your list! See you at the store.', 'Added!');
   };
 
   const handleMarkCooked = () => {
     markAsCooked(item.id);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    showSuccessToast('Boom! Cooked it. 👨‍🍳 Hope it was delicious!', 'Nice! 🎉');
+    showSuccessToast('Boom! Cooked it. Hope it was delicious!', 'Nice!');
   };
 
   const handleRemove = () => {
