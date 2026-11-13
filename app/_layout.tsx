@@ -18,12 +18,18 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toast } from '@/components/ui';
 import { registerForPushNotifications, clearBadge } from '@/services/notificationService';
 import { parseShareURL, onShareURL, getSharedURL } from '@/lib/shareExtension';
+import { isDesignReview } from '@/lib/designReview';
+import { bootDesignReview } from '@/lib/designReviewBoot';
+import { DesignReviewFrame } from '@/lib/DesignReviewFrame';
 
 import '../global.css';
 
 
 // Initialize i18n (must be before any component renders)
 import '@/lib/i18n';
+
+// Design-review mode (web, build-time flag): guest everywhere, stores on window.__SC__. No-op otherwise.
+bootDesignReview();
 
 // Hold the native splash until fonts are ready (released in RootLayout).
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -55,6 +61,8 @@ export default function RootLayout() {
   const responseListener = useRef<Notifications.EventSubscription>(null);
 
   useEffect(() => {
+    // Review mode: auth is pre-initialised as a guest; a real listener would reset the injected user.
+    if (isDesignReview) return;
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userData = await fetchUserData(firebaseUser.uid);
@@ -167,6 +175,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <DesignReviewFrame>
       <ThemeProvider>
       <StatusBar style={colors.statusBarStyle} />
       <Stack
@@ -376,6 +385,7 @@ export default function RootLayout() {
       </Stack>
       <Toast />
       </ThemeProvider>
+      </DesignReviewFrame>
     </GestureHandlerRootView>
   );
 }

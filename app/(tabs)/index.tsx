@@ -15,6 +15,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
 import { FEATURES } from '@/constants/features';
 import { ListRow, Rows, Screen, SponsoredAdCard, WelcomeModal, useColor, type PhotoSource } from '@/components/ui';
+import { isDesignReview } from '@/lib/designReview';
 import { HomeHeader, LinkBar, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
 import {
   ChallengeCard,
@@ -82,6 +83,7 @@ export default function HomeScreen() {
 
   // Send first-time users to onboarding.
   useEffect(() => {
+    if (isDesignReview) return; // review mode renders every route directly
     const checkOnboarding = async () => {
       try {
         const completed = await AsyncStorage.getItem('@souschef_onboarding_complete');

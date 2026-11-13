@@ -11,6 +11,7 @@ import RevenueCatUI, {
   PAYWALL_RESULT,
   type CustomerCenterCallbacks as RCCustomerCenterCallbacks,
 } from 'react-native-purchases-ui';
+import { isDesignReview } from '@/lib/designReview';
 import {
   ENTITLEMENTS,
   SubscriptionTier,
@@ -34,6 +35,7 @@ let isConfigured = false;
 // SDK call made before configure() crashes it ("no singleton instance"). When the key is
 // missing or a test key we never configure, and every wrapper below becomes a safe no-op.
 export const isRevenueCatDisabled = (): boolean => {
+  if (isDesignReview) return true;
   const key = getApiKey();
   return !key || key.startsWith('test_');
 };
