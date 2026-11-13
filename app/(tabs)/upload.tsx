@@ -1,16 +1,8 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Image,
-  Alert,
-} from 'react-native';
+import { View, Text, TextInput, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,9 +11,27 @@ import { useAuthStore } from '@/stores/authStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { uploadImage } from '@/lib/cloudinary';
 import { showSuccessToast, showErrorToast, showInfoToast, showWarningToast } from '@/stores/toastStore';
+import { FIXED } from '@/stores/themeStore';
 import { RecipeCategory, Cuisine, Difficulty } from '@/types';
-import { Button, Input, Card } from '@/components/ui';
-import { youtubeUrlPattern } from '@/components/recipe';
+import {
+  Chip,
+  ChipRow,
+  Field,
+  FONT,
+  H2,
+  Icon,
+  Rows,
+  Screen,
+  SectionLabel,
+  Segmented,
+  Tag,
+  ToneBlock,
+  TopBar,
+  UButton,
+  UIconButton,
+  UInput,
+} from '@/components/ui';
+import { youtubeUrlPattern, ActionBar } from '@/components/recipe';
 
 const recipeSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -33,22 +43,51 @@ const recipeSchema = z.object({
   prepTime: z.number().min(1, 'Prep time is required'),
   cookTime: z.number().min(0),
   servings: z.number().min(1, 'At least 1 serving'),
-  ingredients: z.array(
-    z.object({
-      name: z.string().min(1, 'Ingredient name is required'),
-      amount: z.number().min(0),
-      unit: z.string(),
-      optional: z.boolean(),
-    })
-  ).min(1, 'At least one ingredient is required'),
+  ingredients: z
+    .array(
+      z.object({
+        name: z.string().min(1, 'Ingredient name is required'),
+        amount: z.number().min(0),
+        unit: z.string(),
+        optional: z.boolean(),
+      })
+    )
+    .min(1, 'At least one ingredient is required'),
   instructions: z.array(z.string().min(1)).min(1, 'At least one instruction is required'),
   tags: z.array(z.string()),
 });
 
 type RecipeFormData = z.infer<typeof recipeSchema>;
 
+const CATEGORIES = [
+  { label: 'Breakfast', value: 'breakfast' },
+  { label: 'Lunch', value: 'lunch' },
+  { label: 'Dinner', value: 'dinner' },
+  { label: 'Dessert', value: 'dessert' },
+  { label: 'Snack', value: 'snack' },
+  { label: 'Appetizer', value: 'appetizer' },
+  { label: 'Beverage', value: 'beverage' },
+  { label: 'Side', value: 'side' },
+];
+
+const CUISINES = [
+  { label: 'American', value: 'american' },
+  { label: 'Italian', value: 'italian' },
+  { label: 'Mexican', value: 'mexican' },
+  { label: 'Chinese', value: 'chinese' },
+  { label: 'Japanese', value: 'japanese' },
+  { label: 'Indian', value: 'indian' },
+  { label: 'Thai', value: 'thai' },
+  { label: 'French', value: 'french' },
+  { label: 'Mediterranean', value: 'mediterranean' },
+  { label: 'Korean', value: 'korean' },
+  { label: 'Vietnamese', value: 'vietnamese' },
+  { label: 'Other', value: 'other' },
+];
+
 export default function UploadScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { createRecipe } = useRecipeStore();
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -138,12 +177,12 @@ export default function UploadScreen() {
   };
 
   const removeTag = (tag: string) => {
-    setValue('tags', tags.filter((t) => t !== tag));
+    setValue('tags', tags.filter((x) => x !== tag));
   };
 
   const onSubmit = async (data: RecipeFormData) => {
     if (!imageUri) {
-      showInfoToast('Don\'t forget to add a photo! We\'d love to see your creation. 🖼️', 'Photo Needed');
+      showInfoToast("Don't forget to add a photo! We'd love to see your creation. 🖼️", 'Photo Needed');
       return;
     }
 
@@ -174,416 +213,391 @@ export default function UploadScreen() {
       showSuccessToast('Wonderful! Your recipe is now in your cookbook. ✨', 'Great Work!');
       router.push('/(tabs)');
     } catch (error) {
-      showErrorToast('Oops! We hit a snag uploading your recipe. Let\'s try once more? 🔄', 'Upload Problem');
+      showErrorToast("Oops! We hit a snag uploading your recipe. Let's try once more? 🔄", 'Upload Problem');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-neutral-50" edges={['top']}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-4 py-4">
-          {/* Header */}
-          <Text className="text-2xl font-bold text-neutral-900 mb-6">
-            Add New Recipe
-          </Text>
-
-          {/* Image picker */}
-          <Text className="text-sm font-medium text-neutral-700 mb-2">
-            Recipe Photo
-          </Text>
-          {imageUri ? (
-            <TouchableOpacity onPress={pickImage} className="mb-4">
-              <Image
-                source={{ uri: imageUri }}
-                className="w-full h-48 rounded-xl"
-                resizeMode="cover"
-              />
-              <View className="absolute bottom-2 right-2 bg-black/50 px-3 py-1 rounded-full">
-                <Text className="text-white text-sm">Change</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View className="flex-row space-x-3 mb-4">
-              <TouchableOpacity
-                onPress={pickImage}
-                className="flex-1 bg-white rounded-xl p-6 items-center border-2 border-dashed border-neutral-200"
-              >
-                <Ionicons name="images-outline" size={32} color="#737373" />
-                <Text className="text-neutral-500 mt-2">Gallery</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={takePhoto}
-                className="flex-1 bg-white rounded-xl p-6 items-center border-2 border-dashed border-neutral-200"
-              >
-                <Ionicons name="camera-outline" size={32} color="#737373" />
-                <Text className="text-neutral-500 mt-2">Camera</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Basic info */}
-          <Controller
-            control={control}
-            name="title"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Recipe Title"
-                placeholder="e.g., Grandma's Chicken Soup"
-                value={value}
-                onChangeText={onChange}
-                error={errors.title?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="description"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Description"
-                placeholder="Describe your recipe..."
-                value={value}
-                onChangeText={onChange}
-                multiline
-                numberOfLines={3}
-                error={errors.description?.message}
-              />
-            )}
-          />
-
-          <Controller
-            control={control}
-            name="youtubeURL"
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="YouTube Video (optional)"
-                placeholder="https://youtube.com/watch?v=..."
-                value={value}
-                onChangeText={onChange}
-                autoCapitalize="none"
-                keyboardType="url"
-                error={errors.youtubeURL?.message}
-              />
-            )}
-          />
-
-          {/* Selectors */}
-          <View className="flex-row space-x-3 mb-4">
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">Category</Text>
-              <Controller
-                control={control}
-                name="category"
-                render={({ field: { onChange, value } }) => (
-                  <Selector
-                    options={CATEGORIES}
-                    value={value}
-                    onChange={onChange}
-                  />
-                )}
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">Cuisine</Text>
-              <Controller
-                control={control}
-                name="cuisine"
-                render={({ field: { onChange, value } }) => (
-                  <Selector
-                    options={CUISINES}
-                    value={value}
-                    onChange={onChange}
-                  />
-                )}
-              />
-            </View>
-          </View>
-
-          <View className="flex-row space-x-3 mb-4">
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-neutral-700 mb-2">Difficulty</Text>
-              <Controller
-                control={control}
-                name="difficulty"
-                render={({ field: { onChange, value } }) => (
-                  <View className="flex-row">
-                    {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
-                      <TouchableOpacity
-                        key={d}
-                        onPress={() => onChange(d)}
-                        className={`flex-1 py-2 items-center rounded-lg ${
-                          value === d ? 'bg-primary-500' : 'bg-white'
-                        }`}
-                      >
-                        <Text className={value === d ? 'text-white' : 'text-neutral-700'}>
-                          {d.charAt(0).toUpperCase() + d.slice(1)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              />
-            </View>
-          </View>
-
-          {/* Time and servings */}
-          <View className="flex-row space-x-3 mb-4">
-            <Controller
-              control={control}
-              name="prepTime"
-              render={({ field: { onChange, value } }) => (
-                <View className="flex-1">
-                  <Input
-                    label="Prep Time (min)"
-                    keyboardType="number-pad"
-                    value={value.toString()}
-                    onChangeText={(t) => onChange(parseInt(t) || 0)}
-                  />
-                </View>
-              )}
-            />
-            <Controller
-              control={control}
-              name="cookTime"
-              render={({ field: { onChange, value } }) => (
-                <View className="flex-1">
-                  <Input
-                    label="Cook Time (min)"
-                    keyboardType="number-pad"
-                    value={value.toString()}
-                    onChangeText={(t) => onChange(parseInt(t) || 0)}
-                  />
-                </View>
-              )}
-            />
-            <Controller
-              control={control}
-              name="servings"
-              render={({ field: { onChange, value } }) => (
-                <View className="flex-1">
-                  <Input
-                    label="Servings"
-                    keyboardType="number-pad"
-                    value={value.toString()}
-                    onChangeText={(t) => onChange(parseInt(t) || 1)}
-                  />
-                </View>
-              )}
-            />
-          </View>
-
-          {/* Ingredients */}
-          <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
-            Ingredients
-          </Text>
-          {errors.ingredients && (
-            <Text className="text-red-500 text-sm mb-2">
-              {errors.ingredients.message || 'Please fix ingredient errors below'}
-            </Text>
-          )}
-          {ingredientFields.map((field, index) => (
-            <View key={field.id} className="flex-row items-center mb-2">
-              <View className="flex-1 flex-row space-x-2">
-                <Controller
-                  control={control}
-                  name={`ingredients.${index}.amount`}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      className="w-16 bg-white rounded-lg px-3 py-2 text-center"
-                      keyboardType="decimal-pad"
-                      value={value.toString()}
-                      onChangeText={(t) => onChange(parseFloat(t) || 0)}
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name={`ingredients.${index}.unit`}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      className="w-16 bg-white rounded-lg px-3 py-2 text-center"
-                      value={value}
-                      onChangeText={onChange}
-                      placeholder="unit"
-                    />
-                  )}
-                />
-                <Controller
-                  control={control}
-                  name={`ingredients.${index}.name`}
-                  render={({ field: { onChange, value } }) => (
-                    <TextInput
-                      className={`flex-1 bg-white rounded-lg px-3 py-2 ${
-                        errors.ingredients?.[index]?.name ? 'border border-red-400' : ''
-                      }`}
-                      value={value}
-                      onChangeText={onChange}
-                      placeholder="Ingredient name"
-                    />
-                  )}
-                />
-              </View>
-              <TouchableOpacity
-                onPress={() => removeIngredient(index)}
-                className="ml-2 p-2"
-              >
-                <Ionicons name="close-circle" size={24} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ))}
-          <TouchableOpacity
-            onPress={() => appendIngredient({ name: '', amount: 1, unit: 'cup', optional: false })}
-            className="flex-row items-center py-2"
-          >
-            <Ionicons name="add-circle-outline" size={24} color="#FF6B35" />
-            <Text className="text-primary-500 ml-2">Add Ingredient</Text>
-          </TouchableOpacity>
-
-          {/* Instructions */}
-          <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
-            Instructions
-          </Text>
-          {errors.instructions && (
-            <Text className="text-red-500 text-sm mb-2">
-              {errors.instructions.message || 'At least one instruction is required'}
-            </Text>
-          )}
-          {instructions.map((instruction, index) => (
-            <View key={index} className="flex-row items-start mb-2 bg-white rounded-lg p-3">
-              <Text className="w-6 text-primary-500 font-bold">{index + 1}.</Text>
-              <Text className="flex-1 text-neutral-700">{instruction}</Text>
-              <TouchableOpacity onPress={() => removeInstruction(index)}>
-                <Ionicons name="close-circle" size={20} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ))}
-          <View className="flex-row items-center">
-            <TextInput
-              className="flex-1 bg-white rounded-lg px-4 py-3"
-              value={newInstruction}
-              onChangeText={setNewInstruction}
-              placeholder="Add a step..."
-              multiline
-            />
-            <TouchableOpacity onPress={addInstruction} className="ml-2 p-2">
-              <Ionicons name="add-circle" size={28} color="#FF6B35" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Tags */}
-          <Text className="text-lg font-bold text-neutral-900 mt-4 mb-3">
-            Tags
-          </Text>
-          <View className="flex-row flex-wrap mb-2">
-            {tags.map((tag) => (
-              <TouchableOpacity
-                key={tag}
-                onPress={() => removeTag(tag)}
-                className="bg-primary-100 px-3 py-1 rounded-full mr-2 mb-2 flex-row items-center"
-              >
-                <Text className="text-primary-700">{tag}</Text>
-                <Ionicons name="close" size={16} color="#FF6B35" className="ml-1" />
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View className="flex-row items-center">
-            <TextInput
-              className="flex-1 bg-white rounded-lg px-4 py-3"
-              value={newTag}
-              onChangeText={setNewTag}
-              placeholder="Add a tag..."
-              onSubmitEditing={addTag}
-            />
-            <TouchableOpacity onPress={addTag} className="ml-2 p-2">
-              <Ionicons name="add-circle" size={28} color="#FF6B35" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Submit button */}
-          <View className="mt-8 mb-4">
-            <Button
-              title="Upload Recipe"
-              onPress={handleSubmit(onSubmit)}
-              isLoading={isSubmitting}
-              fullWidth
-            />
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-interface SelectorProps {
-  options: Array<{ label: string; value: string }>;
-  value: string;
-  onChange: (value: string) => void;
-}
-
-const Selector: React.FC<SelectorProps> = ({ options, value, onChange }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const selected = options.find((o) => o.value === value);
+  const cell = {
+    fontFamily: FONT.sans,
+    fontSize: 15,
+    height: 44,
+    paddingHorizontal: 0,
+  } as const;
 
   return (
-    <View>
-      <TouchableOpacity
-        onPress={() => setIsOpen(!isOpen)}
-        className="bg-white rounded-lg px-4 py-3 flex-row items-center justify-between"
+    <Screen
+      scroll
+      bottomSpace={150}
+      footer={
+        <ActionBar>
+          <UButton
+            label={t('cooking.uploadRecipe', 'Upload Recipe')}
+            variant="accent"
+            loading={isSubmitting}
+            onPress={handleSubmit(onSubmit)}
+            style={{ flex: 1 }}
+          />
+        </ActionBar>
+      }
+    >
+      <TopBar
+        variant="compact"
+        title={t('cooking.newRecipe', 'New Recipe')}
+        left={
+          <UIconButton
+            icon="close"
+            label={t('cooking.close', 'Close')}
+            onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
+          />
+        }
+      />
+
+      {/* Cover photo */}
+      <ToneBlock
+        tone="dark"
+        className="bg-surface-3 overflow-hidden"
+        style={{ height: 180, borderRadius: 30 }}
       >
-        <Text className="text-neutral-700">{selected?.label || 'Select'}</Text>
-        <Ionicons name={isOpen ? 'chevron-up' : 'chevron-down'} size={20} color="#737373" />
-      </TouchableOpacity>
-      {isOpen && (
-        <View className="absolute top-12 left-0 right-0 bg-white rounded-lg shadow-lg z-10 max-h-48">
-          <ScrollView>
-            {options.map((option) => (
-              <TouchableOpacity
-                key={option.value}
-                onPress={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
-                className="px-4 py-3 border-b border-neutral-100"
-              >
-                <Text
-                  className={option.value === value ? 'text-primary-500 font-medium' : 'text-neutral-700'}
-                >
-                  {option.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+        {imageUri ? <Image source={{ uri: imageUri }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} contentFit="cover" /> : null}
+        <View style={{ position: 'absolute', top: 14, left: 14 }}>
+          <Tag large tone="glassDark" label={t('cooking.coverPhoto', 'Cover photo')} />
         </View>
-      )}
-    </View>
+        {!imageUri ? (
+          <View className="flex-1 items-center justify-center" style={{ gap: 6 }}>
+            <Icon name="image" size="lg" color="muted" />
+            <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+              {t('cooking.addPhotoHint', 'Add a photo of your dish')}
+            </Text>
+          </View>
+        ) : null}
+        <View className="flex-row" style={{ position: 'absolute', right: 14, bottom: 14, gap: 8 }}>
+          <UIconButton icon="image" label={t('cooking.chooseGallery', 'Choose from gallery')} tone="glass" onPress={pickImage} />
+          <UIconButton icon="camera" label={t('cooking.takePhotoShort', 'Take photo')} tone="glass" onPress={takePhoto} />
+        </View>
+      </ToneBlock>
+
+      <Controller
+        control={control}
+        name="title"
+        render={({ field: { onChange, value } }) => (
+          <Field
+            label={t('cooking.recipeTitle', 'Recipe Title')}
+            placeholder={t('cooking.titlePlaceholder', "e.g., Grandma's Sunday roast")}
+            value={value}
+            onChangeText={onChange}
+            error={errors.title?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="description"
+        render={({ field: { onChange, value } }) => (
+          <Field
+            label={t('cooking.description', 'Description')}
+            placeholder={t('cooking.descriptionPlaceholder', 'Describe your recipe...')}
+            value={value}
+            onChangeText={onChange}
+            multiline
+            error={errors.description?.message}
+          />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="youtubeURL"
+        render={({ field: { onChange, value } }) => (
+          <Field
+            label={t('cooking.youtubeOptional', 'YouTube Video (optional)')}
+            placeholder="https://youtube.com/watch?v=..."
+            value={value}
+            onChangeText={onChange}
+            autoCapitalize="none"
+            keyboardType="url"
+            error={errors.youtubeURL?.message}
+          />
+        )}
+      />
+
+      {/* Category / cuisine / difficulty */}
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('cooking.category', 'Category')}</SectionLabel>
+        <View style={{ marginHorizontal: -20 }}>
+          <Controller
+            control={control}
+            name="category"
+            render={({ field: { onChange, value } }) => (
+              <ChipRow>
+                {CATEGORIES.map((o) => (
+                  <Chip key={o.value} label={o.label} on={value === o.value} onPress={() => onChange(o.value)} />
+                ))}
+              </ChipRow>
+            )}
+          />
+        </View>
+      </View>
+
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('cooking.cuisine', 'Cuisine')}</SectionLabel>
+        <View style={{ marginHorizontal: -20 }}>
+          <Controller
+            control={control}
+            name="cuisine"
+            render={({ field: { onChange, value } }) => (
+              <ChipRow>
+                {CUISINES.map((o) => (
+                  <Chip key={o.value} label={o.label} on={value === o.value} onPress={() => onChange(o.value)} />
+                ))}
+              </ChipRow>
+            )}
+          />
+        </View>
+      </View>
+
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('cooking.difficulty', 'Difficulty')}</SectionLabel>
+        <Controller
+          control={control}
+          name="difficulty"
+          render={({ field: { onChange, value } }) => (
+            <Segmented<Difficulty>
+              value={value}
+              onChange={onChange}
+              options={[
+                { value: 'easy', label: t('cooking.easy', 'Easy') },
+                { value: 'medium', label: t('cooking.medium', 'Medium') },
+                { value: 'hard', label: t('cooking.hard', 'Hard') },
+              ]}
+            />
+          )}
+        />
+      </View>
+
+      {/* Time and servings */}
+      <View className="flex-row" style={{ gap: 10 }}>
+        <Controller
+          control={control}
+          name="prepTime"
+          render={({ field: { onChange, value } }) => (
+            <View className="flex-1">
+              <Field
+                label={t('cooking.prepMin', 'Prep (min)')}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                placeholder="10"
+                value={value.toString()}
+                onChangeText={(v) => onChange(parseInt(v, 10) || 0)}
+                error={errors.prepTime?.message}
+              />
+            </View>
+          )}
+        />
+        <Controller
+          control={control}
+          name="cookTime"
+          render={({ field: { onChange, value } }) => (
+            <View className="flex-1">
+              <Field
+                label={t('cooking.cookMin', 'Cook (min)')}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                placeholder="20"
+                value={value.toString()}
+                onChangeText={(v) => onChange(parseInt(v, 10) || 0)}
+              />
+            </View>
+          )}
+        />
+        <Controller
+          control={control}
+          name="servings"
+          render={({ field: { onChange, value } }) => (
+            <View className="flex-1">
+              <Field
+                label={t('cooking.servings', 'Servings')}
+                keyboardType="number-pad"
+                inputMode="numeric"
+                placeholder="4"
+                value={value.toString()}
+                onChangeText={(v) => onChange(parseInt(v, 10) || 1)}
+                error={errors.servings?.message}
+              />
+            </View>
+          )}
+        />
+      </View>
+
+      {/* Ingredients */}
+      <View className="flex-row items-center justify-between">
+        <H2>{t('cooking.ingredients', 'Ingredients')}</H2>
+        <Pressable
+          onPress={() => appendIngredient({ name: '', amount: 1, unit: 'cup', optional: false })}
+          accessibilityRole="button"
+          accessibilityLabel={t('cooking.addIngredient', 'Add ingredient')}
+          className="flex-row items-center"
+          style={{ height: 44, gap: 4 }}
+        >
+          <Icon name="plus" size="sm" />
+          <Text className="text-ink" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
+            {t('cooking.add', 'Add')}
+          </Text>
+        </Pressable>
+      </View>
+      {errors.ingredients ? (
+        <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: -10 }}>
+          {errors.ingredients.message || t('cooking.fixIngredients', 'Please fix ingredient errors below')}
+        </Text>
+      ) : null}
+      <Rows box>
+        {ingredientFields.map((field, index) => (
+          <View key={field.id} className="flex-row items-center" style={{ minHeight: 64, gap: 10 }}>
+            <Controller
+              control={control}
+              name={`ingredients.${index}.amount`}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  accessibilityLabel={t('cooking.amount', 'Amount')}
+                  className="text-ink"
+                  style={[cell, { width: 40, fontFamily: FONT.sansSemi }]}
+                  keyboardType="decimal-pad"
+                  value={value.toString()}
+                  onChangeText={(v) => onChange(parseFloat(v) || 0)}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name={`ingredients.${index}.unit`}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  accessibilityLabel={t('cooking.unit', 'Unit')}
+                  className="text-ink"
+                  style={[cell, { width: 54, fontFamily: FONT.sansSemi }]}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder={t('cooking.unit', 'Unit')}
+                  placeholderTextColor={FIXED.placeholder}
+                />
+              )}
+            />
+            <Controller
+              control={control}
+              name={`ingredients.${index}.name`}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  accessibilityLabel={t('cooking.ingredientName', 'Ingredient name')}
+                  className={errors.ingredients?.[index]?.name ? 'flex-1 text-tag-r-fg' : 'flex-1 text-ink'}
+                  style={cell}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholder={t('cooking.ingredientName', 'Ingredient name')}
+                  placeholderTextColor={FIXED.placeholder}
+                />
+              )}
+            />
+            <UIconButton
+              icon="close"
+              label={t('cooking.removeIngredient', 'Remove ingredient')}
+              tone="white"
+              size={34}
+              iconSize="sm"
+              onPress={() => removeIngredient(index)}
+            />
+          </View>
+        ))}
+      </Rows>
+
+      {/* Instructions */}
+      <H2>{t('cooking.instructions', 'Instructions')}</H2>
+      {errors.instructions ? (
+        <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: -10 }}>
+          {errors.instructions.message || t('cooking.needInstruction', 'At least one instruction is required')}
+        </Text>
+      ) : null}
+      {instructions.length > 0 ? (
+        <Rows box>
+          {instructions.map((instruction, index) => (
+            <View key={index} className="flex-row items-center" style={{ minHeight: 64, gap: 12, paddingVertical: 8 }}>
+              <View className="items-center justify-center bg-surface-3" style={{ width: 32, height: 32, borderRadius: 16 }}>
+                <Text className="text-muted" style={{ fontFamily: FONT.display, fontSize: 13 }}>
+                  {index + 1}
+                </Text>
+              </View>
+              <Text className="flex-1 text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
+                {instruction}
+              </Text>
+              <UIconButton
+                icon="close"
+                label={t('cooking.removeStep', 'Remove step')}
+                tone="white"
+                size={34}
+                iconSize="sm"
+                onPress={() => removeInstruction(index)}
+              />
+            </View>
+          ))}
+        </Rows>
+      ) : null}
+      <UInput
+        label={t('cooking.addStep', 'Add a step...')}
+        placeholder={t('cooking.addStep', 'Add a step...')}
+        value={newInstruction}
+        onChangeText={setNewInstruction}
+        onSubmitEditing={addInstruction}
+        returnKeyType="done"
+        right={
+          <UIconButton
+            icon="plus"
+            label={t('cooking.addStepButton', 'Add step')}
+            tone="accent"
+            size={44}
+            onPress={addInstruction}
+          />
+        }
+      />
+
+      {/* Tags */}
+      <H2>{t('cooking.tags', 'Tags')}</H2>
+      {tags.length > 0 ? (
+        <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+          {tags.map((tag) => (
+            <Pressable
+              key={tag}
+              onPress={() => removeTag(tag)}
+              accessibilityRole="button"
+              accessibilityLabel={t('cooking.removeTag', 'Remove tag {{tag}}', { tag })}
+              className="flex-row items-center bg-tag-o"
+              style={{ height: 36, borderRadius: 18, paddingHorizontal: 14, gap: 6 }}
+            >
+              <Text className="text-tag-o-fg" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
+                {tag}
+              </Text>
+              <Icon name="close" size="sm" color="tag-o-fg" />
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      <UInput
+        label={t('cooking.addTag', 'Add a tag...')}
+        placeholder={t('cooking.addTag', 'Add a tag...')}
+        value={newTag}
+        onChangeText={setNewTag}
+        onSubmitEditing={addTag}
+        returnKeyType="done"
+        right={
+          <UIconButton
+            icon="plus"
+            label={t('cooking.addTagButton', 'Add tag')}
+            tone="accent"
+            size={44}
+            onPress={addTag}
+          />
+        }
+      />
+    </Screen>
   );
-};
-
-const CATEGORIES = [
-  { label: 'Breakfast', value: 'breakfast' },
-  { label: 'Lunch', value: 'lunch' },
-  { label: 'Dinner', value: 'dinner' },
-  { label: 'Dessert', value: 'dessert' },
-  { label: 'Snack', value: 'snack' },
-  { label: 'Appetizer', value: 'appetizer' },
-  { label: 'Beverage', value: 'beverage' },
-  { label: 'Side', value: 'side' },
-];
-
-const CUISINES = [
-  { label: 'American', value: 'american' },
-  { label: 'Italian', value: 'italian' },
-  { label: 'Mexican', value: 'mexican' },
-  { label: 'Chinese', value: 'chinese' },
-  { label: 'Japanese', value: 'japanese' },
-  { label: 'Indian', value: 'indian' },
-  { label: 'Thai', value: 'thai' },
-  { label: 'French', value: 'french' },
-  { label: 'Mediterranean', value: 'mediterranean' },
-  { label: 'Korean', value: 'korean' },
-  { label: 'Vietnamese', value: 'vietnamese' },
-  { label: 'Other', value: 'other' },
-];
+}

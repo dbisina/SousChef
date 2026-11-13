@@ -1,13 +1,9 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable, ScrollView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { CookingTimer } from '@/types/voice';
+import { Icon, ProgressBar, useTokens, FONT } from '@/components/ui';
 
 interface TimerDisplayProps {
   timers: CookingTimer[];
@@ -26,28 +22,25 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
   formatTime,
   compact = false,
 }) => {
+  const tokens = useTokens();
   if (timers.length === 0) return null;
 
-  // Get timer status color
+  // Timer status color: accent normally, urgent as time runs out, ink when done
   const getTimerColor = (timer: CookingTimer) => {
-    if (timer.remainingSeconds <= 0) return '#22C55E'; // Completed - green
-    if (timer.remainingSeconds <= 30) return '#EF4444'; // Under 30s - red
-    if (timer.remainingSeconds <= 60) return '#F59E0B'; // Under 1min - amber
-    return '#FF6B35'; // Normal - primary
+    if (timer.remainingSeconds <= 0) return tokens['rating-lo-dot'];
+    if (timer.remainingSeconds <= 30) return tokens['rating-hi-dot'];
+    return tokens.accent;
   };
 
-  // Get progress percentage
-  const getProgress = (timer: CookingTimer) => {
-    return ((timer.totalSeconds - timer.remainingSeconds) / timer.totalSeconds) * 100;
-  };
+  const getProgress = (timer: CookingTimer) => (timer.totalSeconds - timer.remainingSeconds) / timer.totalSeconds;
 
   if (compact) {
     return (
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        className="py-2"
-        contentContainerStyle={{ paddingHorizontal: 16, gap: 8 }}
+        style={{ flexGrow: 0 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 8, gap: 8 }}
       >
         {timers.map((timer) => (
           <CompactTimerPill
@@ -65,7 +58,7 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
   }
 
   return (
-    <View className="px-4 py-2">
+    <View style={{ paddingHorizontal: 20, paddingVertical: 8, gap: 8 }}>
       {timers.map((timer) => (
         <TimerCard
           key={timer.id}
@@ -82,8 +75,7 @@ export const TimerDisplay: React.FC<TimerDisplayProps> = ({
   );
 };
 
-// Compact timer pill for floating display
-interface CompactTimerPillProps {
+interface TimerItemProps {
   timer: CookingTimer;
   formatTime: (seconds: number) => string;
   getColor: (timer: CookingTimer) => string;
@@ -92,77 +84,51 @@ interface CompactTimerPillProps {
   onRemove: (timerId: string) => void;
 }
 
-const CompactTimerPill: React.FC<CompactTimerPillProps> = ({
-  timer,
-  formatTime,
-  getColor,
-  onPause,
-  onResume,
-  onRemove,
-}) => {
+// Compact timer pill for the floating strip
+const CompactTimerPill: React.FC<TimerItemProps> = ({ timer, formatTime, getColor, onPause, onResume, onRemove }) => {
+  const { t } = useTranslation();
   const isComplete = timer.remainingSeconds <= 0;
   const color = getColor(timer);
 
   return (
-    <View
-      style={[styles.pill, { borderColor: color }]}
-      className="flex-row items-center bg-white rounded-full px-3 py-1.5 shadow-sm"
-    >
-      {/* Timer icon */}
-      <View
-        style={{ backgroundColor: color }}
-        className="w-6 h-6 rounded-full items-center justify-center mr-2"
-      >
-        <Ionicons
-          name={isComplete ? 'checkmark' : 'timer-outline'}
-          size={14}
-          color="white"
-        />
-      </View>
-
-      {/* Time display */}
-      <Text style={{ color }} className="font-bold text-base mr-2">
-        {isComplete ? 'Done!' : formatTime(timer.remainingSeconds)}
+    <View className="flex-row items-center bg-surface-3" style={{ height: 44, borderRadius: 22, paddingStart: 14, paddingEnd: 4, gap: 8 }}>
+      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
+      <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+        {isComplete ? t('cooking.timerDone', 'Done!') : formatTime(timer.remainingSeconds)}
       </Text>
-
-      {/* Timer name */}
-      <Text className="text-neutral-500 text-xs mr-2" numberOfLines={1}>
+      <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12, maxWidth: 90 }}>
         {timer.name}
       </Text>
 
-      {/* Action buttons */}
-      {!isComplete && (
-        <TouchableOpacity
-          onPress={() => timer.isRunning ? onPause(timer.id) : onResume(timer.id)}
-          className="p-1"
+      {!isComplete ? (
+        <Pressable
+          onPress={() => (timer.isRunning ? onPause(timer.id) : onResume(timer.id))}
+          accessibilityRole="button"
+          accessibilityLabel={timer.isRunning ? t('cooking.pauseTimer', 'Pause timer') : t('cooking.resumeTimer', 'Resume timer')}
+          className="items-center justify-center"
+          style={{ width: 36, height: 36 }}
+          hitSlop={4}
         >
-          <Ionicons
-            name={timer.isRunning ? 'pause' : 'play'}
-            size={16}
-            color="#737373"
-          />
-        </TouchableOpacity>
-      )}
+          <Icon name={timer.isRunning ? 'minus' : 'play'} size="sm" color="muted" />
+        </Pressable>
+      ) : null}
 
-      <TouchableOpacity onPress={() => onRemove(timer.id)} className="p-1">
-        <Ionicons name="close" size={16} color="#737373" />
-      </TouchableOpacity>
+      <Pressable
+        onPress={() => onRemove(timer.id)}
+        accessibilityRole="button"
+        accessibilityLabel={t('cooking.removeTimer', 'Remove timer')}
+        className="items-center justify-center"
+        style={{ width: 36, height: 36 }}
+        hitSlop={4}
+      >
+        <Icon name="close" size="sm" color="muted" />
+      </Pressable>
     </View>
   );
 };
 
 // Full timer card for list display
-interface TimerCardProps {
-  timer: CookingTimer;
-  formatTime: (seconds: number) => string;
-  getColor: (timer: CookingTimer) => string;
-  getProgress: (timer: CookingTimer) => number;
-  onPause: (timerId: string) => void;
-  onResume: (timerId: string) => void;
-  onRemove: (timerId: string) => void;
-}
-
-const TimerCard: React.FC<TimerCardProps> = ({
+const TimerCard: React.FC<TimerItemProps & { getProgress: (timer: CookingTimer) => number }> = ({
   timer,
   formatTime,
   getColor,
@@ -171,71 +137,50 @@ const TimerCard: React.FC<TimerCardProps> = ({
   onResume,
   onRemove,
 }) => {
+  const { t } = useTranslation();
   const isComplete = timer.remainingSeconds <= 0;
   const color = getColor(timer);
-  const progress = getProgress(timer);
 
   return (
-    <View className="bg-white rounded-xl p-4 mb-2 shadow-sm border border-neutral-100">
-      <View className="flex-row items-center justify-between">
-        {/* Left side: icon and info */}
-        <View className="flex-row items-center flex-1">
-          <View
-            style={{ backgroundColor: color }}
-            className="w-10 h-10 rounded-full items-center justify-center mr-3"
-          >
-            <Ionicons
-              name={isComplete ? 'checkmark' : 'timer-outline'}
-              size={22}
-              color="white"
-            />
-          </View>
-          <View className="flex-1">
-            <Text className="text-neutral-900 font-medium">{timer.name}</Text>
-            <Text style={{ color }} className="text-2xl font-bold">
-              {isComplete ? 'Complete!' : formatTime(timer.remainingSeconds)}
-            </Text>
-          </View>
+    <View className="bg-surface" style={{ borderRadius: 28, padding: 18, gap: 12 }}>
+      <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
+        <View className="flex-1" style={{ gap: 2 }}>
+          <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+            {timer.name}
+          </Text>
+          <Text style={{ fontFamily: FONT.display, fontSize: 28, letterSpacing: -0.56, color }}>
+            {isComplete ? t('cooking.timerComplete', 'Complete!') : formatTime(timer.remainingSeconds)}
+          </Text>
         </View>
 
-        {/* Right side: controls */}
-        <View className="flex-row items-center">
-          {!isComplete && (
-            <TouchableOpacity
-              onPress={() => timer.isRunning ? onPause(timer.id) : onResume(timer.id)}
-              className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center mr-2"
+        <View className="flex-row items-center" style={{ gap: 8 }}>
+          {!isComplete ? (
+            <Pressable
+              onPress={() => (timer.isRunning ? onPause(timer.id) : onResume(timer.id))}
+              accessibilityRole="button"
+              accessibilityLabel={timer.isRunning ? t('cooking.pauseTimer', 'Pause timer') : t('cooking.resumeTimer', 'Resume timer')}
+              className="items-center justify-center bg-surface-3"
+              style={{ width: 44, height: 44, borderRadius: 22 }}
             >
-              <Ionicons
-                name={timer.isRunning ? 'pause' : 'play'}
-                size={20}
-                color="#404040"
-              />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
+              <Icon name={timer.isRunning ? 'minus' : 'play'} />
+            </Pressable>
+          ) : null}
+          <Pressable
             onPress={() => onRemove(timer.id)}
-            className="w-10 h-10 rounded-full bg-neutral-100 items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel={t('cooking.removeTimer', 'Remove timer')}
+            className="items-center justify-center bg-surface-3"
+            style={{ width: 44, height: 44, borderRadius: 22 }}
           >
-            <Ionicons name="close" size={20} color="#404040" />
-          </TouchableOpacity>
+            <Icon name="close" />
+          </Pressable>
         </View>
       </View>
 
-      {/* Progress bar */}
-      {!isComplete && (
-        <View className="mt-3 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-          <View
-            style={{ width: `${progress}%`, backgroundColor: color }}
-            className="h-full rounded-full"
-          />
-        </View>
-      )}
+      {!isComplete ? <ProgressBar value={getProgress(timer)} variant="accent" /> : null}
     </View>
   );
 };
-
-// Floating timer strip component
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface FloatingTimerStripProps {
   timers: CookingTimer[];
@@ -245,6 +190,7 @@ interface FloatingTimerStripProps {
   formatTime: (seconds: number) => string;
 }
 
+// Floating timer strip pinned under the status bar
 export const FloatingTimerStrip: React.FC<FloatingTimerStripProps> = ({
   timers,
   onPause,
@@ -257,7 +203,10 @@ export const FloatingTimerStrip: React.FC<FloatingTimerStripProps> = ({
   if (timers.length === 0) return null;
 
   return (
-    <View style={[styles.floatingContainer, { paddingTop: insets.top }]}>
+    <View
+      className="bg-ground border-divider"
+      style={{ position: 'absolute', top: 0, left: 0, right: 0, paddingTop: insets.top, borderBottomWidth: 1, zIndex: 100 }}
+    >
       <TimerDisplay
         timers={timers}
         onPause={onPause}
@@ -269,24 +218,3 @@ export const FloatingTimerStrip: React.FC<FloatingTimerStripProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  pill: {
-    borderWidth: 1.5,
-  },
-  floatingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 4,
-    zIndex: 100,
-  },
-});

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Modal, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, ScrollView, Modal, Pressable } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { RecipeFilters as FiltersType, RecipeCategory, Cuisine, Difficulty } from '@/types';
-import { Button } from '@/components/ui';
-import { useThemeColors } from '@/stores/themeStore';
+import { Chip, LinkText, ToneScope, UButton, UIconButton, FONT, useTone } from '@/components/ui';
 
 interface RecipeFiltersProps {
   filters: FiltersType;
@@ -16,7 +15,8 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
   onApplyFilters,
   onClearFilters,
 }) => {
-  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const tone = useTone();
   const [isModalVisible, setModalVisible] = useState(false);
   const [tempFilters, setTempFilters] = useState<FiltersType>(filters);
 
@@ -35,276 +35,116 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
     setModalVisible(false);
   };
 
+  const section = <T,>(
+    title: string,
+    options: Array<{ label: string; value: T }>,
+    key: keyof FiltersType
+  ) => (
+    <FilterSection title={title}>
+      <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+        {options.map((o) => {
+          const active = tempFilters[key] === o.value;
+          return (
+            <Chip
+              key={String(o.value)}
+              label={o.label}
+              on={active}
+              onPress={() => setTempFilters({ ...tempFilters, [key]: active ? undefined : o.value })}
+            />
+          );
+        })}
+      </View>
+    </FilterSection>
+  );
+
   return (
     <>
-      <View className="py-2">
+      <View style={{ paddingVertical: 8 }}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, alignItems: 'center' }}
+          contentContainerStyle={{ paddingHorizontal: 20, alignItems: 'center', gap: 8 }}
         >
-          {/* Main Filter Button */}
-          <TouchableOpacity
+          <Chip
+            label={
+              activeFilterCount > 0
+                ? t('cooking.filtersCount', 'Filters ({{count}})', { count: activeFilterCount })
+                : t('cooking.filters', 'Filters')
+            }
+            icon="filters"
+            on={activeFilterCount > 0}
             onPress={() => setModalVisible(true)}
-            style={styles.filterBtn}
-            className={`flex-row items-center px-4 py-2.5 rounded-full mr-3 border ${
-              activeFilterCount > 0 
-                ? 'bg-primary-50 border-primary-200' 
-                : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
-            }`}
-          >
-            <View className={`rounded-full p-1 mr-2 ${activeFilterCount > 0 ? 'bg-primary-500' : 'bg-neutral-100'}`}>
-               <Ionicons
-                name="options"
-                size={14}
-                color={activeFilterCount > 0 ? 'white' : colors.textMuted}
-              />
-            </View>
-           
-            <Text
-              className={`font-semibold ${activeFilterCount > 0 ? 'text-primary-700' : 'text-neutral-700 dark:text-neutral-300'}`}
-            >
-              Filters
-            </Text>
-            {activeFilterCount > 0 && (
-              <View className="ml-2 bg-primary-500 rounded-full w-5 h-5 items-center justify-center">
-                 <Text className="text-white text-xs font-bold">{activeFilterCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          />
 
-          {/* Vertical Divider */}
-          <View className="h-6 w-[1px] bg-neutral-200 dark:bg-neutral-700 mr-3" />
-
-          {/* Quick Filter Chips */}
-          <FilterChip
-            label="Easy"
-            icon="happy-outline"
-            isActive={filters.difficulty === 'easy'}
+          <Chip
+            label={t('cooking.easy', 'Easy')}
+            on={filters.difficulty === 'easy'}
             onPress={() =>
-              onApplyFilters({
-                ...filters,
-                difficulty: filters.difficulty === 'easy' ? undefined : 'easy',
-              })
+              onApplyFilters({ ...filters, difficulty: filters.difficulty === 'easy' ? undefined : 'easy' })
             }
-            className="mr-2"
           />
-          <FilterChip
-            label="Under 30m"
-            icon="time-outline"
-            isActive={filters.maxPrepTime === 30}
+          <Chip
+            label={t('cooking.under30', 'Under 30m')}
+            icon="clock"
+            on={filters.maxPrepTime === 30}
             onPress={() =>
-              onApplyFilters({
-                ...filters,
-                maxPrepTime: filters.maxPrepTime === 30 ? undefined : 30,
-              })
+              onApplyFilters({ ...filters, maxPrepTime: filters.maxPrepTime === 30 ? undefined : 30 })
             }
-            className="mr-2"
           />
-          <FilterChip
-            label="Low Cal"
-            icon="flame-outline"
-            isActive={filters.maxCalories === 400}
+          <Chip
+            label={t('cooking.lowCal', 'Low Cal')}
+            icon="flame"
+            on={filters.maxCalories === 400}
             onPress={() =>
-              onApplyFilters({
-                ...filters,
-                maxCalories: filters.maxCalories === 400 ? undefined : 400,
-              })
+              onApplyFilters({ ...filters, maxCalories: filters.maxCalories === 400 ? undefined : 400 })
             }
-            className="mr-2"
           />
-          <FilterChip
-            label="Chef Picks"
-            icon="ribbon-outline"
-            isActive={filters.isOfficial === true}
+          <Chip
+            label={t('cooking.chefPicks', 'Chef Picks')}
+            icon="award"
+            on={filters.isOfficial === true}
             onPress={() =>
-              onApplyFilters({
-                ...filters,
-                isOfficial: filters.isOfficial ? undefined : true,
-              })
+              onApplyFilters({ ...filters, isOfficial: filters.isOfficial ? undefined : true })
             }
-            className="mr-2"
           />
         </ScrollView>
       </View>
 
-      {/* Filter modal (unchanged implementation details, just re-rendering) */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
         presentationStyle="pageSheet"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View className="flex-1 bg-white dark:bg-neutral-800">
-          {/* Header */}
-          <View className="flex-row items-center justify-between px-4 py-4 border-b border-neutral-100 dark:border-neutral-700">
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <Text className="text-primary-500 text-base">Cancel</Text>
-            </TouchableOpacity>
-            <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">Filters</Text>
-            <TouchableOpacity onPress={handleClear}>
-              <Text className="text-primary-500 text-base">Clear</Text>
-            </TouchableOpacity>
+        <ToneScope tone={tone}>
+          <View className="flex-row items-center justify-between" style={{ paddingHorizontal: 20, paddingVertical: 18 }}>
+            <UIconButton icon="close" label={t('cooking.cancel', 'Cancel')} onPress={() => setModalVisible(false)} />
+            <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 17 }}>
+              {t('cooking.filters', 'Filters')}
+            </Text>
+            <Pressable onPress={handleClear} accessibilityRole="button" style={{ minWidth: 46, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' }}>
+                <LinkText accent>{t('cooking.clear', 'Clear')}</LinkText>
+              </Pressable>
           </View>
 
-          <ScrollView className="flex-1 p-4">
-            {/* Category */}
-            <FilterSection title="Category">
-              <View className="flex-row flex-wrap gap-2">
-                {CATEGORIES.map((cat) => (
-                  <FilterChip
-                    key={cat.value}
-                    label={cat.label}
-                    isActive={tempFilters.category === cat.value}
-                    onPress={() =>
-                      setTempFilters({
-                        ...tempFilters,
-                        category:
-                          tempFilters.category === cat.value
-                            ? undefined
-                            : cat.value,
-                      })
-                    }
-                  />
-                ))}
-              </View>
-            </FilterSection>
-
-            {/* Cuisine */}
-            <FilterSection title="Cuisine">
-              <View className="flex-row flex-wrap gap-2">
-                {CUISINES.map((cuisine) => (
-                  <FilterChip
-                    key={cuisine.value}
-                    label={cuisine.label}
-                    isActive={tempFilters.cuisine === cuisine.value}
-                    onPress={() =>
-                      setTempFilters({
-                        ...tempFilters,
-                        cuisine:
-                          tempFilters.cuisine === cuisine.value
-                            ? undefined
-                            : cuisine.value,
-                      })
-                    }
-                  />
-                ))}
-              </View>
-            </FilterSection>
-
-            {/* Difficulty */}
-            <FilterSection title="Difficulty">
-              <View className="flex-row flex-wrap gap-2">
-                {DIFFICULTIES.map((diff) => (
-                  <FilterChip
-                    key={diff.value}
-                    label={diff.label}
-                    isActive={tempFilters.difficulty === diff.value}
-                    onPress={() =>
-                      setTempFilters({
-                        ...tempFilters,
-                        difficulty:
-                          tempFilters.difficulty === diff.value
-                            ? undefined
-                            : diff.value,
-                      })
-                    }
-                  />
-                ))}
-              </View>
-            </FilterSection>
-
-            {/* Max Calories */}
-            <FilterSection title="Max Calories per Serving">
-              <View className="flex-row flex-wrap gap-2">
-                {CALORIE_OPTIONS.map((option) => (
-                  <FilterChip
-                    key={option.value}
-                    label={option.label}
-                    isActive={tempFilters.maxCalories === option.value}
-                    onPress={() =>
-                      setTempFilters({
-                        ...tempFilters,
-                        maxCalories:
-                          tempFilters.maxCalories === option.value
-                            ? undefined
-                            : option.value,
-                      })
-                    }
-                  />
-                ))}
-              </View>
-            </FilterSection>
-
-            {/* Max Prep Time */}
-            <FilterSection title="Max Prep Time">
-              <View className="flex-row flex-wrap gap-2">
-                {TIME_OPTIONS.map((option) => (
-                  <FilterChip
-                    key={option.value}
-                    label={option.label}
-                    isActive={tempFilters.maxPrepTime === option.value}
-                    onPress={() =>
-                      setTempFilters({
-                        ...tempFilters,
-                        maxPrepTime:
-                          tempFilters.maxPrepTime === option.value
-                            ? undefined
-                            : option.value,
-                      })
-                    }
-                  />
-                ))}
-              </View>
-            </FilterSection>
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24, gap: 22 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {section(t('cooking.category', 'Category'), CATEGORIES, 'category')}
+            {section(t('cooking.cuisine', 'Cuisine'), CUISINES, 'cuisine')}
+            {section(t('cooking.difficulty', 'Difficulty'), DIFFICULTIES, 'difficulty')}
+            {section(t('cooking.maxCalories', 'Max Calories per Serving'), CALORIE_OPTIONS, 'maxCalories')}
+            {section(t('cooking.maxPrep', 'Max Prep Time'), TIME_OPTIONS, 'maxPrepTime')}
           </ScrollView>
 
-          {/* Apply button */}
-          <View className="p-4 border-t border-neutral-100 dark:border-neutral-700">
-            <Button title="Apply Filters" onPress={handleApply} fullWidth />
+          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 34 }}>
+            <UButton label={t('cooking.applyFilters', 'Apply Filters')} variant="accent" onPress={handleApply} />
           </View>
-        </View>
+        </ToneScope>
       </Modal>
     </>
-  );
-};
-
-interface FilterChipProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-  className?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
-}
-
-const FilterChip: React.FC<FilterChipProps> = ({ label, isActive, onPress, className = '', icon }) => {
-  const colors = useThemeColors();
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.chipShadow}
-      className={`
-        flex-row items-center px-3.5 py-2 rounded-full border
-        ${isActive 
-          ? 'bg-primary-500 border-primary-600' 
-          : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'}
-        ${className}
-      `}
-    >
-      {icon && (
-        <Ionicons 
-          name={icon} 
-          size={16} 
-          color={isActive ? 'white' : colors.textMuted} 
-          style={{ marginRight: 6 }}
-        />
-      )}
-      <Text
-        className={`font-medium text-sm ${isActive ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'}`}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
   );
 };
 
@@ -313,33 +153,15 @@ interface FilterSectionProps {
   children: React.ReactNode;
 }
 
-const FilterSection: React.FC<FilterSectionProps> = ({ title, children }) => {
-  return (
-    <View className="mb-6">
-      <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-50 mb-3">
-        {title}
-      </Text>
-      {children}
-    </View>
-  );
-};
+const FilterSection: React.FC<FilterSectionProps> = ({ title, children }) => (
+  <View style={{ gap: 12 }}>
+    <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+      {title}
+    </Text>
+    {children}
+  </View>
+);
 
-const styles = StyleSheet.create({
-  filterBtn: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  chipShadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-});
 
 // Filter options
 const CATEGORIES: Array<{ label: string; value: RecipeCategory }> = [

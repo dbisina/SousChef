@@ -1,30 +1,12 @@
-import React, { memo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Platform,
-  Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { memo } from 'react';
+import { Alert, Platform, Pressable, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  interpolate,
-  FadeIn,
-  Layout,
-} from 'react-native-reanimated';
-import { WantToCookItem, WantToCookStatus } from '@/types/wantToCook';
-import { safeTimestampMillis } from '@/stores/wantToCookStore';
-import { useThemeColors } from '@/stores/themeStore';
-import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
+import { WantToCookItem } from '@/types/wantToCook';
+import { Icon, PhotoCard, Tag, Thumb, UIconButton, FONT } from '@/components/ui';
+import { SAMPLE } from '@/assets/sample';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+export type WantToCookCardVariant = 'hero' | 'tile' | 'row';
 
 interface WantToCookCardProps {
   item: WantToCookItem;
@@ -32,15 +14,21 @@ interface WantToCookCardProps {
   onAddToShoppingList: () => void;
   onMarkAsCooked: () => void;
   onRemove: () => void;
+  /** hero = full-width photo, tile = half-width photo, row = thumbnail list row (Want to Cook screen). */
+  variant?: WantToCookCardVariant;
 }
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+const PLATFORM_LABEL: Record<string, string> = {
+  tiktok: 'TikTok',
+  youtube: 'YouTube',
+  instagram: 'Instagram',
+  x: 'X',
+  website: 'Web',
+};
 
-const STATUS_CONFIG: Record<WantToCookStatus, { color: string; bg: string; icon: string; label: string }> = {
-  saved: { color: '#6366F1', bg: '#EEF2FF', icon: 'bookmark', label: 'Saved' },
-  planned: { color: '#F59E0B', bg: '#FEF3C7', icon: 'calendar', label: 'Planned' },
-  shopping: { color: '#10B981', bg: '#D1FAE5', icon: 'cart', label: 'Shopping' },
-  cooked: { color: '#22C55E', bg: '#DCFCE7', icon: 'checkmark-circle', label: 'Cooked' },
+export const sourceLabel = (platform?: string): string | undefined => {
+  if (!platform) return undefined;
+  return PLATFORM_LABEL[platform.toLowerCase()] ?? platform.charAt(0).toUpperCase() + platform.slice(1);
 };
 
 export const WantToCookCard = memo<WantToCookCardProps>(({
@@ -49,250 +37,106 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
   onAddToShoppingList,
   onMarkAsCooked,
   onRemove,
+  variant = 'hero',
 }) => {
-  const scale = useSharedValue(1);
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   const recipe = item.importedRecipe;
 
   if (!recipe) return null;
 
-  const statusConfig = STATUS_CONFIG[item.status];
-  const savedDaysAgo = Math.floor(
-    (Date.now() - safeTimestampMillis(item.savedAt)) / (1000 * 60 * 60 * 24)
-  );
-  const pantryMatch = item.pantryMatchPercent ?? 0;
+  const cooked = item.status === 'cooked';
+  const minutes = (recipe.prepTime || 0) + (recipe.cookTime || 0);
+  const source = sourceLabel(recipe.sourcePlatform);
+  const photo = recipe.imageURL ? { uri: recipe.imageURL } : SAMPLE.bowl;
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.97, { damping: 15 });
+  const handlePress = () => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
+    onPress();
   };
 
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15 });
+  // Mark-as-cooked and remove have no slot in the photo-led design, so they live on long press.
+  const openActions = () => {
+    const buttons = [
+      { text: t('cooking.addToList', 'Add to shopping list'), onPress: onAddToShoppingList },
+      ...(cooked ? [] : [{ text: t('cooking.markCooked', 'Mark as Cooked'), onPress: onMarkAsCooked }]),
+      { text: t('cooking.remove', 'Remove'), style: 'destructive' as const, onPress: onRemove },
+      { text: t('cooking.cancel', 'Cancel'), style: 'cancel' as const },
+    ];
+    Alert.alert(recipe.title, undefined, buttons);
   };
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const subtitleParts = [
+    minutes > 0 ? t('cooking.minutes', '{{count}} min', { count: minutes }) : null,
+    variant === 'hero'
+      ? t('cooking.ingredientCount', '{{count}} ingredients', { count: recipe.ingredients.length })
+      : null,
+  ].filter(Boolean);
 
-  // Pantry match color
-  const getMatchColor = (percent: number) => {
-    if (percent >= 80) return { text: '#22C55E', bg: '#DCFCE7' };
-    if (percent >= 50) return { text: '#F59E0B', bg: '#FEF3C7' };
-    return { text: '#EF4444', bg: '#FEE2E2' };
-  };
-
-  const matchColor = getMatchColor(pantryMatch);
-
-  return (
-    <AnimatedTouchable
-      entering={FadeIn.duration(300)}
-      layout={Layout.springify()}
-      style={[animatedStyle]}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      activeOpacity={1}
-      className="mb-4"
-    >
-      <View
-        className="bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden"
-        style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.08,
-          shadowRadius: 12,
-          elevation: 4,
-        }}
+  if (variant === 'row') {
+    return (
+      <Pressable
+        onPress={handlePress}
+        onLongPress={openActions}
+        accessibilityRole="button"
+        accessibilityLabel={recipe.title}
+        accessibilityHint={t('cooking.longPressHint', 'Long press for more actions')}
+        className="flex-row items-center"
+        style={({ pressed }) => ({ minHeight: 72, gap: 14, opacity: pressed ? 0.8 : 1 })}
       >
-        {/* Image Section */}
-        <View className="relative">
-          {recipe.imageURL ? (
-            <Image
-              source={{ uri: recipe.imageURL }}
-              className="w-full h-44"
-              resizeMode="cover"
-            />
-          ) : (
-            <LinearGradient
-              colors={[colors.accent, colors.accent + 'CC']}
-              className="w-full h-44 items-center justify-center"
-            >
-              <Ionicons name="restaurant-outline" size={48} color="white" />
-            </LinearGradient>
-          )}
-
-          {/* Source badge */}
-          {recipe.sourcePlatform && (
-            <View className="absolute top-3 left-3">
-              <View className="bg-black/60 px-3 py-1.5 rounded-full flex-row items-center">
-                <Ionicons
-                  name={
-                    recipe.sourcePlatform === 'youtube' ? 'logo-youtube' :
-                    recipe.sourcePlatform === 'tiktok' ? 'logo-tiktok' :
-                    recipe.sourcePlatform === 'instagram' ? 'logo-instagram' :
-                    'globe-outline'
-                  }
-                  size={14}
-                  color="white"
-                />
-                <Text className="text-white text-xs font-medium ml-1 capitalize">
-                  {recipe.sourcePlatform}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {/* Status badge */}
-          <View className="absolute top-3 right-3">
-            <View
-              className="px-3 py-1.5 rounded-full flex-row items-center"
-              style={{ backgroundColor: statusConfig.bg }}
-            >
-              <Ionicons name={statusConfig.icon as any} size={14} color={statusConfig.color} />
-              <Text style={{ color: statusConfig.color }} className="text-xs font-semibold ml-1">
-                {statusConfig.label}
-              </Text>
-            </View>
-          </View>
-
-          {/* Pantry match indicator */}
-          <View className="absolute bottom-3 right-3">
-            <View
-              className="px-3 py-2 rounded-xl flex-row items-center"
-              style={{ backgroundColor: matchColor.bg }}
-            >
-              <Ionicons name="basket-outline" size={16} color={matchColor.text} />
-              <Text style={{ color: matchColor.text }} className="text-sm font-bold ml-1">
-                {pantryMatch}%
-              </Text>
-              <Text style={{ color: matchColor.text }} className="text-xs ml-1">
-                match
-              </Text>
-            </View>
-          </View>
-
-          {/* Days ago nudge */}
-          {savedDaysAgo >= 7 && item.status === 'saved' && (
-            <View className="absolute bottom-3 left-3">
-              <View className="bg-amber-500 px-3 py-2 rounded-xl flex-row items-center">
-                <Ionicons name="time-outline" size={14} color="white" />
-                <Text className="text-white text-xs font-semibold ml-1">
-                  {savedDaysAgo}d ago - Cook it!
-                </Text>
-              </View>
-            </View>
-          )}
-        </View>
-
-        {/* Content Section */}
-        <View className="p-4">
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50 mb-1" numberOfLines={2}>
+        <Thumb source={photo} name={recipe.title} />
+        <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+          <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15, letterSpacing: -0.15 }}>
             {recipe.title}
           </Text>
-
-          {recipe.description && (
-            <Text className="text-neutral-500 dark:text-neutral-400 text-sm mb-3" numberOfLines={2}>
-              {recipe.description}
-            </Text>
-          )}
-
-          {/* Recipe meta */}
-          <View className="flex-row items-center mb-4">
-            {recipe.prepTime && (
-              <View className="flex-row items-center mr-4">
-                <Ionicons name="time-outline" size={16} color="#6B7280" />
-                <Text className="text-neutral-600 dark:text-neutral-400 text-sm ml-1">
-                  {(recipe.prepTime || 0) + (recipe.cookTime || 0)} min
-                </Text>
-              </View>
-            )}
-            {recipe.servings && (
-              <View className="flex-row items-center mr-4">
-                <Ionicons name="people-outline" size={16} color="#6B7280" />
-                <Text className="text-neutral-600 dark:text-neutral-400 text-sm ml-1">
-                  {recipe.servings} servings
-                </Text>
-              </View>
-            )}
-            <View className="flex-row items-center">
-              <Ionicons name="nutrition-outline" size={16} color="#6B7280" />
-              <Text className="text-neutral-600 dark:text-neutral-400 text-sm ml-1">
-                {recipe.ingredients.length} ingredients
-              </Text>
-            </View>
-          </View>
-
-          {/* Missing ingredients preview */}
-          {item.missingIngredients && item.missingIngredients.length > 0 && (
-            <View className="mb-4">
-              <Text className="text-xs font-semibold text-neutral-400 dark:text-neutral-500 mb-2">
-                NEED TO BUY ({item.missingIngredients.length})
-              </Text>
-              <View className="flex-row flex-wrap">
-                {item.missingIngredients.slice(0, 4).map((ing, idx) => (
-                  <View
-                    key={idx}
-                    className="bg-red-50 px-2 py-1 rounded-lg mr-2 mb-1"
-                  >
-                    <Text className="text-red-600 text-xs">{ing}</Text>
-                  </View>
-                ))}
-                {item.missingIngredients.length > 4 && (
-                  <View className="bg-neutral-100 dark:bg-neutral-700 px-2 py-1 rounded-lg">
-                    <Text className="text-neutral-500 dark:text-neutral-400 text-xs">
-                      +{item.missingIngredients.length - 4} more
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-
-          {/* Action buttons */}
-          <View className="flex-row gap-2">
-            {item.status !== 'cooked' && (
-              <>
-                <TouchableOpacity
-                  onPress={onAddToShoppingList}
-                  className="flex-1 py-3 rounded-xl flex-row items-center justify-center"
-                  style={{ backgroundColor: colors.accent }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="cart-outline" size={18} color="white" />
-                  <Text className="text-white font-semibold ml-2">Add to List</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={onMarkAsCooked}
-                  className="w-12 h-12 bg-green-100 rounded-xl items-center justify-center"
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="checkmark-circle-outline" size={24} color="#22C55E" />
-                </TouchableOpacity>
-              </>
-            )}
-
-            {item.status === 'cooked' && (
-              <View className="flex-1 bg-green-100 py-3 rounded-xl flex-row items-center justify-center">
-                <Ionicons name="checkmark-circle" size={20} color="#22C55E" />
-                <Text className="text-green-600 font-semibold ml-2">Cooked!</Text>
-              </View>
-            )}
-
-            <TouchableOpacity
-              onPress={onRemove}
-              className="w-12 h-12 bg-neutral-100 dark:bg-neutral-700 rounded-xl items-center justify-center"
-              activeOpacity={0.8}
-            >
-              <Ionicons name="trash-outline" size={20} color="#6B7280" />
-            </TouchableOpacity>
-          </View>
+          <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+            {[...subtitleParts, cooked ? t('cooking.cooked', 'Cooked') : source].filter(Boolean).join(' · ')}
+          </Text>
         </View>
-      </View>
-    </AnimatedTouchable>
+        <Icon name="chevronRight" color="subtle" />
+      </Pressable>
+    );
+  }
+
+  const tile = variant === 'tile';
+  const topLeft = cooked ? (
+    <Tag label={t('cooking.cooked', 'Cooked')} tone="glass" icon="check" large={!tile} />
+  ) : source ? (
+    <Tag label={source} tone="glassDark" icon={!tile ? 'play' : undefined} large={!tile} />
+  ) : undefined;
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      onLongPress={openActions}
+      delayLongPress={350}
+      accessibilityRole="button"
+      accessibilityLabel={recipe.title}
+      accessibilityHint={t('cooking.longPressHint', 'Long press for more actions')}
+      style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+    >
+      <PhotoCard
+        source={photo}
+        height={tile ? 210 : 200}
+        radius={tile ? 26 : 30}
+        title={recipe.title}
+        titleSize={tile ? 16 : 20}
+        captionInset={tile ? 16 : 18}
+        subtitle={subtitleParts.join(' · ')}
+        topLeft={topLeft}
+        topRight={
+          !tile && !cooked ? (
+            <UIconButton
+              icon="cart"
+              label={t('cooking.addToList', 'Add to shopping list')}
+              tone="glassDark"
+              onPress={onAddToShoppingList}
+            />
+          ) : undefined
+        }
+      />
+    </Pressable>
   );
 });
 

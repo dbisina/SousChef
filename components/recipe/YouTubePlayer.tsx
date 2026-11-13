@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, Dimensions, TouchableOpacity } from 'react-native';
+import { View, Text, Dimensions } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
+import { useTranslation } from 'react-i18next';
+import { Icon, UButton, FONT } from '@/components/ui';
 
 interface YouTubePlayerProps {
   videoUrl: string;
@@ -58,14 +58,14 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
   videoUrl,
   autoPlay = false,
 }) => {
+  const { t } = useTranslation();
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [isReady, setIsReady] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const colors = useThemeColors();
 
   const videoId = extractVideoId(videoUrl);
   const screenWidth = Dimensions.get('window').width;
-  const playerHeight = (screenWidth - 32) * (9 / 16); // 16:9 aspect ratio with padding
+  const playerHeight = (screenWidth - 40) * (9 / 16); // 16:9 inside the 20px screen gutters
 
   const onStateChange = useCallback((state: string) => {
     if (state === 'ended') {
@@ -83,39 +83,39 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({
 
   if (!videoId) {
     return (
-      <View className="bg-neutral-100 dark:bg-neutral-700 rounded-xl p-6 items-center justify-center" style={{ height: playerHeight }}>
-        <Ionicons name="videocam-off-outline" size={40} color={colors.textMuted} />
-        <Text className="text-neutral-500 dark:text-neutral-400 mt-2 text-center">Invalid YouTube URL</Text>
+      <View className="bg-surface items-center justify-center" style={{ height: playerHeight, borderRadius: 28, gap: 8 }}>
+        <Icon name="warning" size="lg" color="muted" />
+        <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+          {t('cooking.invalidYoutube', 'Invalid YouTube URL')}
+        </Text>
       </View>
     );
   }
 
   if (hasError) {
     return (
-      <View className="bg-neutral-100 dark:bg-neutral-700 rounded-xl p-6 items-center justify-center" style={{ height: playerHeight }}>
-        <Ionicons name="alert-circle-outline" size={40} color="#EF4444" />
-        <Text className="text-neutral-500 dark:text-neutral-400 mt-2 text-center">Failed to load video</Text>
-        <TouchableOpacity
-          onPress={() => setHasError(false)}
-          className="mt-3 px-4 py-2 bg-primary-500 rounded-lg"
-        >
-          <Text className="text-white font-medium">Retry</Text>
-        </TouchableOpacity>
+      <View className="bg-surface items-center justify-center" style={{ height: playerHeight, borderRadius: 28, gap: 10 }}>
+        <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+          {t('cooking.videoFailed', 'Failed to load video')}
+        </Text>
+        <UButton label={t('cooking.retry', 'Retry')} size="sm" onPress={() => setHasError(false)} />
       </View>
     );
   }
 
   return (
-    <View className="rounded-xl overflow-hidden bg-black">
-      {!isReady && (
+    <View className="overflow-hidden bg-night" style={{ borderRadius: 28 }}>
+      {!isReady ? (
         <View
-          className="absolute inset-0 bg-neutral-200 dark:bg-neutral-700 items-center justify-center z-10"
-          style={{ height: playerHeight }}
+          className="absolute inset-0 bg-surface-3 items-center justify-center z-10"
+          style={{ height: playerHeight, gap: 8 }}
         >
-          <Ionicons name="play-circle" size={48} color={colors.textMuted} />
-          <Text className="text-neutral-500 dark:text-neutral-400 mt-2">Loading video...</Text>
+          <Icon name="play" size="lg" color="muted" />
+          <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+            {t('cooking.loadingVideo', 'Loading video...')}
+          </Text>
         </View>
-      )}
+      ) : null}
       <YoutubePlayer
         height={playerHeight}
         play={isPlaying}

@@ -1,19 +1,9 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  Animated,
-  StyleSheet,
-  Dimensions,
-  useColorScheme,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { VoiceListeningState, VoiceParseResult, VOICE_COMMAND_EXAMPLES } from '@/types/voice';
+import React from 'react';
+import { View, Text, Modal } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { VoiceListeningState, VoiceParseResult } from '@/types/voice';
 import { VoiceButton } from './VoiceButton';
-import { useThemeColors } from '@/stores/themeStore';
+import { Chip, Dot, Muted, SectionLabel, Tag, ToneScope, UIconButton, USwitch, FONT } from '@/components/ui';
 
 interface VoiceOverlayProps {
   visible: boolean;
@@ -31,8 +21,7 @@ interface VoiceOverlayProps {
   onToggleWakeWordMode?: () => void;
 }
 
-const { width } = Dimensions.get('window');
-
+// Dark voice assistant (Voice.html): orange pulsing mic, big quoted transcript, "Try saying" chips.
 export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
   visible,
   onClose,
@@ -48,54 +37,42 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
   isWakeWordListening = false,
   onToggleWakeWordMode,
 }) => {
-  const waveAnim = useRef(new Animated.Value(0)).current;
-  const colors = useThemeColors();
-  const colorScheme = useColorScheme();
+  const { t } = useTranslation();
 
-  // Wave animation while listening
-  useEffect(() => {
-    if (isListening) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(waveAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveAnim, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
-      waveAnim.setValue(0);
-    }
-  }, [isListening]);
+  const statusTag = isSpeaking
+    ? t('cooking.speaking', 'Speaking...')
+    : isProcessing
+    ? t('cooking.understanding', 'Understanding...')
+    : isListening
+    ? t('cooking.listening', 'Listening')
+    : t('cooking.voiceReady', 'Ready');
 
-  // Get status message
-  const getStatusMessage = () => {
-    if (error) return error;
-    if (isSpeaking) return 'Speaking...';
-    if (isProcessing) return 'Understanding...';
-    if (isListening) return 'Listening... speak now';
-    return 'Tap the microphone to start';
-  };
+  const statusMessage = error
+    ? error
+    : isSpeaking
+    ? t('cooking.speaking', 'Speaking...')
+    : isProcessing
+    ? t('cooking.understanding', 'Understanding...')
+    : isListening
+    ? t('cooking.listeningSpeak', 'Listening... speak now')
+    : t('cooking.tapMic', 'Tap the microphone to start');
 
-  // Get command feedback
   const getCommandFeedback = () => {
     if (!lastCommand || lastCommand.command === 'unknown') return null;
 
     const commandLabels: Record<string, string> = {
-      next_step: 'Going to next step',
-      previous_step: 'Going back',
-      read_step: 'Reading step',
-      read_ingredients: 'Reading ingredients',
-      set_timer: `Setting timer for ${lastCommand.parameters.minutes} minutes`,
-      current_step: 'Announcing position',
-      substitute: `Finding substitute for ${lastCommand.parameters.ingredient}`,
-      help: 'Listing commands',
+      next_step: t('cooking.cmdNext', 'Going to next step'),
+      previous_step: t('cooking.cmdBack', 'Going back'),
+      read_step: t('cooking.cmdRead', 'Reading step'),
+      read_ingredients: t('cooking.cmdIngredients', 'Reading ingredients'),
+      set_timer: t('cooking.cmdTimer', 'Setting timer for {{minutes}} minutes', {
+        minutes: lastCommand.parameters.minutes,
+      }),
+      current_step: t('cooking.cmdPosition', 'Announcing position'),
+      substitute: t('cooking.cmdSubstitute', 'Finding substitute for {{ingredient}}', {
+        ingredient: lastCommand.parameters.ingredient,
+      }),
+      help: t('cooking.cmdHelp', 'Listing commands'),
     };
 
     return commandLabels[lastCommand.command] || null;
@@ -103,167 +80,117 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
 
   const commandFeedback = getCommandFeedback();
 
+  const hints = isWakeWordMode
+    ? [
+        t('cooking.hintWakeNext', '“SousChef next”'),
+        t('cooking.hintWakeBack', '“SousChef back”'),
+        t('cooking.hintWakeRead', '“SousChef read”'),
+        t('cooking.hintWakeTimer', '“SousChef timer 5 minutes”'),
+      ]
+    : [
+        t('cooking.hintNext', '“Next step”'),
+        t('cooking.hintBack', '“Go back”'),
+        t('cooking.hintRead', '“Read this step”'),
+        t('cooking.hintTimer', '“Timer 5 minutes”'),
+      ];
+
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
-    >
-      <BlurView intensity={80} tint={colorScheme === 'dark' ? 'dark' : 'light'} style={[styles.container, colorScheme === 'dark' && styles.containerDark]}>
-        {/* Close button */}
-        <TouchableOpacity
-          onPress={onClose}
-          className="absolute top-16 right-6 p-2"
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+      <ToneScope tone="dark">
+        {/* Header */}
+        <View
+          className="flex-row items-center justify-between"
+          style={{ paddingTop: 58, paddingBottom: 14, paddingHorizontal: 20 }}
         >
-          <Ionicons name="close" size={28} color={colors.icon} />
-        </TouchableOpacity>
-
-        {/* Main content */}
-        <View className="flex-1 items-center justify-center px-8">
-          {/* Sound wave visualization */}
-          {isListening && (
-            <View className="flex-row items-center justify-center h-16 mb-8">
-              {[...Array(5)].map((_, i) => (
-                <Animated.View
-                  key={i}
-                  style={[
-                    styles.waveLine,
-                    {
-                      height: 20 + i * 8,
-                      opacity: waveAnim.interpolate({
-                        inputRange: [0, 0.5, 1],
-                        outputRange: [0.3, 1, 0.3],
-                      }),
-                      transform: [
-                        {
-                          scaleY: waveAnim.interpolate({
-                            inputRange: [0, 0.5, 1],
-                            outputRange: [0.5, 1.5, 0.5],
-                          }),
-                        },
-                      ],
-                    },
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-
-          {/* Voice button */}
-          <VoiceButton
-            isListening={isListening}
-            isSpeaking={isSpeaking}
-            isProcessing={isProcessing}
-            state={state}
-            onPress={onToggleListening}
-            size="large"
-            showLabel={false}
-          />
-
-          {/* Transcript display */}
-          <View className="mt-8 min-h-[60px] items-center">
-            {transcript ? (
-              <Text className="text-xl text-neutral-900 dark:text-neutral-100 text-center font-medium">
-                "{transcript}"
-              </Text>
-            ) : (
-              <Text className="text-lg text-neutral-500 dark:text-neutral-400 text-center">
-                {getStatusMessage()}
-              </Text>
-            )}
-          </View>
-
-          {/* Command feedback */}
-          {commandFeedback && (
-            <View className="mt-4 bg-secondary-100 px-4 py-2 rounded-full">
-              <Text className="text-secondary-700 font-medium">
-                {commandFeedback}
-              </Text>
-            </View>
-          )}
-
-          {/* Error display */}
-          {error && (
-            <View className="mt-4 bg-red-100 px-4 py-2 rounded-lg">
-              <Text className="text-red-600 text-center">{error}</Text>
-            </View>
-          )}
-
-          {/* Command hints */}
-          <View className="mt-12 w-full">
-            <Text className="text-sm text-neutral-500 dark:text-neutral-400 text-center mb-3">
-              Try saying:
-            </Text>
-            <View className="flex-row flex-wrap justify-center gap-2">
-              {(isWakeWordMode
-                ? ['SousChef next', 'SousChef back', 'SousChef read', 'SousChef timer 5 minutes']
-                : ['Next', 'Back', 'Read this', 'Timer 5 minutes']
-              ).map((hint) => (
-                <View
-                  key={hint}
-                  className="bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-full"
-                >
-                  <Text className="text-neutral-600 dark:text-neutral-400 text-sm">"{hint}"</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* Hands-free mode toggle */}
-          {onToggleWakeWordMode && (
-            <TouchableOpacity
-              onPress={onToggleWakeWordMode}
-              className={`mt-8 flex-row items-center px-5 py-3 rounded-xl ${
-                isWakeWordMode ? 'bg-green-100' : 'bg-neutral-100 dark:bg-neutral-800'
-              }`}
-            >
-              <Ionicons
-                name={isWakeWordMode ? 'radio' : 'radio-outline'}
-                size={24}
-                color={isWakeWordMode ? '#22C55E' : colors.textMuted}
-              />
-              <View className="ml-3">
-                <Text className={`font-semibold ${isWakeWordMode ? 'text-green-800' : 'text-neutral-700 dark:text-neutral-300'}`}>
-                  {isWakeWordMode ? 'Hands-Free Mode Active' : 'Enable Hands-Free Mode'}
-                </Text>
-                <Text className={`text-xs ${isWakeWordMode ? 'text-green-600' : 'text-neutral-500 dark:text-neutral-400'}`}>
-                  {isWakeWordMode ? 'Listening for "SousChef"' : 'Say "SousChef" to activate'}
-                </Text>
-              </View>
-              {isWakeWordListening && (
-                <View className="ml-auto w-3 h-3 rounded-full bg-green-500" />
-              )}
-            </TouchableOpacity>
-          )}
+          <UIconButton icon="close" label={t('cooking.close', 'Close')} tone="glassDark" onPress={onClose} />
+          <Tag label={statusTag} tone="glassDark" large />
+          <View style={{ width: 46 }} />
         </View>
 
-        {/* Help button */}
-        <TouchableOpacity
-          onPress={() => {/* Could trigger help command */}}
-          className="absolute bottom-12 left-1/2 -ml-16 flex-row items-center bg-white dark:bg-neutral-800 px-4 py-2 rounded-full shadow-sm"
-        >
-          <Ionicons name="help-circle-outline" size={20} color={colors.textMuted} />
-          <Text className="text-neutral-500 dark:text-neutral-400 ml-2">Say "Help" for commands</Text>
-        </TouchableOpacity>
-      </BlurView>
+        <View className="flex-1 items-center" style={{ paddingHorizontal: 20, gap: 24 }}>
+          <View style={{ marginTop: 30 }}>
+            <VoiceButton
+              isListening={isListening}
+              isSpeaking={isSpeaking}
+              isProcessing={isProcessing}
+              state={state}
+              onPress={onToggleListening}
+              size="large"
+              showLabel={false}
+            />
+          </View>
+
+          {/* Transcript / status */}
+          <View className="items-center" style={{ minHeight: 70, gap: 12 }}>
+            {transcript ? (
+              <Text
+                className="text-ink text-center"
+                style={{ fontFamily: FONT.display, fontSize: 26, lineHeight: 33, letterSpacing: -0.52 }}
+              >
+                {`“${transcript}”`}
+              </Text>
+            ) : (
+              <Text
+                className={error ? 'text-tag-r-fg text-center' : 'text-muted text-center'}
+                style={{ fontFamily: FONT.display, fontSize: 20, lineHeight: 26 }}
+              >
+                {statusMessage}
+              </Text>
+            )}
+            {commandFeedback ? <Tag label={commandFeedback} tone="o" large /> : null}
+            {error && transcript ? (
+              <Text className="text-tag-r-fg text-center" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+                {error}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Try saying */}
+          <View style={{ alignSelf: 'stretch', gap: 12, marginTop: 10 }}>
+            <SectionLabel>{t('cooking.trySaying', 'Try saying')}</SectionLabel>
+            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+              {hints.map((hint) => (
+                <Chip key={hint} label={hint} />
+              ))}
+            </View>
+          </View>
+
+          {/* Hands-free toggle */}
+          {onToggleWakeWordMode ? (
+            <View
+              className="flex-row items-center bg-surface"
+              style={{ alignSelf: 'stretch', borderRadius: 24, padding: 14, gap: 12 }}
+            >
+              <View className="flex-1" style={{ gap: 2 }}>
+                <View className="flex-row items-center" style={{ gap: 8 }}>
+                  <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+                    {isWakeWordMode
+                      ? t('cooking.handsFreeActive', 'Hands-Free Mode Active')
+                      : t('cooking.handsFreeEnable', 'Enable Hands-Free Mode')}
+                  </Text>
+                  {isWakeWordListening ? <Dot /> : null}
+                </View>
+                <Muted small>
+                  {isWakeWordMode
+                    ? t('cooking.handsFreeListening', 'Listening for “SousChef”')
+                    : t('cooking.handsFreeHint', 'Say “SousChef” to activate')}
+                </Muted>
+              </View>
+              <USwitch
+                value={isWakeWordMode}
+                onValueChange={onToggleWakeWordMode}
+                label={t('cooking.handsFreeEnable', 'Enable Hands-Free Mode')}
+              />
+            </View>
+          ) : null}
+        </View>
+
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 40, alignItems: 'center' }}>
+          <Muted small center>
+            {t('cooking.sayHelp', 'Say “Help” for all commands')}
+          </Muted>
+        </View>
+      </ToneScope>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-  },
-  containerDark: {
-    backgroundColor: 'rgba(23, 23, 23, 0.9)',
-  },
-  waveLine: {
-    width: 4,
-    backgroundColor: '#FF6B35',
-    marginHorizontal: 4,
-    borderRadius: 2,
-  },
-});

@@ -1,69 +1,75 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Share,
-  Alert,
-} from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, ScrollView, Share, Alert, Pressable, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useRecipe, useRecipes } from '@/hooks/useRecipes';
 import { useIngredientSubstitution } from '@/hooks/useAI';
 import { useAuthStore } from '@/stores/authStore';
+import { useRecipeStore } from '@/stores/recipeStore';
 import { usePantry } from '@/hooks/usePantry';
 import { useRemainingUsage } from '@/hooks/useSubscription';
 import {
-  DifficultyBadge,
-  TimeBadge,
-  Badge,
-  Loading,
-  Card,
-  Button,
+  Divider,
+  FONT,
+  H2,
+  Icon,
+  Muted,
+  RatingTag,
+  Screen,
+  SectionLabel,
+  Tag,
+  UAvatar,
+  UButton,
+  UCard,
+  UIconButton,
+  useColor,
 } from '@/components/ui';
-import {
-  SimpleIngredientList,
-  InstructionList,
-  NutritionCard,
-  YouTubePlayer,
-} from '@/components/recipe';
+import type { RatingLevel } from '@/components/ui/Chips';
+import { InstructionList, NutritionCard, YouTubePlayer, ActionBar, DetailHero } from '@/components/recipe';
 import { AllergenWarning } from '@/components/recipe/AllergenWarning';
 import { RecipeComments } from '@/components/recipe/RecipeComments';
 import { MadeThisGallery } from '@/components/recipe/MadeThisGallery';
-import { Paywall, UsageBadge } from '@/components/subscription';
-import { useThemeColors } from '@/stores/themeStore';
-import { formatTime, formatRelativeTime, getCategoryEmoji } from '@/lib/utils';
+import { Paywall } from '@/components/subscription';
+import { formatRelativeTime } from '@/lib/utils';
+import type { Ingredient } from '@/types';
+
+// Loose name match between a recipe ingredient and a pantry item ("olive oil" ~ "extra virgin olive oil").
+const normalise = (s: string) => s.toLowerCase().replace(/[^a-z\s]/g, ' ').replace(/\s+/g, ' ').trim();
+const inPantry = (ingredient: Ingredient, pantryNames: string[]) => {
+  const name = normalise(ingredient.name);
+  if (name.length < 3) return false;
+  return pantryNames.some((p) => p.length >= 3 && (p.includes(name) || name.includes(p)));
+};
+
+// Per-portion fat bands (g), mirroring the traffic-light labelling used on food packs.
+const fatLevel = (g: number): { level: RatingLevel; word: string } =>
+  g <= 3 ? { level: 'lo', word: 'Low' } : g <= 17.5 ? { level: 'md', word: 'Medium' } : { level: 'hi', word: 'High' };
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { recipe, isLoading, error, refetch } = useRecipe(id);
+  const { recipe, isLoading, error } = useRecipe(id);
   const { toggleSave, isRecipeSaved, toggleLike } = useRecipes();
-  const { itemNames } = usePantry();
+  const { items: pantryItems } = usePantry();
   const {
     result: substitutionResult,
     isAnalyzing,
     analyzeWithPantry,
-    analyzeWithIngredients,
     accessDenied,
   } = useIngredientSubstitution();
   const { remainingAI } = useRemainingUsage();
 
   const [showNutrition, setShowNutrition] = useState(false);
-  const [servings, setServings] = useState(4);
   const [showPaywall, setShowPaywall] = useState(false);
+  const spinner = useColor('muted');
 
-  const colors = useThemeColors();
-
-  useEffect(() => {
-    if (recipe) {
-      setServings(recipe.servings);
-    }
-  }, [recipe]);
+  const pantryNames = useMemo(() => pantryItems.map((p) => normalise(p.name)), [pantryItems]);
+  const haveFlags = useMemo(
+    () => (recipe ? recipe.ingredients.map((ing) => inPantry(ing, pantryNames)) : []),
+    [recipe, pantryNames]
+  );
 
   const handleShare = async () => {
     if (!recipe) return;
@@ -71,8 +77,8 @@ export default function RecipeDetailScreen() {
       await Share.share({
         message: `Check out this recipe: ${recipe.title}\n\nFrom SousChef App`,
       });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -91,367 +97,343 @@ export default function RecipeDetailScreen() {
   };
 
   if (isLoading) {
-    return <Loading fullScreen message="Loading recipe..." />;
+    return (
+      <Screen bare>
+        <View className="flex-1 items-center justify-center" style={{ gap: 12 }}>
+          <ActivityIndicator color={spinner} />
+          <Muted>{t('cooking.loadingRecipe', 'Loading recipe...')}</Muted>
+        </View>
+      </Screen>
+    );
   }
 
   if (error || !recipe) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900 items-center justify-center px-4">
-        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-        <Text className="text-xl font-semibold text-neutral-900 dark:text-neutral-50 mt-4">
-          Recipe not found
-        </Text>
-        <Text className="text-neutral-500 dark:text-neutral-400 text-center mt-2">
-          {error || "This recipe doesn't exist or has been removed."}
-        </Text>
-        <Button
-          title="Go Back"
-          onPress={() => router.back()}
-          className="mt-6"
-        />
-      </SafeAreaView>
+      <Screen bare>
+        <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 32, gap: 12 }}>
+          <View className="items-center justify-center bg-surface" style={{ width: 88, height: 88, borderRadius: 44 }}>
+            <Icon name="warning" size="lg" color="muted" />
+          </View>
+          <H2 center>{t('cooking.recipeNotFound', 'Recipe not found')}</H2>
+          <Muted center>{error || t('cooking.recipeGone', "This recipe doesn't exist or has been removed.")}</Muted>
+          <View style={{ alignSelf: 'stretch', marginTop: 12 }}>
+            <UButton label={t('cooking.goBack', 'Go Back')} onPress={() => router.back()} />
+          </View>
+        </View>
+      </Screen>
     );
   }
 
   const isSaved = isRecipeSaved(recipe.id);
   const totalTime = recipe.prepTime + recipe.cookTime;
+  const haveCount = haveFlags.filter(Boolean).length;
+  const nutrition = recipe.nutrition;
+  const fat = nutrition ? fatLevel(nutrition.fat) : null;
+  const aiLeft = remainingAI === 'unlimited' ? null : remainingAI;
+
+  const reportRecipe = () => {
+    Alert.alert('Report Recipe', 'Why are you reporting this recipe?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Inappropriate Content', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'inappropriate') },
+      { text: 'Not a Recipe', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'not-a-recipe') },
+      { text: 'Spam', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'spam') },
+    ]);
+  };
 
   return (
-    <View className="flex-1 bg-white dark:bg-neutral-900">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Hero Image */}
-        <View className="relative">
-          <Image
-            source={{ uri: recipe.imageURL }}
-            className="w-full h-72"
-            resizeMode="cover"
+    <Screen
+      bare
+      footer={
+        <ActionBar>
+          <UIconButton
+            icon="heart"
+            label={t('cooking.likeRecipe', 'Like recipe')}
+            size={58}
+            onPress={() => toggleLike(recipe.id)}
           />
-
-          {/* Overlay gradient */}
-          <View className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-
-          {/* Back button */}
-          <SafeAreaView className="absolute top-0 left-0 right-0">
-            <View className="flex-row items-center justify-between px-4 pt-2">
-              <TouchableOpacity
-                onPress={() => router.back()}
-                className="w-10 h-10 rounded-full bg-black/30 items-center justify-center"
+          <UButton
+            label={t('cooking.startCooking', 'Start Cooking')}
+            variant="accent"
+            icon="play"
+            onPress={handleStartCooking}
+            style={{ flex: 1 }}
+          />
+        </ActionBar>
+      }
+    >
+      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
+        <DetailHero
+          source={{ uri: recipe.imageURL }}
+          onBack={() => router.back()}
+          backLabel={t('cooking.back', 'Back')}
+          actions={
+            <>
+              <UIconButton icon="share" label={t('cooking.share', 'Share')} tone="glassDark" onPress={handleShare} />
+              <UIconButton
+                icon="bookmark"
+                label={isSaved ? t('cooking.unsave', 'Remove from saved') : t('cooking.save', 'Save recipe')}
+                tone="glassDark"
+                filled={isSaved}
+                onPress={() => toggleSave(recipe.id)}
+              />
+            </>
+          }
+          caption={
+            <>
+              <Pressable
+                onPress={() => router.push(`/user/${recipe.authorId}` as never)}
+                accessibilityRole="button"
+                accessibilityLabel={recipe.authorName}
+                className="flex-row items-center"
+                style={{ gap: 10, minHeight: 30 }}
               >
-                <Ionicons name="arrow-back" size={24} color="white" />
-              </TouchableOpacity>
-
-              <View className="flex-row space-x-2">
-                <TouchableOpacity
-                  onPress={() => toggleSave(recipe.id)}
-                  className="w-10 h-10 rounded-full bg-black/30 items-center justify-center"
-                >
-                  <Ionicons
-                    name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                    size={22}
-                    color={isSaved ? colors.accent : 'white'}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleShare}
-                  className="w-10 h-10 rounded-full bg-black/30 items-center justify-center"
-                >
-                  <Ionicons name="share-outline" size={22} color="white" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </SafeAreaView>
-
-          {/* Official badge */}
-          {recipe.isOfficial && (
-            <View className="absolute bottom-4 left-4 px-3 py-1 rounded-full flex-row items-center" style={{ backgroundColor: colors.accent }}>
-              <Ionicons name="checkmark-circle" size={16} color="white" />
-              <Text className="text-white font-medium ml-1">Chef Recipe</Text>
-            </View>
-          )}
-        </View>
-
-        {/* Content */}
-        <View className="px-4 py-6">
-          {/* YouTube Video */}
-          {recipe.youtubeURL && (
-            <View className="mb-6">
-              <Text className="text-xl font-bold text-neutral-900 mb-3">
-                Recipe Video
-              </Text>
-              <YouTubePlayer videoUrl={recipe.youtubeURL} />
-            </View>
-          )}
-
-          {/* Title and meta */}
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">
-            {recipe.title}
-          </Text>
-
-          <View className="flex-row items-center mt-2">
-            <TouchableOpacity onPress={() => router.push(`/user/${recipe.authorId}` as any)}>
-              <Text style={{ color: colors.accent }} className="font-medium">
-                {recipe.authorName}
-              </Text>
-            </TouchableOpacity>
-            <Text className="text-neutral-300 dark:text-neutral-600 mx-2">|</Text>
-            <Text className="text-neutral-500 dark:text-neutral-400">
-              {formatRelativeTime(recipe.createdAt)}
-            </Text>
-            {recipe.rating && recipe.ratingCount ? (
-              <>
-                <Text className="text-neutral-300 dark:text-neutral-600 mx-2">|</Text>
-                <Ionicons name="star" size={14} color="#F59E0B" />
-                <Text className="text-neutral-500 dark:text-neutral-400 ml-1">
-                  {recipe.rating.toFixed(1)} ({recipe.ratingCount})
+                <UAvatar
+                  source={recipe.authorPhotoURL ? { uri: recipe.authorPhotoURL } : null}
+                  name={recipe.authorName}
+                  size={30}
+                />
+                <Text className="text-paper" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+                  {recipe.isOfficial
+                    ? t('cooking.chefRecipe', '{{name}} · Chef Recipe', { name: recipe.authorName })
+                    : `${recipe.authorName} · ${formatRelativeTime(recipe.createdAt)}`}
                 </Text>
-              </>
+              </Pressable>
+              <Text
+                className="text-paper"
+                numberOfLines={3}
+                style={{ fontFamily: FONT.display, fontSize: 32, lineHeight: 34, letterSpacing: -0.64 }}
+              >
+                {recipe.title}
+              </Text>
+            </>
+          }
+        />
+
+        <View
+          className="bg-ground"
+          style={{ marginTop: -34, borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingTop: 24, paddingHorizontal: 20, gap: 18 }}
+        >
+          <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+            <Tag large icon="clock" label={t('cooking.minutes', '{{count}} min', { count: totalTime })} />
+            <Tag large icon="people" label={t('cooking.servingsCount', '{{count}} servings', { count: recipe.servings })} />
+            {recipe.rating && recipe.ratingCount ? (
+              <Tag large icon="star" label={recipe.rating.toFixed(1)} />
             ) : null}
+            <Tag large icon="heart" label={`${recipe.likes}`} />
           </View>
 
-          {/* Allergen & health warnings */}
           <AllergenWarning recipe={recipe} user={user} />
 
-          {/* Badges */}
-          <View className="flex-row flex-wrap gap-2 mt-4">
-            <DifficultyBadge difficulty={recipe.difficulty} />
-            <TimeBadge minutes={totalTime} />
-            <Badge
-              label={`${recipe.nutrition?.caloriesPerServing || 0} cal/serving`}
-              variant="info"
-            />
-            <Badge
-              label={`${getCategoryEmoji(recipe.category)} ${recipe.category}`}
-              variant="default"
-            />
-          </View>
+          {recipe.description ? <Muted style={{ fontSize: 15, lineHeight: 22 }}>{recipe.description}</Muted> : null}
 
-          {/* Description */}
-          <Text className="text-neutral-600 dark:text-neutral-400 mt-4 leading-relaxed">
-            {recipe.description}
-          </Text>
-
-          {/* Quick stats */}
-          <View className="flex-row justify-around mt-6 py-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
-            <View className="items-center">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                {recipe.prepTime}
-              </Text>
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400">Prep (min)</Text>
-            </View>
-            <View className="w-px bg-neutral-200 dark:bg-neutral-700" />
-            <View className="items-center">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                {recipe.cookTime}
-              </Text>
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400">Cook (min)</Text>
-            </View>
-            <View className="w-px bg-neutral-200 dark:bg-neutral-700" />
-            <View className="items-center">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                {recipe.servings}
-              </Text>
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400">Servings</Text>
-            </View>
-          </View>
-
-          {/* AI Analysis */}
-          {user && (
-            <Card className="mt-6 border" style={{ backgroundColor: colors.accent + '15', borderColor: colors.accent + '40' }}>
-              <View className="flex-row items-center justify-between mb-3">
-                <View className="flex-row items-center">
-                  <Ionicons name="sparkles" size={20} color={colors.accent} />
-                  <Text className="font-semibold ml-2" style={{ color: colors.accent }}>
-                    AI Assistant
-                  </Text>
-                </View>
-                <View className="flex-row items-center">
-                  <Text className="text-xs text-neutral-500 dark:text-neutral-400 mr-2">Uses left:</Text>
-                  <UsageBadge remaining={remainingAI} size="small" />
-                </View>
+          {nutrition ? (
+            <View style={{ gap: 8 }}>
+              <SectionLabel>{t('cooking.perPortion', 'Per portion')}</SectionLabel>
+              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                <Tag label={`${t('cooking.calories', 'Calories')} ${nutrition.caloriesPerServing}`} />
+                <Tag label={`${t('cooking.carbs', 'Carbs')} ${nutrition.carbs} g`} />
+                <Tag label={`${t('cooking.protein', 'Protein')} ${nutrition.protein} g`} />
+                {fat ? (
+                  <RatingTag
+                    level={fat.level}
+                    label={`${t('cooking.fat', 'Fat')} ${t(`cooking.level${fat.word}`, fat.word)}`}
+                  />
+                ) : null}
               </View>
+            </View>
+          ) : null}
 
-              {substitutionResult ? (
-                <View>
-                  <View className="flex-row items-center mb-2">
-                    <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
-                      {substitutionResult.confidenceScore}% Match
+          {recipe.youtubeURL ? (
+            <View style={{ gap: 12 }}>
+              <H2>{t('cooking.recipeVideo', 'Recipe Video')}</H2>
+              <YouTubePlayer videoUrl={recipe.youtubeURL} />
+            </View>
+          ) : null}
+
+          {/* Ingredients with pantry match */}
+          <View style={{ gap: 4 }}>
+            <View className="flex-row items-center justify-between" style={{ marginBottom: 6 }}>
+              <H2>{t('cooking.ingredients', 'Ingredients')}</H2>
+              {user && pantryItems.length > 0 ? (
+                <Tag
+                  tone="g"
+                  label={t('cooking.youHave', 'You have {{have}} of {{total}}', {
+                    have: haveCount,
+                    total: recipe.ingredients.length,
+                  })}
+                />
+              ) : (
+                <Muted small>{t('cooking.itemCount', '{{count}} items', { count: recipe.ingredients.length })}</Muted>
+              )}
+            </View>
+            {recipe.ingredients.map((ing, idx) => {
+              const have = haveFlags[idx];
+              const dim = pantryItems.length > 0 && !have;
+              return (
+                <View key={`${ing.name}-${idx}`}>
+                  {idx > 0 ? <Divider /> : null}
+                  <View className="flex-row items-center" style={{ minHeight: 56, gap: 14 }}>
+                    <View
+                      className={have ? 'items-center justify-center bg-accent' : 'items-center justify-center bg-surface-3'}
+                      style={{ width: 26, height: 26, borderRadius: 13 }}
+                    >
+                      {have ? <Icon name="check" size="sm" color="accent-ink" /> : null}
+                    </View>
+                    <Text
+                      className={dim ? 'flex-1 text-muted' : 'flex-1 text-ink'}
+                      style={{ fontFamily: FONT.sans, fontSize: 15 }}
+                    >
+                      {ing.name}
+                      {ing.optional ? ` (${t('cooking.optional', 'optional')})` : ''}
                     </Text>
-                    <Badge
-                      label={substitutionResult.canMake ? 'Can Make!' : 'Need Items'}
-                      variant={substitutionResult.canMake ? 'success' : 'warning'}
+                    <Text className="text-ink" style={{ fontFamily: FONT.sansSemi, fontSize: 15 }}>
+                      {ing.amount} {ing.unit}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Substitution / pantry analysis (usage-limited) */}
+          {user ? (
+            <UCard>
+              <View style={{ gap: 12 }}>
+                <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
+                  <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 17 }}>
+                    {t('cooking.pantryCheck', 'Pantry check')}
+                  </Text>
+                  <Tag
+                    tone={aiLeft === 0 ? 'r' : 'default'}
+                    label={
+                      aiLeft === null
+                        ? t('cooking.unlimited', 'Unlimited')
+                        : t('cooking.usesLeft', '{{count}} left', { count: aiLeft })
+                    }
+                  />
+                </View>
+
+                {substitutionResult ? (
+                  <View style={{ gap: 10 }}>
+                    <View className="flex-row items-center" style={{ gap: 10 }}>
+                      <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 22, letterSpacing: -0.44 }}>
+                        {t('cooking.matchPercent', '{{n}}% match', { n: substitutionResult.confidenceScore })}
+                      </Text>
+                      <Tag
+                        tone={substitutionResult.canMake ? 'g' : 'o'}
+                        label={substitutionResult.canMake ? t('cooking.canMake', 'Can make') : t('cooking.needItems', 'Need items')}
+                      />
+                    </View>
+
+                    {substitutionResult.missingIngredients.length > 0 ? (
+                      <Muted>
+                        {t('cooking.missing', 'Missing: {{list}}', { list: substitutionResult.missingIngredients.join(', ') })}
+                      </Muted>
+                    ) : null}
+
+                    {substitutionResult.substitutions.length > 0 ? (
+                      <View style={{ gap: 4 }}>
+                        <SectionLabel>{t('cooking.substitutions', 'Suggested substitutions')}</SectionLabel>
+                        {substitutionResult.substitutions.map((sub, idx) => (
+                          <Text key={idx} className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
+                            {sub.originalIngredient} → {sub.substitute}
+                          </Text>
+                        ))}
+                      </View>
+                    ) : null}
+                  </View>
+                ) : accessDenied ? (
+                  <View style={{ gap: 12 }}>
+                    <Muted>
+                      {accessDenied.reason === 'limit_reached'
+                        ? t('cooking.subLimit', "You've reached your daily limit of {{limit}} AI substitutions.", {
+                            limit: accessDenied.limit,
+                          })
+                        : t('cooking.subPremium', 'Upgrade to Premium to use AI substitutions.')}
+                    </Muted>
+                    <UButton
+                      label={t('cooking.upgrade', 'Upgrade to Continue')}
+                      variant="accent"
                       size="sm"
-                      className="ml-2"
+                      icon="star"
+                      onPress={() => setShowPaywall(true)}
                     />
                   </View>
-
-                  {substitutionResult.missingIngredients.length > 0 && (
-                    <Text className="text-neutral-600 dark:text-neutral-400 mb-2">
-                      Missing: {substitutionResult.missingIngredients.join(', ')}
-                    </Text>
-                  )}
-
-                  {substitutionResult.substitutions.length > 0 && (
-                    <View className="mt-2">
-                      <Text className="font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-                        Suggested Substitutions:
-                      </Text>
-                      {substitutionResult.substitutions.map((sub, idx) => (
-                        <Text key={idx} className="text-neutral-600 dark:text-neutral-400">
-                          • {sub.originalIngredient} → {sub.substitute}
-                        </Text>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ) : accessDenied ? (
-                <View>
-                  <Text className="text-neutral-600 dark:text-neutral-400 mb-3">
-                    {accessDenied.reason === 'limit_reached'
-                      ? `You've reached your daily limit of ${accessDenied.limit} AI substitutions.`
-                      : 'Upgrade to Premium to use AI substitutions.'}
-                  </Text>
-                  <Button
-                    title="Upgrade to Continue"
-                    variant="primary"
-                    size="sm"
-                    onPress={() => setShowPaywall(true)}
-                    leftIcon={<Ionicons name="star" size={16} color="white" />}
-                  />
-                </View>
-              ) : (
-                <View>
-                  <Text className="text-neutral-600 dark:text-neutral-400 mb-3">
-                    Check if you can make this recipe with your pantry ingredients
-                  </Text>
-                  <Button
-                    title={isAnalyzing ? 'Analyzing...' : 'Check My Pantry'}
-                    variant="primary"
-                    size="sm"
-                    onPress={handleAnalyzeWithPantry}
-                    isLoading={isAnalyzing}
-                  />
-                </View>
-              )}
-            </Card>
-          )}
-
-          {/* Ingredients */}
-          <View className="mt-6">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                Ingredients
-              </Text>
-              <Text className="text-neutral-500 dark:text-neutral-400">
-                {recipe.ingredients.length} items
-              </Text>
-            </View>
-            <Card variant="outlined" padding="md">
-              <SimpleIngredientList ingredients={recipe.ingredients} />
-            </Card>
-          </View>
+                ) : (
+                  <View style={{ gap: 12 }}>
+                    <Muted>
+                      {t('cooking.pantryCheckHelp', 'Check if you can make this recipe with your pantry ingredients')}
+                    </Muted>
+                    <UButton
+                      label={isAnalyzing ? t('cooking.analyzingShort', 'Analyzing...') : t('cooking.checkPantry', 'Check My Pantry')}
+                      variant="primary"
+                      size="sm"
+                      loading={isAnalyzing}
+                      onPress={handleAnalyzeWithPantry}
+                    />
+                  </View>
+                )}
+              </View>
+            </UCard>
+          ) : null}
 
           {/* Instructions */}
-          <View className="mt-6">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                Instructions
-              </Text>
-              <Text className="text-neutral-500 dark:text-neutral-400">
-                {recipe.instructions.length} steps
-              </Text>
+          <View style={{ gap: 14 }}>
+            <View className="flex-row items-center justify-between">
+              <H2>{t('cooking.instructions', 'Instructions')}</H2>
+              <Muted small>{t('cooking.stepCount', '{{count}} steps', { count: recipe.instructions.length })}</Muted>
             </View>
             <InstructionList instructions={recipe.instructions} />
           </View>
 
-          {/* Nutrition */}
-          <View className="mt-6">
-            <TouchableOpacity
-              onPress={() => setShowNutrition(!showNutrition)}
-              className="flex-row items-center justify-between py-3"
-            >
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-                Nutrition Facts
-              </Text>
-              <Ionicons
-                name={showNutrition ? 'chevron-up' : 'chevron-down'}
-                size={24}
-                color={colors.textMuted}
-              />
-            </TouchableOpacity>
-            {showNutrition && (
-              <NutritionCard
-                nutrition={recipe.nutrition}
-                servings={recipe.servings}
-              />
-            )}
-          </View>
+          {/* Nutrition facts */}
+          {nutrition ? (
+            <View style={{ gap: 12 }}>
+              <Pressable
+                onPress={() => setShowNutrition(!showNutrition)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showNutrition }}
+                className="flex-row items-center justify-between"
+                style={{ minHeight: 44 }}
+              >
+                <H2>{t('cooking.nutritionFacts', 'Nutrition Facts')}</H2>
+                <Icon name={showNutrition ? 'minus' : 'chevronDown'} color="muted" />
+              </Pressable>
+              {showNutrition ? <NutritionCard nutrition={nutrition} servings={recipe.servings} /> : null}
+            </View>
+          ) : null}
 
           {/* Tags */}
-          {recipe.tags.length > 0 && (
-            <View className="mt-6">
-              <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-2">
-                Tags
-              </Text>
-              <View className="flex-row flex-wrap gap-2">
+          {recipe.tags.length > 0 ? (
+            <View style={{ gap: 8 }}>
+              <SectionLabel>{t('cooking.tags', 'Tags')}</SectionLabel>
+              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                 {recipe.tags.map((tag) => (
-                  <Badge key={tag} label={`#${tag}`} variant="default" />
+                  <Tag key={tag} label={`#${tag}`} />
                 ))}
               </View>
             </View>
-          )}
+          ) : null}
 
-          {/* Report recipe */}
-          {user && user.id !== recipe.authorId && (
-            <TouchableOpacity
-              onPress={() => {
-                Alert.alert(
-                  'Report Recipe',
-                  'Why are you reporting this recipe?',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Inappropriate Content', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'inappropriate') },
-                    { text: 'Not a Recipe', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'not-a-recipe') },
-                    { text: 'Spam', onPress: () => useRecipeStore.getState().flagRecipe(recipe.id, 'spam') },
-                  ]
-                );
-              }}
-              className="flex-row items-center mt-6"
-            >
-              <Ionicons name="flag-outline" size={16} color="#9CA3AF" />
-              <Text className="text-neutral-400 text-sm ml-1">Report</Text>
-            </TouchableOpacity>
-          )}
-
-          {/* Made This Gallery */}
           <MadeThisGallery recipeId={recipe.id} />
 
-          {/* Comments section */}
           <RecipeComments recipeId={recipe.id} />
+
+          {user && user.id !== recipe.authorId ? (
+            <Pressable
+              onPress={reportRecipe}
+              accessibilityRole="button"
+              className="flex-row items-center"
+              style={{ minHeight: 44, gap: 6 }}
+            >
+              <Icon name="warning" size="sm" color="subtle" />
+              <Text className="text-subtle" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+                {t('cooking.report', 'Report')}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
-
-      {/* Bottom action bar */}
-      <View className="px-4 py-4 bg-white dark:bg-neutral-800 border-t border-neutral-100 dark:border-neutral-700">
-        <View className="flex-row space-x-3">
-          <View className="flex-row items-center">
-            <TouchableOpacity
-              onPress={() => toggleLike(recipe.id)}
-              className="flex-row items-center px-4 py-3 bg-neutral-100 dark:bg-neutral-700 rounded-xl"
-            >
-              <Ionicons name="heart-outline" size={20} color={colors.accent} />
-              <Text className="ml-2 font-medium text-neutral-700 dark:text-neutral-300">
-                {recipe.likes}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <Button
-            title="Start Cooking"
-            onPress={handleStartCooking}
-            leftIcon={<Ionicons name="restaurant" size={20} color="white" />}
-            className="flex-1"
-          />
-        </View>
-      </View>
 
       <Paywall
         visible={showPaywall}
@@ -459,6 +441,6 @@ export default function RecipeDetailScreen() {
         feature="AI Substitutions"
         requiredTier={accessDenied?.upgradeRequired || 'premium'}
       />
-    </View>
+    </Screen>
   );
 }

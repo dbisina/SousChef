@@ -1,108 +1,156 @@
-import React, { useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
-import { useThemeColors } from '@/stores/themeStore';
 import { WantToCookCard } from '@/components/import';
 import { WantToCookItem } from '@/types/wantToCook';
 import { showSuccessToast } from '@/stores/toastStore';
+import { Chip, ChipRow, Icon, Screen, TopBar, UIconButton, H2, Muted } from '@/components/ui';
+
+type Filter = 'all' | 'imported' | 'cookbook' | 'cooked';
+type Sort = 'recent' | 'match';
+
+const isCookbook = (item: WantToCookItem) => {
+  const platform = item.importedRecipe?.sourcePlatform?.toLowerCase() ?? '';
+  return platform.includes('cookbook') || (!!item.importedRecipe && !item.importedRecipe.sourceURL);
+};
 
 export default function WantToCookScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
-  const {
-    items,
-    addToShoppingList,
-    markAsCooked,
-    removeFromWantToCook,
-  } = useWantToCookStore();
+  const { t } = useTranslation();
+  const { items, addToShoppingList, markAsCooked, removeFromWantToCook } = useWantToCookStore();
+  const [filter, setFilter] = useState<Filter>('all');
+  const [sort, setSort] = useState<Sort>('recent');
 
-  const handleAddToShoppingList = useCallback((item: WantToCookItem) => {
-    if (!item.importedRecipe) return;
+  const handleAddToShoppingList = useCallback(
+    (item: WantToCookItem) => {
+      if (!item.importedRecipe) return;
 
-    const ingredients = item.missingIngredients?.map(name => ({
-      name,
-      amount: 1,
-      unit: 'item',
-      recipeId: item.id,
-      recipeName: item.importedRecipe?.title,
-    })) || item.importedRecipe.ingredients.map(ing => ({
-      name: ing.name,
-      amount: ing.amount,
-      unit: ing.unit,
-      recipeId: item.id,
-      recipeName: item.importedRecipe?.title,
-    }));
+      const ingredients =
+        item.missingIngredients?.map((name) => ({
+          name,
+          amount: 1,
+          unit: 'item',
+          recipeId: item.id,
+          recipeName: item.importedRecipe?.title,
+        })) ||
+        item.importedRecipe.ingredients.map((ing) => ({
+          name: ing.name,
+          amount: ing.amount,
+          unit: ing.unit,
+          recipeId: item.id,
+          recipeName: item.importedRecipe?.title,
+        }));
 
-    addToShoppingList(ingredients);
-    showSuccessToast('Ingredients are on your list! 🛒 See you at the store.', 'Added!');
-  }, [addToShoppingList]);
+      addToShoppingList(ingredients);
+      showSuccessToast('Ingredients are on your list! 🛒 See you at the store.', 'Added!');
+    },
+    [addToShoppingList]
+  );
 
-  const handleRemove = useCallback((item: WantToCookItem) => {
-    Alert.alert(
-      'Remove Recipe?',
-      'Are you sure you want to remove this recipe? You can always add it back later if you change your mind!',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => removeFromWantToCook(item.id),
-        },
-      ]
-    );
-  }, [removeFromWantToCook]);
+  const handleRemove = useCallback(
+    (item: WantToCookItem) => {
+      Alert.alert(
+        'Remove Recipe?',
+        'Are you sure you want to remove this recipe? You can always add it back later if you change your mind!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Remove', style: 'destructive', onPress: () => removeFromWantToCook(item.id) },
+        ]
+      );
+    },
+    [removeFromWantToCook]
+  );
 
-  const renderItem = useCallback(({ item }: { item: WantToCookItem }) => (
-    <View className="px-5 mb-2">
-      <WantToCookCard
-        item={item}
-        onPress={() => {
-          router.push(`/imported-recipe/${item.id}` as any);
-        }}
-        onAddToShoppingList={() => handleAddToShoppingList(item)}
-        onMarkAsCooked={() => markAsCooked(item.id)}
-        onRemove={() => handleRemove(item)}
-      />
-    </View>
-  ), [handleAddToShoppingList, markAsCooked, handleRemove]);
+  const visible = useMemo(() => {
+    const filtered = items.filter((item) => {
+      if (filter === 'cooked') return item.status === 'cooked';
+      if (filter === 'cookbook') return isCookbook(item);
+      if (filter === 'imported') return !isCookbook(item);
+      return true;
+    });
+    if (sort === 'match') {
+      return [...filtered].sort((a, b) => (b.pantryMatchPercent ?? 0) - (a.pantryMatchPercent ?? 0));
+    }
+    return filtered;
+  }, [items, filter, sort]);
+
+  const card = (item: WantToCookItem, variant: 'hero' | 'tile' | 'row') => (
+    <WantToCookCard
+      key={item.id}
+      item={item}
+      variant={variant}
+      onPress={() => router.push(`/imported-recipe/${item.id}` as never)}
+      onAddToShoppingList={() => handleAddToShoppingList(item)}
+      onMarkAsCooked={() => markAsCooked(item.id)}
+      onRemove={() => handleRemove(item)}
+    />
+  );
+
+  const [hero, ...rest] = visible;
+  const tiles = rest.slice(0, 2);
+  const rows = rest.slice(2);
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-5 py-4 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <Ionicons name="arrow-back" size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <View className="flex-1">
-          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">Want to Cook</Text>
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-            {items.length} recipe{items.length !== 1 ? 's' : ''} saved
-          </Text>
-        </View>
+    <Screen scroll bottomSpace={40}>
+      <TopBar
+        variant="compact"
+        title={t('cooking.wantToCook', 'Want to Cook')}
+        onBack={() => router.back()}
+        right={
+          <UIconButton
+            icon="filters"
+            label={sort === 'recent' ? t('cooking.sortByMatch', 'Sort by pantry match') : t('cooking.sortByRecent', 'Sort by recently saved')}
+            onPress={() => setSort(sort === 'recent' ? 'match' : 'recent')}
+            tone={sort === 'match' ? 'black' : 'default'}
+          />
+        }
+      />
+
+      <View style={{ marginHorizontal: -20 }}>
+        <ChipRow>
+          <Chip
+            label={t('cooking.filterAll', 'All {{count}}', { count: items.length })}
+            on={filter === 'all'}
+            onPress={() => setFilter('all')}
+          />
+          <Chip label={t('cooking.filterImported', 'Imported')} on={filter === 'imported'} onPress={() => setFilter('imported')} />
+          <Chip
+            label={t('cooking.filterCookbooks', 'From cookbooks')}
+            on={filter === 'cookbook'}
+            onPress={() => setFilter('cookbook')}
+          />
+          <Chip label={t('cooking.filterCooked', 'Cooked')} on={filter === 'cooked'} onPress={() => setFilter('cooked')} />
+        </ChipRow>
       </View>
 
-      {items.length > 0 ? (
-        <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-        />
+      {hero ? (
+        <>
+          {card(hero, 'hero')}
+          {tiles.length > 0 ? (
+            <View className="flex-row" style={{ gap: 12 }}>
+              {tiles.map((item) => (
+                <View key={item.id} className="flex-1" style={{ minWidth: 0 }}>
+                  {card(item, 'tile')}
+                </View>
+              ))}
+              {tiles.length === 1 ? <View className="flex-1" /> : null}
+            </View>
+          ) : null}
+          {rows.length > 0 ? <View style={{ gap: 4 }}>{rows.map((item) => card(item, 'row'))}</View> : null}
+        </>
       ) : (
-        <View className="flex-1 items-center justify-center px-8">
-          <Ionicons name="bookmark-outline" size={64} color={colors.textMuted} />
-          <Text className="text-lg font-bold text-neutral-600 dark:text-neutral-400 mt-4 text-center">
-            No saved recipes yet
-          </Text>
-          <Text className="text-neutral-400 dark:text-neutral-500 text-center mt-2">
-            Import recipes from URLs or scan them from cookbooks to add them here
-          </Text>
+        <View className="items-center" style={{ paddingTop: 72, paddingHorizontal: 12, gap: 12 }}>
+          <View className="items-center justify-center bg-surface" style={{ width: 88, height: 88, borderRadius: 44 }}>
+            <Icon name="bookmark" size="lg" color="muted" />
+          </View>
+          <H2 center>{t('cooking.noSaved', 'No saved recipes yet')}</H2>
+          <Muted center>
+            {t('cooking.noSavedHelp', 'Import recipes from URLs or scan them from cookbooks to add them here')}
+          </Muted>
         </View>
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }

@@ -1,35 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, Text, FlatList, Pressable, Modal } from 'react-native';
+import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { useThemeColors } from '@/stores/themeStore';
 import { RecipeMadePost } from '@/types';
 import { uploadImage } from '@/lib/cloudinary';
 import { db, collection, doc, setDoc, getDocs, query, orderBy, limit, Timestamp } from '@/lib/firebase';
 import { generateId } from '@/lib/firebase';
 import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
+import { Icon, ToneBlock, UAvatar, UIconButton, FONT } from '@/components/ui';
 
 interface MadeThisGalleryProps {
   recipeId: string;
 }
 
 export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<RecipeMadePost[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedPost, setSelectedPost] = useState<RecipeMadePost | null>(null);
 
   const { user } = useAuthStore();
-  const colors = useThemeColors();
 
   useEffect(() => {
     fetchPosts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId]);
 
   const fetchPosts = async () => {
     try {
-      setIsLoading(true);
       const postsRef = collection(db, 'recipes', recipeId, 'made-posts');
       const q = query(postsRef, orderBy('createdAt', 'desc'), limit(20));
       const snapshot = await getDocs(q);
@@ -37,8 +37,6 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
       setPosts(fetched);
     } catch (error) {
       console.error('Error fetching made-this posts:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -57,10 +55,7 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
 
       setIsUploading(true);
 
-      const imageURL = await uploadImage(
-        result.assets[0].uri,
-        `souschef/made-posts/${recipeId}`
-      );
+      const imageURL = await uploadImage(result.assets[0].uri, `souschef/made-posts/${recipeId}`);
 
       const postId = generateId();
       const newPost: RecipeMadePost = {
@@ -87,60 +82,44 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
   };
 
   const renderAddCard = () => (
-    <TouchableOpacity
+    <Pressable
       onPress={handleAddPost}
       disabled={isUploading || !user}
-      className="w-[120px] h-[120px] rounded-xl border-2 border-dashed border-neutral-300 dark:border-neutral-600 items-center justify-center mr-3"
-      style={isUploading ? { opacity: 0.5 } : undefined}
+      accessibilityRole="button"
+      accessibilityLabel={t('cooking.addYours', 'Add Yours')}
+      className="items-center justify-center bg-surface"
+      style={{ width: 120, height: 120, borderRadius: 26, marginRight: 12, gap: 6, opacity: isUploading ? 0.5 : 1 }}
     >
-      <Ionicons
-        name={isUploading ? 'hourglass-outline' : 'camera-outline'}
-        size={28}
-        color={colors.accent}
-      />
-      <Text
-        className="text-xs font-medium mt-1"
-        style={{ color: colors.accent }}
-      >
-        {isUploading ? 'Uploading...' : 'Add Yours'}
+      <Icon name="camera" size="lg" color="accent-text" />
+      <Text className="text-accent-text" style={{ fontFamily: FONT.sansMedium, fontSize: 12 }}>
+        {isUploading ? t('cooking.uploading', 'Uploading...') : t('cooking.addYours', 'Add Yours')}
       </Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   const renderPostCard = ({ item }: { item: RecipeMadePost }) => (
-    <TouchableOpacity
+    <Pressable
       onPress={() => setSelectedPost(item)}
-      className="w-[120px] h-[120px] rounded-xl overflow-hidden mr-3"
+      accessibilityRole="button"
+      accessibilityLabel={item.authorName}
+      className="overflow-hidden bg-surface-3"
+      style={{ width: 120, height: 120, borderRadius: 26, marginRight: 12 }}
     >
-      <Image
-        source={{ uri: item.imageURL }}
-        className="w-full h-full"
-        resizeMode="cover"
-      />
-      <View className="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
-        <Text className="text-white text-[10px] font-medium" numberOfLines={1}>
-          {item.authorName}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      <Image source={{ uri: item.imageURL }} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+    </Pressable>
   );
 
   return (
-    <View className="mt-6">
-      {/* Section Header */}
-      <View className="flex-row items-center justify-between mb-3">
-        <View className="flex-row items-center">
-          <Ionicons name="images-outline" size={20} color={colors.text} />
-          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50 ml-2">
-            I Made This
-          </Text>
-        </View>
-        <Text className="text-neutral-500 dark:text-neutral-400 text-sm">
-          {posts.length} {posts.length === 1 ? 'photo' : 'photos'}
+    <View style={{ gap: 12 }}>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 19, letterSpacing: -0.285 }}>
+          {t('cooking.madeThis', 'I Made This')}
+        </Text>
+        <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+          {t('cooking.photoCount', '{{count}} photos', { count: posts.length })}
         </Text>
       </View>
 
-      {/* Gallery */}
       <FlatList
         data={posts}
         renderItem={renderPostCard}
@@ -150,59 +129,54 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
         ListHeaderComponent={user ? renderAddCard : null}
         ListEmptyComponent={
           !user ? (
-            <Text className="text-neutral-400 dark:text-neutral-500 text-sm py-4">
-              Sign in to share your creation!
+            <Text className="text-subtle" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+              {t('cooking.signInToShare', 'Sign in to share your creation!')}
             </Text>
           ) : null
         }
       />
 
-      {/* Full-screen Modal */}
       <Modal
         visible={!!selectedPost}
         transparent
         animationType="fade"
         onRequestClose={() => setSelectedPost(null)}
       >
-        <View className="flex-1 bg-black/90 items-center justify-center">
-          {/* Close button */}
-          <TouchableOpacity
-            onPress={() => setSelectedPost(null)}
-            className="absolute top-14 right-4 z-10 w-10 h-10 rounded-full bg-white/20 items-center justify-center"
-          >
-            <Ionicons name="close" size={24} color="white" />
-          </TouchableOpacity>
+        <ToneBlock tone="dark" className="bg-ground" style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ position: 'absolute', top: 58, right: 20, zIndex: 10 }}>
+            <UIconButton
+              icon="close"
+              label={t('cooking.close', 'Close')}
+              tone="glassDark"
+              onPress={() => setSelectedPost(null)}
+            />
+          </View>
 
-          {selectedPost && (
-            <View className="w-full items-center px-4">
+          {selectedPost ? (
+            <View className="w-full items-center" style={{ paddingHorizontal: 20, gap: 14 }}>
               <Image
                 source={{ uri: selectedPost.imageURL }}
-                className="w-full aspect-square rounded-xl"
-                resizeMode="contain"
+                style={{ width: '100%', aspectRatio: 1, borderRadius: 30 }}
+                contentFit="cover"
               />
-              <View className="flex-row items-center mt-4">
-                {selectedPost.authorPhotoURL ? (
-                  <Image
-                    source={{ uri: selectedPost.authorPhotoURL }}
-                    className="w-8 h-8 rounded-full mr-2"
-                  />
-                ) : (
-                  <View className="w-8 h-8 rounded-full bg-neutral-600 items-center justify-center mr-2">
-                    <Ionicons name="person" size={16} color="white" />
-                  </View>
-                )}
-                <Text className="text-white font-medium">
+              <View className="flex-row items-center" style={{ gap: 10 }}>
+                <UAvatar
+                  source={selectedPost.authorPhotoURL ? { uri: selectedPost.authorPhotoURL } : null}
+                  name={selectedPost.authorName}
+                  size={32}
+                />
+                <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
                   {selectedPost.authorName}
                 </Text>
               </View>
-              {selectedPost.caption && (
-                <Text className="text-neutral-300 text-center mt-2">
+              {selectedPost.caption ? (
+                <Text className="text-muted text-center" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
                   {selectedPost.caption}
                 </Text>
-              )}
+              ) : null}
             </View>
-          )}
-        </View>
+          ) : null}
+        </ToneBlock>
       </Modal>
     </View>
   );

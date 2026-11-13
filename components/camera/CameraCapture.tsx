@@ -1,10 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, Text, Pressable, Modal } from 'react-native';
+import { Image } from 'expo-image';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
-import { Button } from '@/components/ui';
-import { useThemeColors } from '@/stores/themeStore';
+import { useTranslation } from 'react-i18next';
+import { Icon, Tag, ToneScope, UButton, UIconButton, FONT } from '@/components/ui';
 
 interface CameraCaptureProps {
   visible: boolean;
@@ -18,14 +18,17 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   visible,
   onClose,
   onCapture,
-  title = 'Take a Photo',
-  description = 'Position your ingredients in the frame',
+  title,
+  description,
 }) => {
+  const { t } = useTranslation();
   const [facing, setFacing] = useState<CameraType>('back');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
-  const colors = useThemeColors();
+
+  const heading = title ?? t('cooking.takePhoto', 'Take a Photo');
+  const sub = description ?? t('cooking.positionIngredients', 'Position your ingredients in the frame');
 
   const handleCapture = async () => {
     if (cameraRef.current) {
@@ -71,76 +74,53 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black">
-        {/* Header - Always show close button */}
-        <View className="absolute top-12 left-0 right-0 z-10 px-4">
-          <View className="flex-row items-center justify-between">
-            <TouchableOpacity
-              onPress={onClose}
-              className="w-10 h-10 rounded-full bg-black/50 items-center justify-center"
-            >
-              <Ionicons name="close" size={24} color="white" />
-            </TouchableOpacity>
-            {permission.granted && (
-              <View className="items-center">
-                <Text className="text-white text-lg font-bold">{title}</Text>
-                <Text className="text-white/70 text-sm">{description}</Text>
-              </View>
-            )}
-            <View className="w-10" />
-          </View>
+      <ToneScope tone="dark">
+        {/* Header - always shows the close button */}
+        <View
+          className="flex-row items-center justify-between"
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10, paddingTop: 58, paddingHorizontal: 20, gap: 12 }}
+        >
+          <UIconButton icon="close" label={t('cooking.close', 'Close')} tone="glassDark" onPress={onClose} />
+          {permission.granted ? (
+            <View className="items-center" style={{ gap: 4, flexShrink: 1 }}>
+              <Tag label={heading} tone="glassDark" large />
+              <Text className="text-muted text-center" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+                {sub}
+              </Text>
+            </View>
+          ) : null}
+          <View style={{ width: 46 }} />
         </View>
 
         {!permission.granted ? (
-          // Permission request
-          <View className="flex-1 items-center justify-center px-8">
-            <Ionicons name="camera-outline" size={64} color={colors.textMuted} />
-            <Text className="text-white text-lg font-semibold mt-4 text-center">
-              Camera Access Needed
+          <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 32, gap: 12 }}>
+            <View className="items-center justify-center bg-surface-3" style={{ width: 88, height: 88, borderRadius: 44 }}>
+              <Icon name="camera" size="lg" color="muted" />
+            </View>
+            <Text className="text-ink text-center" style={{ fontFamily: FONT.display, fontSize: 22 }}>
+              {t('cooking.cameraNeeded', 'Camera Access Needed')}
             </Text>
-            <Text className="text-neutral-400 dark:text-neutral-500 text-center mt-2 mb-8">
-              To analyze your ingredients or food, SousChef needs access to your camera.
+            <Text className="text-muted text-center" style={{ fontFamily: FONT.sans, fontSize: 14, marginBottom: 16 }}>
+              {t('cooking.cameraWhy', 'To analyze your ingredients or food, SousChef needs access to your camera.')}
             </Text>
-            
-            <Button
-                title="Continue"
-                onPress={requestPermission}
-                fullWidth
-            />
+            <View style={{ alignSelf: 'stretch' }}>
+              <UButton label={t('cooking.continue', 'Continue')} variant="accent" onPress={requestPermission} />
+            </View>
           </View>
         ) : capturedImage ? (
-          // Preview captured image
           <View className="flex-1">
-            <Image
-              source={{ uri: capturedImage }}
-              className="flex-1"
-              resizeMode="contain"
-            />
+            <Image source={{ uri: capturedImage }} style={{ flex: 1 }} contentFit="contain" />
 
-            {/* Action buttons */}
-            <View className="absolute bottom-12 left-0 right-0 px-8">
-              <View className="flex-row justify-between">
-                <TouchableOpacity
-                  onPress={handleRetake}
-                  className="w-16 h-16 rounded-full bg-white/20 items-center justify-center"
-                >
-                  <Ionicons name="refresh" size={28} color="white" />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleConfirm}
-                  className="w-20 h-20 rounded-full items-center justify-center"
-                  style={{ backgroundColor: colors.accent }}
-                >
-                  <Ionicons name="checkmark" size={36} color="white" />
-                </TouchableOpacity>
-
-                <View className="w-16" />
+            <View style={{ position: 'absolute', bottom: 48, left: 20, right: 20, flexDirection: 'row', gap: 10 }}>
+              <View style={{ width: 120 }}>
+                <UButton label={t('cooking.retake', 'Retake')} variant="ghost" icon="refresh" onPress={handleRetake} />
+              </View>
+              <View className="flex-1">
+                <UButton label={t('cooking.usePhoto', 'Use Photo')} variant="accent" icon="check" onPress={handleConfirm} />
               </View>
             </View>
           </View>
         ) : (
-          // Camera view - no children, overlay is positioned absolutely
           <View style={{ flex: 1 }}>
             <CameraView
               ref={cameraRef}
@@ -148,45 +128,38 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               facing={facing}
             />
 
-            {/* Overlay UI - absolutely positioned */}
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} pointerEvents="box-none">
               {/* Center guide */}
-              <View className="flex-1 items-center justify-center">
-                <View className="w-72 h-72 border-2 border-white/30 rounded-3xl" />
+              <View className="flex-1 items-center justify-center" pointerEvents="none">
+                <View
+                  className="border-paper"
+                  style={{ width: 288, height: 288, borderRadius: 30, borderWidth: 2, opacity: 0.3 }}
+                />
               </View>
 
               {/* Camera controls */}
-              <View className="absolute bottom-12 left-0 right-0 px-8">
-                <View className="flex-row items-center justify-between">
-                  {/* Gallery button */}
-                  <TouchableOpacity
-                    onPress={handlePickImage}
-                    className="w-14 h-14 rounded-full bg-white/20 items-center justify-center"
-                  >
-                    <Ionicons name="images-outline" size={24} color="white" />
-                  </TouchableOpacity>
+              <View
+                className="flex-row items-center justify-between"
+                style={{ position: 'absolute', bottom: 48, left: 32, right: 32 }}
+              >
+                <UIconButton icon="image" label={t('cooking.gallery', 'Choose from gallery')} tone="glassDark" size={56} onPress={handlePickImage} />
 
-                  {/* Capture button */}
-                  <TouchableOpacity
-                    onPress={handleCapture}
-                    className="w-20 h-20 rounded-full border-4 border-white items-center justify-center"
-                  >
-                    <View className="w-16 h-16 rounded-full bg-white" />
-                  </TouchableOpacity>
+                <Pressable
+                  onPress={handleCapture}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('cooking.capture', 'Take photo')}
+                  className="items-center justify-center border-paper"
+                  style={{ width: 80, height: 80, borderRadius: 40, borderWidth: 4 }}
+                >
+                  <View className="bg-paper" style={{ width: 62, height: 62, borderRadius: 31 }} />
+                </Pressable>
 
-                  {/* Flip camera button */}
-                  <TouchableOpacity
-                    onPress={toggleCameraFacing}
-                    className="w-14 h-14 rounded-full bg-white/20 items-center justify-center"
-                  >
-                    <Ionicons name="camera-reverse-outline" size={24} color="white" />
-                  </TouchableOpacity>
-                </View>
+                <UIconButton icon="refresh" label={t('cooking.flipCamera', 'Flip camera')} tone="glassDark" size={56} onPress={toggleCameraFacing} />
               </View>
             </View>
           </View>
         )}
-      </View>
+      </ToneScope>
     </Modal>
   );
 };
