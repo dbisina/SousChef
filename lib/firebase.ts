@@ -17,6 +17,7 @@ import {
 } from 'firebase/auth';
 // @ts-ignore - getReactNativePersistence exists but types may not be exported
 import { getReactNativePersistence } from 'firebase/auth';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   getFirestore,
@@ -69,9 +70,13 @@ let storage: FirebaseStorage;
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
   // Initialize Auth with React Native persistence
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
+  // getReactNativePersistence is undefined on web; use the default web auth there.
+  auth =
+    Platform.OS === 'web'
+      ? getAuth(app)
+      : initializeAuth(app, {
+          persistence: getReactNativePersistence(AsyncStorage),
+        });
 } else {
   app = getApps()[0];
   auth = getAuth(app);
