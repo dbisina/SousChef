@@ -1,0 +1,28 @@
+[workspace]
+members = ["links"]
+resolver = "2"
+
+[package]
+name = "souschef-native"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# The Node addon: a thin wrapper. The logic lives in `links` (and later siblings) so it can be unit tested with
+# plain `cargo test`; a napi cdylib cannot be linked into a test binary.
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+napi = { version = "3.16", default-features = false, features = ["napi9"] }
+napi-derive = "3.7"
+souschef-links = { path = "links" }
+
+[build-dependencies]
+napi-build = "2.6"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = 3
+strip = "symbols"

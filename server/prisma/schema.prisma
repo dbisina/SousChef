@@ -1,0 +1,142 @@
+// SousChef database. Every change to this file needs a migration in the same commit
+// (npm run db:migrate -- --name what_changed).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+/// PERSON is a real user. HOUSE is an official SousChef account (shown with a badge), never passed off as a person.
+enum AccountKind {
+  PERSON
+  HOUSE
+}
+
+enum AuthProvider {
+  GOOGLE
+  APPLE
+}
+
+enum ConsentKind {
+  TERMS
+  PRIVACY
+  HEALTH
+  MARKETING
+}
+
+/// A person. Chef is a switch on the same account, not a separate account type.
+model User {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  /// Stored lowercase. Null for an account that only signs in with Google or Apple and shared no email.
+  email           String?   @unique
+  emailVerifiedAt DateTime?
+  /// Argon2id hash. Null when the account has no password.
+  passwordHash    String?
+  displayName     String
+  /// Unique public name, lowercase letters, digits and underscores.
+  handle          String    @unique
+  bio             String    @default("")
+  photoUrl        String?
+  role            UserRole  @default(USER)
+  kind            AccountKind @default(PERSON)
+  isChef          Boolean   @default(false)
+  /// Set when the verified-chef badge is granted (payment plus identity check). Only the server sets this.
+  verifiedChefAt  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  identities     AuthIdentity[]
+  sessions       Session[]
+  devices        Device[]
+  consents       Consent[]
+  passwordResets PasswordReset[]
+}
+
+/// A Google or Apple account linked to a user.
+model AuthIdentity {
+  id             String       @id @default(uuid(7)) @db.Uuid
+  userId         String       @db.Uuid
+  provider       AuthProvider
+  /// The provider's stable id for the person (the token's `sub`).
+  providerUserId String
+  email          String?
+  createdAt      DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+/// One refresh token. Refresh tokens are single use: each refresh marks the row rotated and creates the next row in
+/// the same family. Presenting a rotated token again means it was stolen, so the whole family is revoked.
+model Session {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  userId     String    @db.Uuid
+  familyId   String    @db.Uuid
+  /// SHA-256 of the refresh token. The token itself is never stored.
+  tokenHash  String    @unique
+  deviceName String?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  rotatedAt  DateTime?
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@index([expiresAt])
+}
+
+/// A phone that can receive push notifications.
+model Device {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  userId     String   @db.Uuid
+  pushToken  String   @unique
+  platform   String
+  appVersion String?
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+/// What a person agreed to, and when. Withdrawing sets withdrawnAt; rows are never edited otherwise.
+model Consent {
+  id          String      @id @default(uuid(7)) @db.Uuid
+  userId      String      @db.Uuid
+  kind        ConsentKind
+  version     String
+  grantedAt   DateTime    @default(now())
+  withdrawnAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
+}
+
+model PasswordReset {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @db.Uuid
+  /// SHA-256 of the token that was emailed.
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
