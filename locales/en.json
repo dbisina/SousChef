@@ -1903,7 +1903,17 @@
     "reply": "Reply",
     "copy": "Copy",
     "copied": "Copied",
-    "closeMenu": "Close"
+    "closeMenu": "Close",
+    "holdToRecord": "Hold the mic to record",
+    "micDenied": "Allow microphone access in Settings to send voice notes",
+    "slideToCancel": "Slide to cancel",
+    "deleteVoice": "Delete recording",
+    "sendVoice": "Send voice note",
+    "sampleVoice": "This is a sample voice note with no audio",
+    "playVoice": "Play",
+    "pauseVoice": "Pause",
+    "seekVoice": "Jump in the voice message",
+    "voiceSpeed": "Playback speed {{rate}}x"
   },
   "restaurant": {
     "back": "Back",

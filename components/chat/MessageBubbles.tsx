@@ -1,13 +1,12 @@
 import React from 'react';
-import { Text as RNText, View } from 'react-native';
+import { View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { FONT } from '@/components/ui/fonts';
 import { useTranslation } from 'react-i18next';
 import { SAMPLE } from '@/assets/sample';
-import { BarChart, Icon, Muted, PhotoCard, Tag, Title } from '@/components/ui';
+import { Muted, PhotoCard, Tag, Title } from '@/components/ui';
+import { useToastStore } from '@/stores/toastStore';
+import { VoicePlayer } from './VoicePlayer';
 import type { RecipeCardMessage, VoiceMessage } from '@/types/social';
-
-export const formatDuration = (sec: number): string => `${Math.floor(sec / 60)}:${`${sec % 60}`.padStart(2, '0')}`;
 
 interface RecipeProps {
   message: RecipeCardMessage;
@@ -43,36 +42,32 @@ export function RecipeCardBubble({ message, side, onCook, onAddToPlan }: RecipeP
   );
 }
 
-/** Voice note bubble (Chat.html .bub with play + .vbar). Playback is not wired in the preview. */
+/** Voice note bubble (Chat.html .bub with play + waveform): real playback for recorded notes. */
 export function VoiceBubble({ message, side }: { message: VoiceMessage; side: 'me' | 'them' }) {
   const { t } = useTranslation();
+  const showToast = useToastStore((s) => s.showToast);
   const me = side === 'me';
-  const dur = formatDuration(message.durationSec);
   return (
     <View
-      accessible
-      accessibilityLabel={t('chat.voiceMessage', 'Voice message, {{duration}}', { duration: dur })}
-      className={`flex-row items-center ${me ? 'bg-ink' : 'bg-surface-3'}`}
+      className={me ? 'bg-ink' : 'bg-surface-3'}
       style={{
         alignSelf: me ? 'flex-end' : 'flex-start',
-        width: 230,
-        gap: 10,
+        width: 240,
         paddingVertical: 10,
-        paddingHorizontal: 14,
+        paddingHorizontal: 12,
         borderRadius: 22,
         borderBottomRightRadius: me ? 6 : 22,
         borderBottomLeftRadius: me ? 22 : 6,
       }}
     >
-      <View className="items-center justify-center bg-paper" style={{ width: 32, height: 32, borderRadius: 16 }}>
-        <Icon name="play" size="sm" color="night" filled />
-      </View>
-      <View className="flex-1">
-        <BarChart height={26} data={message.waveform.slice(0, 14).map((h) => ({ value: h / 100, tone: me ? 'dim' : 'default' }))} />
-      </View>
-      <RNText className={me ? 'text-ink-inverse' : 'text-muted'} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-        {dur}
-      </RNText>
+      <VoicePlayer
+        id={message.id}
+        uri={message.uri}
+        durationSec={message.durationSec}
+        waveform={message.waveform}
+        me={me}
+        onNoAudio={() => showToast(t('chat.sampleVoice', 'This is a sample voice note with no audio'), { type: 'info' })}
+      />
     </View>
   );
 }

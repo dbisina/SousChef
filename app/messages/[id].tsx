@@ -12,6 +12,7 @@ import { ConversationAvatar, authorById } from '@/components/chat/ConversationAv
 import { MessageActions, type Anchor } from '@/components/chat/MessageActions';
 import { MessageFrame } from '@/components/chat/MessageFrame';
 import { RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles';
+import { LockHint, MicButton, RecordingBar, useVoiceNote } from '@/components/chat/VoiceRecorder';
 import { replyPreview, toReplyRef } from '@/lib/chatLogic';
 import { feedback, preloadSounds } from '@/lib/feedback';
 import { messagesFor, useMessageStore } from '@/stores/messageStore';
@@ -51,6 +52,24 @@ export default function ChatScreen() {
 
   const thread = useMemo(() => messagesFor(allMessages, id ?? ''), [allMessages, id]);
   const unread = conversation?.unread ?? 0;
+
+  // The recorder finishes after the user lets go, so it reads the reply target from a ref, not from stale state.
+  const replyRef = useRef<Message | null>(null);
+  useEffect(() => {
+    replyRef.current = replyTo;
+  }, [replyTo]);
+
+  const voice = useVoiceNote({
+    onDone: (note) => {
+      sendMessage(id ?? '', { kind: 'voice', ...note, replyTo: replyRef.current ? toReplyRef(replyRef.current) : undefined });
+      feedback.send();
+      setReplyTo(null);
+      listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    },
+    onTooShort: () => showToast(t('chat.holdToRecord', 'Hold the mic to record'), { type: 'info' }),
+    onDenied: () =>
+      showToast(t('chat.micDenied', 'Allow microphone access in Settings to send voice notes'), { type: 'error' }),
+  });
 
   useEffect(() => {
     if (id && unread > 0) markRead(id);
@@ -318,24 +337,35 @@ export default function ChatScreen() {
           className="flex-row items-center"
           style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 30), gap: 8 }}
         >
-          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={soon} />
-          <View className="flex-1 bg-surface-2 justify-center" style={{ height: 48, borderRadius: 24, paddingHorizontal: 18 }}>
-            <TextInput
-              ref={inputRef}
-              accessibilityLabel={t('chat.message', 'Message')}
-              placeholder={t('chat.message', 'Message')}
-              placeholderTextColor={tokens.subtle}
-              selectionColor={tokens.accent}
-              value={draft}
-              onChangeText={setDraft}
-              onSubmitEditing={send}
-              returnKeyType="send"
-              className="text-ink"
-              style={{ fontFamily: FONT.sans, fontSize: 15, height: '100%' }}
+          {voice.phase !== 'idle' ? (
+            <RecordingBar
+              voice={voice}
+              slideLabel={t('chat.slideToCancel', 'Slide to cancel')}
+              cancelLabel={t('chat.deleteVoice', 'Delete recording')}
+              onCancel={() => void voice.finish('cancel')}
             />
-          </View>
+          ) : (
+            <>
+              <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={soon} />
+              <View className="flex-1 bg-surface-2 justify-center" style={{ height: 48, borderRadius: 24, paddingHorizontal: 18 }}>
+                <TextInput
+                  ref={inputRef}
+                  accessibilityLabel={t('chat.message', 'Message')}
+                  placeholder={t('chat.message', 'Message')}
+                  placeholderTextColor={tokens.subtle}
+                  selectionColor={tokens.accent}
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSubmitEditing={send}
+                  returnKeyType="send"
+                  className="text-ink"
+                  style={{ fontFamily: FONT.sans, fontSize: 15, height: '100%' }}
+                />
+              </View>
+            </>
+          )}
           <View style={{ width: 46, height: 46 }}>
-            {hasText ? (
+            {hasText && voice.phase === 'idle' ? (
               <Animated.View
                 key="send"
                 entering={ZoomIn.duration(170)}
@@ -344,6 +374,20 @@ export default function ChatScreen() {
               >
                 <UIconButton tone="black" icon="send" label={t('chat.send', 'Send')} onPress={send} />
               </Animated.View>
+            ) : voice.phase === 'locked' ? (
+              <Animated.View
+                key="sendVoice"
+                entering={ZoomIn.duration(170)}
+                exiting={ZoomOut.duration(110)}
+                style={{ position: 'absolute' }}
+              >
+                <UIconButton
+                  tone="black"
+                  icon="send"
+                  label={t('chat.sendVoice', 'Send voice note')}
+                  onPress={() => void voice.finish('send')}
+                />
+              </Animated.View>
             ) : (
               <Animated.View
                 key="mic"
@@ -351,9 +395,16 @@ export default function ChatScreen() {
                 exiting={ZoomOut.duration(110)}
                 style={{ position: 'absolute' }}
               >
-                <UIconButton tone="black" icon="mic" label={t('chat.record', 'Record voice note')} onPress={soon} />
+                <MicButton
+                  voice={voice}
+                  label={t('chat.record', 'Record voice note')}
+                  onHint={() => showToast(t('chat.holdToRecord', 'Hold the mic to record'), { type: 'info' })}
+                />
               </Animated.View>
             )}
+          </View>
+          <View pointerEvents="none" style={{ position: 'absolute', right: 17, bottom: Math.max(insets.bottom, 30) + 56 }}>
+            <LockHint voice={voice} />
           </View>
         </View>
       </KeyboardAvoidingView>

@@ -1,9 +1,14 @@
 import {
+  MAX_VOICE_MS,
+  MIN_VOICE_MS,
   REACTION_EMOJI,
   REPLY_THRESHOLD,
   failStuckMessages,
+  formatClock,
+  nextPlaybackRate,
   replyArmed,
   replyPreview,
+  resampleBars,
   rubberBand,
   toggleReaction,
   waveformFromMetering,
@@ -76,6 +81,33 @@ describe('previews and recovery', () => {
     expect(Math.min(...bars)).toBeGreaterThanOrEqual(8);
     expect(Math.max(...bars)).toBeLessThanOrEqual(100);
     expect(waveformFromMetering([], 5)).toHaveLength(5);
+  });
+});
+
+describe('voice notes', () => {
+  it('cycles playback speed 1x, 1.5x, 2x and back', () => {
+    expect(nextPlaybackRate(1)).toBe(1.5);
+    expect(nextPlaybackRate(1.5)).toBe(2);
+    expect(nextPlaybackRate(2)).toBe(1);
+    // A speed that is not one of the three starts the cycle again at 1x.
+    expect(nextPlaybackRate(0.75)).toBe(1);
+  });
+
+  it('formats a clock from milliseconds, never negative', () => {
+    expect(formatClock(0)).toBe('0:00');
+    expect(formatClock(75_000)).toBe('1:15');
+    expect(formatClock(-500)).toBe('0:00');
+  });
+
+  it('keeps recordings between a tap and three minutes', () => {
+    expect(MIN_VOICE_MS).toBeLessThan(1000);
+    expect(MAX_VOICE_MS).toBe(180_000);
+  });
+
+  it('shrinks a waveform to a fixed number of bars, keeping the peaks', () => {
+    const bars = resampleBars([10, 90, 20, 30, 40, 50], 3);
+    expect(bars).toEqual([90, 30, 50]);
+    expect(resampleBars([], 4)).toHaveLength(4);
   });
 });
 

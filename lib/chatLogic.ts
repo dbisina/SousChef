@@ -66,6 +66,34 @@ export function failStuckMessages(messages: Message[]): Message[] {
   return messages.map((m) => (m.status === 'sending' ? { ...m, status: 'failed' as const } : m));
 }
 
+/** Speeds a voice note cycles through when the speed chip is tapped. */
+export const PLAYBACK_RATES = [1, 1.5, 2] as const;
+
+export const nextPlaybackRate = (rate: number): number => {
+  const i = PLAYBACK_RATES.findIndex((r) => r === rate);
+  return PLAYBACK_RATES[(i + 1) % PLAYBACK_RATES.length]!;
+};
+
+/** Voice notes shorter than this are treated as an accidental tap and discarded. */
+export const MIN_VOICE_MS = 800;
+/** Longest voice note: keeps storage and mobile data small. Recording stops and sends at this length. */
+export const MAX_VOICE_MS = 180_000;
+
+export const formatClock = (ms: number): string => {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(total / 60)}:${`${total % 60}`.padStart(2, '0')}`;
+};
+
+/** Shrink a stored waveform to `bars` bars for display (peak of each group). */
+export function resampleBars(waveform: number[], bars: number): number[] {
+  if (waveform.length === 0) return Array.from({ length: bars }, () => 12);
+  return Array.from({ length: bars }, (_, i) => {
+    const from = Math.floor((i * waveform.length) / bars);
+    const to = Math.max(from + 1, Math.floor(((i + 1) * waveform.length) / bars));
+    return Math.max(...waveform.slice(from, to));
+  });
+}
+
 /** Waveform for a recording from raw metering values (dB, about -60 silent to 0 loud) down to `bars` heights 0..100. */
 export function waveformFromMetering(levels: number[], bars = 40): number[] {
   if (levels.length === 0) return Array.from({ length: bars }, () => 12);
