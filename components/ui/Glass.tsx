@@ -15,7 +15,7 @@ export function Glass({ dark, style, children, ...rest }: GlassProps) {
     <View
       {...rest}
       style={[
-        { overflow: 'hidden' },
+        { overflow: 'hidden', zIndex: 0 },
         dark && { borderWidth: StyleSheet.hairlineWidth, borderColor: FIXED.glassEdge },
         style,
       ]}
@@ -23,12 +23,12 @@ export function Glass({ dark, style, children, ...rest }: GlassProps) {
       <BlurView
         intensity={dark ? 28 : 32}
         tint={dark ? 'dark' : 'light'}
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, { zIndex: -1 }]}
         pointerEvents="none"
       />
       <View
         pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { backgroundColor: dark ? FIXED.glassDark : FIXED.glass }]}
+        style={[StyleSheet.absoluteFill, { zIndex: -1, backgroundColor: dark ? FIXED.glassDark : FIXED.glass }]}
       />
       {children}
     </View>

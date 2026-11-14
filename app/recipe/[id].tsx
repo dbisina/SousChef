@@ -219,7 +219,7 @@ export default function RecipeDetailScreen() {
             {recipe.rating && recipe.ratingCount ? (
               <Tag large icon="star" label={recipe.rating.toFixed(1)} />
             ) : null}
-            <Tag large icon="heart" label={`${recipe.likes}`} />
+            {recipe.likes > 0 ? <Tag large icon="heart" label={`${recipe.likes}`} /> : null}
           </View>
 
           <AllergenWarning recipe={recipe} user={user} />

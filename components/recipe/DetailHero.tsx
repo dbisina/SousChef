@@ -13,12 +13,14 @@ interface DetailHeroProps {
   actions?: React.ReactNode;
   /** Caption block pinned to the bottom (title, author line, source tag). */
   caption?: React.ReactNode;
+  /** Distance from the bottom edge to the caption block (design: 56, Imported 54). */
+  captionBottom?: number;
 }
 
 /** Full-bleed photo header (.pc.ft, radius 0) with glass back + action buttons; the sheet below overlaps it by 34px. */
-export function DetailHero({ source, height = 370, onBack, backLabel, actions, caption }: DetailHeroProps) {
+export function DetailHero({ source, height = 370, onBack, backLabel, actions, caption, captionBottom = 56 }: DetailHeroProps) {
   const insets = useSafeAreaInsets();
-  const top = Math.max(insets.top, 20) + 38;
+  const top = Math.max(insets.top, 20) + 14;
   return (
     <PhotoCard source={source} height={height} radius={0} fade="both">
       <View
@@ -31,7 +33,7 @@ export function DetailHero({ source, height = 370, onBack, backLabel, actions, c
         </View>
       </View>
       {caption ? (
-        <View pointerEvents="box-none" style={{ position: 'absolute', left: 22, right: 22, bottom: 56, gap: 10, zIndex: 2 }}>
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: 22, right: 22, bottom: captionBottom, gap: 10, zIndex: 2 }}>
           {caption}
         </View>
       ) : null}
