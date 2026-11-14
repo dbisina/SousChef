@@ -205,7 +205,7 @@ const ThinkingNotesView: React.FC<{ accentColor: string }> = ({ accentColor }) =
   const phaseInfo = PHASE_CONFIG[phase];
 
   return (
-    <Animated.View entering={FadeIn.duration(300)} className="mt-4">
+    <Animated.View entering={FadeIn.duration(300)} style={{ marginTop: 16 }}>
       <View
         className="rounded-2xl overflow-hidden border"
         style={{ backgroundColor: accentColor + '10', borderColor: accentColor + '30' }}

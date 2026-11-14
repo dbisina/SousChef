@@ -83,7 +83,7 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
   // ── Compact Banner Format ──
   if (compact) {
     return (
-      <Animated.View entering={FadeIn.duration(400)} className={`mx-4 mt-3 ${className}`}>
+      <Animated.View entering={FadeIn.duration(400)} className={className} style={{ marginHorizontal: 16, marginTop: 12 }}>
         <Pressable
           accessibilityRole="link"
           accessibilityLabel={`${sponsored}: ${title}`}
@@ -119,7 +119,7 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
 
   // ── Full Card Format (used in WelcomeModal, Home Feed) ──
   return (
-    <Animated.View entering={FadeIn.duration(400)} className={`mx-6 mt-4 ${className}`}>
+    <Animated.View entering={FadeIn.duration(400)} className={className} style={{ marginHorizontal: 24, marginTop: 16 }}>
       <PhotoCard
         source={{ uri: ad.imageURL }}
         height={320}
