@@ -16,7 +16,6 @@ export function Glass({ dark, style, children, ...rest }: GlassProps) {
       {...rest}
       style={[
         { overflow: 'hidden', zIndex: 0 },
-        dark && { borderWidth: StyleSheet.hairlineWidth, borderColor: FIXED.glassEdge },
         style,
       ]}
     >
@@ -30,6 +29,16 @@ export function Glass({ dark, style, children, ...rest }: GlassProps) {
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, { zIndex: -1, backgroundColor: dark ? FIXED.glassDark : FIXED.glass }]}
       />
+      {dark ? (
+        // Edge drawn as an overlay so it never changes the content-sized width (design pills have no border).
+        <View
+          pointerEvents="none"
+          style={[
+            StyleSheet.absoluteFill,
+            { zIndex: -1, borderWidth: StyleSheet.hairlineWidth, borderColor: FIXED.glassEdge, borderRadius: StyleSheet.flatten(style)?.borderRadius },
+          ]}
+        />
+      ) : null}
       {children}
     </View>
   );
