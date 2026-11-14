@@ -1,0 +1,414 @@
+{
+ "wait": 1200,
+ "stores": {
+  "wantToCook": {
+   "shoppingList": {
+    "id": "sl",
+    "userId": "guest",
+    "name": "Shopping",
+    "recipeIds": [
+     "fx-salmon"
+    ],
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "updatedAt": {
+     "$daysFromNow": 0
+    },
+    "items": [
+     {
+      "id": "s1",
+      "name": "Broccoli",
+      "amount": 1,
+      "unit": "head",
+      "category": "produce",
+      "checked": false,
+      "recipeName": "Herb salmon",
+      "addedAt": {
+       "$daysFromNow": 0
+      }
+     },
+     {
+      "id": "s2",
+      "name": "Avocado",
+      "amount": 2,
+      "unit": "pieces",
+      "category": "produce",
+      "checked": true,
+      "recipeName": "Herb salmon",
+      "addedAt": {
+       "$daysFromNow": 0
+      }
+     },
+     {
+      "id": "s3",
+      "name": "Cherry tomatoes",
+      "amount": 250,
+      "unit": "g",
+      "category": "produce",
+      "checked": false,
+      "recipeName": "Herb salmon",
+      "addedAt": {
+       "$daysFromNow": 0
+      }
+     },
+     {
+      "id": "s4",
+      "name": "Salmon fillets",
+      "amount": 2,
+      "unit": "pieces",
+      "category": "seafood",
+      "checked": false,
+      "recipeName": "Herb salmon",
+      "addedAt": {
+       "$daysFromNow": 0
+      }
+     },
+     {
+      "id": "s5",
+      "name": "Steak",
+      "amount": 400,
+      "unit": "g",
+      "category": "meat",
+      "checked": false,
+      "recipeName": "Steak tacos",
+      "addedAt": {
+       "$daysFromNow": 0
+      }
+     }
+    ]
+   },
+   "items": [
+    {
+     "id": "fx-salmon",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "fx-tacos",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-tacos-r",
+      "title": "Chickpea avocado tacos",
+      "description": "",
+      "imageURL": "/__assets/tacos.jpg",
+      "sourceURL": "https://tiktok.example/fx-tacos",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "fx-penne",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-penne-r",
+      "title": "Creamy garlic penne",
+      "description": "",
+      "imageURL": "/__assets/penne.jpg",
+      "sourceURL": "https://youtube.example/fx-penne",
+      "sourcePlatform": "youtube",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 25,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "fx-brownie",
+     "ownerId": "guest",
+     "status": "cooked",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-brownie-r",
+      "title": "Fudgy brownies",
+      "description": "",
+      "imageURL": "/__assets/brownie.jpg",
+      "sourceURL": "https://website.example/fx-brownie",
+      "sourcePlatform": "website",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 45,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     },
+     "cookedAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "isLoading": false
+  },
+  "pantry": {
+   "items": [
+    {
+     "id": "p1",
+     "name": "Chicken thighs",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p2",
+     "name": "Spinach",
+     "amount": 1,
+     "unit": "bag",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p3",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 14
+     }
+    },
+    {
+     "id": "p4",
+     "name": "Greek yogurt",
+     "amount": 1,
+     "unit": "tub",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p5",
+     "name": "Rice",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 200
+     }
+    }
+   ]
+  }
+ }
+}

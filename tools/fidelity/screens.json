@@ -1,0 +1,312 @@
+{
+ "AddOfficial": {
+  "route": "/admin/add-recipe",
+  "theme": "light",
+  "fixture": "admin"
+ },
+ "AddPantry": {
+  "route": null,
+  "theme": "light",
+  "note": "bottom sheet inside Pantry (no route)"
+ },
+ "Advertise": {
+  "route": "/settings/advertise",
+  "theme": "light"
+ },
+ "Analytics": {
+  "route": "/settings/analytics",
+  "theme": "light"
+ },
+ "Appearance": {
+  "route": "/settings/appearance",
+  "theme": "light"
+ },
+ "Browse": {
+  "route": "/browse",
+  "theme": "light",
+  "fixture": "recipes"
+ },
+ "Chat": {
+  "route": "/messages/conv-ama",
+  "theme": "light"
+ },
+ "Community": {
+  "route": "/community/budget",
+  "theme": "light"
+ },
+ "Cook": {
+  "route": "/cook/fx-salmon",
+  "theme": "dark",
+  "fixture": "recipes"
+ },
+ "CookDone": {
+  "route": null,
+  "theme": "dark",
+  "note": "state of Cook (no route)"
+ },
+ "Cookbook": {
+  "route": "/cookbook/fx-book",
+  "theme": "dark",
+  "fixture": "recipes"
+ },
+ "Create": {
+  "route": "/create",
+  "theme": "dark"
+ },
+ "CreatePost": {
+  "route": "/post/new",
+  "theme": "light"
+ },
+ "DailyDish": {
+  "route": "/play/daily-dish",
+  "theme": "light"
+ },
+ "Dietary": {
+  "route": "/settings/dietary",
+  "theme": "light"
+ },
+ "DoctorReport": {
+  "route": "/health/report",
+  "theme": "light"
+ },
+ "EditProfile": {
+  "route": "/settings/edit-profile",
+  "theme": "light"
+ },
+ "FoodScanner": {
+  "route": "/scan",
+  "theme": "dark"
+ },
+ "HealthHome": {
+  "route": "/health",
+  "theme": "light"
+ },
+ "Help": {
+  "route": "/settings/help",
+  "theme": "light"
+ },
+ "Home": {
+  "route": "/",
+  "theme": "light"
+ },
+ "Import": {
+  "route": "/import",
+  "theme": "light"
+ },
+ "Imported": {
+  "route": "/imported-recipe/fx-salmon",
+  "theme": "light",
+  "fixture": "recipes"
+ },
+ "Kitchen": {
+  "route": "/kitchen",
+  "theme": "light"
+ },
+ "Language": {
+  "route": "/settings/language",
+  "theme": "light"
+ },
+ "Legal": {
+  "route": "/settings/terms",
+  "theme": "light"
+ },
+ "LogReading": {
+  "route": "/health/log",
+  "theme": "light"
+ },
+ "Login": {
+  "route": "/auth/login",
+  "theme": "light"
+ },
+ "MKLobby": {
+  "route": "/play/mystery/lobby",
+  "theme": "dark",
+  "fixture": "mkLobby"
+ },
+ "MKReveal": {
+  "route": "/play/mystery/reveal",
+  "theme": "dark",
+  "fixture": "mkReveal"
+ },
+ "MKRound": {
+  "route": "/play/mystery/round",
+  "theme": "dark",
+  "fixture": "mkRound"
+ },
+ "Main": {
+  "route": "/onboarding",
+  "theme": "dark"
+ },
+ "ManageAds": {
+  "route": "/admin/manage-ads",
+  "theme": "light"
+ },
+ "MealPlan": {
+  "route": "/mealplan",
+  "theme": "light",
+  "fixture": "mealplan"
+ },
+ "MealResponse": {
+  "route": "/health/meal/meal-today-b",
+  "theme": "light"
+ },
+ "Messages": {
+  "route": "/messages",
+  "theme": "light"
+ },
+ "Notifications": {
+  "route": "/settings/notifications",
+  "theme": "light"
+ },
+ "Onboarding2": {
+  "route": null,
+  "theme": "dark",
+  "note": "step 2 of /onboarding (state inside Main route)"
+ },
+ "Onboarding3": {
+  "route": null,
+  "theme": "dark",
+  "note": "step 3 of /onboarding (state inside Main route)"
+ },
+ "OrderSheet": {
+  "route": "/order/sheet?dishId=double-smash",
+  "theme": "light"
+ },
+ "OrderTracking": {
+  "route": "/order/order-fixture",
+  "theme": "light",
+  "fixture": "orders"
+ },
+ "Pantry": {
+  "route": "/pantry",
+  "theme": "light",
+  "fixture": "pantry"
+ },
+ "Paywall": {
+  "route": null,
+  "theme": "dark",
+  "note": "native RevenueCat paywall UI (not renderable on web)"
+ },
+ "PlanGenerator": {
+  "route": null,
+  "theme": "light",
+  "note": "sheet inside MealPlan (no route)"
+ },
+ "PlanShopping": {
+  "route": "/mealplan/shopping",
+  "theme": "light",
+  "fixture": "mealplan"
+ },
+ "PlayHub": {
+  "route": "/play",
+  "theme": "light"
+ },
+ "PostDetail": {
+  "route": "/post/post-katsu",
+  "theme": "light"
+ },
+ "Profile": {
+  "route": "/profile",
+  "theme": "light",
+  "fixture": "user"
+ },
+ "Recipe": {
+  "route": "/recipe/fx-salmon",
+  "theme": "light",
+  "fixture": "recipes"
+ },
+ "Reels": {
+  "route": "/reels",
+  "theme": "dark"
+ },
+ "Register": {
+  "route": "/auth/register",
+  "theme": "light"
+ },
+ "Restaurant": {
+  "route": "/restaurant/smash",
+  "theme": "light"
+ },
+ "ScanResult": {
+  "route": null,
+  "theme": "light",
+  "note": "state inside FoodScanner (needs camera result)"
+ },
+ "Scanner": {
+  "route": null,
+  "theme": "dark",
+  "note": "camera barcode overlay (no route; needs camera)"
+ },
+ "Seed": {
+  "route": "/admin/seed",
+  "theme": "dark"
+ },
+ "SetupTaste": {
+  "route": "/setup",
+  "theme": "light"
+ },
+ "Shelf": {
+  "route": "/cookbook-library",
+  "theme": "light",
+  "fixture": "shelf"
+ },
+ "ShelfCookbook": {
+  "route": "/shelf-cookbook/fx-book",
+  "theme": "light",
+  "fixture": "shelf"
+ },
+ "ShelfRecipe": {
+  "route": "/shelf-recipe/fx-salmon",
+  "theme": "light",
+  "fixture": "shelf"
+ },
+ "Shopping": {
+  "route": "/shopping",
+  "theme": "light",
+  "fixture": "shopping"
+ },
+ "StoryView": {
+  "route": "/story/story-ama",
+  "theme": "dark"
+ },
+ "Subscription": {
+  "route": "/subscription",
+  "theme": "light"
+ },
+ "Upload": {
+  "route": "/upload",
+  "theme": "light"
+ },
+ "UserProfile": {
+  "route": "/user/ama",
+  "theme": "light"
+ },
+ "Voice": {
+  "route": null,
+  "theme": "dark",
+  "note": "full-screen overlay opened from Cook (no route)"
+ },
+ "VoiceSettings": {
+  "route": "/settings/voice",
+  "theme": "light"
+ },
+ "WantToCook": {
+  "route": "/want-to-cook",
+  "theme": "light",
+  "fixture": "recipes"
+ },
+ "Waste": {
+  "route": "/mealplan/waste",
+  "theme": "light",
+  "fixture": "mealplan"
+ },
+ "WeightLoss": {
+  "route": "/settings/weight-loss",
+  "theme": "light"
+ },
+ "You": {
+  "route": "/you",
+  "theme": "light",
+  "fixture": "user"
+ }
+}

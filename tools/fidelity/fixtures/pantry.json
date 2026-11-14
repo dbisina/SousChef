@@ -1,0 +1,76 @@
+{
+ "wait": 1200,
+ "stores": {
+  "pantry": {
+   "items": [
+    {
+     "id": "p1",
+     "name": "Chicken thighs",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p2",
+     "name": "Spinach",
+     "amount": 1,
+     "unit": "bag",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p3",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 14
+     }
+    },
+    {
+     "id": "p4",
+     "name": "Greek yogurt",
+     "amount": 1,
+     "unit": "tub",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p5",
+     "name": "Rice",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 200
+     }
+    }
+   ],
+   "isLoading": false,
+   "error": null
+  }
+ }
+}

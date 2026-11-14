@@ -1,0 +1,11 @@
+{
+  "name": "souschef-fidelity",
+  "private": true,
+  "type": "module",
+  "description": "Design-vs-RN-web fidelity harness. Run: node tools/fidelity/run.mjs <Screen...|--all>",
+  "dependencies": {
+    "pixelmatch": "^6.0.0",
+    "playwright": "^1.49.0",
+    "pngjs": "^7.0.0"
+  }
+}

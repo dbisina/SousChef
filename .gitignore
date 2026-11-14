@@ -49,3 +49,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# design-review web build + fidelity harness output
+dist-web/
+tools/fidelity/out/
+tools/fidelity/node_modules/
+.redesign-assets/
+.fidelity-public-index.aside
