@@ -30,5 +30,6 @@ export const errors = {
   tokenReuse: () => new AppError(401, 'token_reuse', 'This sign-in was used twice. Please sign in again'),
   termsRequired: () => new AppError(409, 'terms_required', 'Please accept the terms to create your account'),
   providerNotConfigured: () => new AppError(501, 'provider_not_configured', 'This way of signing in is not available'),
+  limitReached: (message: string) => new AppError(409, 'limit_reached', message),
   providerRejected: () => new AppError(401, 'provider_rejected', 'That sign-in could not be verified'),
 };

@@ -9,6 +9,8 @@ import type { Config } from './config';
 import { createDb, type Db } from './db';
 import { AppError } from './errors';
 import { healthRoutes } from './health';
+import { kitchenRoutes } from './kitchen/routes';
+import { PantryService, ShoppingService, WantToCookService } from './kitchen/services';
 import { recipeRoutes } from './recipes/routes';
 import { RecipeService } from './recipes/service';
 
@@ -80,6 +82,9 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   healthRoutes(app, db);
   authRoutes(app, auth, config);
   recipeRoutes(app, new RecipeService(db), auth);
+  const pantry = new PantryService(db, options.now);
+  const shopping = new ShoppingService(db);
+  kitchenRoutes(app, { pantry, shopping, wantToCook: new WantToCookService(db, pantry, shopping, options.now) }, auth);
 
   app.addHook('onClose', async () => {
     if (!options.db) await db.$disconnect();

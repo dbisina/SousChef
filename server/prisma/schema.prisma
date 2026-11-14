@@ -67,6 +67,10 @@ model User {
   recipeComments RecipeComment[]
   madePosts      RecipeMadePost[]
   recipeFlags    RecipeFlag[]
+
+  pantryItems    PantryItem[]
+  wantToCook     WantToCookItem[]
+  shoppingItems  ShoppingItem[]
 }
 
 /// A Google or Apple account linked to a user.
@@ -205,6 +209,7 @@ model Recipe {
   comments RecipeComment[]
   madePosts RecipeMadePost[]
   flags    RecipeFlag[]
+  wantToCook WantToCookItem[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -297,4 +302,73 @@ model RecipeFlag {
   reporter User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([recipeId, reporterId])
+}
+
+/// What a person has at home. Capped per person in the service.
+model PantryItem {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  userId    String    @db.Uuid
+  name      String
+  /// Lowercase, trimmed: what recipe ingredients are matched against.
+  nameKey   String
+  amount    Float
+  unit      String
+  category  String
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, expiresAt])
+}
+
+enum WantToCookStatus {
+  SAVED
+  PLANNED
+  SHOPPING
+  COOKED
+}
+
+/// A recipe the person means to make: either one of ours (recipeId) or one they imported (imported JSON), never both.
+/// The "exactly one" rule is a CHECK constraint in the migration SQL.
+model WantToCookItem {
+  id         String           @id @default(uuid(7)) @db.Uuid
+  userId     String           @db.Uuid
+  recipeId   String?          @db.Uuid
+  /// ImportedRecipe (see shared/wantToCook.ts)
+  imported   Json?
+  status     WantToCookStatus @default(SAVED)
+  savedAt    DateTime         @default(now())
+  plannedFor DateTime?
+  cookedAt   DateTime?
+  notes      String           @default("")
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe? @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  /// Saving the same recipe twice is one item (NULLs are distinct, so any number of imported ones is fine).
+  @@unique([userId, recipeId])
+  @@index([userId, savedAt(sort: Desc)])
+}
+
+/// One shopping list per person.
+model ShoppingItem {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  userId      String   @db.Uuid
+  name        String
+  nameKey     String
+  amount      Float
+  unit        String
+  category    String?
+  checked     Boolean  @default(false)
+  /// Which recipe it is for. Kept as text so the line survives the recipe being deleted.
+  recipeId    String?  @db.Uuid
+  recipeTitle String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
 }

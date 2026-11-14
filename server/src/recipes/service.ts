@@ -12,9 +12,9 @@ import {
   type RecipeSummary,
   type ToggleResponse,
   type UpdateRecipeRequest,
-  type UserRole,
 } from '@shared';
 import { Prisma } from '../../generated/prisma/client';
+import type { Viewer } from '../auth/viewer';
 import type { Db } from '../db';
 import { errors } from '../errors';
 import {
@@ -33,10 +33,7 @@ export const FLAG_HIDE_THRESHOLD = 3;
 /** Most ranked matches a text search considers before the filters and the page are applied. */
 const SEARCH_CANDIDATES = 200;
 
-export interface Viewer {
-  userId: string;
-  role: UserRole;
-}
+export type { Viewer };
 
 export interface ListFilters {
   q?: string | undefined;
