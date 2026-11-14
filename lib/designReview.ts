@@ -17,3 +17,13 @@ export const getReviewTheme = (): 'light' | 'dark' | null => {
     return null;
   }
 };
+
+/** `?welcome=1` from the web URL, review mode only: forces the welcome sheet open for measurement. */
+export const isReviewWelcome = (): boolean => {
+  if (!isDesignReview || typeof window === 'undefined' || !window.location) return false;
+  try {
+    return new URLSearchParams(window.location.search).get('welcome') === '1';
+  } catch {
+    return false;
+  }
+};

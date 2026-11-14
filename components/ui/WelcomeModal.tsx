@@ -21,6 +21,7 @@ import { FIXED, useThemeStore } from '@/stores/themeStore';
 import { SponsoredAdCard } from './SponsoredAdCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
+import { isReviewWelcome } from '@/lib/designReview';
 
 const STORAGE_KEY = '@souschef_welcome_last_shown';
 const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
@@ -43,7 +44,8 @@ interface WelcomeModalProps {
  * Welcome bottom sheet. Show logic: at most once per app launch, and only if it was not
  * shown in the last 3 days (AsyncStorage timestamp). Subscription state changes never re-trigger it.
  */
-export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss }) => {
+export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShowProp, onDismiss }) => {
+  const forceShow = forceShowProp || isReviewWelcome();
   const [visible, setVisible] = useState(false);
   const { height: screenH } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -52,6 +54,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
   const { subscriptionTier } = useSubscription();
   const adFree = getTierFeatures(subscriptionTier).adFree;
   const grabber = useColor('divider');
+  const sheetFill = useColor('ground');
 
   const sheetH = useSharedValue(screenH);
   const translateY = useSharedValue(screenH);
@@ -164,25 +167,25 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss
               onLayout={(e) => {
                 sheetH.value = e.nativeEvent.layout.height;
               }}
-              className="bg-ground"
               style={[
                 {
+                  backgroundColor: sheetFill,
                   maxHeight: Math.round(screenH * 0.7),
                   borderTopLeftRadius: 34,
                   borderTopRightRadius: 34,
-                  paddingTop: 10,
+                  paddingTop: 24,
                   paddingHorizontal: 20,
                   paddingBottom: Math.max(insets.bottom, 20),
-                  gap: 12,
+                  gap: 16,
                 },
                 sheetStyle,
               ]}
             >
-              <View style={{ alignItems: 'center', paddingBottom: 6 }}>
+              <View pointerEvents="none" style={{ position: 'absolute', top: 8, left: 0, right: 0, alignItems: 'center' }}>
                 <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: grabber }} />
-                <View style={{ position: 'absolute', right: 0, top: -2 }}>
-                  <UIconButton icon="close" label={t('common.close', 'Close')} size={44} onPress={close} />
-                </View>
+              </View>
+              <View style={{ position: 'absolute', right: 12, top: 10, zIndex: 1 }}>
+                <UIconButton icon="close" label={t('common.close', 'Close')} size={44} onPress={close} />
               </View>
 
               <View style={{ gap: 6 }}>
