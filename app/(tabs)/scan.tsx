@@ -36,6 +36,7 @@ import {
   UIconButton,
   UInput,
   FONT,
+  useColor,
 } from '@/components/ui';
 import { Paywall } from '@/components/subscription';
 import { FIXED } from '@/stores/themeStore';
@@ -43,6 +44,7 @@ import { FIXED } from '@/stores/themeStore';
 export default function ScanScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const shutterFill = useColor('paper');
   const insets = useSafeAreaInsets();
   const {
     result: portionResult,
@@ -417,8 +419,7 @@ export default function ScanScreen() {
             onPress={handlePickFromGallery}
           />
           <View
-            className="items-center justify-center border-[3px] border-paper"
-            style={{ width: 92, height: 92, borderRadius: 46, marginVertical: -7 }}
+            style={{ width: 92, height: 92, borderRadius: 46, marginVertical: -7, alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: shutterFill }}
           >
             <Pressable
               accessibilityRole="button"
@@ -426,8 +427,8 @@ export default function ScanScreen() {
               accessibilityState={{ disabled: isAnalyzing }}
               disabled={isAnalyzing}
               onPress={handleStartScan}
-              className="bg-paper"
               style={({ pressed }) => ({
+                backgroundColor: shutterFill,
                 width: 78,
                 height: 78,
                 borderRadius: 39,

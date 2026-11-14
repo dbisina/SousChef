@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
 import { ToneBlock, useTone } from './tone';
 import { FONT } from './fonts';
-import type { ThemeMode } from '@/stores/themeStore';
+import { TOKEN_HEX, type ThemeMode } from '@/stores/themeStore';
 
 export type SurfaceTone = 'default' | 'black' | 'accent' | 'white';
 
@@ -51,8 +51,8 @@ function Surface({
   const body = (
     <ToneBlock
       tone={sub}
-      className={`${selected ? 'bg-ground border-[1.5px] border-ink' : FILL[tone]} ${className ?? ''}`}
-      style={[{ borderRadius: radius, padding: pad }, innerStyle, onPress ? { flexGrow: 1 } : null]}
+      className={`${selected ? 'bg-ground' : FILL[tone]} ${className ?? ''}`}
+      style={[{ borderRadius: radius, padding: pad }, selected ? { borderWidth: 1.5, borderColor: TOKEN_HEX[sub].ink } : null, innerStyle, onPress ? { flexGrow: 1 } : null]}
     >
       {children}
     </ToneBlock>

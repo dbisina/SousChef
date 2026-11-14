@@ -7,7 +7,7 @@
 import React, { memo } from 'react';
 import { Alert, Pressable, Text as RNText, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Icon, ListRow, PhotoCard, Tag, UIconButton, FONT } from '@/components/ui';
+import { Icon, ListRow, PhotoCard, Tag, UIconButton, FONT, useColor } from '@/components/ui';
 import { MealPlanDay, MealType } from '@/types/mealplan';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { mealPhoto } from './foodPhoto';
@@ -35,6 +35,7 @@ const MEAL_LABEL: Record<MealType, [string, string]> = {
 export const DayCard: React.FC<DayCardProps> = memo(
   ({ day, dayName, onMealPress, onAddMeal, onRemoveMeal }) => {
     const { t } = useTranslation();
+    const emptySlotFill = useColor('surface');
     const recipes = useRecipeStore((st) => st.recipes);
     // Breakfast, lunch and dinner always show a slot; snack only when one is planned.
     const types: MealType[] = day.snack ? [...CORE_MEALS, 'snack'] : CORE_MEALS;
@@ -73,8 +74,15 @@ export const DayCard: React.FC<DayCardProps> = memo(
                 accessibilityRole="button"
                 accessibilityLabel={t('plan.addMeal', 'Add {{meal}}', { meal: label.toLowerCase() })}
                 onPress={() => onAddMeal(type)}
-                className="bg-surface items-center justify-center"
-                style={({ pressed }) => ({ height: 132, borderRadius: 26, gap: 8, opacity: pressed ? 0.85 : 1 })}
+                style={({ pressed }) => ({
+                  height: 132,
+                  borderRadius: 26,
+                  gap: 8,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: emptySlotFill,
+                  opacity: pressed ? 0.85 : 1,
+                })}
               >
                 <Icon name="plus" color="muted" />
                 <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>

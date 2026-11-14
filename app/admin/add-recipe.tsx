@@ -109,8 +109,9 @@ function MiniInput({
       placeholderTextColor={FIXED.placeholder}
       selectionColor={tokens.accent}
       keyboardType={keyboardType}
-      className={`bg-raise text-ink ${invalid ? 'border-[1.5px] border-tag-r-fg' : ''}`}
+      className="bg-raise text-ink"
       style={{
+        ...(invalid ? { borderWidth: 1.5, borderColor: tokens['tag-r-fg'] } : null),
         height: 44,
         borderRadius: 14,
         paddingHorizontal: 10,

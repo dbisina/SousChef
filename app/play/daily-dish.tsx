@@ -17,6 +17,7 @@ import {
   UButton,
   UCard,
   UInput,
+  useTokens,
 } from '@/components/ui';
 import { dailyDishPhoto } from '@/components/play/samplePhoto';
 import { MAX_CLUES, MAX_GUESSES, clueSlots, isCorrect } from '@/lib/dailyDish';
@@ -30,6 +31,7 @@ import {
 export default function DailyDishScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const tk = useTokens();
   const daily = usePlayStore((s) => s.daily);
   const puzzle = usePlayStore((s) => selectDailyPuzzle(s));
   const streak = usePlayStore((s) => selectDailyStreak(s));
@@ -136,8 +138,16 @@ export default function DailyDishScreen() {
               <View
                 key={i}
                 accessibilityLabel={t('play.daily.hiddenClue', 'Hidden clue')}
-                className="bg-ground border-[1.5px] border-line items-center justify-center"
-                style={{ height: 36, borderRadius: 18, paddingHorizontal: 14 }}
+                style={{
+                  height: 36,
+                  borderRadius: 18,
+                  paddingHorizontal: 14,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: tk.ground,
+                  borderWidth: 1.5,
+                  borderColor: tk.line,
+                }}
               >
                 <RNText className="text-subtle" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
                   ?

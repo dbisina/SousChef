@@ -17,6 +17,7 @@ import {
   UButton,
   UCard,
   UIconButton,
+  useTokens,
 } from '@/components/ui';
 import { MKCountdown } from '@/components/play/MKCountdown';
 import { samplePhoto } from '@/components/play/samplePhoto';
@@ -27,6 +28,7 @@ import { usePlayStore } from '@/stores/playStore';
 export default function MysteryRoundScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const tk = useTokens();
   const round = usePlayStore((s) => s.round);
   const unlockHint = usePlayStore((s) => s.useHint);
   const submitPlate = usePlayStore((s) => s.submitPlate);
@@ -124,8 +126,7 @@ export default function MysteryRoundScreen() {
           accessibilityRole="button"
           accessibilityLabel={t('play.mk.useHint', 'Use a hint (−{{n}} pts)', { n: HINT_COST })}
           onPress={() => unlockHint()}
-          className="flex-row items-center border-[1.5px] border-line"
-          style={{ minHeight: 56, borderRadius: 22, paddingHorizontal: 14, gap: 12 }}
+          style={{ flexDirection: 'row', alignItems: 'center', minHeight: 56, borderRadius: 22, paddingHorizontal: 14, gap: 12, borderWidth: 1.5, borderColor: tk.line }}
         >
           <Icon name="bulb" color="muted" />
           <View className="flex-1">

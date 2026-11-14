@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text as RNText, View } from 'react-native';
-import { FONT, Tag, UAvatar } from '@/components/ui';
+import { FONT, Tag, UAvatar, useTokens } from '@/components/ui';
 import type { PhotoSource } from '@/components/ui';
 
 export interface PodiumEntry {
@@ -15,6 +15,7 @@ const HEIGHT: Record<number, number> = { 1: 104, 2: 70, 3: 52 };
 
 /** Top three: 2nd, 1st, 3rd. The winner gets the orange pillar. */
 export function Podium({ entries, winnerLabel }: { entries: PodiumEntry[]; winnerLabel: string }) {
+  const tk = useTokens();
   const byRank = (r: number) => entries.find((e) => e.rank === r);
   const order = [byRank(2), byRank(1), byRank(3)].filter((e): e is PodiumEntry => !!e);
   return (
@@ -29,8 +30,7 @@ export function Podium({ entries, winnerLabel }: { entries: PodiumEntry[]; winne
               </View>
             ) : null}
             <View
-              className={win ? 'border-[3px] border-accent' : undefined}
-              style={win ? { borderRadius: 36, margin: -3 } : undefined}
+              style={win ? { borderRadius: 36, margin: -3, borderWidth: 3, borderColor: tk.accent } : undefined}
             >
               <UAvatar source={e.avatar} name={e.name} size={win ? 66 : 56} />
             </View>

@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { FIXED } from '@/stores/themeStore';
 import { FONT } from './fonts';
 import { Icon } from './Icon';
+import { useTokens } from './tone';
 import type { PhotoSource } from './PhotoCard';
 
 interface UAvatarProps {
@@ -76,6 +77,7 @@ interface StoryRingProps {
 
 /** .st: 68px story avatar with orange (unseen) or grey (seen) ring and a label. */
 export function StoryRing({ source, name, seen, add, onPress }: StoryRingProps) {
+  const tk = useTokens();
   return (
     <Pressable
       accessibilityRole="button"
@@ -87,7 +89,7 @@ export function StoryRing({ source, name, seen, add, onPress }: StoryRingProps) 
         className={seen ? 'bg-seen' : 'bg-accent'}
         style={{ width: 68, height: 68, borderRadius: 34, padding: 3, alignItems: 'center', justifyContent: 'center' }}
       >
-        <View className="border-[3px] border-ground overflow-hidden" style={{ width: 62, height: 62, borderRadius: 31 }}>
+        <View style={{ width: 62, height: 62, borderRadius: 31, overflow: 'hidden', borderWidth: 3, borderColor: tk.ground }}>
           <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
         </View>
         {add ? (

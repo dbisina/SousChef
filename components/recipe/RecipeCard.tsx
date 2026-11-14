@@ -48,8 +48,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = memo(({
         onPress={open}
         accessibilityRole="button"
         accessibilityLabel={recipe.title}
-        className="flex-row items-center"
-        style={({ pressed }) => ({ minHeight: 72, gap: 14, opacity: pressed ? 0.8 : 1 })}
+        style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', minHeight: 72, gap: 14, opacity: pressed ? 0.8 : 1 })}
       >
         <Thumb source={recipe.imageURL ? { uri: recipe.imageURL } : null} name={recipe.title} />
         <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
