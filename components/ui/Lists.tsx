@@ -22,10 +22,11 @@ export function Rows({ box, children }: RowsProps) {
       style={box ? { borderRadius: 26, paddingHorizontal: 16, paddingVertical: 2 } : undefined}
     >
       {items.map((child, i) => (
-        <React.Fragment key={(child as React.ReactElement).key ?? i}>
-          {i > 0 ? <View className="bg-divider" style={{ height: 1 }} /> : null}
+        // .rows>*: min-height 64, centred, 1px border-top inside the box (not an extra 1px between rows).
+        <View key={(child as React.ReactElement).key ?? i} style={{ minHeight: 64, justifyContent: 'center' }}>
+          {i > 0 ? <View className="bg-divider" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1 }} /> : null}
           {child}
-        </React.Fragment>
+        </View>
       ))}
     </View>
   );
@@ -58,16 +59,21 @@ export function ListRow({ title, subtitle, icon, leading, right, chevron = true,
         </View>
       ) : null)}
       <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
-        <RNText className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20, letterSpacing: -0.15 }}>
+        <RNText className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 19.5, letterSpacing: -0.15 }}>
           {title}
         </RNText>
         {subtitle ? (
-          <RNText className="text-muted" numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17 }}>
+          <RNText className="text-muted" numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4 }}>
             {subtitle}
           </RNText>
         ) : null}
       </View>
-      {right ?? (onPress && chevron ? <Icon name="chevronRight" color="subtle" /> : null)}
+      {right != null ? (
+        // Tags / chips set alignSelf flex-start for column parents: centre them in the row like .rows>* align-items:center.
+        <View style={{ justifyContent: 'center', flexShrink: 0 }}>{right}</View>
+      ) : onPress && chevron ? (
+        <Icon name="chevronRight" color="subtle" />
+      ) : null}
     </View>
   );
   if (!onPress) return content;

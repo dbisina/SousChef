@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { createContext, useContext } from 'react';
 import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,9 @@ import { BarTitle, Dim, H1 } from './Typography';
 import { UIconButton } from './IconButton';
 
 type ScreenTone = 'auto' | 'light' | 'dark';
+
+/** True inside Screen's padded body (20px sides, 18px gap) so TopBar can cancel both. */
+const PaddedBody = createContext(false);
 
 interface ScreenProps {
   /** 'auto' follows the user's theme; 'dark'/'light' force the token set for this subtree. */
@@ -39,11 +42,11 @@ export function Screen({ tone = 'auto', scroll, bottomSpace = 0, bare, footer, c
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {children}
+          <PaddedBody.Provider value>{children}</PaddedBody.Provider>
         </ScrollView>
       ) : (
         <View className="flex-1 px-5" style={{ gap: 18, paddingBottom: bottomSpace }}>
-          {children}
+          <PaddedBody.Provider value>{children}</PaddedBody.Provider>
         </View>
       )}
       {footer}
@@ -68,13 +71,16 @@ interface TopBarProps {
 export function TopBar({ title, titleDim, variant = 'large', onBack, backLabel = 'Back', right, left }: TopBarProps) {
   const insets = useSafeAreaInsets();
   const paddingTop = Math.max(insets.top, 20) + 14;
+  const padded = useContext(PaddedBody);
+  // .top sits outside .body: undo the body's 20px side padding and the 18px gap that follows it.
+  const bleed = padded ? { marginHorizontal: -20, marginBottom: -18 } : null;
   const side = left ?? (onBack ? <UIconButton icon="back" label={backLabel} onPress={onBack} /> : null);
 
   if (variant === 'compact') {
     return (
       <View
         className="flex-row items-center justify-between"
-        style={{ paddingTop, paddingBottom: 14, paddingHorizontal: 20, gap: 12 }}
+        style={[{ paddingTop, paddingBottom: 14, paddingHorizontal: 20, gap: 12 }, bleed]}
       >
         <View style={{ minWidth: 46 }}>{side}</View>
         <View className="flex-1 items-center">
@@ -87,7 +93,7 @@ export function TopBar({ title, titleDim, variant = 'large', onBack, backLabel =
   return (
     <View
       className="flex-row items-center justify-between"
-      style={{ paddingTop, paddingBottom: 14, paddingHorizontal: 20, gap: 12 }}
+      style={[{ paddingTop, paddingBottom: 14, paddingHorizontal: 20, gap: 12 }, bleed]}
     >
       {side}
       <View className="flex-1">
