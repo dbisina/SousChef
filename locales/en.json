@@ -274,7 +274,8 @@
       "carbs": "Carbs",
       "similar": "Similar meals",
       "similarRow": "{{label}} · {{n}} meals",
-      "avg": "avg {{n}}"
+      "avg": "avg {{n}}",
+      "similar30": "Similar meals · last 30 days"
     },
     "report": {
       "yourName": "[Your name]",
@@ -637,7 +638,8 @@
     "countOf": "{{done}} of {{total}} items",
     "viewAll": "View all {{n}} items",
     "inPantry": "{{n}} in pantry",
-    "moveCount": "Move to Pantry ({{n}})"
+    "moveCount": "Move to Pantry ({{n}})",
+    "meatFish": "Meat & fish"
   },
   "importUi": {
     "enterUrl": "Enter URL",
@@ -958,7 +960,8 @@
       "authorPlaceholder": "Helps find the right book",
       "addButton": "Add & Fetch Recipes",
       "recipeCount_one": "{{count}} recipe",
-      "recipeCount_other": "{{count}} recipes"
+      "recipeCount_other": "{{count}} recipes",
+      "recipeCount": "{{count}} recipes"
     },
     "curated": {
       "shareMessage": "Check out this cookbook: {{title}}\n\nFrom SousChef App",
@@ -1004,7 +1007,8 @@
       "tapToLoad": "Tap to load",
       "page": "p.{{n}}",
       "recipeCount_one": "{{count}} recipe",
-      "recipeCount_other": "{{count}} recipes"
+      "recipeCount_other": "{{count}} recipes",
+      "recipeCount": "{{count}} recipes"
     },
     "shelfRecipe": {
       "shareMessage": "Check out \"{{recipe}}\" from {{book}}!\n\nFound on SousChef App",
@@ -1057,7 +1061,9 @@
       "recipes_one": "{{count}} recipe",
       "recipes_other": "{{count}} recipes",
       "likes_one": "{{count}} like",
-      "likes_other": "{{count}} likes"
+      "likes_other": "{{count}} likes",
+      "recipes": "{{count}} recipes",
+      "likes": "{{count}} likes"
     },
     "suggestions": {
       "needed": "+{{n}} needed",
@@ -1104,7 +1110,9 @@
       "pageCount_one": "{{count}} page",
       "pageCount_other": "{{count}} pages",
       "pagesCaptured_one": "{{count}} page captured",
-      "pagesCaptured_other": "{{count}} pages captured"
+      "pagesCaptured_other": "{{count}} pages captured",
+      "pageCount": "{{count}} pages",
+      "pagesCaptured": "{{count}} pages captured"
     }
   },
   "plan": {
@@ -1159,7 +1167,9 @@
     "keepEditing": "Keep Editing",
     "finalize": "Finalize",
     "finalizedTitle": "Plan Finalized",
-    "finalizedBody": "Your meal plan is ready! Check out your shopping list."
+    "finalizedBody": "Your meal plan is ready! Check out your shopping list.",
+    "minutes": "{{n}} min",
+    "swapMealShort": "Swap"
   },
   "planGen": {
     "title": "New Meal Plan",
@@ -1200,7 +1210,9 @@
     "shareEmptyBody": "Your shopping list is empty or all items are checked. Add some ingredients to share them.",
     "shareHeader": "Shopping List from SousChef",
     "clearTitle": "Clear List?",
-    "clearBody": "Are you sure you want to remove {{n}} checked items from your list?"
+    "clearBody": "Are you sure you want to remove {{n}} checked items from your list?",
+    "clearCheckedN": "Clear checked ({{n}})",
+    "inPantryShort": "in pantry"
   },
   "planWaste": {
     "title": "Waste Tracking",
@@ -1241,7 +1253,8 @@
     "reason": "Reason",
     "value": "Estimated value ($)",
     "notes": "Notes (optional)",
-    "notesPh": "Any additional details..."
+    "notesPh": "Any additional details...",
+    "deleteHint": "Long press to delete"
   },
   "foodScan": {
     "title": "Food Scanner",
@@ -1393,7 +1406,8 @@
       "up": "Up",
       "top": "Top recipes",
       "viewsSaves": "{{views}} views · {{saves}} saves",
-      "categories": "Category breakdown"
+      "categories": "Category breakdown",
+      "viewsOnly": "{{views}} views"
     },
     "appearance": {
       "title": "Appearance",
@@ -1551,7 +1565,8 @@
       "compareBody": "Compare Premium and Pro features",
       "freeStatus": "Free plan",
       "manage": "Manage",
-      "upgrade": "Upgrade"
+      "upgrade": "Upgrade",
+      "freePlan": "SousChef Free"
     },
     "usage": {
       "unlimited": "Unlimited",
@@ -1743,7 +1758,8 @@
     "tabPosts": "Posts",
     "tabRecipes": "Recipes",
     "tabSaved": "Saved",
-    "newPost": "New post"
+    "newPost": "New post",
+    "inRangeToday": "In range today"
   },
   "reels": {
     "forYou": "For You",
@@ -1873,7 +1889,8 @@
     "voiceMessage": "Voice message, {{duration}}",
     "read": "Read {{time}}",
     "delivered": "Delivered",
-    "sent": "Sent"
+    "sent": "Sent",
+    "comingSoon": "Coming soon"
   },
   "restaurant": {
     "back": "Back",
@@ -1891,7 +1908,8 @@
     "distance": "{{km}} km",
     "eta": "{{from}} to {{to}} min",
     "item": "item",
-    "items": "items"
+    "items": "items",
+    "etaRange": "{{from}}–{{to}} min"
   },
   "nutrition": {
     "fat": "Fat",
@@ -2025,7 +2043,8 @@
       "winner": "Winner",
       "plateOf": "{{name}}’s plate",
       "yourPlate": "Your plate"
-    }
+    },
+    "playersRange": "{{min}}–{{max}} players"
   },
   "common": {
     "cancel": "Cancel",
