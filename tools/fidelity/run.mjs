@@ -2,6 +2,7 @@
 // Design-vs-app fidelity harness.
 //   node tools/fidelity/run.mjs <Screen ...|--all> [--theme light|dark] [--rebuild] [--url http://host:port] [--top 15]
 // Output: tools/fidelity/out/<Name>.{design.png,rn.png,diff.png,report.json}
+import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
