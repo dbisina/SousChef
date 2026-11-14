@@ -178,13 +178,15 @@ interface BubbleProps {
   side: 'me' | 'them';
   /** .tick delivery text under a sent bubble ("Seen"). */
   tick?: string;
+  /** The parent already limits the width (chat MessageFrame), so fill it instead of limiting to 78% again. */
+  inFrame?: boolean;
 }
 
 /** .bub: chat bubble, 22 radius with a 6px tail corner. */
-export function Bubble({ children, side, tick }: BubbleProps) {
+export function Bubble({ children, side, tick, inFrame }: BubbleProps) {
   const me = side === 'me';
   return (
-    <View style={{ alignSelf: me ? 'flex-end' : 'flex-start', maxWidth: '78%', gap: 4 }}>
+    <View style={{ alignSelf: me ? 'flex-end' : 'flex-start', maxWidth: inFrame ? '100%' : '78%', gap: 4 }}>
       <View
         className={me ? 'bg-ink' : 'bg-surface-3'}
         style={{

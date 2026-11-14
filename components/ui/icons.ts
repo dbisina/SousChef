@@ -133,6 +133,17 @@ export const ICONS = {
   send: { shapes: [
     { t: 'p', d: 'M21 3L10 14M21 3l-7 18-4-7-7-4z' },
   ] },
+  reply: { shapes: [
+    { t: 'p', d: 'M9 14L4 9l5-5M4 9h10a6 6 0 0 1 6 6v3' },
+  ] },
+  copy: { shapes: [
+    { t: 'r', x: 9, y: 9, w: 11, h: 11, rx: 2 },
+    { t: 'p', d: 'M5 15V6a2 2 0 0 1 2-2h9' },
+  ] },
+  pause: { solid: true, shapes: [
+    { t: 'r', x: 6, y: 5, w: 4, h: 14, rx: 1 },
+    { t: 'r', x: 14, y: 5, w: 4, h: 14, rx: 1 },
+  ] },
   link: { shapes: [
     { t: 'p', d: 'M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1' },
   ] },

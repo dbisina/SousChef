@@ -1894,7 +1894,16 @@
     "read": "Read {{time}}",
     "delivered": "Delivered",
     "sent": "Sent",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "you": "You",
+    "failed": "Not sent. Tap to retry",
+    "sending": "Sending",
+    "replyingTo": "Replying to {{name}}",
+    "cancelReply": "Cancel reply",
+    "reply": "Reply",
+    "copy": "Copy",
+    "copied": "Copied",
+    "closeMenu": "Close"
   },
   "restaurant": {
     "back": "Back",

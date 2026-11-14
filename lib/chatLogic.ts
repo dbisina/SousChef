@@ -33,6 +33,7 @@ export const REPLY_THRESHOLD = 56;
  * (rubber band) so it never runs away. Only movement toward the reply side counts; the result is >= 0.
  */
 export function rubberBand(dx: number, max = 84): number {
+  'worklet'; // runs on the UI thread inside the pan gesture
   const d = Math.max(0, dx);
   if (d <= REPLY_THRESHOLD) return d;
   const over = d - REPLY_THRESHOLD;
@@ -40,7 +41,10 @@ export function rubberBand(dx: number, max = 84): number {
   return REPLY_THRESHOLD + room * (1 - Math.exp(-over / room));
 }
 
-export const replyArmed = (bubbleOffset: number): boolean => bubbleOffset >= REPLY_THRESHOLD - 0.5;
+export const replyArmed = (bubbleOffset: number): boolean => {
+  'worklet';
+  return bubbleOffset >= REPLY_THRESHOLD - 0.5;
+};
 
 /** Short text shown in the reply bar and the quoted block. */
 export function replyPreview(m: Message): string {
