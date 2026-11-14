@@ -9,6 +9,7 @@ import { FONT } from '@/components/ui/fonts';
 import { SAMPLE } from '@/assets/sample';
 import { useSocialStore } from '@/stores/socialStore';
 import { PREVIEW_LABEL } from '@/constants/features';
+import { feedback } from '@/lib/feedback';
 
 /** The design shows no "Preview" tags; flip to true to label sample content again. */
 const SHOW_PREVIEW = false;
@@ -116,7 +117,10 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
             source={photoOf(author.avatar)}
             name={author.displayName}
             seen={viewed.includes(story.id)}
-            onPress={() => onOpen(story.id)}
+            onPress={() => {
+              feedback.select();
+              onOpen(story.id);
+            }}
           />
         );
       })}

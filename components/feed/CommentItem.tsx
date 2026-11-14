@@ -2,9 +2,12 @@ import React from 'react';
 import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
-import { Icon, UAvatar } from '@/components/ui';
+import { Icon, UAvatar, useTokens } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
+import { VoicePlayer } from '@/components/chat/VoicePlayer';
 import { useSocialStore } from '@/stores/socialStore';
+import { useToastStore } from '@/stores/toastStore';
+import { feedback } from '@/lib/feedback';
 import { timeAgo } from '@/lib/timeAgo';
 import type { Comment } from '@/types/social';
 import { photoOf } from './shared';
@@ -21,6 +24,8 @@ export function CommentItem({ comment, reply, onReply }: CommentItemProps) {
   const author = useSocialStore((s) => s.authors.find((a) => a.id === comment.authorId));
   const liked = useSocialStore((s) => s.likedCommentIds.includes(comment.id));
   const toggleLike = useSocialStore((s) => s.toggleLikeComment);
+  const tokens = useTokens();
+  const showToast = useToastStore((s) => s.showToast);
   if (!author) return null;
   const size = reply ? 30 : 36;
   return (
@@ -43,9 +48,32 @@ export function CommentItem({ comment, reply, onReply }: CommentItemProps) {
             </RNText>
           )}
         </View>
-        <RNText className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
-          {comment.text}
-        </RNText>
+        {comment.voice ? (
+          <View
+            style={{
+              marginVertical: 4,
+              alignSelf: 'flex-start',
+              width: 230,
+              paddingVertical: 8,
+              paddingHorizontal: 12,
+              borderRadius: 20,
+              backgroundColor: tokens['surface-2'],
+            }}
+          >
+            <VoicePlayer
+              id={comment.id}
+              uri={comment.voice.uri}
+              durationSec={comment.voice.durationSec}
+              waveform={comment.voice.waveform}
+              me={false}
+              onNoAudio={() => showToast(t('chat.sampleVoice', 'This is a sample voice note with no audio'), { type: 'info' })}
+            />
+          </View>
+        ) : (
+          <RNText className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
+            {comment.text}
+          </RNText>
+        )}
         <View className="flex-row items-center" style={{ gap: 6 }}>
           <Pressable
             accessibilityRole="button"
@@ -67,7 +95,11 @@ export function CommentItem({ comment, reply, onReply }: CommentItemProps) {
         accessibilityRole="button"
         accessibilityLabel={liked ? t('post.unlikeComment', 'Unlike comment') : t('post.likeComment', 'Like comment')}
         accessibilityState={{ selected: liked }}
-        onPress={() => toggleLike(comment.id)}
+        onPress={() => {
+          toggleLike(comment.id);
+          if (liked) feedback.select();
+          else feedback.like();
+        }}
         hitSlop={12}
         style={{ minHeight: 44, minWidth: 28, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 4 }}
       >

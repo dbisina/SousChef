@@ -27,7 +27,9 @@ import { RESTAURANTS, MENU } from '@/data/sample/restaurants';
 import { SAMPLE } from '@/assets/sample';
 import { selectAuthor, selectIsFollowing, selectIsPostLiked, selectIsPostSaved, useSocialStore } from '@/stores/socialStore';
 import { compactCount, timeAgo } from '@/lib/timeAgo';
+import { feedback } from '@/lib/feedback';
 import type { PhotoRef } from '@/types/social';
+import { DoubleTapHeart } from './DoubleTapHeart';
 import { Action, AuthorRow, BarText, DarkBar, photoOf, shareText } from './shared';
 
 const go = (router: ReturnType<typeof useRouter>, href: string) => router.push(href as Href);
@@ -62,6 +64,20 @@ export function FriendPost({ postId }: { postId: string }) {
   const w = width - 40;
   const kindLabel = post.kind === 'recipe' ? t('home.kindRecipe', 'Recipe') : post.kind === 'plan' ? t('home.kindPlan', 'Plan') : t('home.kindPost', 'Post');
   const open = () => go(router, `/post/${post.id}`);
+  // A double tap on a photo only ever likes; the heart button below still toggles.
+  const likeFromPhoto = () => {
+    if (!liked) toggleLike(post.id);
+    feedback.like();
+  };
+  const likeFromButton = () => {
+    toggleLike(post.id);
+    if (liked) feedback.select();
+    else feedback.like();
+  };
+  const saveFromButton = () => {
+    toggleSave(post.id);
+    feedback.save();
+  };
 
   return (
     <View style={{ gap: 12 }}>
@@ -76,7 +92,11 @@ export function FriendPost({ postId }: { postId: string }) {
             accessibilityLabel={following ? t('home.following', 'Following') : t('home.follow', 'Follow')}
             accessibilityState={{ selected: following }}
             hitSlop={5}
-            onPress={() => toggleFollow(author.id)}
+            onPress={() => {
+              toggleFollow(author.id);
+              if (following) feedback.select();
+              else feedback.follow();
+            }}
             style={({ pressed }) => ({ height: 34, borderRadius: 17, paddingHorizontal: 14, justifyContent: 'center', backgroundColor: tokens['surface-2'], opacity: pressed ? 0.8 : 1 })}
           >
             <RNText className={following ? 'text-muted' : 'text-ink'} style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
@@ -94,16 +114,9 @@ export function FriendPost({ postId }: { postId: string }) {
           onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / w))}
         >
           {photos.map((ref, i) => (
-            <PhotoCard
-              key={`${ref}-${i}`}
-              source={photoOf(ref)}
-              width={w}
-              height={380}
-              radius={28}
-              fade="none"
-              onPress={open}
-              accessibilityLabel={post.title}
-            />
+            <DoubleTapHeart key={`${ref}-${i}`} onLike={likeFromPhoto} onOpen={open}>
+              <PhotoCard source={photoOf(ref)} width={w} height={380} radius={28} fade="none" accessibilityLabel={post.title} />
+            </DoubleTapHeart>
           ))}
         </ScrollView>
         <View pointerEvents="none" className="flex-row justify-between" style={{ position: 'absolute', top: 14, left: 14, right: 14 }}>
@@ -117,11 +130,11 @@ export function FriendPost({ postId }: { postId: string }) {
 
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center" style={{ gap: 14 }}>
-          <Action icon="heart" label={t('home.like', 'Like')} active={liked} count={post.likes} onPress={() => toggleLike(post.id)} />
+          <Action icon="heart" label={t('home.like', 'Like')} active={liked} count={post.likes} onPress={likeFromButton} />
           <Action icon="chat" label={t('home.comments', 'Comments')} count={post.commentCount} onPress={open} />
           <Action icon="send" label={t('home.share', 'Share')} onPress={() => shareText(`${post.title} · ${post.caption}`)} />
         </View>
-        <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={() => toggleSave(post.id)} />
+        <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={saveFromButton} />
       </View>
 
       <Body>
@@ -440,7 +453,17 @@ export function MadeYourRecipe({ postId }: { postId: string }) {
           topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
         />
         <View className="flex-row items-center" style={{ gap: 14 }}>
-          <Action icon="heart" label={t('home.like', 'Like')} active={liked} count={post.likes} onPress={() => toggleLike(post.id)} />
+          <Action
+            icon="heart"
+            label={t('home.like', 'Like')}
+            active={liked}
+            count={post.likes}
+            onPress={() => {
+              toggleLike(post.id);
+              if (liked) feedback.select();
+              else feedback.like();
+            }}
+          />
           <Action icon="chat" label={t('home.reply', 'Reply')} count={t('home.reply', 'Reply')} onPress={open} />
         </View>
       </View>

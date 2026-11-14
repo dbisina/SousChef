@@ -24,6 +24,7 @@ interface SocialState extends FeedSnapshot {
   toggleJoinCommunity: (id: string) => void;
   markStoryViewed: (id: string) => void;
   addComment: (postId: string, text: string, parentId?: string) => Comment | null;
+  addVoiceComment: (postId: string, voice: NonNullable<Comment['voice']>, parentId?: string) => Comment;
   createPost: (input: NewPostInput) => Post;
   resetSample: () => void;
 }
@@ -103,6 +104,14 @@ export const useSocialStore = create<SocialState>()(
       addComment: (postId, text, parentId) => {
         if (!text.trim()) return null;
         const comment = feedService.buildComment(postId, text, parentId);
+        set((s) => ({
+          comments: [...s.comments, comment],
+          posts: s.posts.map((p) => (p.id === postId ? { ...p, commentCount: p.commentCount + 1 } : p)),
+        }));
+        return comment;
+      },
+      addVoiceComment: (postId, voice, parentId) => {
+        const comment = feedService.buildVoiceComment(postId, voice, parentId);
         set((s) => ({
           comments: [...s.comments, comment],
           posts: s.posts.map((p) => (p.id === postId ? { ...p, commentCount: p.commentCount + 1 } : p)),

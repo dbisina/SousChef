@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, Text as RNText, View } from 'react-native';
+import Animated, { ZoomIn, ZoomOut } from 'react-native-reanimated';
 import { Pressable } from '@/components/ui/Pressable';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +11,9 @@ import { CURRENT_USER } from '@/data/sample/social';
 import { useSocialStore } from '@/stores/socialStore';
 import { Action, AuthorRow, photoOf, shareText } from '@/components/feed/shared';
 import { CommentItem } from '@/components/feed/CommentItem';
+import { LockHint, MicButton, RecordingBar, useVoiceNote } from '@/components/chat/VoiceRecorder';
+import { feedback } from '@/lib/feedback';
+import { useToastStore } from '@/stores/toastStore';
 import type { Comment, PhotoRef } from '@/types/social';
 
 interface Item {
@@ -45,9 +49,22 @@ export default function PostDetailScreen() {
   const toggleLikeReel = useSocialStore((s) => s.toggleLikeReel);
   const toggleSaveReel = useSocialStore((s) => s.toggleSaveReel);
   const addComment = useSocialStore((s) => s.addComment);
+  const addVoiceComment = useSocialStore((s) => s.addVoiceComment);
+  const showToast = useToastStore((s) => s.showToast);
 
   const [draft, setDraft] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; handle: string } | null>(null);
+
+  const voice = useVoiceNote({
+    onDone: (note) => {
+      addVoiceComment(id ?? '', note, replyTo?.id);
+      feedback.send();
+      setReplyTo(null);
+    },
+    onTooShort: () => showToast(t('chat.holdToRecord', 'Hold the mic to record'), { type: 'info' }),
+    onDenied: () =>
+      showToast(t('chat.micDenied', 'Allow microphone access in Settings to send voice notes'), { type: 'error' }),
+  });
 
   const item: Item | undefined = useMemo(() => {
     const p = posts.find((x) => x.id === id);
@@ -81,9 +98,21 @@ export default function PostDetailScreen() {
   const send = () => {
     const added = addComment(item.id, draft, replyTo?.id);
     if (added) {
+      feedback.send();
       setDraft('');
       setReplyTo(null);
     }
+  };
+  const like = () => {
+    if (isPost) toggleLikePost(item.id);
+    else toggleLikeReel(item.id);
+    if (liked) feedback.select();
+    else feedback.like();
+  };
+  const save = () => {
+    if (isPost) toggleSavePost(item.id);
+    else toggleSaveReel(item.id);
+    feedback.save();
   };
   const startReply = (c: Comment, handle: string) => {
     // Replies hang off the top-level comment.
@@ -105,7 +134,7 @@ export default function PostDetailScreen() {
               icon="bookmark"
               filled={saved}
               label={saved ? t('post.unsave', 'Remove from saved') : t('post.save', 'Save')}
-              onPress={() => (isPost ? toggleSavePost(item.id) : toggleSaveReel(item.id))}
+              onPress={save}
             />
           </View>
         </PhotoCard>
@@ -133,7 +162,7 @@ export default function PostDetailScreen() {
                 label={t('post.like', 'Like')}
                 active={liked}
                 count={item.likes}
-                onPress={() => (isPost ? toggleLikePost(item.id) : toggleLikeReel(item.id))}
+                onPress={like}
               />
               <Action icon="chat" label={t('post.comments', 'Comments')} count={Math.max(item.commentCount, thread.length)} />
               <Action icon="send" label={t('post.share', 'Share')} onPress={() => shareText(`${item.title} · ${item.caption}`)} />
@@ -178,19 +207,56 @@ export default function PostDetailScreen() {
             </Pressable>
           ) : null}
           <View className="flex-row items-center" style={{ gap: 10 }}>
-            <UAvatar source={photoOf(CURRENT_USER.avatar)} name={CURRENT_USER.displayName} size={40} />
-            <View className="flex-1">
-              <UInput
-                height={50}
-                label={t('post.addComment', 'Add a comment')}
-                placeholder={t('post.addCommentPlaceholder', 'Add a comment…')}
-                value={draft}
-                onChangeText={setDraft}
-                onSubmitEditing={send}
-                returnKeyType="send"
+            {voice.phase !== 'idle' ? (
+              <RecordingBar
+                voice={voice}
+                slideLabel={t('chat.slideToCancel', 'Slide to cancel')}
+                cancelLabel={t('chat.deleteVoice', 'Delete recording')}
+                onCancel={() => void voice.finish('cancel')}
               />
+            ) : (
+              <>
+                <UAvatar source={photoOf(CURRENT_USER.avatar)} name={CURRENT_USER.displayName} size={40} />
+                <View className="flex-1">
+                  <UInput
+                    height={50}
+                    label={t('post.addComment', 'Add a comment')}
+                    placeholder={t('post.addCommentPlaceholder', 'Add a comment…')}
+                    value={draft}
+                    onChangeText={setDraft}
+                    onSubmitEditing={send}
+                    returnKeyType="send"
+                  />
+                </View>
+              </>
+            )}
+            <View style={{ width: 46, height: 46 }}>
+              {draft.trim() && voice.phase === 'idle' ? (
+                <Animated.View key="send" entering={ZoomIn.duration(170)} exiting={ZoomOut.duration(110)} style={{ position: 'absolute' }}>
+                  <UIconButton icon="send" tone="black" label={t('post.postComment', 'Post comment')} onPress={send} />
+                </Animated.View>
+              ) : voice.phase === 'locked' ? (
+                <Animated.View key="sendVoice" entering={ZoomIn.duration(170)} exiting={ZoomOut.duration(110)} style={{ position: 'absolute' }}>
+                  <UIconButton
+                    icon="send"
+                    tone="black"
+                    label={t('post.postVoice', 'Post voice comment')}
+                    onPress={() => void voice.finish('send')}
+                  />
+                </Animated.View>
+              ) : (
+                <Animated.View key="mic" entering={ZoomIn.duration(170)} exiting={ZoomOut.duration(110)} style={{ position: 'absolute' }}>
+                  <MicButton
+                    voice={voice}
+                    label={t('post.recordVoice', 'Record a voice comment')}
+                    onHint={() => showToast(t('chat.holdToRecord', 'Hold the mic to record'), { type: 'info' })}
+                  />
+                </Animated.View>
+              )}
             </View>
-            <UIconButton icon="send" tone="black" label={t('post.postComment', 'Post comment')} onPress={send} />
+            <View pointerEvents="none" style={{ position: 'absolute', right: 5, bottom: 56 }}>
+              <LockHint voice={voice} />
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>

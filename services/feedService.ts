@@ -50,6 +50,7 @@ export interface FeedService {
   fetchSnapshot(now?: Date): Promise<FeedSnapshot>;
   buildPost(input: NewPostInput, now?: Date): Post;
   buildComment(postId: string, text: string, parentId?: string, now?: Date): Comment;
+  buildVoiceComment(postId: string, voice: NonNullable<Comment['voice']>, parentId?: string, now?: Date): Comment;
 }
 
 let counter = 0;
@@ -94,6 +95,18 @@ export const localFeedService: FeedService = {
       authorId: ME_ID,
       parentId,
       text: text.trim(),
+      likes: 0,
+      createdAt: now.toISOString(),
+    };
+  },
+  buildVoiceComment(postId, voice, parentId, now = new Date()) {
+    return {
+      id: uid('c'),
+      postId,
+      authorId: ME_ID,
+      parentId,
+      text: '',
+      voice,
       likes: 0,
       createdAt: now.toISOString(),
     };

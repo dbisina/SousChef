@@ -62,7 +62,10 @@ export interface Comment {
   postId: string;
   authorId: string;
   parentId?: string;
+  /** Empty for a voice comment. */
   text: string;
+  /** A voice comment: played with the same player as chat voice notes. */
+  voice?: { uri?: string; durationSec: number; waveform: number[] };
   likes: number;
   isAuthor?: boolean;
   createdAt: string;

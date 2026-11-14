@@ -9,7 +9,9 @@ import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { selectAuthor, selectIsFollowing, selectIsReelLiked, selectIsReelSaved, useSocialStore } from '@/stores/socialStore';
 import { compactCount } from '@/lib/timeAgo';
+import { feedback } from '@/lib/feedback';
 import type { Reel } from '@/types/social';
+import { DoubleTapHeart } from './DoubleTapHeart';
 import { BarText, photoOf, shareText } from './shared';
 
 const PLAY_MS = 12_000;
@@ -53,9 +55,17 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
 
   const base = Math.max(insets.bottom, 20);
 
+  // A double tap only ever likes; the rail's heart still toggles.
+  const likeFromVideo = () => {
+    if (!liked) toggleLike(reel.id);
+    feedback.like();
+  };
+
   return (
     <View style={{ height }}>
-      <PhotoCard source={photoOf(reel.photo)} height={height} radius={0} fade="both" accessibilityLabel={reel.title} />
+      <DoubleTapHeart onLike={likeFromVideo} style={{ height }}>
+        <PhotoCard source={photoOf(reel.photo)} height={height} radius={0} fade="both" accessibilityLabel={reel.title} />
+      </DoubleTapHeart>
 
       <View pointerEvents="box-none" style={{ position: 'absolute', right: 14, bottom: base + 166, gap: 18, zIndex: 2 }}>
         <Rail count={compactCount(reel.likes)}>
@@ -64,7 +74,11 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
             icon="heart"
             filled={liked}
             label={liked ? t('reels.unlike', 'Unlike') : t('reels.like', 'Like')}
-            onPress={() => toggleLike(reel.id)}
+            onPress={() => {
+              toggleLike(reel.id);
+              if (liked) feedback.select();
+              else feedback.like();
+            }}
           />
         </Rail>
         <Rail count={compactCount(reel.commentCount)}>
@@ -76,7 +90,10 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
             icon="bookmark"
             filled={saved}
             label={saved ? t('reels.unsave', 'Remove from saved') : t('reels.save', 'Save')}
-            onPress={() => toggleSave(reel.id)}
+            onPress={() => {
+              toggleSave(reel.id);
+              feedback.save();
+            }}
           />
         </Rail>
         <Rail count={t('reels.share', 'Share')}>
@@ -100,7 +117,11 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
               accessibilityRole="button"
               accessibilityLabel={following ? t('reels.following', 'Following') : t('reels.follow', 'Follow')}
               accessibilityState={{ selected: following }}
-              onPress={() => toggleFollow(author.id)}
+              onPress={() => {
+                toggleFollow(author.id);
+                if (following) feedback.select();
+                else feedback.follow();
+              }}
               hitSlop={6}
             >
               <Glass

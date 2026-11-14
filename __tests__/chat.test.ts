@@ -15,6 +15,7 @@ import {
 } from '@/lib/chatLogic';
 import { messagesFor, setMessageTransport, useMessageStore } from '@/stores/messageStore';
 import { localTransport } from '@/services/messageService';
+import { useSocialStore } from '@/stores/socialStore';
 import type { Message } from '@/types/social';
 
 const find = (id: string) => useMessageStore.getState().messages.find((m) => m.id === id)!;
@@ -108,6 +109,22 @@ describe('voice notes', () => {
     const bars = resampleBars([10, 90, 20, 30, 40, 50], 3);
     expect(bars).toEqual([90, 30, 50]);
     expect(resampleBars([], 4)).toHaveLength(4);
+  });
+});
+
+describe('voice comments', () => {
+  it('adds a voice comment with no text and counts it', () => {
+    const find = () => useSocialStore.getState().posts.find((p) => p.id === 'post-katsu')!;
+    const before = find().commentCount;
+    const c = useSocialStore.getState().addVoiceComment('post-katsu', {
+      uri: 'file:///tmp/a.m4a',
+      durationSec: 12,
+      waveform: [10, 40, 80],
+    });
+    expect(c.text).toBe('');
+    expect(c.voice?.durationSec).toBe(12);
+    expect(find().commentCount).toBe(before + 1);
+    expect(useSocialStore.getState().comments.some((x) => x.id === c.id && x.voice)).toBe(true);
   });
 });
 

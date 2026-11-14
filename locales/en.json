@@ -1806,6 +1806,8 @@
     "noComments": "No comments yet. Say something nice.",
     "cancelReply": "Cancel reply",
     "replyingTo": "Replying to {{name}}",
+    "postVoice": "Post voice comment",
+    "recordVoice": "Record a voice comment",
     "addComment": "Add a comment",
     "addCommentPlaceholder": "Add a comment…",
     "postComment": "Post comment",

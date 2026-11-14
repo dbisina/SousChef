@@ -16,6 +16,7 @@ import { getTierFeatures } from '@/services/subscriptionService';
 import { FEATURES } from '@/constants/features';
 import { ListRow, Rows, Screen, SponsoredAdCard, WelcomeModal, useColor, type PhotoSource } from '@/components/ui';
 import { isDesignReview } from '@/lib/designReview';
+import { feedback } from '@/lib/feedback';
 import { HomeHeader, LinkBar, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
 import {
   ChallengeCard,
@@ -125,6 +126,7 @@ export default function HomeScreen() {
   }, [user, currentPlan, fetchCurrentPlan]);
 
   const onRefresh = async () => {
+    feedback.refresh();
     setRefreshing(true);
     await Promise.all([
       user ? fetchWantToCookItems(user.id) : Promise.resolve(),
