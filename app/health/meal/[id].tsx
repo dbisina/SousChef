@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text as RNText, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
+  FONT,
   Muted,
   PhotoCard,
   RatingTag,
@@ -19,6 +20,7 @@ import {
 import type { RatingLevel } from '@/components/ui/Chips';
 import { ValueTile } from '@/components/health/ValueTile';
 import { dayText, healthMealPhoto, timeText } from '@/components/health/format';
+import { FIXED } from '@/stores/themeStore';
 import { formatRise, glucoseStatus } from '@/lib/health';
 import { mealResponse, useHealthStore } from '@/stores/healthStore';
 import type { Rating } from '@/types/order';
@@ -63,23 +65,27 @@ export default function MealResponseScreen() {
           height={300}
           radius={0}
           fade="both"
-          title={meal.title}
-          titleSize={28}
-          subtitle={`${meal.portionLabel} · ${meal.carbsG} g ${t('health.carbs', 'carbs')}`}
-          captionInset={22}
           style={{ marginBottom: 0 }}
         >
           <View
-            className="flex-row items-start justify-between"
+            className="flex-row items-center justify-between"
             style={{ position: 'absolute', top: Math.max(insets.top, 20) + 14, left: 20, right: 20 }}
           >
             <UIconButton icon="back" tone="glassDark" label={t('health.meal.back', 'Back')} onPress={() => router.back()} />
             <Tag tone="glassDark" large label={`${meal.mealType} · ${dayText(meal.at)}`} />
           </View>
+          <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 4, zIndex: 1 }}>
+            <RNText numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 28, lineHeight: 32.2, letterSpacing: -0.56, color: FIXED.paper }}>
+              {meal.title}
+            </RNText>
+            <RNText numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4, color: FIXED.captionSub }}>
+              {`${meal.portionLabel} · ${meal.carbsG} g ${t('health.carbs', 'carbs')}`}
+            </RNText>
+          </View>
         </PhotoCard>
 
         <SheetPanel>
-          <View className="flex-row" style={{ gap: 10 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <ValueTile
               label={t('health.meal.before', 'Before')}
               value={before ? before.mmol.toFixed(1) : '-'}
@@ -109,10 +115,10 @@ export default function MealResponseScreen() {
 
           {similar.length > 0 ? (
             <View style={{ gap: 8 }}>
-              <SectionLabel>{t('health.meal.similar', 'Similar meals')}</SectionLabel>
+              <SectionLabel>{t('health.meal.similar30', 'Similar meals · last 30 days')}</SectionLabel>
               <Rows box>
                 {similar.map((s) => (
-                  <View key={s.label} className="flex-row items-center" style={{ minHeight: 56, gap: 12 }}>
+                  <View key={s.label} className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
                     <View className="flex-1">
                       <Muted className="text-ink">
                         {t('health.meal.similarRow', '{{label}} · {{n}} meals', { label: s.label, n: s.meals })}

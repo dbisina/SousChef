@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Share, View } from 'react-native';
+import { Share, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Clipboard from 'expo-clipboard';
 import {
   Check,
   CtaBar,
+  FONT,
   H2,
   Muted,
   Rows,
@@ -105,11 +106,18 @@ export default function MysteryLobbyScreen() {
       </View>
       <Rows box>
         {round.players.map((p) => (
-          <View key={p.id} className="flex-row items-center" style={{ minHeight: 64, gap: 12 }}>
+          <View key={p.id} className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
             <UAvatar source={samplePhoto(p.avatar)} name={p.name} size={44} />
-            <View className="flex-1 flex-row items-center" style={{ gap: 8, minWidth: 0 }}>
+            <View className="flex-1 flex-row items-center" style={{ gap: 4, minWidth: 0 }}>
               <Title numberOfLines={1}>{p.name}</Title>
-              {p.isHost ? <Tag tone="o" label={t('play.mk.host', 'Host')} /> : null}
+              {p.isHost ? (
+                // .tag.o with height:22 inline in the design
+                <View className="bg-tag-o items-center justify-center" style={{ height: 22, borderRadius: 11, paddingHorizontal: 11 }}>
+                  <RNText className="text-tag-o-fg" style={{ fontFamily: FONT.sansMedium, fontSize: 12 }}>
+                    {t('play.mk.host', 'Host')}
+                  </RNText>
+                </View>
+              ) : null}
               {p.guest ? <Muted small>{t('play.mk.guest', 'guest')}</Muted> : null}
             </View>
             {p.status === 'joined' ? (

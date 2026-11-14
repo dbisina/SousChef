@@ -110,6 +110,7 @@ w('orderSheet', { wait: 800, stores: { auth: { user: { id: 'user1', email: 'me@e
 w('restaurant', { wait: 800, stores: { order: { cart: [{ id: 'line-fx', dishId: 'double-smash', qty: 1, extraIds: [], logToHealth: true }] }, message: { conversations: [{ ...orderThread, id: 'conv-order-rest', title: 'Smash & Co.', orderId: undefined }] } } });
 
 // Mystery Kitchen: drive the real store actions, then reload so route guards see the round.
+w('dailyDish', { navigate: true, wait: 600, stores: {}, calls: [{ store: 'play', fn: 'startDaily' }, { store: 'play', fn: 'revealNextClue' }, { store: 'play', fn: 'revealNextClue' }, { store: 'play', fn: 'revealNextClue' }, { store: 'play', fn: 'guessDaily', args: ['Pad thai'] }, { store: 'play', fn: 'guessDaily', args: ['Pho'] }] });
 w('mkLobby', { navigate: true, wait: 600, stores: {}, calls: [{ store: 'play', fn: 'hostRound' }] });
 w('mkRound', { navigate: true, wait: 600, stores: {}, calls: [{ store: 'play', fn: 'hostRound' }, { store: 'play', fn: 'startRound' }] });
 w('mkReveal', { navigate: true, wait: 600, stores: {}, calls: [{ store: 'play', fn: 'hostRound' }, { store: 'play', fn: 'startRound' }, { store: 'play', fn: 'submitPlate' }] });

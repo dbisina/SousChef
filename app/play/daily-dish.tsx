@@ -67,15 +67,19 @@ export default function DailyDishScreen() {
       footer={
         <CtaBar>
           {playing ? (
-            <>
-              <UButton
-                variant="ghost"
-                label={t('play.daily.nextClue', 'Next clue')}
-                disabled={daily.cluesShown >= MAX_CLUES}
-                onPress={revealNextClue}
-              />
-              <UButton label={t('play.daily.guess', 'Guess')} disabled={!text.trim()} onPress={submit} />
-            </>
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <View style={{ width: 150 }}>
+                <UButton
+                  variant="ghost"
+                  label={t('play.daily.nextClue', 'Next clue')}
+                  disabled={daily.cluesShown >= MAX_CLUES}
+                  onPress={revealNextClue}
+                />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <UButton label={t('play.daily.guess', 'Guess')} disabled={!text.trim()} onPress={submit} />
+              </View>
+            </View>
           ) : (
             <UButton label={t('play.daily.backToPlay', 'Back to Play')} onPress={() => router.back()} />
           )}
@@ -153,8 +157,8 @@ export default function DailyDishScreen() {
             {daily.guesses.map((g, i) => {
               const right = isCorrect(puzzle, g);
               return (
-                <View key={`${g}-${i}`} className="flex-row items-center" style={{ minHeight: 56, gap: 12 }}>
-                  <View className="items-center justify-center bg-surface-3" style={{ width: 32, height: 32, borderRadius: 16 }}>
+                <View key={`${g}-${i}`} className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+                  <View className="items-center justify-center bg-ground" style={{ width: 32, height: 32, borderRadius: 16 }}>
                     <Icon name={right ? 'check' : 'close'} size="sm" />
                   </View>
                   <View className="flex-1">

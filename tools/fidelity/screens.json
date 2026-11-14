@@ -60,7 +60,8 @@
  },
  "DailyDish": {
   "route": "/play/daily-dish",
-  "theme": "light"
+  "theme": "light",
+  "fixture": "dailyDish"
  },
  "Dietary": {
   "route": "/settings/dietary",
@@ -150,7 +151,7 @@
   "fixture": "polishD-mealplan"
  },
  "MealResponse": {
-  "route": "/health/meal/meal-today-b",
+  "route": "/health/meal/meal-today-l",
   "theme": "light"
  },
  "Messages": {

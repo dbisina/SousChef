@@ -9,7 +9,6 @@ import {
   Icon,
   Muted,
   Screen,
-  SectionLabel,
   Segmented,
   Tag,
   Thumb,
@@ -105,7 +104,7 @@ export default function LogReadingScreen() {
       style={{
         fontFamily: FONT.display,
         fontSize: size,
-        lineHeight: size * 1.1,
+        lineHeight: size,
         letterSpacing: -size * 0.04,
         textAlign: 'center',
         minWidth: width ?? 120,
@@ -163,7 +162,9 @@ export default function LogReadingScreen() {
           </View>
 
           <View style={{ gap: 8 }}>
-            <SectionLabel>{t('health.log.when', 'When')}</SectionLabel>
+            <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12, paddingStart: 4 }}>
+              {t('health.log.when', 'When')}
+            </RNText>
             <View className="flex-row flex-wrap" style={{ gap: 8 }}>
               {TIMING_OPTIONS.map((o) => (
                 <Chip

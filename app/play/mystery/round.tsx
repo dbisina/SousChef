@@ -88,7 +88,7 @@ export default function MysteryRoundScreen() {
         <MKCountdown left={left} total={round.totalSec} caption={t('play.mk.leftToCook', 'left to cook')} />
       </View>
 
-      <View style={{ gap: 10 }}>
+      <View style={{ gap: 10, marginTop: -2 }}>
         <View className="flex-row items-center justify-between">
           <H2>{t('play.mk.yourIngredients', 'Your ingredients')}</H2>
           <Muted small>{t('play.mk.secret', 'The dish is a secret')}</Muted>
@@ -106,10 +106,10 @@ export default function MysteryRoundScreen() {
       </View>
 
       {hints.map((h, i) => (
-        <UCard key={h} style={{ borderRadius: 22, padding: 14 }}>
+        <UCard key={h} style={{ borderRadius: 22, padding: 14, marginTop: -2 }}>
           <View className="flex-row items-center" style={{ gap: 12 }}>
             <Icon name="bulb" />
-            <View className="flex-1">
+            <View className="flex-1" style={{ gap: 4 }}>
               <Title>{t('play.mk.hintUnlocked', 'Hint {{n}} unlocked', { n: i + 1 })}</Title>
               <Muted small>
                 {h} −{HINT_COST} {t('play.mk.pts', 'pts')}
@@ -136,12 +136,12 @@ export default function MysteryRoundScreen() {
       ) : null}
 
       {round.twist ? (
-        <UCard tone="accent" style={{ borderRadius: 22, padding: 14 }}>
+        <UCard tone="accent" style={{ borderRadius: 22, padding: 14, marginTop: -2 }}>
           <View className="flex-row items-center" style={{ gap: 12 }}>
             <Icon name="refresh" />
-            <View className="flex-1">
+            <View className="flex-1" style={{ gap: 4 }}>
               <Title>{round.twist.title}</Title>
-              <Body style={{ fontSize: 12, lineHeight: 17 }}>
+              <Body style={{ fontSize: 12, lineHeight: 17.4 }}>
                 {round.twist.text}
               </Body>
             </View>

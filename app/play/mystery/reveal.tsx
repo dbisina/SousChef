@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo } from 'react';
-import { ScrollView, View } from 'react-native';
+import { ScrollView, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { CtaBar, Muted, PhotoCard, Screen, Tag, Title, UAvatar, UButton, UCard, UIconButton } from '@/components/ui';
+import { CtaBar, FONT, Muted, PhotoCard, Screen, Tag, Title, UAvatar, UButton, UCard, UIconButton } from '@/components/ui';
 import { Podium, type PodiumEntry } from '@/components/play/Podium';
 import { samplePhoto } from '@/components/play/samplePhoto';
 import { rankSubmissions } from '@/lib/mysteryKitchen';
+import { FIXED } from '@/stores/themeStore';
 import { usePlayStore } from '@/stores/playStore';
 
 export default function MysteryRevealScreen() {
@@ -63,8 +64,14 @@ export default function MysteryRevealScreen() {
       bare
       footer={
         <CtaBar>
-          <UButton variant="ghost" label={t('play.mk.playAgain', 'Play again')} onPress={playAgain} />
-          <UButton variant="accent" label={t('play.mk.postToFeed', 'Post to feed')} onPress={postToFeed} />
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ width: 130 }}>
+              <UButton variant="ghost" label={t('play.mk.playAgain', 'Play again')} onPress={playAgain} />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <UButton variant="accent" label={t('play.mk.postToFeed', 'Post to feed')} onPress={postToFeed} />
+            </View>
+          </View>
         </CtaBar>
       }
     >
@@ -74,14 +81,10 @@ export default function MysteryRevealScreen() {
           height={330}
           radius={0}
           fade="both"
-          title={round.secret.name}
-          titleSize={34}
-          subtitle={round.secret.description}
-          captionInset={22}
           style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}
         >
           <View
-            className="flex-row items-start justify-between"
+            className="flex-row items-center justify-between"
             style={{
               position: 'absolute',
               top: Math.max(insets.top, 20) + 14,
@@ -91,6 +94,14 @@ export default function MysteryRevealScreen() {
           >
             <Tag tone="glassDark" large label={t('play.mk.secretWas', 'The secret dish was…')} />
             <UIconButton icon="close" tone="glassDark" label={t('play.mk.close', 'Close')} onPress={close} />
+          </View>
+          <View style={{ position: 'absolute', left: 22, right: 22, bottom: 22, gap: 4, zIndex: 1 }}>
+            <RNText numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 34, lineHeight: 39.1, letterSpacing: -0.68, color: FIXED.paper }}>
+              {round.secret.name}
+            </RNText>
+            <RNText numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4, color: FIXED.captionSub }}>
+              {round.secret.description}
+            </RNText>
           </View>
         </PhotoCard>
 

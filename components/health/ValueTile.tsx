@@ -19,7 +19,7 @@ export function ValueTile({ label, value, caption, tone = 'default' }: Props) {
       className={`flex-1 ${fill}`}
       style={{ borderRadius: 24, padding: 14, gap: 2, minWidth: 0 }}
     >
-      <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+      <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
         {label}
       </RNText>
       <RNText
@@ -31,7 +31,7 @@ export function ValueTile({ label, value, caption, tone = 'default' }: Props) {
         {value}
       </RNText>
       {caption ? (
-        <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+        <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
           {caption}
         </RNText>
       ) : (

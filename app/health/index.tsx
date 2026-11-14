@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +15,6 @@ import {
   Segmented,
   Tag,
   Thumb,
-  Tile,
   TopBar,
   UCard,
   UIconButton,
@@ -30,6 +29,7 @@ import {
   healthMealPhoto,
   timeText,
 } from '@/components/health/format';
+import { ValueTile } from '@/components/health/ValueTile';
 import { PREVIEW_LABEL } from '@/constants/features';
 import { formatRise, glucoseStatus } from '@/lib/health';
 import {
@@ -145,27 +145,31 @@ export default function HealthScreen() {
           ) : null}
         </UCard>
 
-        <View className="flex-row" style={{ gap: 12 }}>
-          <View className="flex-1">
-            <Tile
-              value={bp ? `${bp.systolic}/${bp.diastolic}` : '-'}
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('health.bp', 'Blood pressure')}
+            onPress={() => go('/health/log')}
+            style={{ flex: 1, flexDirection: 'row' }}
+          >
+            <ValueTile
               label={t('health.bp', 'Blood pressure')}
-              onPress={() => go('/health/log')}
-              accessibilityLabel={t('health.bp', 'Blood pressure')}
-            >
-              <Muted small>{bp ? agoText(bp.at, now) : t('health.noReading', 'No reading')}</Muted>
-            </Tile>
-          </View>
-          <View className="flex-1">
-            <Tile
-              value={ldl ? ldl.ldl.toFixed(1) : '-'}
+              value={bp ? `${bp.systolic}/${bp.diastolic}` : '-'}
+              caption={bp ? agoText(bp.at, now) : t('health.noReading', 'No reading')}
+            />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('health.ldl', 'LDL cholesterol')}
+            onPress={() => go('/health/log')}
+            style={{ flex: 1, flexDirection: 'row' }}
+          >
+            <ValueTile
               label={t('health.ldl', 'LDL cholesterol')}
-              onPress={() => go('/health/log')}
-              accessibilityLabel={t('health.ldl', 'LDL cholesterol')}
-            >
-              <Muted small>{ldl ? `mmol/L · ${agoText(ldl.at, now)}` : t('health.noReading', 'No reading')}</Muted>
-            </Tile>
-          </View>
+              value={ldl ? ldl.ldl.toFixed(1) : '-'}
+              caption={ldl ? `mmol/L · ${agoText(ldl.at, now)}` : t('health.noReading', 'No reading')}
+            />
+          </Pressable>
         </View>
 
         <View className="flex-row items-center justify-between">
@@ -202,8 +206,8 @@ export default function HealthScreen() {
 
 function Text48({ value, unit }: { value: string; unit: string }) {
   return (
-    <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 48, lineHeight: 50, letterSpacing: -1.44 }}>
-      {value} <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 15, letterSpacing: 0 }}>{unit}</RNText>
+    <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 48, lineHeight: 48, letterSpacing: -1.44 }}>
+      {value} <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 15, lineHeight: 18, letterSpacing: 0 }}>{unit}</RNText>
     </RNText>
   );
 }

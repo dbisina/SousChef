@@ -10,10 +10,10 @@ export const GAMES: Game[] = [
     minPlayers: 2,
     maxPlayers: 10,
   },
-  { id: 'basket-battle', name: 'Basket Battle', tagline: 'Use every mystery item', photo: 'grocery' },
+  { id: 'basket-battle', name: 'Basket Battle', tagline: 'Use every mystery item', photo: 'garlic' },
   { id: 'plate-off', name: 'Plate Off', tagline: 'Best plating wins', photo: 'plating' },
-  { id: 'balanced-plate', name: 'Balanced Plate', tagline: 'Fits your health targets', photo: 'powerbowl' },
-  { id: 'guess-the-dish', name: 'Guess the Dish', tagline: 'Party game, no cooking', photo: 'friends' },
+  { id: 'balanced-plate', name: 'Balanced Plate', tagline: 'Fits your health targets', photo: 'bowl' },
+  { id: 'guess-the-dish', name: 'Guess the Dish', tagline: 'Party game, no cooking', photo: 'tomatoes' },
 ];
 
 export const GAMES_TOTAL = 14;

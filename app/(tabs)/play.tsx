@@ -80,14 +80,14 @@ export default function PlayScreen() {
               tone="glassDark"
               large
               icon="people"
-              label={t('play.players', '{{min}} to {{max}} players', { min: feature.minPlayers ?? 2, max: feature.maxPlayers ?? 10 })}
+              label={t('play.playersRange', '{{min}}–{{max}} players', { min: feature.minPlayers ?? 2, max: feature.maxPlayers ?? 10 })}
             />
           }
         >
           <View style={{ position: 'absolute', left: 18, right: 18, bottom: 16, gap: 6 }}>
             <RNText
               accessibilityRole="header"
-              style={{ fontFamily: FONT.display, fontSize: 28, lineHeight: 32, letterSpacing: -0.56, color: FIXED.paper }}
+              style={{ fontFamily: FONT.display, fontSize: 28, lineHeight: 32, letterSpacing: -0.56, color: FIXED.paper, marginBottom: 3 }}
             >
               {feature.name}
             </RNText>
@@ -106,8 +106,8 @@ export default function PlayScreen() {
                 accessibilityLabel={t('play.joinWithCode', 'Join with code')}
                 onPress={() => setJoinOpen(true)}
               >
-                <Glass dark style={{ height: 44, borderRadius: 22, paddingHorizontal: 18, justifyContent: 'center' }}>
-                  <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.paper }}>
+                <Glass style={{ height: 44, borderRadius: 22, paddingHorizontal: 18, justifyContent: 'center' }}>
+                  <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.night }}>
                     {t('play.joinWithCode', 'Join with code')}
                   </RNText>
                 </Glass>

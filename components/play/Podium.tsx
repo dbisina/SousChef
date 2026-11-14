@@ -23,10 +23,14 @@ export function Podium({ entries, winnerLabel }: { entries: PodiumEntry[]; winne
         const win = e.rank === 1;
         return (
           <View key={e.id} className="flex-1" style={{ alignItems: 'center', gap: 6 }}>
-            {win ? <Tag tone="o" icon="trophy" label={winnerLabel} /> : null}
+            {win ? (
+              <View style={{ alignSelf: 'center' }}>
+                <Tag tone="o" icon="trophy" label={winnerLabel} />
+              </View>
+            ) : null}
             <View
               className={win ? 'border-[3px] border-accent' : undefined}
-              style={win ? { borderRadius: 36 } : undefined}
+              style={win ? { borderRadius: 36, margin: -3 } : undefined}
             >
               <UAvatar source={e.avatar} name={e.name} size={win ? 66 : 56} />
             </View>
