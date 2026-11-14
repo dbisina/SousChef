@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text as RNText, View } from 'react-native';
+import { Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { FONT } from '@/components/ui/fonts';
 import { useTranslation } from 'react-i18next';
 import { SAMPLE } from '@/assets/sample';

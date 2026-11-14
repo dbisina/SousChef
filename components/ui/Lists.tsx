@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Modal, StyleSheet, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Pressable } from './Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
 import { FONT } from './fonts';

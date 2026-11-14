@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from './Pressable';
 import { Icon, type IconSize } from './Icon';
 import { Glass } from './Glass';
 import { useColor } from './tone';

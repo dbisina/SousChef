@@ -8,7 +8,8 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useMealPlan, useMealPlanStats } from '@/hooks/useMealPlan';

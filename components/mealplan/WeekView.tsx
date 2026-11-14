@@ -8,7 +8,8 @@
  */
 
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { Muted, Title, UIconButton, FONT } from '@/components/ui';
 import { MealPlanDay, MealType } from '@/types/mealplan';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text as RNText, TextInput, View, type TextInputProps } from 'react-native';
+import { Text as RNText, TextInput, View, type TextInputProps } from 'react-native';
+import { Pressable } from './Pressable';
 import { Icon } from './Icon';
 import { FONT } from './fonts';
 import { useTokens, useTone } from './tone';

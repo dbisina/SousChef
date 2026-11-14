@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { Alert, Platform, Pressable, Text, View } from 'react-native';
+import { Alert, Platform, Text, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { WantToCookItem } from '@/types/wantToCook';

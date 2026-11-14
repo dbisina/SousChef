@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { Modal, ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { SAMPLE } from '@/assets/sample';
 import {

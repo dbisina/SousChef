@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/languageStore';

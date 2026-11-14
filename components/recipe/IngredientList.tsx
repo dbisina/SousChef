@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { Ingredient } from '@/types';
 import { Check, Icon, FONT } from '@/components/ui';

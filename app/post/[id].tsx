@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';

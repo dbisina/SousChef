@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Share, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Share, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { SAMPLE } from '@/assets/sample';
 import { Glass, Icon, Title, UAvatar, type IconName, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';

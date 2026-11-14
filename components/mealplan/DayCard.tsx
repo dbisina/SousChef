@@ -5,7 +5,8 @@
  */
 
 import React, { memo } from 'react';
-import { Alert, Pressable, Text as RNText, View } from 'react-native';
+import { Alert, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { Icon, ListRow, PhotoCard, Tag, UIconButton, FONT, useColor } from '@/components/ui';
 import { MealPlanDay, MealType } from '@/types/mealplan';

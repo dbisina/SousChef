@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Alert, Platform, Pressable, Share, View } from 'react-native';
+import { Alert, Platform, Share, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text as RNText, View } from 'react-native';
+import { Text as RNText, View } from 'react-native';
+import { Pressable } from './Pressable';
 import Svg, { Circle } from 'react-native-svg';
 import { Icon } from './Icon';
 import { FONT } from './fonts';

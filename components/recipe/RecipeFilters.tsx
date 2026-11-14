@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Modal, Pressable } from 'react-native';
+import { View, Text, ScrollView, Modal } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { RecipeFilters as FiltersType, RecipeCategory, Cuisine, Difficulty } from '@/types';
 import { Chip, LinkText, ToneScope, UButton, UIconButton, FONT, useTone } from '@/components/ui';

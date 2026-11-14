@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Modal, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Pressable } from './Pressable';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {

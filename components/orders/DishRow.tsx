@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { SAMPLE } from '@/assets/sample';
 import { Muted, Thumb, Title, UIconButton, Body } from '@/components/ui';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';

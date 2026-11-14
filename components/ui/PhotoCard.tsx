@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text as RNText, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, Text as RNText, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from './Pressable';
 import { Image, type ImageSource } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FIXED, TOKEN_HEX } from '@/stores/themeStore';

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from './Pressable';
 import { ToneBlock, useTone } from './tone';
 import { FONT } from './fonts';
 import { TOKEN_HEX, type ThemeMode } from '@/stores/themeStore';

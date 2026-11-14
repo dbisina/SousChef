@@ -1,13 +1,6 @@
 import React, { useState, memo } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Text,
-  Modal,
-  Pressable,
-  Platform,
-  StyleSheet,
-} from 'react-native';
+import { View, TouchableOpacity, Text, Modal, Platform, StyleSheet } from 'react-native';
+import { Pressable } from './Pressable';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';

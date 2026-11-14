@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Pressable, Text as RNText, View, useWindowDimensions, type ViewToken } from 'react-native';
+import { FlatList, Image, Text as RNText, View, useWindowDimensions, type ViewToken } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

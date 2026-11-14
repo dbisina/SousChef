@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text as RNText, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { Alert, FlatList, Modal, Platform, Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { Alert, FlatList, Modal, Platform, ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';

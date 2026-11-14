@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { PanResponder, Pressable, Text as RNText, View, type LayoutChangeEvent } from 'react-native';
+import { PanResponder, Text as RNText, View, type LayoutChangeEvent } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';

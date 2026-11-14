@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Pressable, View, Text, Animated } from 'react-native';
+import { View, Text, Animated } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { VoiceListeningState } from '@/types/voice';
 import { Icon, useTokens, FONT } from '@/components/ui';

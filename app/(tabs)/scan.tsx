@@ -8,7 +8,8 @@
  */
 
 import React, { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text as RNText, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';

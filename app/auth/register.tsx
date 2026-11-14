@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Image, Text as RNText, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Image, Text as RNText, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';

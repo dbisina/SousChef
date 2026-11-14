@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, Text, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useTranslation } from 'react-i18next';

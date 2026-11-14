@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { Pressable, SectionList, SectionListData, Text as RNText, View } from 'react-native';
+import { SectionList, SectionListData, Text as RNText, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import {
   Check,

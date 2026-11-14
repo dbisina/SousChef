@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable } from './Pressable';
 import { Icon } from './Icon';
 import { Glass } from './Glass';
 import { FONT } from './fonts';

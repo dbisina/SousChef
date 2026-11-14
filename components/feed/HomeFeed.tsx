@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {

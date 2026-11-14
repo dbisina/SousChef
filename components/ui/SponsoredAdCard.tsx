@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
-import { Pressable, Text, View, Linking, ActivityIndicator } from 'react-native';
+import { Text, View, Linking, ActivityIndicator } from 'react-native';
+import { Pressable } from './Pressable';
 import { Image } from 'expo-image';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';

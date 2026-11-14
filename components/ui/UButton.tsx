@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ActivityIndicator, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable } from './Pressable';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';

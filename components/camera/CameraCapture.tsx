@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Pressable, Modal } from 'react-native';
+import { View, Text, Modal } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';

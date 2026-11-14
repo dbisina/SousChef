@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text as RNText, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Image, Text as RNText, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +10,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton } from '@/components/ui';
-import { FIXED } from '@/stores/themeStore';
+import { FIXED, useThemeStore } from '@/stores/themeStore';
 import { SAMPLE } from '@/assets/sample';
 import {
   signInWithGoogle,
@@ -31,6 +32,7 @@ export default function LoginScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { signIn, setUser, resetPassword, isLoading, error } = useAuthStore();
+  const theme = useThemeStore((s) => s.effectiveTheme);
   const [showPassword, setShowPassword] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
@@ -245,7 +247,11 @@ export default function LoginScreen() {
             {appleAvailable ? (
               <AppleAuthentication.AppleAuthenticationButton
                 buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                buttonStyle={
+                  theme === 'dark'
+                    ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+                    : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
+                }
                 cornerRadius={29}
                 style={{ alignSelf: 'stretch', width: '100%', height: 58 }}
                 onPress={handleAppleSignIn}
