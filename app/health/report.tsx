@@ -60,8 +60,8 @@ export default function DoctorReportScreen() {
   }, [readings, range, now]);
 
   const name = user?.displayName?.trim() || t('health.report.yourName', '[Your name]');
-  const period = `${fmtDate(report.from)} – ${fmtDate(report.to)} ${new Date(report.to).getFullYear()}`;
-  const bp = report.avgBp ? `${report.avgBp.systolic}/${report.avgBp.diastolic}` : '—';
+  const period = `${fmtDate(report.from)} to ${fmtDate(report.to)} ${new Date(report.to).getFullYear()}`;
+  const bp = report.avgBp ? `${report.avgBp.systolic}/${report.avgBp.diastolic}` : '-';
   const summaryLine = [
     t('health.report.readings', '{{n}} readings', { n: report.glucoseReadings }),
     t('health.report.meals', '{{n}} meals logged', { n: report.mealsLogged }),
@@ -124,8 +124,8 @@ export default function DoctorReportScreen() {
           />
         </View>
         <View className="flex-row" style={{ gap: 10 }}>
-          <ValueTile label={t('health.report.avgGlucose', 'Avg glucose')} value={report.glucoseReadings ? report.avgGlucose.toFixed(1) : '—'} />
-          <ValueTile label={t('health.report.timeInRange', 'Time in range')} value={report.glucoseReadings ? `${report.timeInRangePct}%` : '—'} />
+          <ValueTile label={t('health.report.avgGlucose', 'Avg glucose')} value={report.glucoseReadings ? report.avgGlucose.toFixed(1) : '-'} />
+          <ValueTile label={t('health.report.timeInRange', 'Time in range')} value={report.glucoseReadings ? `${report.timeInRangePct}%` : '-'} />
           <ValueTile label={t('health.report.avgBp', 'Avg BP')} value={bp} />
         </View>
         <BarChart data={bars} height={80} label={t('health.report.chart', 'Average glucose over the period')} />

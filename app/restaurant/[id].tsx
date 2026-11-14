@@ -92,7 +92,7 @@ export default function RestaurantScreen() {
               <Tag tone="glassDark" label={t('restaurant.distance', '{{km}} km', { km: restaurant.distanceKm })} />
               <Tag
                 tone="glassDark"
-                label={t('restaurant.eta', '{{from}}–{{to}} min', { from: restaurant.etaMin[0], to: restaurant.etaMin[1] })}
+                label={t('restaurant.eta', '{{from}} to {{to}} min', { from: restaurant.etaMin[0], to: restaurant.etaMin[1] })}
               />
               <Tag tone="glassDark" label={t('restaurant.hygiene', 'Hygiene {{score}}', { score: restaurant.hygiene })} />
             </View>

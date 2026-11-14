@@ -470,7 +470,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                 Import Any Recipe
               </Text>
               <Text className="text-white/80 text-center mt-1 mb-2">
-                Links, videos, images, PDFs, JSON, text — we handle it all
+                Links, videos, images, PDFs, JSON, text: we handle it all
               </Text>
             </View>
           </LinearGradient>
@@ -578,7 +578,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
               </Animated.View>
             )}
 
-            {/* Import progress -- thinking notes or simple progress bar */}
+            {/* Import progress: thinking notes or simple progress bar */}
             {isImporting && thinkingPhase !== 'idle' ? (
               <ThinkingNotesView accentColor={colors.accent} />
             ) : isImporting ? (

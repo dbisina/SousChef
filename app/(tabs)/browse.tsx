@@ -380,7 +380,7 @@ export default function BrowseScreen() {
         />
       </ChipRow>
 
-      {/* Sponsored Ad — compact, hidden for ad-free subscribers */}
+      {/* Sponsored Ad: compact, hidden for ad-free subscribers */}
       {!adFree && <SponsoredAdCard placement="browse" compact />}
 
       {/* Full filter set (cuisine, difficulty, time, calories, dietary) */}

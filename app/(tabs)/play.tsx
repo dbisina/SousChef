@@ -80,7 +80,7 @@ export default function PlayScreen() {
               tone="glassDark"
               large
               icon="people"
-              label={t('play.players', '{{min}}–{{max}} players', { min: feature.minPlayers ?? 2, max: feature.maxPlayers ?? 10 })}
+              label={t('play.players', '{{min}} to {{max}} players', { min: feature.minPlayers ?? 2, max: feature.maxPlayers ?? 10 })}
             />
           }
         >

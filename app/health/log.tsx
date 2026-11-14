@@ -70,9 +70,9 @@ export default function LogReadingScreen() {
       : status === 'high'
         ? isAfterMeal(timing)
           ? t('health.log.aboveAfter', 'Above your after-meal target (under {{n}})', { n: AFTER_MEAL_TARGET })
-          : t('health.log.aboveRange', 'Above the range {{a}}–{{b}}', { a: FASTING_RANGE[0].toFixed(1), b: FASTING_RANGE[1].toFixed(1) })
+          : t('health.log.aboveRange', 'Above the range {{a}} to {{b}}', { a: FASTING_RANGE[0].toFixed(1), b: FASTING_RANGE[1].toFixed(1) })
         : status === 'low'
-          ? t('health.log.belowRange', 'Below the range {{a}}–{{b}}', { a: FASTING_RANGE[0].toFixed(1), b: FASTING_RANGE[1].toFixed(1) })
+          ? t('health.log.belowRange', 'Below the range {{a}} to {{b}}', { a: FASTING_RANGE[0].toFixed(1), b: FASTING_RANGE[1].toFixed(1) })
           : undefined;
 
   const save = () => {

@@ -299,7 +299,7 @@ export default function ShelfRecipeScreen() {
                 })}
               </Muted>
               <Muted small>
-                {t('cookbooks.shelfRecipe.disclaimer', 'Recipe details generated from the book — may differ slightly.')}
+                {t('cookbooks.shelfRecipe.disclaimer', 'Recipe details generated from the book, so it may differ slightly.')}
               </Muted>
             </>
           )}

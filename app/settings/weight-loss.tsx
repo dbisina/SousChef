@@ -139,7 +139,7 @@ export default function WeightLossScreen() {
             className="text-ink"
             style={{ fontFamily: FONT.display, fontSize: 48, lineHeight: 48, letterSpacing: -1.44 }}
           >
-            {weightNum > 0 ? calorieTarget.toLocaleString() : '—'}{' '}
+            {weightNum > 0 ? calorieTarget.toLocaleString() : '-'}{' '}
             <RNText className="text-muted" style={{ fontSize: 16, letterSpacing: 0 }}>
               cal
             </RNText>

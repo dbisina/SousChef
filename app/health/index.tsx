@@ -148,7 +148,7 @@ export default function HealthScreen() {
         <View className="flex-row" style={{ gap: 12 }}>
           <View className="flex-1">
             <Tile
-              value={bp ? `${bp.systolic}/${bp.diastolic}` : '—'}
+              value={bp ? `${bp.systolic}/${bp.diastolic}` : '-'}
               label={t('health.bp', 'Blood pressure')}
               onPress={() => go('/health/log')}
               accessibilityLabel={t('health.bp', 'Blood pressure')}
@@ -158,7 +158,7 @@ export default function HealthScreen() {
           </View>
           <View className="flex-1">
             <Tile
-              value={ldl ? ldl.ldl.toFixed(1) : '—'}
+              value={ldl ? ldl.ldl.toFixed(1) : '-'}
               label={t('health.ldl', 'LDL cholesterol')}
               onPress={() => go('/health/log')}
               accessibilityLabel={t('health.ldl', 'LDL cholesterol')}

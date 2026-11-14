@@ -54,7 +54,7 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({ stats }) => {
       : stats.trendDirection === 'worsening'
         ? t('planWaste.trendUp', 'up from last month')
         : t('planWaste.trendFlat', 'steady this month');
-  const dash = '—';
+  const dash = '-';
 
   return (
     <View style={{ gap: 16 }}>

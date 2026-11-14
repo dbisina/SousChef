@@ -205,7 +205,7 @@ export const Paywall: React.FC<PaywallProps> = ({
             {tier === 'pro' ? <Tag tone="k" label={t('account.paywall.bestValue', 'Best value')} /> : null}
           </View>
           <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 22, letterSpacing: -0.44 }}>
-            {pkg ? formatPrice(pkg) : '—'}
+            {pkg ? formatPrice(pkg) : '-'}
           </Text>
           <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
             {periodWord}

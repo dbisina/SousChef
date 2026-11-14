@@ -299,7 +299,7 @@ export default function MoreScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Admin section — only for admin users */}
+        {/* Admin section: only for admin users */}
         {user?.role === 'admin' && (
           <>
             <View className="px-5 mb-2">

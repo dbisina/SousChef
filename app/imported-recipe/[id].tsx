@@ -192,10 +192,10 @@ export default function ImportedRecipeDetailScreen() {
         >
           <View className="flex-row" style={{ gap: 10 }}>
             <View className="flex-1">
-              <Tile label={t('cooking.prep', 'Prep')} value={recipe.prepTime ? t('cooking.minutes', '{{count}} min', { count: recipe.prepTime }) : '—'} />
+              <Tile label={t('cooking.prep', 'Prep')} value={recipe.prepTime ? t('cooking.minutes', '{{count}} min', { count: recipe.prepTime }) : '-'} />
             </View>
             <View className="flex-1">
-              <Tile label={t('cooking.cook', 'Cook')} value={recipe.cookTime ? t('cooking.minutes', '{{count}} min', { count: recipe.cookTime }) : '—'} />
+              <Tile label={t('cooking.cook', 'Cook')} value={recipe.cookTime ? t('cooking.minutes', '{{count}} min', { count: recipe.cookTime }) : '-'} />
             </View>
             <View className="flex-1">
               <Tile label={t('cooking.serves', 'Serves')} value={`${recipe.servings}`} />

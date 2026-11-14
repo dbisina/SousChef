@@ -110,7 +110,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
           set({ isInitialized: true, isLoading: false, error: null });
           return;
         }
-        console.warn('[Subscriptions] RevenueCat not configured — skipping offerings fetch');
+        console.warn('[Subscriptions] RevenueCat not configured, skipping offerings fetch');
         set({
           isInitialized: true,
           isLoading: false,

@@ -82,18 +82,18 @@ export default function MealResponseScreen() {
           <View className="flex-row" style={{ gap: 10 }}>
             <ValueTile
               label={t('health.meal.before', 'Before')}
-              value={before ? before.mmol.toFixed(1) : '—'}
+              value={before ? before.mmol.toFixed(1) : '-'}
               caption={before ? `mmol/L · ${timeText(before.at)}` : noReading}
             />
             <ValueTile
               label={afterLabel}
-              value={after ? after.mmol.toFixed(1) : '—'}
+              value={after ? after.mmol.toFixed(1) : '-'}
               caption={after ? `mmol/L · ${timeText(after.at)}` : noReading}
               tone={high ? 'soft' : 'default'}
             />
             <ValueTile
               label={t('health.meal.rise', 'Rise')}
-              value={rise != null ? formatRise(rise) : '—'}
+              value={rise != null ? formatRise(rise) : '-'}
               caption="mmol/L"
               tone="black"
             />

@@ -239,8 +239,8 @@
     "log": {
       "inRange": "In range",
       "aboveAfter": "Above your after-meal target (under {{n}})",
-      "aboveRange": "Above the range {{a}}–{{b}}",
-      "belowRange": "Below the range {{a}}–{{b}}",
+      "aboveRange": "Above the range {{a}} to {{b}}",
+      "belowRange": "Below the range {{a}} to {{b}}",
       "save": "Save reading",
       "title": "Log a reading",
       "close": "Close",
@@ -419,7 +419,7 @@
       "signIn": "Sign In",
       "or": "or",
       "google": "Continue with Google",
-      "skip": "Skip for now — try it first",
+      "skip": "Skip for now, try it first",
       "noAccount": "Don’t have an account?",
       "signUp": "Sign up"
     },
@@ -465,17 +465,15 @@
     },
     "modal": {
       "line1": "Welcome to",
-      "subtitle": "Your AI-powered cooking companion for delicious meals",
-      "scanTitle": "Scan Any Food",
-      "scanBody": "Instantly get calorie info and nutritional breakdown",
-      "voiceTitle": "Voice Control",
-      "voiceBody": "Hands-free cooking with voice commands",
-      "planTitle": "Meal Planning",
-      "planBody": "Plan your week and generate shopping lists",
-      "proTitle": "Upgrade to Pro",
-      "proBody": "Unlock unlimited AI features and exclusive recipes!",
-      "trial": "7-day free trial available",
-      "ok": "Okay, got it!"
+      "subtitle": "Your AI cooking companion.",
+      "scanTitle": "Scan your plate",
+      "scanBody": "Calories and nutrition in a snap.",
+      "voiceTitle": "Cook hands-free",
+      "voiceBody": "Voice guidance while you cook.",
+      "planTitle": "Plan your week",
+      "planBody": "Meals and shopping lists, sorted.",
+      "ok": "Get started",
+      "later": "Maybe later"
     }
   },
   "kitchen": {
@@ -1034,7 +1032,7 @@
       "macros": "Per serving: {{carbs}}g carbs, {{fat}}g fat",
       "fromBook": "From \"{{title}}\"{{author}}",
       "byAuthor": " by {{author}}",
-      "disclaimer": "Recipe details generated from the book — may differ slightly.",
+      "disclaimer": "Recipe details generated from the book, so it may differ slightly.",
       "difficulty_easy": "Easy",
       "difficulty_medium": "Medium",
       "difficulty_hard": "Hard"
@@ -1891,7 +1889,7 @@
     "ratingA11y": "{{fat}}; {{salt}}; {{sugars}}",
     "rating": "Rated {{rating}} from {{count}} reviews",
     "distance": "{{km}} km",
-    "eta": "{{from}}–{{to}} min",
+    "eta": "{{from}} to {{to}} min",
     "item": "item",
     "items": "items"
   },
@@ -1959,7 +1957,7 @@
   "play": {
     "title": "Play",
     "rank": "Rank {{n}} · {{title}}",
-    "players": "{{min}}–{{max}} players",
+    "players": "{{min}} to {{max}} players",
     "host": "Host a game",
     "joinWithCode": "Join with code",
     "dailyDish": "Daily Dish #{{n}}",
