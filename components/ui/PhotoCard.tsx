@@ -112,7 +112,7 @@ export function PhotoCard({
             </RNText>
           ) : null}
           {subtitle ? (
-            <RNText numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.captionSub }}>
+            <RNText numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4, color: FIXED.captionSub }}>
               {subtitle}
             </RNText>
           ) : null}

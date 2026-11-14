@@ -109,7 +109,7 @@ function TileText({ children, value }: { children: React.ReactNode; value?: bool
     );
   }
   return (
-    <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+    <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4 }}>
       {children}
     </RNText>
   );

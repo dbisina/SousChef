@@ -17,7 +17,7 @@ export function H1({ style, className, center, ...rest }: Props) {
     <RNText
       accessibilityRole="header"
       className={join('text-ink', center && 'text-center', className)}
-      style={[{ fontFamily: FONT.display, fontSize: 32, lineHeight: 35, letterSpacing: -0.96 }, style]}
+      style={[{ fontFamily: FONT.display, fontSize: 32, lineHeight: 34.56, letterSpacing: -0.96 }, style]}
       {...rest}
     />
   );
@@ -29,7 +29,7 @@ export function H2({ style, className, center, ...rest }: Props) {
     <RNText
       accessibilityRole="header"
       className={join('text-ink', center && 'text-center', className)}
-      style={[{ fontFamily: FONT.display, fontSize: 19, lineHeight: 23, letterSpacing: -0.285 }, style]}
+      style={[{ fontFamily: FONT.display, fontSize: 19, lineHeight: 22.8, letterSpacing: -0.285 }, style]}
       {...rest}
     />
   );
@@ -40,7 +40,7 @@ export function Title({ style, className, center, ...rest }: Props) {
   return (
     <RNText
       className={join('text-ink', center && 'text-center', className)}
-      style={[{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20, letterSpacing: -0.15 }, style]}
+      style={[{ fontFamily: FONT.display, fontSize: 15, lineHeight: 19.5, letterSpacing: -0.15 }, style]}
       {...rest}
     />
   );
@@ -64,7 +64,7 @@ export function Body({ style, className, center, ...rest }: Props) {
   return (
     <RNText
       className={join('text-ink', center && 'text-center', className)}
-      style={[{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }, style]}
+      style={[{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20.3 }, style]}
       {...rest}
     />
   );
@@ -75,7 +75,7 @@ export function Muted({ style, className, center, small, ...rest }: Props & { sm
   return (
     <RNText
       className={join('text-muted', center && 'text-center', className)}
-      style={[{ fontFamily: FONT.sans, fontSize: small ? 12 : 14, lineHeight: small ? 17 : 20 }, style]}
+      style={[{ fontFamily: FONT.sans, fontSize: small ? 12 : 14, lineHeight: small ? 17.4 : 20.3 }, style]}
       {...rest}
     />
   );
