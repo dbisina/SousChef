@@ -30,9 +30,10 @@ Without Docker you need Node 22, the Rust toolchain, and a PostgreSQL you can po
 | `src/app.ts` | builds the server; everything it needs is passed in, so tests can swap the database, clock and mailer |
 | `src/config.ts` | reads and checks the environment once at startup |
 | `src/auth/` | sign-up and sign-in, tokens, passwords, Google and Apple, password reset |
+| `src/recipes/` | recipes: create/edit, filters, search, "cook with what I have", likes, saves, ratings, comments, "I made this", reports |
 | `prisma/schema.prisma` | the database. Every change needs a migration: `npm run db:migrate -- --name what_changed` |
 | `native/` | Rust: `links/` is the logic (plain `cargo test`), `src/` the Node wrapper |
-| `../shared/` | request and response types shared with the app |
+| `../shared/` | request and response types shared with the app, plus the pure calorie and nutrition code both sides must agree on |
 | `test/` | integration tests; they talk to a real PostgreSQL and never mock the database |
 
 ## How sign-in works
@@ -52,6 +53,13 @@ See `.env.example` for every setting. A bad or missing setting stops the server 
 `JWT_SECRET` must be 32+ random characters; production reads it from the server's environment, never from the repo.
 
 ## Things to know
+
+- **Search.** `GET /v1/recipes?q=...` uses PostgreSQL full text plus trigram matching (so "jolof" finds "Jollof Rice"),
+  ranks the best 200 matches, then applies the filters. It needs the `pg_trgm` extension; the migration creates it.
+- **Likes, saves, ratings and comments keep running totals on the recipe.** They change in the same transaction as
+  the row, repeating a request changes nothing, and deleting an account recounts the recipes it touched.
+- **Three different people reporting a recipe hide it** until an admin restores it (`PATCH` with `status: published`).
+- **Pro-only (`isExclusive`) recipes are stored but not yet locked**; that arrives with subscriptions.
 
 - **Rate limits and Cloudflare.** `TRUST_PROXY=true` takes the visitor's address from `cf-connecting-ip`. Only turn
   it on when the server accepts traffic from Cloudflare alone (firewall), or anyone could fake the header.

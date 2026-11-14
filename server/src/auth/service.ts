@@ -15,6 +15,7 @@ import type { User } from '../../generated/prisma/client';
 import type { Config } from '../config';
 import { isUniqueViolation, type Db } from '../db';
 import { errors } from '../errors';
+import { recipesTouchedBy, recomputeRecipeCounters } from '../recipes/counters';
 import type { IdTokenVerifier } from './idToken';
 import type { Mailer } from './mailer';
 import { hashPassword, verifyAgainstDummy, verifyPassword } from './password';
@@ -258,8 +259,12 @@ export class AuthService {
     } else if (input.confirm !== 'DELETE') {
       throw errors.validation({ confirm: 'Type DELETE to confirm' });
     }
-    // Sessions, devices, identities, consents and resets are removed with the user (onDelete: Cascade).
+    // Remember which recipes this person had touched: their likes, saves, comments and ratings vanish with the account,
+    // so those recipes' totals are recounted afterwards.
+    const touched = await recipesTouchedBy(this.db, userId);
+    // Sessions, devices, identities, consents, resets and everything they wrote are removed with the user (onDelete: Cascade).
     await this.db.user.delete({ where: { id: userId } });
+    await recomputeRecipeCounters(this.db, touched);
   }
 
   async registerDevice(userId: string, input: RegisterDeviceRequest): Promise<void> {

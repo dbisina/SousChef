@@ -59,6 +59,14 @@ model User {
   devices        Device[]
   consents       Consent[]
   passwordResets PasswordReset[]
+
+  recipes        Recipe[]
+  recipeLikes    RecipeLike[]
+  recipeSaves    RecipeSave[]
+  recipeRatings  RecipeRating[]
+  recipeComments RecipeComment[]
+  madePosts      RecipeMadePost[]
+  recipeFlags    RecipeFlag[]
 }
 
 /// A Google or Apple account linked to a user.
@@ -139,4 +147,154 @@ model PasswordReset {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+enum RecipeStatus {
+  DRAFT
+  PUBLISHED
+  /// Hidden from everyone but the author and admins after enough reports, until an admin restores it.
+  FLAGGED
+}
+
+/// Filterable, sortable and countable facts are real columns; the recipe body is JSON.
+/// Search indexes (full text, trigram, ingredient overlap) are in the migration SQL because Prisma cannot express them.
+model Recipe {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  authorId    String       @db.Uuid
+  title       String
+  description String       @default("")
+  imageUrl    String
+  youtubeUrl  String?
+  status      RecipeStatus @default(PUBLISHED)
+  isOfficial  Boolean      @default(false)
+  isExclusive Boolean      @default(false)
+  category    String
+  cuisine     String
+  difficulty  String
+  prepTime    Int
+  cookTime    Int
+  servings    Int
+
+  /// RecipeIngredient[] (see shared/recipe.ts)
+  ingredients        Json
+  /// Lowercase ingredient names, for "what can I cook with what I have".
+  ingredientNames    String[]
+  /// string[]
+  instructions       Json
+  /// NutritionInfo
+  nutrition          Json
+  caloriesPerServing Int
+  tags               String[]
+  dietaryFlags       String[]
+  allergens          String[]
+
+  // Counters. Changed in the same transaction as the row that causes them.
+  likeCount    Int @default(0)
+  saveCount    Int @default(0)
+  commentCount Int @default(0)
+  ratingCount  Int @default(0)
+  ratingSum    Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author   User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes    RecipeLike[]
+  saves    RecipeSave[]
+  ratings  RecipeRating[]
+  comments RecipeComment[]
+  madePosts RecipeMadePost[]
+  flags    RecipeFlag[]
+
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, likeCount(sort: Desc), id(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+  // The same two indexes are created in the migration SQL (with the full-text one, which Prisma cannot express).
+  @@index([ingredientNames], type: Gin, map: "Recipe_ingredientNames_idx")
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin, map: "Recipe_title_trgm_idx")
+}
+
+model RecipeLike {
+  userId    String   @db.Uuid
+  recipeId  String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([recipeId])
+}
+
+model RecipeSave {
+  userId    String   @db.Uuid
+  recipeId  String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([recipeId])
+}
+
+/// One rating per person per recipe.
+model RecipeRating {
+  userId    String   @db.Uuid
+  recipeId  String   @db.Uuid
+  rating    Int
+  review    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, recipeId])
+  @@index([recipeId])
+}
+
+model RecipeComment {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  recipeId  String   @db.Uuid
+  authorId  String   @db.Uuid
+  text      String
+  createdAt DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, createdAt(sort: Desc)])
+  @@index([authorId])
+}
+
+/// "I made this" photo posts under a recipe.
+model RecipeMadePost {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  recipeId  String   @db.Uuid
+  authorId  String   @db.Uuid
+  imageUrl  String
+  caption   String   @default("")
+  createdAt DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([recipeId, createdAt(sort: Desc)])
+  @@index([authorId])
+}
+
+/// A report. One per person per recipe; enough distinct reports hide the recipe.
+model RecipeFlag {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  recipeId   String   @db.Uuid
+  reporterId String   @db.Uuid
+  reason     String
+  createdAt  DateTime @default(now())
+
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  reporter User   @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, reporterId])
 }
