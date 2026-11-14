@@ -112,6 +112,8 @@ export default function RootLayout() {
   useEffect(() => {
     // Check for URL that launched the app (deep link or share extension)
     const handleInitialURL = async () => {
+      // Review mode: on web the page URL itself would be read as a shared recipe link.
+      if (isDesignReview) return;
       // Check Share Extension bridge first
       const shareExtURL = await getSharedURL();
       if (shareExtURL) {

@@ -34,7 +34,14 @@ export function bootDesignReview(): void {
   } as Record<string, { getState: () => unknown; setState: (p: unknown) => void } | undefined>;
   /* eslint-enable @typescript-eslint/no-require-imports */
 
-  (window as unknown as { __SC__: unknown }).__SC__ = { stores, ready: false };
+  // Real firebase Timestamp so `instanceof Timestamp` checks in app code pass for fixtures.
+  const { Timestamp } = require('@/lib/firebase') as typeof import('@/lib/firebase');
+  (window as unknown as { __SC__: unknown }).__SC__ = {
+    stores,
+    Timestamp,
+    // Client-side navigation so a fixture can be in place before a route guard runs.
+    navigate: (href: string) => (require('expo-router') as typeof import('expo-router')).router.replace(href as never),
+  };
 
   const theme = getReviewTheme();
   if (theme) {
