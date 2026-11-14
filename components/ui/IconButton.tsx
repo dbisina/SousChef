@@ -53,7 +53,8 @@ export function UIconButton({ icon, label, onPress, tone = 'default', size = 46,
     >
       {tone === 'glass' || tone === 'glassDark' ? (
         <Glass dark={tone === 'glassDark'} style={[dim, { alignItems: 'center', justifyContent: 'center' }]}>
-          {glyph}
+          {/* positioned wrapper: the Glass overlays are absolute and would paint over a bare web <svg> */}
+          <View>{glyph}</View>
         </Glass>
       ) : (
         <View style={[dim, { alignItems: 'center', justifyContent: 'center', backgroundColor: fill }]}>
