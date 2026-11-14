@@ -78,7 +78,7 @@ export default function RegisterScreen() {
           source={src}
           accessibilityLabel=""
           className="border-ground"
-          style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 3, marginLeft: i === 0 ? 0 : -14 }}
+          style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 3, marginLeft: i === 0 ? 0 : -2 }}
         />
       ))}
     </View>
@@ -90,7 +90,7 @@ export default function RegisterScreen() {
         <TopBar onBack={() => router.back()} backLabel={t('welcome.back', 'Back')} title={null} right={faces} />
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, gap: 15, paddingBottom: Math.max(insets.bottom, 20) + 18 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, gap: 15, paddingBottom: Math.max(insets.bottom, 20) + 4 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >

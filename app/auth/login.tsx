@@ -126,7 +126,7 @@ export default function LoginScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 20) + 18 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 20) + 4 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -143,7 +143,7 @@ export default function LoginScreen() {
                 style={{ width: 42, height: 42, borderRadius: 13 }}
               />
             </View>
-            <View style={{ position: 'absolute', left: 24, bottom: 24, gap: 4 }}>
+            <View style={{ position: 'absolute', left: 24, bottom: 26, gap: 5 }}>
               <RNText
                 accessibilityRole="header"
                 style={{ fontFamily: FONT.display, fontSize: 30, lineHeight: 34.5, letterSpacing: -0.6, color: FIXED.paper }}
@@ -156,7 +156,7 @@ export default function LoginScreen() {
             </View>
           </PhotoCard>
 
-          <View style={{ paddingTop: 26, paddingHorizontal: 20, gap: 16 }}>
+          <View style={{ paddingTop: 26, paddingHorizontal: 24, gap: 16 }}>
             {error ? (
               <View className="bg-tag-r" style={{ borderRadius: 18, padding: 14 }}>
                 <RNText className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
@@ -212,7 +212,7 @@ export default function LoginScreen() {
                     accessibilityRole="button"
                     onPress={handleForgotPassword}
                     hitSlop={{ top: 14, bottom: 14, left: 14, right: 4 }}
-                    style={{ position: 'absolute', top: 0, right: 4 }}
+                    style={{ position: 'absolute', top: 0, right: 0 }}
                   >
                     <LinkText style={{ fontSize: 12 }}>{t('welcome.login.forgot', 'Forgot password?')}</LinkText>
                   </Pressable>
@@ -227,7 +227,7 @@ export default function LoginScreen() {
               style={{ marginTop: 4 }}
             />
 
-            <View className="flex-row items-center" style={{ gap: 12, height: 20 }}>
+            <View className="flex-row items-center" style={{ gap: 12, height: 17 }}>
               <View className="flex-1 bg-divider" style={{ height: 1 }} />
               <Muted small>{t('welcome.login.or', 'or')}</Muted>
               <View className="flex-1 bg-divider" style={{ height: 1 }} />
@@ -236,7 +236,6 @@ export default function LoginScreen() {
             <UButton
               variant="ghost"
               icon="globe"
-              iconStart
               label={t('welcome.login.google', 'Continue with Google')}
               onPress={() => googlePromptAsync()}
               loading={socialLoading}

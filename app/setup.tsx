@@ -80,7 +80,7 @@ function RadiusSlider({ value, onChange, label }: RadiusSliderProps) {
       onLayout={(e: LayoutChangeEvent) => {
         widthRef.current = Math.max(1, e.nativeEvent.layout.width);
       }}
-      style={{ height: 44, justifyContent: 'center' }}
+      style={{ height: 44, justifyContent: 'center', marginVertical: -18 }}
       {...pan.panHandlers}
     >
       <View pointerEvents="none" className="bg-track overflow-hidden" style={{ height: 8, borderRadius: 4 }}>
@@ -146,8 +146,7 @@ export default function SetupScreen() {
         </CtaBar>
       }
     >
-      <View style={{ marginHorizontal: -20 }}>
-        <TopBar
+      <TopBar
           variant="compact"
           left={<UIconButton icon="back" label={t('welcome.back', 'Back')} onPress={onBack} />}
           title={<Muted small>{t('welcome.setup.step', 'Step 2 of 3')}</Muted>}
@@ -163,7 +162,6 @@ export default function SetupScreen() {
             </Pressable>
           }
         />
-      </View>
 
       <ProgressBar value={0.66} label={t('welcome.setup.step', 'Step 2 of 3')} />
 

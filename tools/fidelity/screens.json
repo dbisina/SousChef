@@ -163,14 +163,12 @@
   "fixture": "notifications"
  },
  "Onboarding2": {
-  "route": null,
-  "theme": "dark",
-  "note": "step 2 of /onboarding (state inside Main route)"
+  "route": "/onboarding?slide=1",
+  "theme": "dark"
  },
  "Onboarding3": {
-  "route": null,
-  "theme": "dark",
-  "note": "step 3 of /onboarding (state inside Main route)"
+  "route": "/onboarding?slide=2",
+  "theme": "dark"
  },
  "OrderSheet": {
   "route": "/order/sheet?dishId=double-smash",

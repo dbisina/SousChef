@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Pressable, Text as RNText, View, useWindowDimensions, type ViewToken } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui';
 import { SAMPLE } from '@/assets/sample';
 import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
+import { isDesignReview } from '@/lib/designReview';
 
 const ONBOARDING_KEY = '@souschef_onboarding_complete';
 
@@ -35,6 +36,17 @@ export const isOnboardingComplete = async (): Promise<boolean> => {
 };
 
 const HERO_HEIGHT = 560;
+
+/** Design-review only: `?slide=1|2` opens a later slide so the harness can compare Onboarding2/3. */
+const reviewStartSlide = (): number => {
+  if (!isDesignReview || typeof window === 'undefined' || !window.location) return 0;
+  try {
+    const n = Number(new URLSearchParams(window.location.search).get('slide'));
+    return Number.isInteger(n) && n > 0 && n < 3 ? n : 0;
+  } catch {
+    return 0;
+  }
+};
 
 interface Chip {
   icon: IconName;
@@ -94,7 +106,17 @@ export default function OnboardingScreen() {
   const tokens = TOKEN_HEX.dark;
   const { width } = useWindowDimensions();
   const listRef = useRef<FlatList<Slide>>(null);
-  const [index, setIndex] = useState(0);
+  const startSlide = useRef(reviewStartSlide()).current;
+  const [index, setIndex] = useState(startSlide);
+
+  useEffect(() => {
+    if (startSlide > 0) {
+      const id = setTimeout(() => listRef.current?.scrollToOffset({ offset: width * startSlide, animated: false }), 60);
+      return () => clearTimeout(id);
+    }
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
     const first = viewableItems[0];
@@ -257,7 +279,7 @@ export default function OnboardingScreen() {
             }
             trailingIcon="arrowRight"
             onPress={goNext}
-            style={{ alignSelf: 'auto', paddingStart: 26, paddingEnd: 18 }}
+            style={{ alignSelf: 'auto', paddingStart: 26, paddingEnd: 6 }}
           />
         </View>
       </CtaBar>
