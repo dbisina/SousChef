@@ -7,6 +7,7 @@ import { useAdStore } from '@/stores/adStore';
 import { FIXED } from '@/stores/themeStore';
 import { FONT } from './fonts';
 import { Tag } from './Chips';
+import { cleanCopy } from '@/lib/text';
 
 /**
  * AdMob-style banner ad component.
@@ -17,7 +18,7 @@ import { Tag } from './Chips';
  *   2. Add the plugin back to app.json
  *   3. Swap this component for the real BannerAd from the SDK
  *
- * Hidden for subscribers — callers must gate with adFree check.
+ * Hidden for subscribers: callers must gate with adFree check.
  */
 
 interface AdMobBannerProps {
@@ -55,7 +56,7 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ className = '' }) => {
     <Animated.View entering={FadeIn.duration(300)} className={className}>
       <Pressable
         accessibilityRole="link"
-        accessibilityLabel={`${t('account.ads.advertisement', 'Advertisement')}: ${ad.title}`}
+        accessibilityLabel={`${t('account.ads.advertisement', 'Advertisement')}: ${cleanCopy(ad.title)}`}
         onPress={handlePress}
         className="flex-row items-center bg-surface"
         style={{ borderRadius: 24, padding: 12, gap: 12 }}
@@ -69,17 +70,17 @@ export const AdMobBanner: React.FC<AdMobBannerProps> = ({ className = '' }) => {
         <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
           <Tag label={t('account.ads.advertisement', 'Advertisement')} />
           <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15 }}>
-            {ad.title}
+            {cleanCopy(ad.title)}
           </Text>
           <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-            {ad.subtitle}
+            {cleanCopy(ad.subtitle)}
           </Text>
         </View>
         <View
           className="items-center justify-center"
           style={{ height: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: ad.accentColor || FIXED.accent }}
         >
-          <Text style={{ fontFamily: FONT.sansMedium, fontSize: 12, color: FIXED.night }}>{ad.ctaText}</Text>
+          <Text style={{ fontFamily: FONT.sansMedium, fontSize: 12, color: FIXED.night }}>{cleanCopy(ad.ctaText)}</Text>
         </View>
       </Pressable>
     </Animated.View>

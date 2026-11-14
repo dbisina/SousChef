@@ -10,6 +10,7 @@ import { FONT } from './fonts';
 import { PhotoCard } from './PhotoCard';
 import { Tag } from './Chips';
 import { useColor } from './tone';
+import { cleanCopy } from '@/lib/text';
 
 interface SponsoredAdCardProps {
   placement: AdPlacement;
@@ -73,7 +74,10 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
 
   if (!ad) return null;
 
-  const cta = ad.ctaText;
+  const cta = cleanCopy(ad.ctaText);
+  const title = cleanCopy(ad.title);
+  const subtitle = cleanCopy(ad.subtitle);
+  const advertiser = cleanCopy(ad.advertiserName);
   const sponsored = t('account.ads.sponsored', 'Sponsored');
 
   // ── Compact Banner Format ──
@@ -82,7 +86,7 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
       <Animated.View entering={FadeIn.duration(400)} className={`mx-4 mt-3 ${className}`}>
         <Pressable
           accessibilityRole="link"
-          accessibilityLabel={`${sponsored}: ${ad.title}`}
+          accessibilityLabel={`${sponsored}: ${title}`}
           onPress={handlePress}
           className="flex-row items-center bg-surface"
           style={{ borderRadius: 24, padding: 12, gap: 12 }}
@@ -96,10 +100,10 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
           <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
             <Tag label={sponsored} />
             <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15 }}>
-              {ad.title}
+              {title}
             </Text>
             <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-              {ad.subtitle}
+              {subtitle}
             </Text>
           </View>
           <View
@@ -121,7 +125,7 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
         height={320}
         topLeft={<Tag tone="glassDark" label={sponsored} />}
         onPress={handlePress}
-        accessibilityLabel={`${sponsored}: ${ad.title}`}
+        accessibilityLabel={`${sponsored}: ${title}`}
         glassBar={
           <>
             <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
@@ -129,15 +133,15 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
                 <View className="flex-row items-center" style={{ gap: 6 }}>
                   <Image source={{ uri: ad.advertiserLogo }} style={{ width: 18, height: 18, borderRadius: 9 }} accessible={false} />
                   <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-                    {ad.advertiserName}
+                    {advertiser}
                   </Text>
                 </View>
               ) : null}
               <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 16 }}>
-                {ad.title}
+                {title}
               </Text>
               <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-                {ad.subtitle}
+                {subtitle}
               </Text>
             </View>
             <View
