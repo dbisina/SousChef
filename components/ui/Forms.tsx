@@ -46,34 +46,44 @@ export function UInput({ icon, right, label, ...rest }: UInputProps) {
 interface FieldProps extends Omit<TextInputProps, 'style'> {
   label: string;
   error?: string;
+  /** Control pinned inside the right edge of the field (e.g. show/hide password). The text reserves room for it. */
+  trailing?: React.ReactNode;
 }
 
 /** .fld: label above a 54px rounded field (80px for multiline). */
-export function Field({ label, error, multiline, ...rest }: FieldProps) {
+export function Field({ label, error, multiline, trailing, ...rest }: FieldProps) {
   const t = useTokens();
   return (
     <View style={{ gap: 7, minWidth: 0 }}>
       <RNText style={{ color: t.muted, fontFamily: FONT.sansMedium, fontSize: 12, paddingStart: 4 }}>
         {label}
       </RNText>
-      <TextInput
-        accessibilityLabel={label}
-        placeholderTextColor={FIXED.placeholder}
-        selectionColor={t.accent}
-        multiline={multiline}
-        {...rest}
-        style={{
-          backgroundColor: t['surface-2'],
-          color: t.ink,
-          height: multiline ? 80 : 54,
-          borderRadius: 18,
-          paddingHorizontal: 18,
-          paddingVertical: multiline ? 15 : 0,
-          fontFamily: FONT.sans,
-          fontSize: 15,
-          textAlignVertical: multiline ? 'top' : 'center',
-        }}
-      />
+      <View style={{ justifyContent: 'center' }}>
+        <TextInput
+          accessibilityLabel={label}
+          placeholderTextColor={FIXED.placeholder}
+          selectionColor={t.accent}
+          multiline={multiline}
+          {...rest}
+          style={{
+            backgroundColor: t['surface-2'],
+            color: t.ink,
+            height: multiline ? 80 : 54,
+            borderRadius: 18,
+            paddingStart: 18,
+            paddingEnd: trailing ? 54 : 18,
+            paddingVertical: multiline ? 15 : 0,
+            fontFamily: FONT.sans,
+            fontSize: 15,
+            textAlignVertical: multiline ? 'top' : 'center',
+          }}
+        />
+        {trailing ? (
+          <View style={{ position: 'absolute', top: 0, bottom: 0, end: 0, width: 54, alignItems: 'center', justifyContent: 'center' }}>
+            {trailing}
+          </View>
+        ) : null}
+      </View>
       {error ? (
         <RNText style={{ color: t['tag-r-fg'], fontFamily: FONT.sans, fontSize: 12, paddingStart: 4 }}>
           {error}

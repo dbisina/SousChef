@@ -156,7 +156,7 @@ export default function LoginScreen() {
             </View>
           </PhotoCard>
 
-          <View style={{ paddingTop: 26, paddingHorizontal: 24, gap: 16 }}>
+          <View style={{ paddingTop: 26, paddingHorizontal: 20, gap: 16 }}>
             {error ? (
               <View className="bg-tag-r" style={{ borderRadius: 18, padding: 14 }}>
                 <RNText className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
@@ -197,6 +197,16 @@ export default function LoginScreen() {
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.password?.message}
+                    trailing={
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={showPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')}
+                        onPress={() => setShowPassword((v) => !v)}
+                        style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Icon name={showPassword ? 'eyeOff' : 'eye'} size="sm" color="muted" />
+                      </Pressable>
+                    }
                   />
                   <Pressable
                     accessibilityRole="button"
@@ -205,16 +215,6 @@ export default function LoginScreen() {
                     style={{ position: 'absolute', top: 0, right: 4 }}
                   >
                     <LinkText style={{ fontSize: 12 }}>{t('welcome.login.forgot', 'Forgot password?')}</LinkText>
-                  </Pressable>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={
-                      showPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')
-                    }
-                    onPress={() => setShowPassword((v) => !v)}
-                    style={{ position: 'absolute', top: 22, right: 6, width: 46, height: 54, alignItems: 'center', justifyContent: 'center' }}
-                  >
-                    <Icon name={showPassword ? 'eyeOff' : 'eye'} size="sm" color="muted" />
                   </Pressable>
                 </View>
               )}
@@ -227,7 +227,7 @@ export default function LoginScreen() {
               style={{ marginTop: 4 }}
             />
 
-            <View className="flex-row items-center" style={{ gap: 12 }}>
+            <View className="flex-row items-center" style={{ gap: 12, height: 20 }}>
               <View className="flex-1 bg-divider" style={{ height: 1 }} />
               <Muted small>{t('welcome.login.or', 'or')}</Muted>
               <View className="flex-1 bg-divider" style={{ height: 1 }} />
@@ -236,6 +236,7 @@ export default function LoginScreen() {
             <UButton
               variant="ghost"
               icon="globe"
+              iconStart
               label={t('welcome.login.google', 'Continue with Google')}
               onPress={() => googlePromptAsync()}
               loading={socialLoading}
@@ -247,7 +248,7 @@ export default function LoginScreen() {
                 buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
                 buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
                 cornerRadius={29}
-                style={{ width: '100%', height: 58 }}
+                style={{ alignSelf: 'stretch', width: '100%', height: 58 }}
                 onPress={handleAppleSignIn}
               />
             ) : null}
@@ -261,7 +262,7 @@ export default function LoginScreen() {
               }}
               style={{ paddingVertical: 12, alignItems: 'center' }}
             >
-              <LinkText>{t('welcome.login.skip', 'Skip for now — try it first')}</LinkText>
+              <LinkText>{t('welcome.login.skip', 'Skip for now, try it first')}</LinkText>
             </Pressable>
           </View>
 

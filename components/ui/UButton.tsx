@@ -26,6 +26,8 @@ interface UButtonProps {
   /** 'md' = 58px full width pill, 'sm' = 44px auto width. */
   size?: 'md' | 'sm';
   icon?: IconName;
+  /** Pin `icon` to the left edge in a fixed 24px slot and centre the label across the full width (social sign-in). */
+  iconStart?: boolean;
   /** Round icon chip on the right edge (.btn .ic), e.g. an arrow. */
   trailingIcon?: IconName;
   loading?: boolean;
@@ -41,6 +43,7 @@ export function UButton({
   variant = 'primary',
   size = 'md',
   icon,
+  iconStart,
   trailingIcon,
   loading,
   disabled,
@@ -81,7 +84,13 @@ export function UButton({
         <ActivityIndicator color={spin} size="small" />
       ) : (
         <>
-          {icon ? <Icon name={icon} size={sm ? 'sm' : 'md'} color={f.icon} /> : null}
+          {icon && iconStart ? (
+            <View style={{ position: 'absolute', left: 22, top: 0, bottom: 0, width: 24, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name={icon} size="md" color={f.icon} />
+            </View>
+          ) : icon ? (
+            <Icon name={icon} size={sm ? 'sm' : 'md'} color={f.icon} />
+          ) : null}
           <RNText
             numberOfLines={1}
             style={{ fontFamily: FONT.display, fontSize: sm ? 14 : 16, letterSpacing: -0.16, color: fg }}

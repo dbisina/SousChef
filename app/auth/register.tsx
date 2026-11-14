@@ -32,7 +32,7 @@ function EyeToggle({ shown, onPress, label }: { shown: boolean; onPress: () => v
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      style={{ position: 'absolute', top: 22, right: 6, width: 46, height: 54, alignItems: 'center', justifyContent: 'center' }}
+      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
     >
       <Icon name={shown ? 'eyeOff' : 'eye'} size="sm" color="muted" />
     </Pressable>
@@ -162,11 +162,13 @@ export default function RegisterScreen() {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   error={errors.password?.message}
-                />
-                <EyeToggle
-                  shown={showPassword}
-                  onPress={() => setShowPassword((v) => !v)}
-                  label={showPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')}
+                  trailing={
+                    <EyeToggle
+                    shown={showPassword}
+                    onPress={() => setShowPassword((v) => !v)}
+                    label={showPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')}
+                    />
+                  }
                 />
               </View>
             )}
@@ -186,12 +188,14 @@ export default function RegisterScreen() {
                   onChangeText={onChange}
                   onBlur={onBlur}
                   error={errors.confirmPassword?.message}
-                />
-                <EyeToggle
-                  shown={showConfirmPassword}
-                  onPress={() => setShowConfirmPassword((v) => !v)}
-                  label={
+                  trailing={
+                    <EyeToggle
+                    shown={showConfirmPassword}
+                    onPress={() => setShowConfirmPassword((v) => !v)}
+                    label={
                     showConfirmPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')
+                    }
+                    />
                   }
                 />
               </View>
