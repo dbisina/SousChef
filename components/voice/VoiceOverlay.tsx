@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, Modal } from 'react-native';
+import { View, Text, Modal, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from 'react-i18next';
 import { VoiceListeningState, VoiceParseResult } from '@/types/voice';
 import { VoiceButton } from './VoiceButton';
-import { Chip, Dot, Muted, SectionLabel, Tag, ToneScope, UIconButton, USwitch, FONT } from '@/components/ui';
+import { Dot, Glass, Muted, SectionLabel, Tag, ToneScope, UIconButton, USwitch, FONT } from '@/components/ui';
 
 interface VoiceOverlayProps {
   visible: boolean;
@@ -19,6 +20,8 @@ interface VoiceOverlayProps {
   isWakeWordMode?: boolean;
   isWakeWordListening?: boolean;
   onToggleWakeWordMode?: () => void;
+  /** Recipe photo shown blurred and dimmed behind the overlay (Voice.html). */
+  backdrop?: string;
 }
 
 // Dark voice assistant (Voice.html): orange pulsing mic, big quoted transcript, "Try saying" chips.
@@ -36,6 +39,7 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
   isWakeWordMode = false,
   isWakeWordListening = false,
   onToggleWakeWordMode,
+  backdrop,
 }) => {
   const { t } = useTranslation();
 
@@ -97,6 +101,17 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <ToneScope tone="dark">
+        {backdrop ? (
+          <View pointerEvents="none" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+            <Image
+              source={{ uri: backdrop }}
+              blurRadius={28}
+              contentFit="cover"
+              style={[StyleSheet.absoluteFill, { transform: [{ scale: 1.2 }] }]}
+            />
+            <View className="bg-night" style={[StyleSheet.absoluteFill, { opacity: 0.65 }]} />
+          </View>
+        ) : null}
         {/* Header */}
         <View
           className="flex-row items-center justify-between"
@@ -150,7 +165,15 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
             <SectionLabel>{t('cooking.trySaying', 'Try saying')}</SectionLabel>
             <View className="flex-row flex-wrap" style={{ gap: 8 }}>
               {hints.map((hint) => (
-                <Chip key={hint} label={hint} />
+                <Glass
+                  key={hint}
+                  dark
+                  style={{ height: 42, borderRadius: 21, paddingHorizontal: 18, justifyContent: 'center' }}
+                >
+                  <Text className="text-paper" numberOfLines={1} style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
+                    {hint}
+                  </Text>
+                </Glass>
               ))}
             </View>
           </View>

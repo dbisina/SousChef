@@ -39,6 +39,7 @@ import { VoiceOverlay, TimerDisplay } from '@/components/voice';
 import { formatInstructionForSpeech } from '@/services/voiceService';
 import { useGeminiLive } from '@/hooks/useGeminiLive';
 import { useGamificationStore } from '@/stores/gamificationStore';
+import { isDesignReview } from '@/lib/designReview';
 
 type CookingStage = 'prep' | 'cooking' | 'done';
 
@@ -62,7 +63,7 @@ interface HeroProps {
 /** Cook.html hero: photo with darkened top/bottom, rounded bottom corners, glass controls on top. */
 function Hero({ source, height, left, center, right, children }: HeroProps) {
   const insets = useSafeAreaInsets();
-  const top = Math.max(insets.top, 20) + 38;
+  const top = Math.max(insets.top, 20) + 14;
   return (
     <View style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36, overflow: 'hidden' }}>
       <PhotoCard source={source} height={height} radius={0} fade="both">
@@ -97,7 +98,13 @@ function BadgedButton({ count, children }: { count?: number | 'unlimited'; child
 }
 
 export default function CookingModeScreen() {
-  const { id, cookbookId } = useLocalSearchParams<{ id: string; cookbookId?: string }>();
+  const { id, cookbookId, stage: stageParam, step: stepParam, min: minParam } = useLocalSearchParams<{
+    id: string;
+    cookbookId?: string;
+    stage?: string;
+    step?: string;
+    min?: string;
+  }>();
   const router = useRouter();
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
@@ -182,8 +189,13 @@ export default function CookingModeScreen() {
 
   const remainingVoice = useRemainingVoiceUses();
 
-  const [stage, setStage] = useState<CookingStage>('prep');
-  const [currentStep, setCurrentStep] = useState(0);
+  // stage/step deep-link params exist only in design-review builds (dead code in production).
+  const [stage, setStage] = useState<CookingStage>(
+    isDesignReview && (stageParam === 'cooking' || stageParam === 'done') ? stageParam : 'prep'
+  );
+  const [currentStep, setCurrentStep] = useState(
+    isDesignReview && stepParam ? Math.max(0, parseInt(stepParam, 10) || 0) : 0
+  );
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(new Set());
   const [showCamera, setShowCamera] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -192,7 +204,7 @@ export default function CookingModeScreen() {
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [servings, setServings] = useState(4);
   const [useLiveAI, setUseLiveAI] = useState(false);
-  const [cookedMinutes, setCookedMinutes] = useState(0);
+  const [cookedMinutes, setCookedMinutes] = useState(isDesignReview && minParam ? parseInt(minParam, 10) || 0 : 0);
   const startedAt = useRef<number | null>(null);
 
   // Gemini Live API — real-time voice conversation
@@ -394,7 +406,8 @@ export default function CookingModeScreen() {
   const extraTimers = timers.slice(1);
   const suggested = suggestMinutes(instruction);
   const quickMinutes = Array.from(new Set([...(suggested ? [suggested] : []), 5, 10]));
-  const voiceUsable = voiceInitialized && remainingVoice !== 0;
+  // Web has no native voice engine, so review builds show the hint to match the design.
+  const voiceUsable = isDesignReview || (voiceInitialized && remainingVoice !== 0);
 
   const closeButton = (
     <UIconButton icon="close" label={t('cooking.exitCooking', 'Exit cooking')} tone="glassDark" onPress={handleExit} />
@@ -660,7 +673,7 @@ export default function CookingModeScreen() {
                 </H1>
                 <Text
                   className="text-muted text-center"
-                  style={{ fontFamily: FONT.sans, fontSize: 17, lineHeight: 25 }}
+                  style={{ fontFamily: FONT.sans, fontSize: 15, lineHeight: 22 }}
                 >
                   {instruction}
                 </Text>
@@ -914,6 +927,7 @@ export default function CookingModeScreen() {
         isWakeWordMode={isWakeWordMode}
         isWakeWordListening={isWakeWordListening}
         onToggleWakeWordMode={handleToggleHandsFreeMode}
+        backdrop={recipe.imageURL || undefined}
       />
 
       {/* Loading overlay for portion analysis */}
