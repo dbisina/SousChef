@@ -137,7 +137,7 @@ export default function KitchenScreen() {
           />
         </View>
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
           <Chip icon="scan" label={t('kitchen.scanPlate', 'Scan plate')} onPress={() => go('/(tabs)/scan')} />
           <Chip icon="leaf" label={t('kitchen.waste', 'Waste')} onPress={() => go('/mealplan/waste')} />
           <Chip icon="camera" label={t('kitchen.scanBook', 'Scan book')} onPress={() => go('/cookbook-library')} />

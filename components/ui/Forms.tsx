@@ -38,7 +38,7 @@ export function UInput({ icon, right, label, ...rest }: UInputProps) {
         {...rest}
         style={{ flex: 1, color: t.ink, fontFamily: FONT.sans, fontSize: 15, height: '100%', minWidth: 0 }}
       />
-      {right}
+      {right ? <View style={{ justifyContent: 'center' }}>{right}</View> : null}
     </View>
   );
 }

@@ -2,82 +2,162 @@
  "wait": 1200,
  "stores": {
   "wantToCook": {
-   "shoppingList": {
-    "id": "sl",
-    "userId": "guest",
-    "name": "Shopping",
-    "recipeIds": [
-     "fx-salmon"
-    ],
-    "createdAt": {
-     "$daysFromNow": 0
-    },
-    "updatedAt": {
-     "$daysFromNow": 0
-    },
-    "items": [
-     {
-      "id": "s1",
-      "name": "Broccoli",
-      "amount": 1,
-      "unit": "head",
-      "category": "produce",
-      "checked": false,
-      "recipeName": "Herb salmon",
-      "addedAt": {
-       "$daysFromNow": 0
-      }
-     },
-     {
-      "id": "s2",
-      "name": "Avocado",
-      "amount": 2,
-      "unit": "pieces",
-      "category": "produce",
-      "checked": true,
-      "recipeName": "Herb salmon",
-      "addedAt": {
-       "$daysFromNow": 0
-      }
-     },
-     {
-      "id": "s3",
-      "name": "Cherry tomatoes",
-      "amount": 250,
-      "unit": "g",
-      "category": "produce",
-      "checked": false,
-      "recipeName": "Herb salmon",
-      "addedAt": {
-       "$daysFromNow": 0
-      }
-     },
-     {
-      "id": "s4",
-      "name": "Salmon fillets",
-      "amount": 2,
-      "unit": "pieces",
-      "category": "seafood",
-      "checked": false,
-      "recipeName": "Herb salmon",
-      "addedAt": {
-       "$daysFromNow": 0
-      }
-     },
-     {
-      "id": "s5",
-      "name": "Steak",
-      "amount": 400,
-      "unit": "g",
-      "category": "meat",
-      "checked": false,
-      "recipeName": "Steak tacos",
-      "addedAt": {
-       "$daysFromNow": 0
-      }
+   "shoppingList": [
+    {
+     "id": "s1",
+     "name": "Broccoli",
+     "amount": 1,
+     "unit": "head",
+     "category": "produce",
+     "checked": true,
+     "addedAt": {
+      "$daysFromNow": 0
      }
-    ]
-   },
+    },
+    {
+     "id": "s2",
+     "name": "Avocado",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "produce",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s3",
+     "name": "Cherry tomatoes",
+     "amount": 250,
+     "unit": "g",
+     "category": "produce",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s4",
+     "name": "Salmon fillets",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "seafood",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s5",
+     "name": "Steak",
+     "amount": 400,
+     "unit": "g",
+     "category": "meat",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s6",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "checked": true,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s7",
+     "name": "Milk",
+     "amount": 1,
+     "unit": "carton",
+     "category": "dairy",
+     "checked": true,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s8",
+     "name": "Butter",
+     "amount": 250,
+     "unit": "g",
+     "category": "dairy",
+     "checked": true,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s9",
+     "name": "Rice",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "checked": true,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s10",
+     "name": "Pasta",
+     "amount": 500,
+     "unit": "g",
+     "category": "grains",
+     "checked": true,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s11",
+     "name": "Lemons",
+     "amount": 3,
+     "unit": "pieces",
+     "category": "other",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s12",
+     "name": "Olive oil",
+     "amount": 1,
+     "unit": "bottle",
+     "category": "condiments",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s13",
+     "name": "Basil",
+     "amount": 1,
+     "unit": "bunch",
+     "category": "spices",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s14",
+     "name": "Yogurt",
+     "amount": 1,
+     "unit": "tub",
+     "category": "dairy",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
    "items": [
     {
      "id": "fx-salmon",
@@ -345,32 +425,6 @@
    "items": [
     {
      "id": "p1",
-     "name": "Chicken thighs",
-     "amount": 2,
-     "unit": "pieces",
-     "category": "meat",
-     "addedAt": {
-      "$daysFromNow": 0
-     },
-     "expiryDate": {
-      "$daysFromNow": 2
-     }
-    },
-    {
-     "id": "p2",
-     "name": "Spinach",
-     "amount": 1,
-     "unit": "bag",
-     "category": "produce",
-     "addedAt": {
-      "$daysFromNow": 0
-     },
-     "expiryDate": {
-      "$daysFromNow": 1
-     }
-    },
-    {
-     "id": "p3",
      "name": "Eggs",
      "amount": 6,
      "unit": "pieces",
@@ -379,24 +433,37 @@
       "$daysFromNow": 0
      },
      "expiryDate": {
-      "$daysFromNow": 14
+      "$daysFromNow": 20
      }
     },
     {
-     "id": "p4",
-     "name": "Greek yogurt",
+     "id": "p2",
+     "name": "Milk",
      "amount": 1,
-     "unit": "tub",
+     "unit": "carton",
      "category": "dairy",
      "addedAt": {
       "$daysFromNow": 0
      },
      "expiryDate": {
-      "$daysFromNow": 2
+      "$daysFromNow": 20
      }
     },
     {
-     "id": "p5",
+     "id": "p3",
+     "name": "Butter",
+     "amount": 250,
+     "unit": "g",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 20
+     }
+    },
+    {
+     "id": "p4",
      "name": "Rice",
      "amount": 1,
      "unit": "kg",
@@ -405,7 +472,7 @@
       "$daysFromNow": 0
      },
      "expiryDate": {
-      "$daysFromNow": 200
+      "$daysFromNow": 20
      }
     }
    ]

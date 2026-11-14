@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { ActivityIndicator, Alert, FlatList, RefreshControl, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, View, useWindowDimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SAMPLE } from '@/assets/sample';
@@ -44,6 +44,9 @@ const photoFor = (url?: string): PhotoSource => (url ? { uri: url } : SAMPLE.pla
 export default function BrowseScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { width: windowWidth } = useWindowDimensions();
+  // Two columns inside the 20px page padding with a 12px gap.
+  const cardWidth = Math.floor((windowWidth - 52) / 2);
   const spinner = useColor('muted');
   const { subscriptionTier } = useSubscription();
   const adFree = getTierFeatures(subscriptionTier).adFree;
@@ -61,8 +64,6 @@ export default function BrowseScreen() {
     clearFilters,
     loadMore,
     refresh: refreshRecipes,
-    toggleSave: toggleRecipeSave,
-    isRecipeSaved,
   } = useRecipes();
 
   const {
@@ -153,20 +154,6 @@ export default function BrowseScreen() {
     applyFilters({ ...filters, category: filters.category === category ? undefined : category });
   };
 
-  const saveButton = (recipe: Recipe) => (
-    <UIconButton
-      icon="bookmark"
-      tone="glassDark"
-      size={44}
-      iconSize="sm"
-      filled={isRecipeSaved(recipe.id)}
-      label={
-        isRecipeSaved(recipe.id) ? t('browseUi.unsave', 'Remove from saved') : t('browseUi.save', 'Save recipe')
-      }
-      onPress={() => toggleRecipeSave(recipe.id)}
-    />
-  );
-
   const minutes = (r: Recipe) => (r.prepTime || 0) + (r.cookTime || 0);
   const difficultyLabel = (r: Recipe) => t(`browseUi.difficulty.${r.difficulty}`, r.difficulty.charAt(0).toUpperCase() + r.difficulty.slice(1));
 
@@ -175,13 +162,12 @@ export default function BrowseScreen() {
       source={photoFor(item.imageURL)}
       height={200}
       radius={26}
-      width="48%"
+      width={cardWidth}
       title={item.title}
       titleSize={16}
       captionInset={16}
       accessibilityLabel={item.title}
       topLeft={minutes(item) > 0 ? <Tag tone="glassDark" label={t('browseUi.minutes', '{{n}} min', { n: minutes(item) })} /> : undefined}
-      topRight={saveButton(item)}
       onPress={() => handleRecipePress(item)}
     />
   );
@@ -225,16 +211,13 @@ export default function BrowseScreen() {
         fade="both"
         accessibilityLabel={featured.title}
         topLeft={
-          <>
-            {featured.isOfficial ? <Tag tone="glassDark" large label={t('browseUi.chefsPick', "Chef's Pick")} /> : null}
-            <Tag tone="glassDark" large icon="heart" label={String(featured.likes ?? 0)} />
-          </>
+          featured.isOfficial ? <Tag tone="glassDark" large label={t('browseUi.chefsPick', "Chef's Pick")} /> : undefined
         }
-        topRight={saveButton(featured)}
+        topRight={<Tag tone="glassDark" large icon="heart" label={String(featured.likes ?? 0)} />}
         glassBarTone="dark"
         glassBar={
           <>
-            <View className="flex-1" style={{ minWidth: 0 }}>
+            <View className="flex-1" style={{ minWidth: 0, gap: 4 }}>
               <Title numberOfLines={1} style={{ fontSize: 17 }}>
                 {featured.title}
               </Title>

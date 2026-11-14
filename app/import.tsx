@@ -291,7 +291,7 @@ export default function ImportScreen() {
           {subscriptionTier === 'free' ? (
             <View className="flex-row items-center justify-between">
               <Muted small>{t('importUi.freePlan', 'Free plan')}</Muted>
-              <LinkText accent onPress={() => router.push('/subscription' as Href)} style={{ fontSize: 12, paddingVertical: 14 }}>
+              <LinkText accent onPress={() => router.push('/subscription' as Href)} style={{ fontSize: 12, paddingVertical: 14, marginVertical: -14 }}>
                 {t('importUi.goUnlimited', 'Go unlimited')}
               </LinkText>
             </View>

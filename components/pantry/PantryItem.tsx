@@ -59,7 +59,11 @@ export const PantryItemCard: React.FC<PantryItemProps> = ({ item, onPress, onDel
             {`${item.amount} ${item.unit} · ${categoryLabel(item.category)}`}
           </Muted>
         </View>
-        {fresh ? <Tag label={fresh.label} tone={fresh.tone} /> : null}
+        {fresh ? (
+          <View style={{ justifyContent: 'center', flexShrink: 0 }}>
+            <Tag label={fresh.label} tone={fresh.tone} />
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );

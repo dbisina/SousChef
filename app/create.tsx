@@ -44,6 +44,7 @@ export default function CreateScreen() {
         }
         right={<UIconButton icon="close" label="Close" onPress={() => router.back()} />}
       />
+      <View style={{ gap: 12, paddingTop: 4 }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
         {TILES.map((t) => (
           <PhotoCard
@@ -66,6 +67,7 @@ export default function CreateScreen() {
           <ListRow key={r.title} title={r.title} icon={r.icon} onPress={() => go(r.href)} />
         ))}
       </Rows>
+      </View>
     </Screen>
   );
 }

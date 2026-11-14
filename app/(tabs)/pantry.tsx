@@ -85,7 +85,8 @@ export default function PantryScreen() {
 
   const displayedItems = getDisplayedItems();
   const alertItems = expiringItems.length > 0 ? expiringItems : expiredItems;
-  const alertNames = alertItems
+  const alertNames = [...alertItems]
+    .sort((a, b) => (a.expiryDate?.toMillis() ?? 0) - (b.expiryDate?.toMillis() ?? 0))
     .slice(0, 3)
     .map((i) => i.name)
     .join(', ');
@@ -144,9 +145,10 @@ export default function PantryScreen() {
                 ) : null}
               </>
             }
+            glassBarTone="dark"
             glassBar={
               <>
-                <View className="flex-1" style={{ minWidth: 0 }}>
+                <View className="flex-1" style={{ minWidth: 0, gap: 4 }}>
                   <Title numberOfLines={1}>{t('pantryUi.useTonight', 'Use them tonight')}</Title>
                   <Muted small numberOfLines={1}>
                     {alertNames}

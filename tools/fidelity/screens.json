@@ -24,7 +24,7 @@
  "Browse": {
   "route": "/browse",
   "theme": "light",
-  "fixture": "recipes"
+  "fixture": "browse"
  },
  "Chat": {
   "route": "/messages/conv-ama",
@@ -100,7 +100,8 @@
  },
  "Kitchen": {
   "route": "/kitchen",
-  "theme": "light"
+  "theme": "light",
+  "fixture": "kitchen"
  },
  "Language": {
   "route": "/settings/language",

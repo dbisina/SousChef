@@ -18,7 +18,7 @@ import { FIXED } from '@/stores/themeStore';
 import { QuickShoppingItem } from '@/types/wantToCook';
 import { PantryCategory } from '@/types';
 import { pantryPhoto } from '@/components/pantry/photos';
-import { CategoryChips } from '@/components/pantry/shared';
+import { CategoryChips, useCategoryLabel } from '@/components/pantry/shared';
 import {
   Check,
   Field,
@@ -27,6 +27,7 @@ import {
   LinkText,
   Muted,
   PhotoCard,
+  Rows,
   SectionLabel,
   Tag,
   Thumb,
@@ -57,7 +58,7 @@ const ShoppingItem = memo<{
     onToggle();
   };
 
-  const subtitle = [`${item.amount} ${item.unit}`, item.recipeName].filter(Boolean).join(' · ');
+  const quantity = `${item.amount} ${item.unit}`;
 
   return (
     <Pressable
@@ -73,20 +74,18 @@ const ShoppingItem = memo<{
       onLongPress={onRemove}
       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
     >
-      <View className="flex-row items-center" style={{ minHeight: 64, gap: 14, paddingVertical: 2 }}>
+      <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
         <Thumb source={pantryPhoto(item.name)} name={item.name} size={44} />
-        <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
-          <Title
-            numberOfLines={1}
-            className={item.checked ? 'text-subtle' : undefined}
-            style={item.checked ? { textDecorationLine: 'line-through' } : undefined}
-          >
-            {item.name}
-          </Title>
-          <Muted small numberOfLines={1}>
-            {subtitle}
-          </Muted>
-        </View>
+        <Title
+          numberOfLines={1}
+          className={item.checked ? 'flex-1 text-subtle' : 'flex-1'}
+          style={[{ minWidth: 0 }, item.checked ? { textDecorationLine: 'line-through' } : undefined]}
+        >
+          {item.name}
+        </Title>
+        <Muted small numberOfLines={1}>
+          {quantity}
+        </Muted>
         <View pointerEvents="none">
           <Check checked={item.checked} label={item.name} />
         </View>
@@ -229,6 +228,7 @@ const AddToPantryModal: React.FC<AddToPantryModalProps> = ({ visible, item, onCo
 
 export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ compact = false, onViewFull }) => {
   const { t } = useTranslation();
+  const categoryLabel = useCategoryLabel();
   const { shoppingList, toggleShoppingItem, removeFromShoppingList, clearCheckedItems, clearShoppingList } =
     useWantToCookStore();
   const { addPantryItem } = usePantryStore();
@@ -335,16 +335,17 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ compact = fa
     );
   }, [shoppingList, user, addPantryItem, clearCheckedItems, t]);
 
-  // Group items by recipe
+  // Group items by category (seafood sits with meat, as in the design)
   const groupedItems = useMemo(() => {
     const groups: Record<string, QuickShoppingItem[]> = {};
     shoppingList.forEach((item) => {
-      const key = item.recipeName || t('shoppingUi.other', 'Other');
+      const cat = item.category === 'seafood' ? 'meat' : item.category || 'other';
+      const key = cat === 'meat' ? t('shoppingUi.meatFish', 'Meat & fish') : categoryLabel(cat);
       if (!groups[key]) groups[key] = [];
       groups[key].push(item);
     });
     return groups;
-  }, [shoppingList, t]);
+  }, [shoppingList, t, categoryLabel]);
 
   const checkedCount = shoppingList.filter((i) => i.checked).length;
   const totalCount = shoppingList.length;
@@ -440,16 +441,9 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ compact = fa
       </PhotoCard>
 
       {Object.entries(groupedItems).map(([groupName, items]) => (
-        <View key={groupName} style={{ gap: 4 }}>
+        <View key={groupName} style={{ gap: 14 }}>
           <SectionLabel>{groupName}</SectionLabel>
-          <View>
-            {items.map((item, i) => (
-              <View key={item.id}>
-                {i > 0 ? <View className="bg-divider" style={{ height: 1 }} /> : null}
-                {renderItem(item)}
-              </View>
-            ))}
-          </View>
+          <Rows>{items.map(renderItem)}</Rows>
         </View>
       ))}
 
