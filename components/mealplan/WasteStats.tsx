@@ -23,6 +23,22 @@ import {
 import { FIXED } from '@/stores/themeStore';
 import { foodPhoto } from './foodPhoto';
 
+/** Waste.html tiles put the small label above the value (DOM order span, b). */
+const TileLabel = ({ children }: { children: React.ReactNode }) => (
+  <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4 }}>
+    {children}
+  </RNText>
+);
+const TileValue = ({ children }: { children: React.ReactNode }) => (
+  <RNText
+    numberOfLines={1}
+    className="text-ink"
+    style={{ fontFamily: FONT.display, fontSize: 22, lineHeight: 25.3, letterSpacing: -0.44 }}
+  >
+    {children}
+  </RNText>
+);
+
 interface WasteStatsProps {
   stats: WasteStatsType | null;
 }
@@ -80,13 +96,16 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({ stats }) => {
       </PhotoCard>
       <View className="flex-row" style={{ gap: 12 }}>
         <View className="flex-1">
-          <Tile
-            label={t('planWaste.topReason', 'Top reason')}
-            value={topReason ? WASTE_REASON_LABELS[topReason] : dash}
-          />
+          <Tile>
+            <TileLabel>{t('planWaste.topReason', 'Top reason')}</TileLabel>
+            <TileValue>{topReason ? WASTE_REASON_LABELS[topReason] : dash}</TileValue>
+          </Tile>
         </View>
         <View className="flex-1">
-          <Tile label={t('planWaste.mostWasted', 'Most wasted')} value={topItem ?? dash} />
+          <Tile>
+            <TileLabel>{t('planWaste.mostWasted', 'Most wasted')}</TileLabel>
+            <TileValue>{topItem ?? dash}</TileValue>
+          </Tile>
         </View>
       </View>
     </View>
@@ -127,7 +146,18 @@ interface WasteEntryRowProps {
 export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({ entry, onDelete }) => {
   const { t } = useTranslation();
   return (
-    <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${entry.itemName}, ${entry.amount} ${entry.unit}, ${WASTE_REASON_LABELS[entry.reason]}`}
+      accessibilityHint={onDelete ? t('planWaste.deleteHint', 'Long press to delete') : undefined}
+      accessibilityActions={onDelete ? [{ name: 'delete', label: t('planWaste.delete', 'Delete') }] : undefined}
+      onAccessibilityAction={(ev) => {
+        if (ev.nativeEvent.actionName === 'delete') onDelete?.();
+      }}
+      onLongPress={onDelete}
+      className="flex-row items-center"
+      style={{ minHeight: 64, gap: 14 }}
+    >
       <UAvatar name={entry.itemName} source={foodPhoto(entry.itemName)} size={44} />
       <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
         <Title numberOfLines={1}>{entry.itemName}</Title>
@@ -138,18 +168,7 @@ export const WasteEntryRow: React.FC<WasteEntryRowProps> = ({ entry, onDelete })
       <RNText className="text-ink" style={{ fontFamily: FONT.sansSemi, fontSize: 14 }}>
         ${entry.estimatedValue.toFixed(2)}
       </RNText>
-      {onDelete ? (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('planWaste.deleteEntry', 'Delete {{name}}', { name: entry.itemName })}
-          onPress={onDelete}
-          className="items-center justify-center"
-          style={({ pressed }) => ({ width: 44, height: 44, marginRight: -10, opacity: pressed ? 0.6 : 1 })}
-        >
-          <Icon name="trash" color="subtle" />
-        </Pressable>
-      ) : null}
-    </View>
+    </Pressable>
   );
 };
 

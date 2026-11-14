@@ -192,15 +192,12 @@ export default function ShoppingListScreen() {
         onBack={() => router.back()}
         right={
           <View className="flex-row" style={{ gap: 8 }}>
-            {checkedItems > 0 ? (
-              <UIconButton icon="trash" label={t('planShop.clearChecked', 'Clear checked items')} onPress={handleClearChecked} />
-            ) : null}
             <UIconButton icon="share" label={t('planShop.share', 'Share list')} onPress={handleShare} />
           </View>
         }
       />
 
-      <View style={{ paddingHorizontal: 20, paddingBottom: 6 }}>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
         <Segmented<FilterMode>
           value={filterMode}
           onChange={setFilterMode}
@@ -216,6 +213,19 @@ export default function ShoppingListScreen() {
         items={filteredItems}
         onToggleItem={handleToggleItem}
         showPantryIndicator={filterMode !== 'inPantry'}
+        footer={
+          checkedItems > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('planShop.clearChecked', 'Clear checked items')}
+              onPress={handleClearChecked}
+              className="items-center justify-center"
+              style={{ height: 44, marginTop: 8 }}
+            >
+              <LinkText>{t('planShop.clearCheckedN', 'Clear checked ({{n}})', { n: checkedItems })}</LinkText>
+            </Pressable>
+          ) : null
+        }
       />
 
       <Sheet visible={showPantryModal} onClose={closePantrySheet} title={t('planShop.addToPantry', 'Add to Pantry')}>

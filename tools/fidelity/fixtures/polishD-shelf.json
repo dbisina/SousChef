@@ -1,0 +1,432 @@
+{
+ "wait": 800,
+ "stores": {
+  "cookbookLibrary": {
+   "cookbooks": [
+    {
+     "id": "fx-book",
+     "title": "Weeknight Italian",
+     "author": "[AUTHOR NAME]",
+     "coverImageURL": "/__assets/pasta.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-14T01:40:24.200Z",
+     "recipesScanned": 32,
+     "recipes": [
+      {
+       "id": "fx-cacio",
+       "name": "Cacio e pepe",
+       "source": "fetched",
+       "description": "Cacio e pepe",
+       "keyIngredients": [],
+       "fullContent": {
+        "description": "",
+        "imageURL": "/__assets/pasta.jpg",
+        "prepTime": 15,
+        "cookTime": 20,
+        "servings": 4,
+        "difficulty": "easy",
+        "ingredients": [],
+        "instructions": []
+       }
+      },
+      {
+       "id": "fx-gnocchi",
+       "name": "Lemon ricotta gnocchi",
+       "source": "fetched",
+       "description": "Lemon ricotta gnocchi",
+       "keyIngredients": [],
+       "fullContent": {
+        "description": "",
+        "imageURL": "/__assets/gnocchi.jpg",
+        "prepTime": 15,
+        "cookTime": 20,
+        "servings": 4,
+        "difficulty": "easy",
+        "ingredients": [],
+        "instructions": [],
+        "tips": "Drain the ricotta well so the dough needs less flour and stays light.",
+        "nutrition": {
+         "caloriesPerServing": 420,
+         "protein": 18,
+         "carbs": 52,
+         "fat": 14
+        }
+       }
+      },
+      {
+       "id": "fx-penne",
+       "name": "Penne alla vodka",
+       "source": "fetched",
+       "description": "Penne alla vodka",
+       "keyIngredients": [],
+       "fullContent": {
+        "description": "",
+        "imageURL": "/__assets/penne.jpg",
+        "prepTime": 15,
+        "cookTime": 20,
+        "servings": 4,
+        "difficulty": "easy",
+        "ingredients": [],
+        "instructions": []
+       }
+      },
+      {
+       "id": "fx-pizza",
+       "name": "Pizza bianca",
+       "source": "fetched",
+       "description": "Pizza bianca",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-0",
+       "name": "Recipe 5",
+       "source": "fetched",
+       "description": "Recipe 5",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-1",
+       "name": "Recipe 6",
+       "source": "fetched",
+       "description": "Recipe 6",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-2",
+       "name": "Recipe 7",
+       "source": "fetched",
+       "description": "Recipe 7",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-3",
+       "name": "Recipe 8",
+       "source": "fetched",
+       "description": "Recipe 8",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-4",
+       "name": "Recipe 9",
+       "source": "fetched",
+       "description": "Recipe 9",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-5",
+       "name": "Recipe 10",
+       "source": "fetched",
+       "description": "Recipe 10",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-6",
+       "name": "Recipe 11",
+       "source": "fetched",
+       "description": "Recipe 11",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-7",
+       "name": "Recipe 12",
+       "source": "fetched",
+       "description": "Recipe 12",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-8",
+       "name": "Recipe 13",
+       "source": "fetched",
+       "description": "Recipe 13",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-9",
+       "name": "Recipe 14",
+       "source": "fetched",
+       "description": "Recipe 14",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-10",
+       "name": "Recipe 15",
+       "source": "fetched",
+       "description": "Recipe 15",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-11",
+       "name": "Recipe 16",
+       "source": "fetched",
+       "description": "Recipe 16",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-12",
+       "name": "Recipe 17",
+       "source": "fetched",
+       "description": "Recipe 17",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-13",
+       "name": "Recipe 18",
+       "source": "fetched",
+       "description": "Recipe 18",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-14",
+       "name": "Recipe 19",
+       "source": "fetched",
+       "description": "Recipe 19",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-15",
+       "name": "Recipe 20",
+       "source": "fetched",
+       "description": "Recipe 20",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-16",
+       "name": "Recipe 21",
+       "source": "fetched",
+       "description": "Recipe 21",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-17",
+       "name": "Recipe 22",
+       "source": "fetched",
+       "description": "Recipe 22",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-18",
+       "name": "Recipe 23",
+       "source": "fetched",
+       "description": "Recipe 23",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-19",
+       "name": "Recipe 24",
+       "source": "fetched",
+       "description": "Recipe 24",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-20",
+       "name": "Recipe 25",
+       "source": "fetched",
+       "description": "Recipe 25",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-21",
+       "name": "Recipe 26",
+       "source": "fetched",
+       "description": "Recipe 26",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-22",
+       "name": "Recipe 27",
+       "source": "fetched",
+       "description": "Recipe 27",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-23",
+       "name": "Recipe 28",
+       "source": "fetched",
+       "description": "Recipe 28",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-24",
+       "name": "Recipe 29",
+       "source": "fetched",
+       "description": "Recipe 29",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-25",
+       "name": "Recipe 30",
+       "source": "fetched",
+       "description": "Recipe 30",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-26",
+       "name": "Recipe 31",
+       "source": "fetched",
+       "description": "Recipe 31",
+       "keyIngredients": []
+      },
+      {
+       "id": "fx-extra-27",
+       "name": "Recipe 32",
+       "source": "fetched",
+       "description": "Recipe 32",
+       "keyIngredients": []
+      }
+     ],
+     "fetchStatus": "partial"
+    },
+    {
+     "id": "fx-book2",
+     "title": "The Green Table",
+     "author": "Kemi",
+     "coverImageURL": "/__assets/greens.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-14T01:40:24.201Z",
+     "recipesScanned": 18,
+     "recipes": [
+      {
+       "id": "g-0",
+       "name": "Recipe 5",
+       "source": "fetched",
+       "description": "Recipe 5",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-1",
+       "name": "Recipe 6",
+       "source": "fetched",
+       "description": "Recipe 6",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-2",
+       "name": "Recipe 7",
+       "source": "fetched",
+       "description": "Recipe 7",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-3",
+       "name": "Recipe 8",
+       "source": "fetched",
+       "description": "Recipe 8",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-4",
+       "name": "Recipe 9",
+       "source": "fetched",
+       "description": "Recipe 9",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-5",
+       "name": "Recipe 10",
+       "source": "fetched",
+       "description": "Recipe 10",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-6",
+       "name": "Recipe 11",
+       "source": "fetched",
+       "description": "Recipe 11",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-7",
+       "name": "Recipe 12",
+       "source": "fetched",
+       "description": "Recipe 12",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-8",
+       "name": "Recipe 13",
+       "source": "fetched",
+       "description": "Recipe 13",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-9",
+       "name": "Recipe 14",
+       "source": "fetched",
+       "description": "Recipe 14",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-10",
+       "name": "Recipe 15",
+       "source": "fetched",
+       "description": "Recipe 15",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-11",
+       "name": "Recipe 16",
+       "source": "fetched",
+       "description": "Recipe 16",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-12",
+       "name": "Recipe 17",
+       "source": "fetched",
+       "description": "Recipe 17",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-13",
+       "name": "Recipe 18",
+       "source": "fetched",
+       "description": "Recipe 18",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-14",
+       "name": "Recipe 19",
+       "source": "fetched",
+       "description": "Recipe 19",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-15",
+       "name": "Recipe 20",
+       "source": "fetched",
+       "description": "Recipe 20",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-16",
+       "name": "Recipe 21",
+       "source": "fetched",
+       "description": "Recipe 21",
+       "keyIngredients": []
+      },
+      {
+       "id": "g-17",
+       "name": "Recipe 22",
+       "source": "fetched",
+       "description": "Recipe 22",
+       "keyIngredients": []
+      }
+     ],
+     "fetchStatus": "done"
+    },
+    {
+     "id": "fx-book3",
+     "title": "Bakes & Brunch",
+     "author": "Dayo",
+     "coverImageURL": "/__assets/pancakes.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-14T01:40:24.201Z",
+     "recipesScanned": 0,
+     "recipes": [],
+     "fetchStatus": "fetching"
+    }
+   ],
+   "isLoading": false
+  }
+ }
+}

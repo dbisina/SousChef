@@ -48,7 +48,7 @@
  "Cookbook": {
   "route": "/cookbook/fx-book",
   "theme": "dark",
-  "fixture": "recipes"
+  "fixture": "polishD-cookbook"
  },
  "Create": {
   "route": "/create",
@@ -147,7 +147,7 @@
  "MealPlan": {
   "route": "/mealplan",
   "theme": "light",
-  "fixture": "mealplan"
+  "fixture": "polishD-mealplan"
  },
  "MealResponse": {
   "route": "/health/meal/meal-today-b",
@@ -199,7 +199,7 @@
  "PlanShopping": {
   "route": "/mealplan/shopping",
   "theme": "light",
-  "fixture": "mealplan"
+  "fixture": "polishD-mealplan"
  },
  "PlayHub": {
   "route": "/play",
@@ -252,17 +252,17 @@
  "Shelf": {
   "route": "/cookbook-library",
   "theme": "light",
-  "fixture": "shelf"
+  "fixture": "polishD-shelf"
  },
  "ShelfCookbook": {
   "route": "/shelf-cookbook/fx-book",
   "theme": "light",
-  "fixture": "shelf"
+  "fixture": "polishD-shelf"
  },
  "ShelfRecipe": {
-  "route": "/shelf-recipe/fx-salmon",
+  "route": "/shelf-recipe/fx-gnocchi?cookbookId=fx-book",
   "theme": "light",
-  "fixture": "shelf"
+  "fixture": "polishD-shelf"
  },
  "Shopping": {
   "route": "/shopping",
@@ -283,7 +283,8 @@
  },
  "UserProfile": {
   "route": "/user/ama",
-  "theme": "light"
+  "theme": "light",
+  "fixture": "polishD-profile"
  },
  "Voice": {
   "route": null,
@@ -302,11 +303,12 @@
  "Waste": {
   "route": "/mealplan/waste",
   "theme": "light",
-  "fixture": "mealplan"
+  "fixture": "polishD-mealplan"
  },
  "WeightLoss": {
   "route": "/settings/weight-loss",
-  "theme": "light"
+  "theme": "light",
+  "fixture": "polishD-weight"
  },
  "You": {
   "route": "/you",

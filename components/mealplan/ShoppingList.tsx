@@ -7,12 +7,11 @@ import {
   Icon,
   Muted,
   ProgressBar,
-  SectionLabel,
   Title,
   UAvatar,
   FONT,
 } from '@/components/ui';
-import { ShoppingListItem, ShoppingCategory, SHOPPING_CATEGORY_LABELS } from '@/types/mealplan';
+import { ShoppingListItem } from '@/types/mealplan';
 import { foodPhoto } from './foodPhoto';
 
 interface ShoppingListProps {
@@ -22,6 +21,8 @@ interface ShoppingListProps {
   showPantryIndicator?: boolean;
   /** Extra space under the list so the last row clears a bottom bar. */
   bottomSpace?: number;
+  /** Rendered under the last row (e.g. a clear-checked link). */
+  footer?: React.ReactNode;
 }
 
 export const ShoppingList: React.FC<ShoppingListProps> = ({
@@ -30,21 +31,14 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
   onItemPress,
   showPantryIndicator = true,
   bottomSpace = 120,
+  footer,
 }) => {
   const { t } = useTranslation();
 
   const sections = React.useMemo(() => {
-    const grouped = new Map<ShoppingCategory, ShoppingListItem[]>();
-    items.forEach((item) => {
-      const existing = grouped.get(item.category) || [];
-      existing.push(item);
-      grouped.set(item.category, existing);
-    });
-    const result: SectionListData<ShoppingListItem>[] = [];
-    grouped.forEach((data, category) => {
-      result.push({ title: SHOPPING_CATEGORY_LABELS[category] || category, data });
-    });
-    return result.sort((a, b) => a.title.localeCompare(b.title));
+    // PlanShopping.html is one flat list with no category headings.
+    const result: SectionListData<ShoppingListItem>[] = [{ title: '', data: items }];
+    return result;
   }, [items]);
 
   if (items.length === 0) {
@@ -71,12 +65,8 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
           showPantryIndicator={showPantryIndicator}
         />
       )}
-      renderSectionHeader={({ section }) => (
-        <View className="bg-ground" style={{ paddingTop: 18, paddingBottom: 6 }}>
-          <SectionLabel>{section.title}</SectionLabel>
-        </View>
-      )}
       ItemSeparatorComponent={Divider}
+      ListFooterComponent={footer ? <View>{footer}</View> : null}
       stickySectionHeadersEnabled={false}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: bottomSpace }}
@@ -99,12 +89,10 @@ const ShoppingListRow: React.FC<ShoppingListRowProps> = memo(
   ({ item, onToggle, onPress, showPantryIndicator }) => {
     const { t } = useTranslation();
     const needsToBuy = item.toBuy > 0;
+    // One short line like the design's single-line rows: the amount, plus a pantry marker.
     const parts = [needsToBuy ? `${item.toBuy} ${item.unit}` : `${item.amount} ${item.unit}`];
     if (showPantryIndicator && item.inPantry) {
-      parts.push(t('planShop.inPantryAmt', '{{amt}} {{unit}} in pantry', { amt: item.pantryAmount, unit: item.unit }));
-    }
-    if (item.recipeNames.length > 0) {
-      parts.push(t('planShop.forRecipes', 'For: {{names}}', { names: item.recipeNames.join(', ') }));
+      parts.push(t('planShop.inPantryShort', 'in pantry'));
     }
 
     return (
@@ -113,32 +101,32 @@ const ShoppingListRow: React.FC<ShoppingListRowProps> = memo(
         accessibilityLabel={item.name}
         accessibilityState={{ checked: item.checked }}
         onPress={onPress || onToggle}
-        className="flex-row items-center"
-        style={({ pressed }) => ({ minHeight: 64, gap: 14, opacity: item.checked ? 0.55 : pressed ? 0.7 : 1 })}
+        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
       >
-        <UAvatar name={item.name} source={foodPhoto(item.name)} size={44} />
-        <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
-          <RNText
-            className="text-ink"
-            numberOfLines={1}
-            style={{
-              fontFamily: FONT.display,
-              fontSize: 15,
-              textDecorationLine: item.checked ? 'line-through' : 'none',
-            }}
-          >
-            {item.name}
-          </RNText>
-          <Muted small numberOfLines={2}>
-            {parts.join(' · ')}
-          </Muted>
+        <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+          <UAvatar name={item.name} source={foodPhoto(item.name)} size={44} />
+          <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+            <RNText
+              className="text-ink"
+              numberOfLines={1}
+              style={{
+                fontFamily: FONT.display,
+                fontSize: 15,
+              }}
+            >
+              {item.name}
+            </RNText>
+            <Muted small numberOfLines={1}>
+              {parts.join(' · ')}
+            </Muted>
+          </View>
+          {item.recipes.length > 1 ? (
+            <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12 }}>
+              x{item.recipes.length}
+            </RNText>
+          ) : null}
+          <Check checked={item.checked} onChange={onToggle} label={item.name} />
         </View>
-        {item.recipes.length > 1 ? (
-          <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12 }}>
-            x{item.recipes.length}
-          </RNText>
-        ) : null}
-        <Check checked={item.checked} onChange={onToggle} label={item.name} />
       </Pressable>
     );
   },

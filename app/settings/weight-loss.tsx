@@ -137,14 +137,14 @@ export default function WeightLossScreen() {
           <RNText
             accessibilityLabel={weightNum > 0 ? `${calorieTarget} cal` : undefined}
             className="text-ink"
-            style={{ fontFamily: FONT.display, fontSize: 48, lineHeight: 48, letterSpacing: -1.44 }}
+            style={{ fontFamily: FONT.display, fontSize: 48, lineHeight: 48, height: 48, letterSpacing: -1.44 }}
           >
             {weightNum > 0 ? calorieTarget.toLocaleString() : '-'}{' '}
-            <RNText className="text-muted" style={{ fontSize: 16, letterSpacing: 0 }}>
+            <RNText className="text-muted" style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0 }}>
               cal
             </RNText>
           </RNText>
-          <ProgressBar value={weightNum > 0 && tdee > 0 ? calorieTarget / tdee : 0} label={t('weightGoal.dailyTarget', 'Daily target')} />
+          <ProgressBar variant="accent" value={weightNum > 0 && tdee > 0 ? calorieTarget / tdee : 0} label={t('weightGoal.dailyTarget', 'Daily target')} />
           <Muted small>
             {weightNum > 0
               ? t('weightGoal.tdee', 'Estimated TDEE {{tdee}} · {{pace}} a week', { tdee: tdee.toLocaleString(), pace })
@@ -176,8 +176,9 @@ export default function WeightLossScreen() {
         <View style={{ gap: 10 }}>
           <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
             <Title>{t('weightGoal.activity', 'Activity level')}</Title>
-            <View style={{ width: 132 }}>
+            <View style={{ width: 116 }}>
               <Segmented<'lbs' | 'kg'>
+                segmentHeight={34}
                 value={unit}
                 onChange={setUnit}
                 options={[
@@ -207,15 +208,21 @@ export default function WeightLossScreen() {
             {DEFICIT_OPTIONS.map((option) => (
               <View key={option.value} className="flex-1">
                 <Tile
-                  value={option.value}
-                  label={option.description}
                   selected={deficit === option.value}
                   accessibilityLabel={t('weightGoal.paceOption', '{{cal}} cal deficit, {{pace}} a week', {
                     cal: option.value,
                     pace: option.description,
                   })}
                   onPress={() => setDeficit(option.value)}
-                />
+                >
+                  <RNText
+                    className="text-ink"
+                    style={{ fontFamily: FONT.display, fontSize: 17, lineHeight: 19.55, letterSpacing: -0.34 }}
+                  >
+                    {option.value}
+                  </RNText>
+                  <Muted small>{option.description}</Muted>
+                </Tile>
               </View>
             ))}
           </View>

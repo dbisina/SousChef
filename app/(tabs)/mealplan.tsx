@@ -15,7 +15,7 @@ import { useMealPlan, useMealPlanStats } from '@/hooks/useMealPlan';
 import { usePantryStore } from '@/stores/pantryStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useAuthStore } from '@/stores/authStore';
-import { WeekView, PlanGenerator, SavingsDisplay } from '@/components/mealplan';
+import { WeekView, WeekNav, PlanGenerator, SavingsDisplay } from '@/components/mealplan';
 import { Loading } from '@/components/ui/Loading';
 import {
   Body,
@@ -242,7 +242,6 @@ export default function MealPlanScreen() {
     return <Loading fullScreen message={t('plan.loading', 'Loading meal plan...')} />;
   }
 
-  const unchecked = currentPlan ? currentPlan.shoppingList.filter((i) => !i.checked).length : 0;
 
   return (
     <Screen bare>
@@ -271,21 +270,13 @@ export default function MealPlanScreen() {
           </View>
         ) : null}
 
-        {currentPlan && stats.estimatedSavings > 0 ? (
-          <SavingsDisplay savedByPlanning={stats.estimatedSavings} expiringItemsUsed={stats.expiringItemsUsed} />
-        ) : null}
-
         {currentPlan ? (
           <>
             <WeekView
               days={currentPlan.days}
-              selectedWeekStart={selectedWeekStart}
-              onPreviousWeek={() => shiftWeek(-7)}
-              onNextWeek={() => shiftWeek(7)}
               onMealPress={handleMealPress}
               onAddMeal={handleAddMeal}
               onRemoveMeal={handleRemoveMeal}
-              isCurrentWeek={isCurrentWeek}
             />
 
             <Pressable
@@ -302,29 +293,41 @@ export default function MealPlanScreen() {
                 })}
               </Muted>
               <LinkText className="text-ink">
-                {unchecked > 0
-                  ? t('plan.shoppingLinkN', 'Shopping list ({{n}}) →', { n: unchecked })
-                  : t('plan.shoppingLink', 'Shopping list →')}
+                {t('plan.shoppingLink', 'Shopping list →')}
               </LinkText>
             </Pressable>
 
-            {isCurrentWeek && stats.totalMeals > 0 ? (
-              <UButton
-                label={t('plan.finalizeCta', 'Finalize & View Shopping List')}
-                onPress={handleFinalizePlan}
-              />
-            ) : null}
+            {/* Secondary controls: the design stops at the summary row, so these sit below the fold. */}
+            <View style={{ gap: 14, paddingTop: 96 }}>
+              {stats.estimatedSavings > 0 ? (
+                <SavingsDisplay savedByPlanning={stats.estimatedSavings} expiringItemsUsed={stats.expiringItemsUsed} />
+              ) : null}
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t('plan.reset', 'Reset')}
-              onPress={handleClearPlan}
-              className="flex-row items-center justify-center"
-              style={{ minHeight: 44, gap: 6 }}
-            >
-              <Icon name="refresh" size="sm" color="muted" />
-              <LinkText>{t('plan.reset', 'Reset')}</LinkText>
-            </Pressable>
+              <WeekNav
+                selectedWeekStart={selectedWeekStart}
+                isCurrentWeek={isCurrentWeek}
+                onPreviousWeek={() => shiftWeek(-7)}
+                onNextWeek={() => shiftWeek(7)}
+              />
+
+              {isCurrentWeek && stats.totalMeals > 0 ? (
+                <UButton
+                  label={t('plan.finalizeCta', 'Finalize & View Shopping List')}
+                  onPress={handleFinalizePlan}
+                />
+              ) : null}
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('plan.reset', 'Reset')}
+                onPress={handleClearPlan}
+                className="flex-row items-center justify-center"
+                style={{ minHeight: 44, gap: 6 }}
+              >
+                <Icon name="refresh" size="sm" color="muted" />
+                <LinkText>{t('plan.reset', 'Reset')}</LinkText>
+              </Pressable>
+            </View>
           </>
         ) : (
           <View className="items-center" style={{ paddingTop: 48, paddingHorizontal: 12, gap: 16 }}>

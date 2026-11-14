@@ -21,12 +21,14 @@ import {
   UIconButton,
 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
+import { FIXED } from '@/stores/themeStore';
 import { db, doc, getDoc } from '@/lib/firebase';
+import { isDesignReview } from '@/lib/designReview';
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <View className="items-center">
-      <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 20, lineHeight: 24 }}>
+      <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 20, lineHeight: 29 }}>
         {value}
       </RNText>
       <Muted small>{label}</Muted>
@@ -54,6 +56,16 @@ export default function UserProfileScreen() {
 
   const loadProfile = useCallback(async () => {
     if (!id) return;
+    // Design-review build only (dead code otherwise): the fidelity harness has no backend, so it injects the profile.
+    const review = isDesignReview
+      ? (window as unknown as { __REVIEW_PROFILE__?: { user: User; recipes: Recipe[] } }).__REVIEW_PROFILE__
+      : undefined;
+    if (review) {
+      setProfileUser(review.user);
+      setRecipes(review.recipes);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     try {
       const userDoc = await getDoc(doc(db, 'users', id));
@@ -114,7 +126,7 @@ export default function UserProfileScreen() {
         className="flex-row items-center justify-between"
         style={{ position: 'absolute', top: topInset, left: 20, right: 20, zIndex: 2 }}
       >
-        <UIconButton icon="back" tone="glass" label={t('common.back', 'Back')} onPress={() => router.back()} />
+        <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
       </View>
       <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 6 }}>
         {profileUser.isVerifiedChef ? (
@@ -125,7 +137,11 @@ export default function UserProfileScreen() {
         <Display size={30} numberOfLines={2}>
           {profileUser.displayName}
         </Display>
-        {profileUser.bio ? <Muted numberOfLines={2}>{profileUser.bio}</Muted> : null}
+        {profileUser.bio ? (
+          <RNText numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4, color: FIXED.captionSub }}>
+            {profileUser.bio}
+          </RNText>
+        ) : null}
       </View>
     </>
   );
@@ -153,7 +169,7 @@ export default function UserProfileScreen() {
           </ToneBlock>
         )}
 
-        <SheetPanel>
+        <SheetPanel gap={14}>
           <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
             <Stat value={String(recipes.length)} label={t('cookbooks.profile.recipes', 'Recipes')} />
             <Stat value={compact(followerCount)} label={t('cookbooks.profile.followers', 'Followers')} />
@@ -161,6 +177,7 @@ export default function UserProfileScreen() {
             {!isOwnProfile && currentUser ? (
               <UButton
                 size="sm"
+                style={{ paddingHorizontal: 26 }}
                 variant={isFollowing ? 'ghost' : 'accent'}
                 label={isFollowing ? t('cookbooks.profile.following', 'Following') : t('cookbooks.profile.follow', 'Follow')}
                 onPress={handleFollowToggle}

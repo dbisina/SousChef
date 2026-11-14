@@ -371,6 +371,7 @@ export default function ScanScreen() {
           paddingTop: 22,
           paddingHorizontal: 24,
           paddingBottom: bottomPad,
+          minHeight: 220,
           gap: 20,
         }}
       >
@@ -417,7 +418,7 @@ export default function ScanScreen() {
           />
           <View
             className="items-center justify-center border-[3px] border-paper"
-            style={{ width: 92, height: 92, borderRadius: 46 }}
+            style={{ width: 92, height: 92, borderRadius: 46, marginVertical: -7 }}
           >
             <Pressable
               accessibilityRole="button"

@@ -135,11 +135,11 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
 }
 
 /** Inline sheet surface (.sheet) that overlaps the content above it by 34px, e.g. recipe detail. */
-export function SheetPanel({ children }: { children: React.ReactNode }) {
+export function SheetPanel({ children, gap = 16 }: { children: React.ReactNode; gap?: number }) {
   return (
     <View
       className="bg-ground flex-1"
-      style={{ borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingTop: 24, paddingHorizontal: 20, gap: 16, marginTop: -34 }}
+      style={{ borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingTop: 24, paddingHorizontal: 20, gap, marginTop: -34 }}
     >
       {children}
     </View>

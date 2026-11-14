@@ -147,16 +147,16 @@ export default function ShelfRecipeScreen() {
             className="flex-row items-center justify-between"
             style={{ position: 'absolute', top: topInset, left: 20, right: 20, zIndex: 2 }}
           >
-            <UIconButton icon="back" tone="glass" label={t('common.back', 'Back')} onPress={() => router.back()} />
+            <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={t('cookbooks.shelfRecipe.openBook', 'Open {{title}}', { title: cookbook.title })}
               onPress={() => router.back()}
               style={{ flexShrink: 1, marginHorizontal: 8 }}
             >
-              <Tag tone="glass" large icon="book" label={cookbook.title} />
+              <Tag tone="glassDark" large icon="book" label={cookbook.title} />
             </Pressable>
-            <UIconButton icon="share" tone="glass" label={t('cookbooks.shelfRecipe.share', 'Share')} onPress={handleShare} />
+            <UIconButton icon="share" tone="glassDark" label={t('cookbooks.shelfRecipe.share', 'Share')} onPress={handleShare} />
           </View>
           <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 4 }}>
             <Display size={30} numberOfLines={3}>

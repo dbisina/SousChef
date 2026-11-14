@@ -5,10 +5,11 @@
  */
 
 import React, { memo } from 'react';
-import { Pressable, Text as RNText, View } from 'react-native';
+import { Alert, Pressable, Text as RNText, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Icon, ListRow, PhotoCard, Tag, UIconButton, FONT } from '@/components/ui';
 import { MealPlanDay, MealType } from '@/types/mealplan';
+import { useRecipeStore } from '@/stores/recipeStore';
 import { mealPhoto } from './foodPhoto';
 
 interface DayCardProps {
@@ -34,8 +35,31 @@ const MEAL_LABEL: Record<MealType, [string, string]> = {
 export const DayCard: React.FC<DayCardProps> = memo(
   ({ day, dayName, onMealPress, onAddMeal, onRemoveMeal }) => {
     const { t } = useTranslation();
+    const recipes = useRecipeStore((st) => st.recipes);
     // Breakfast, lunch and dinner always show a slot; snack only when one is planned.
     const types: MealType[] = day.snack ? [...CORE_MEALS, 'snack'] : CORE_MEALS;
+
+    // Design shows the cook time; fall back to servings when the recipe is not in the store.
+    const mealSubtitle = (recipeId: string, servings: number) => {
+      const r = recipes.find((x) => x.id === recipeId);
+      const mins = r ? (r.prepTime || 0) + (r.cookTime || 0) : 0;
+      return mins > 0
+        ? t('plan.minutes', '{{n}} min', { n: mins })
+        : t('plan.servings', '{{n}} servings', { n: servings });
+    };
+
+    // One glass button like the design: swap, or remove when a remove handler exists.
+    const onSwap = (type: MealType, name: string) => {
+      if (!onRemoveMeal) {
+        onAddMeal(type);
+        return;
+      }
+      Alert.alert(name, undefined, [
+        { text: t('plan.swapMealShort', 'Swap'), onPress: () => onAddMeal(type) },
+        { text: t('plan.remove', 'Remove'), style: 'destructive', onPress: () => onRemoveMeal(type) },
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+      ]);
+    };
 
     return (
       <View style={{ gap: 14 }}>
@@ -68,31 +92,19 @@ export const DayCard: React.FC<DayCardProps> = memo(
               title={meal.recipeName}
               titleSize={17}
               captionInset={16}
-              subtitle={t('plan.servings', '{{n}} servings', { n: meal.servings })}
+              subtitle={mealSubtitle(meal.recipeId, meal.servings)}
               accessibilityLabel={`${label}, ${meal.recipeName}, ${dayName}`}
               onPress={() => onMealPress(type, meal.recipeId)}
               topLeft={<Tag tone="glassDark" label={label} />}
               topRight={
-                <>
-                  <UIconButton
-                    icon="refresh"
-                    tone="glassDark"
-                    size={38}
-                    iconSize="sm"
-                    label={t('plan.swapMeal', 'Swap {{meal}}', { meal: label.toLowerCase() })}
-                    onPress={() => onAddMeal(type)}
-                  />
-                  {onRemoveMeal ? (
-                    <UIconButton
-                      icon="close"
-                      tone="glassDark"
-                      size={38}
-                      iconSize="sm"
-                      label={t('plan.removeMeal', 'Remove {{meal}}', { meal: label.toLowerCase() })}
-                      onPress={() => onRemoveMeal(type)}
-                    />
-                  ) : null}
-                </>
+                <UIconButton
+                  icon="refresh"
+                  tone="glassDark"
+                  size={38}
+                  iconSize="sm"
+                  label={t('plan.swapMeal', 'Swap {{meal}}', { meal: label.toLowerCase() })}
+                  onPress={() => onSwap(type, meal.recipeName)}
+                />
               }
             />
           );

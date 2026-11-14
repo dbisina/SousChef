@@ -97,15 +97,17 @@ interface SegmentedProps<T extends string> {
   options: { value: T; label: string; icon?: IconName }[];
   value: T;
   onChange: (value: T) => void;
+  /** Segment height in px (default 46; the compact unit toggle uses 34). */
+  segmentHeight?: number;
 }
 
 /** .seg: pill group, 46px segments, selected = ink fill. */
-export function Segmented<T extends string>({ options, value, onChange }: SegmentedProps<T>) {
+export function Segmented<T extends string>({ options, value, onChange, segmentHeight = 46 }: SegmentedProps<T>) {
   const t = useTokens();
   return (
     <View
       accessibilityRole="tablist"
-      style={{ flexDirection: 'row', backgroundColor: t['surface-2'], borderRadius: 27, padding: 4 }}
+      style={{ flexDirection: 'row', backgroundColor: t['surface-2'], borderRadius: (segmentHeight + 8) / 2, padding: 4 }}
     >
       {options.map((o) => {
         const on = o.value === value;
@@ -116,14 +118,15 @@ export function Segmented<T extends string>({ options, value, onChange }: Segmen
             accessibilityLabel={o.label}
             accessibilityState={{ selected: on }}
             onPress={() => onChange(o.value)}
+            hitSlop={segmentHeight < 44 ? (44 - segmentHeight) / 2 : 0}
             style={{
               flex: 1,
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
               backgroundColor: on ? t.ink : 'transparent',
-              height: 46,
-              borderRadius: 23,
+              height: segmentHeight,
+              borderRadius: segmentHeight / 2,
               gap: 6,
             }}
           >

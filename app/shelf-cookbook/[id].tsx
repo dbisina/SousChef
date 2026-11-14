@@ -141,10 +141,10 @@ export default function ShelfCookbookDetailScreen() {
             className="flex-row items-center justify-between"
             style={{ position: 'absolute', top: topInset, left: 20, right: 20 }}
           >
-            <UIconButton icon="back" tone="glass" label={t('common.back', 'Back')} onPress={() => router.back()} />
+            <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
             <UIconButton
               icon="trash"
-              tone="glass"
+              tone="glassDark"
               label={t('cookbooks.shelfBook.removeLabel', 'Remove cookbook')}
               onPress={handleDelete}
             />
@@ -172,21 +172,20 @@ export default function ShelfCookbookDetailScreen() {
               ) : null}
               <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                 <Tag
-                  tone="glass"
-                  large
+                  tone="glassDark"
                   label={t('cookbooks.shelfBook.recipeCount', '{{count}} recipes', { count: recipes.length })}
                 />
                 {isFetching && (
-                  <Tag tone="glassDark" large label={t('cookbooks.shelfBook.findingMore', 'Finding more…')} />
+                  <Tag tone="glassDark" label={t('cookbooks.shelfBook.findingMore', 'Finding more…')} />
                 )}
               </View>
             </View>
           </View>
         </ToneBlock>
 
-        <SheetPanel>
+        <SheetPanel gap={14}>
           {needsScan && (
-            <UCard style={{ borderRadius: 24, paddingVertical: 12, paddingStart: 16, paddingEnd: 12, gap: 8 }}>
+            <UCard style={{ borderRadius: 24, paddingVertical: 12, paddingStart: 16, paddingEnd: 12 }}>
               <View className="flex-row items-center" style={{ gap: 12 }}>
                 <Icon name="warning" />
                 <View className="flex-1" style={{ gap: 2 }}>
@@ -198,15 +197,6 @@ export default function ShelfCookbookDetailScreen() {
                   onPress={() => setShowScanner(true)}
                 />
               </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={t('cookbooks.shelfBook.retryAi', 'Try the AI search again')}
-                onPress={handleRetryFetch}
-                disabled={isFetching}
-                style={{ minHeight: 44, justifyContent: 'center', paddingStart: 32 }}
-              >
-                <LinkText accent>{t('cookbooks.shelfBook.retryAi', 'Try the AI search again')}</LinkText>
-              </Pressable>
             </UCard>
           )}
 
@@ -244,8 +234,7 @@ export default function ShelfCookbookDetailScreen() {
               {recipes.map((recipe) => (
                 <ListRow
                   key={recipe.id}
-                  tall
-                  title={recipe.name}
+                      title={recipe.name}
                   subtitle={[
                     recipe.fullContent
                       ? t('cookbooks.shelfBook.loaded', 'Loaded')
@@ -266,6 +255,18 @@ export default function ShelfCookbookDetailScreen() {
                 />
               ))}
             </Rows>
+          )}
+
+          {needsScan && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('cookbooks.shelfBook.retryAi', 'Try the AI search again')}
+              onPress={handleRetryFetch}
+              disabled={isFetching}
+              style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <LinkText accent>{t('cookbooks.shelfBook.retryAi', 'Try the AI search again')}</LinkText>
+            </Pressable>
           )}
         </SheetPanel>
       </ScrollView>

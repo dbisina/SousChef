@@ -154,12 +154,6 @@ export default function WasteTrackingScreen() {
       >
         <WasteStatsCard stats={wasteStats} />
 
-        {wasteStats ? (
-          <UCard>
-            <WasteBreakdown wasteByReason={wasteStats.wasteByReason} />
-          </UCard>
-        ) : null}
-
         <View className="flex-row items-center justify-between">
           <H2>{t('planWaste.recent', 'Recent')}</H2>
           <Muted small>{t('planWaste.thisWeek', 'This week')}</Muted>
@@ -182,6 +176,14 @@ export default function WasteTrackingScreen() {
             ))}
           </Rows>
         )}
+
+        {wasteStats ? (
+          <View style={{ paddingTop: 72 }}>
+            <UCard>
+              <WasteBreakdown wasteByReason={wasteStats.wasteByReason} />
+            </UCard>
+          </View>
+        ) : null}
       </ScrollView>
 
       <Modal

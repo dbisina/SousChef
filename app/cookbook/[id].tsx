@@ -14,7 +14,6 @@ import {
   ListRow,
   Muted,
   PhotoCard,
-  Rows,
   Screen,
   SectionLabel,
   SheetPanel,
@@ -108,13 +107,13 @@ export default function CookbookDetailScreen() {
             className="flex-row items-center justify-between"
             style={{ position: 'absolute', top: topInset, left: 20, right: 20, zIndex: 2 }}
           >
-            <UIconButton icon="back" tone="glass" label={t('common.back', 'Back')} onPress={() => router.back()} />
+            <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
             <View className="flex-row" style={{ gap: 10 }}>
-              <UIconButton icon="share" tone="glass" label={t('cookbooks.curated.share', 'Share')} onPress={handleShare} />
+              <UIconButton icon="share" tone="glassDark" label={t('cookbooks.curated.share', 'Share')} onPress={handleShare} />
               {user ? (
                 <UIconButton
                   icon="heart"
-                  tone="glass"
+                  tone="glassDark"
                   label={t('cookbooks.curated.like', 'Like')}
                   onPress={handleLike}
                 />
@@ -135,7 +134,7 @@ export default function CookbookDetailScreen() {
           </View>
         </PhotoCard>
 
-        <SheetPanel>
+        <SheetPanel gap={12}>
           {(cookbook.category || cookbook.description) && (
             <View style={{ gap: 10 }}>
               {cookbook.category ? <Tag tone="o" label={cookbook.category} /> : null}
@@ -149,18 +148,18 @@ export default function CookbookDetailScreen() {
               <Muted center>{t('cookbooks.curated.empty', 'No recipes in this cookbook yet')}</Muted>
             </View>
           ) : (
-            <Rows>
+            <View style={{ gap: 12 }}>
               {recipes.map((recipe) => (
-                <ListRow
-                  key={recipe.id}
-                  tall
-                  title={recipe.title}
-                  subtitle={`${t('cookbooks.curated.minutes', '{{n}} min', { n: recipe.prepTime + recipe.cookTime })} · ${difficultyLabel(String(recipe.difficulty))}`}
-                  leading={<Thumb source={{ uri: recipe.imageURL }} name={recipe.title} size={68} />}
-                  onPress={() => handleRecipePress(recipe)}
-                />
+                <View key={recipe.id} style={{ minHeight: 76, justifyContent: 'center' }}>
+                  <ListRow
+                    title={recipe.title}
+                    subtitle={`${t('cookbooks.curated.minutes', '{{n}} min', { n: recipe.prepTime + recipe.cookTime })} · ${difficultyLabel(String(recipe.difficulty))}`}
+                    leading={<Thumb source={{ uri: recipe.imageURL }} name={recipe.title} size={68} />}
+                    onPress={() => handleRecipePress(recipe)}
+                  />
+                </View>
               ))}
-            </Rows>
+            </View>
           )}
         </SheetPanel>
       </ScrollView>

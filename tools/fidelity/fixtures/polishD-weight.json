@@ -1,0 +1,31 @@
+{
+ "wait": 600,
+ "stores": {
+  "auth": {
+   "user": {
+    "id": "user1",
+    "email": "me@example.com",
+    "displayName": "[YOUR NAME]",
+    "role": "user",
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "savedRecipes": [],
+    "dietaryPreferences": [],
+    "allergies": [],
+    "healthConditions": [],
+    "weightLossGoal": {
+     "currentWeight": 168,
+     "targetWeight": 150,
+     "startWeight": 170,
+     "unit": "lbs",
+     "activityLevel": "moderate",
+     "dailyCalorieTarget": 1650,
+     "dailyCalorieDeficit": 500,
+     "startDate": 1793756849401
+    }
+   },
+   "isGuest": false
+  }
+ }
+}

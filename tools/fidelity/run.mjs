@@ -106,6 +106,8 @@ async function shootRn(browser, base, name, cfg, theme, height, fixture) {
     }, fixture.localStorage);
   }
   if (fixture?.grant) await ctx.grantPermissions(fixture.grant).catch(() => {});
+  // Fixture `windowState` is assigned onto window before any app code runs (data the app fetches from the network, e.g. user/[id]).
+  if (fixture?.windowState) await ctx.addInitScript((st) => Object.assign(window, st), fixture.windowState);
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message || e).slice(0, 300)));
@@ -134,6 +136,8 @@ async function shootRn(browser, base, name, cfg, theme, height, fixture) {
     await page.waitForTimeout(fixture.wait ?? 800);
     if (!fixture.reload && !fixture.navigate) fx = await page.evaluate(`(${HYDRATE})(${JSON.stringify(fixture)}, false)`);
     await page.waitForTimeout(500);
+    // Screens that refetch when a gated tier flips (mealplan) set isLoading again; re-apply once more.
+    if (fixture.reapply) { fx = await page.evaluate(`(${HYDRATE})(${JSON.stringify(fixture)}, false)`); await page.waitForTimeout(400); }
   }
   await settle(page, 900);
   const bodyText = (await page.evaluate(() => document.body.innerText)).slice(0, 4000);

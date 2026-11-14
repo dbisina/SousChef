@@ -268,23 +268,6 @@ export default function CookbookLibraryScreen() {
             </View>
           )}
 
-          {cookbooks.length > 0 && (
-            <UButton
-              variant="ghost"
-              icon={suggestions.length > 0 ? 'refresh' : undefined}
-              loading={isSuggesting}
-              disabled={isSuggesting}
-              onPress={handleGetSuggestions}
-              label={
-                isSuggesting
-                  ? t('cookbooks.library.findingRecipes', 'Finding recipes...')
-                  : suggestions.length > 0
-                    ? t('cookbooks.library.refreshSuggestions', 'Refresh suggestions')
-                    : t('cookbooks.library.whatCanICook', 'What can I cook from my books?')
-              }
-            />
-          )}
-
           <UCard style={{ borderRadius: 30, gap: 12 }}>
             <View style={{ gap: 4 }}>
               <H2>{t('cookbooks.library.addTitle', 'Add a cookbook')}</H2>
@@ -312,6 +295,23 @@ export default function CookbookLibraryScreen() {
               onPress={handleAdd}
             />
           </UCard>
+
+          {cookbooks.length > 0 && (
+            <UButton
+              variant="ghost"
+              icon={suggestions.length > 0 ? 'refresh' : undefined}
+              loading={isSuggesting}
+              disabled={isSuggesting}
+              onPress={handleGetSuggestions}
+              label={
+                isSuggesting
+                  ? t('cookbooks.library.findingRecipes', 'Finding recipes...')
+                  : suggestions.length > 0
+                    ? t('cookbooks.library.refreshSuggestions', 'Refresh suggestions')
+                    : t('cookbooks.library.whatCanICook', 'What can I cook from my books?')
+              }
+            />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
