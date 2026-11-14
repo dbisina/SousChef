@@ -34,6 +34,8 @@ function IconBase({ name, size = 'md', color, filled, accessibilityLabel }: Icon
       height={spec.px}
       viewBox="0 0 24 24"
       fill="none"
+      // react-native-svg web renders a raw <svg>; make it positioned so it paints above the absolute Glass layers.
+      style={{ position: 'relative' }}
       accessible={!!accessibilityLabel}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole={accessibilityLabel ? 'image' : undefined}

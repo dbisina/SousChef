@@ -18,24 +18,32 @@ interface Props {
 export function DishRow({ dish, inCart, onPress }: Props) {
   const { t } = useTranslation();
   return (
-    <View className="flex-row items-center" style={{ gap: 14, paddingVertical: 12 }}>
+    <View className="flex-row items-center" style={{ gap: 14, height: 115 }}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={dish.name}
         onPress={onPress}
-        className="flex-1 flex-row items-center"
-        style={({ pressed }) => ({ gap: 14, minWidth: 0, opacity: pressed ? 0.75 : 1 })}
+        style={({ pressed }) => ({
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 14,
+          minWidth: 0,
+          opacity: pressed ? 0.75 : 1,
+        })}
       >
         <Thumb source={SAMPLE[dish.photo]} name={dish.name} size={72} />
-        <View className="flex-1" style={{ minWidth: 0, gap: 5 }}>
-          <View style={{ gap: 2 }}>
+        <View className="flex-1" style={{ minWidth: 0, height: 115, paddingTop: 1 }}>
+          <View style={{ gap: 3 }}>
             <Title numberOfLines={1}>{dish.name}</Title>
             <Muted small numberOfLines={1}>
               {dish.description}
             </Muted>
           </View>
-          <NutritionTags dish={dish} small />
-          <Body style={{ fontSize: 13 }}>{formatPrice(dish.pricePence)}</Body>
+          <View style={{ marginTop: 6 }}>
+            <NutritionTags dish={dish} small />
+          </View>
+          <Body style={{ fontSize: 12, marginTop: 26 }}>{formatPrice(dish.pricePence)}</Body>
         </View>
       </Pressable>
       <UIconButton

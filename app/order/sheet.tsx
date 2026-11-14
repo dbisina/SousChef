@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, Text as RNText, View } from 'react-native';
+import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { SAMPLE } from '@/assets/sample';
@@ -12,16 +13,15 @@ import {
   PhotoCard,
   Rows,
   Screen,
-  Sheet,
   Stepper,
   Tag,
   Thumb,
   Title,
   UButton,
   USwitch,
-  SectionLabel,
 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
+import { FIXED } from '@/stores/themeStore';
 import { NutritionTags } from '@/components/orders/NutritionTags';
 import { allergenName, focusNutrient, matchingAllergens } from '@/components/orders/dishInfo';
 import { PREVIEW_LABEL } from '@/constants/features';
@@ -36,6 +36,7 @@ export default function OrderSheetScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
+  const insets = useSafeAreaInsets();
   const cart = useOrderStore((s) => s.cart);
   const addToOrder = useOrderStore((s) => s.addToOrder);
   const setQty = useOrderStore((s) => s.setQty);
@@ -122,10 +123,34 @@ export default function OrderSheetScreen() {
   return (
     <Screen bare>
       {hero ? <PhotoCard source={SAMPLE[hero.photo]} height={360} radius={0} fade="none" /> : null}
-      <Sheet visible onClose={close} title={t('orders.sheet.title', 'Order sheet')}>
+      {/* .scrim + .sheet (top:150): inline so the panel keeps the design's fixed top edge. */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Close ${t('orders.sheet.title', 'Order sheet')}`}
+        onPress={close}
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: FIXED.scrim }}
+      />
+      <View
+        accessibilityViewIsModal
+        accessibilityLabel={t('orders.sheet.title', 'Order sheet')}
+        className="bg-ground"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          top: 150,
+          borderTopLeftRadius: 34,
+          borderTopRightRadius: 34,
+          paddingTop: 24,
+          paddingHorizontal: 20,
+          paddingBottom: Math.max(insets.bottom, 20) + 14,
+          gap: 14,
+        }}
+      >
         {header}
         {!hero ? (
-          <View style={{ gap: 16 }}>
+          <View style={{ gap: 14 }}>
             <Muted center>{t('orders.sheet.empty', 'Your order is empty')}</Muted>
             <UButton label={t('orders.sheet.browse', 'Browse the menu')} onPress={close} />
           </View>
@@ -160,7 +185,7 @@ export default function OrderSheetScreen() {
                       <View
                         accessible
                         className={`flex-row items-center ${a.bad ? 'bg-tag-r' : 'bg-tag-g'}`}
-                        style={{ padding: 14, borderRadius: 20, gap: 10 }}
+                        style={{ paddingVertical: 12, paddingHorizontal: 14, borderRadius: 20, gap: 10 }}
                       >
                         <Icon name={a.bad ? 'warning' : 'check'} size="sm" color={a.bad ? 'tag-r-fg' : 'tag-g-fg'} />
                         <RNText
@@ -175,8 +200,10 @@ export default function OrderSheetScreen() {
 
                   {dish.extras.length ? (
                     <View style={{ gap: 8 }}>
-                      <SectionLabel>{t('orders.sheet.makeItAMeal', 'Make it a meal')}</SectionLabel>
-                      <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                      <RNText className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12, paddingStart: 4 }}>
+                        {t('orders.sheet.makeItAMeal', 'Make it a meal')}
+                      </RNText>
+                      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0, marginHorizontal: -20 }} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
                         <Chip
                           label={t('orders.sheet.justThe', 'Just the {{name}}', {
                             name: (dish.name.split(' ').pop() ?? dish.name).toLowerCase(),
@@ -192,7 +219,7 @@ export default function OrderSheetScreen() {
                             onPress={() => toggleExtra(e.id)}
                           />
                         ))}
-                      </View>
+                      </ScrollView>
                     </View>
                   ) : null}
 
@@ -224,12 +251,20 @@ export default function OrderSheetScreen() {
 
               <Rows box>
                 <ListRow
-                  icon="pin"
+                  leading={
+                    <View className="items-center justify-center bg-ground" style={{ width: 44, height: 44, borderRadius: 22 }}>
+                      <Icon name="pin" />
+                    </View>
+                  }
                   title={t('orders.sheet.deliverTo', 'Deliver to')}
                   subtitle={t('orders.sheet.addAddress', 'Add your address')}
                 />
                 <ListRow
-                  icon="drop"
+                  leading={
+                    <View className="items-center justify-center bg-ground" style={{ width: 44, height: 44, borderRadius: 22 }}>
+                      <Icon name="drop" />
+                    </View>
+                  }
                   title={t('orders.sheet.logToHealth', 'Log to Health')}
                   subtitle={t('orders.sheet.logToHealthHint', 'Adds this meal and reminds you to check')}
                   right={
@@ -241,6 +276,15 @@ export default function OrderSheetScreen() {
                   }
                 />
               </Rows>
+              <View className="flex-row items-center" style={{ gap: 8 }}>
+                <Tag tone="o" label={PREVIEW_LABEL} />
+                <Muted small style={{ flex: 1 }}>
+                  {t('orders.demoNote', 'Demo order. No payment is taken and nothing is delivered.')}
+                </Muted>
+              </View>
+              {dish ? (
+                <UButton variant="ghost" size="sm" label={t('orders.sheet.addToOrder', 'Add to order')} onPress={addOnly} style={{ alignSelf: 'center' }} />
+              ) : null}
             </ScrollView>
 
             <View className="flex-row items-center justify-between">
@@ -254,26 +298,15 @@ export default function OrderSheetScreen() {
                 {formatPrice(totals.totalPence)}
               </RNText>
             </View>
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-              <Tag tone="o" label={PREVIEW_LABEL} />
-              <Muted small style={{ flex: 1 }}>
-                {t('orders.demoNote', 'Demo order. No payment is taken and nothing is delivered.')}
-              </Muted>
-            </View>
-            <View style={{ gap: 10 }}>
-              <UButton
-                label={t('orders.sheet.pay', 'Pay {{total}}', { total: formatPrice(totals.totalPence) })}
-                onPress={pay}
-                loading={paying}
-                disabled={totals.itemCount === 0}
-              />
-              {dish ? (
-                <UButton variant="ghost" size="sm" label={t('orders.sheet.addToOrder', 'Add to order')} onPress={addOnly} style={{ alignSelf: 'center' }} />
-              ) : null}
-            </View>
+            <UButton
+              label={t('orders.sheet.pay', 'Pay {{total}}', { total: formatPrice(totals.totalPence) })}
+              onPress={pay}
+              loading={paying}
+              disabled={totals.itemCount === 0}
+            />
           </>
         )}
-      </Sheet>
+      </View>
     </Screen>
   );
 }

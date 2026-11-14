@@ -88,11 +88,11 @@ export default function RestaurantScreen() {
               {restaurant.name}
             </RNText>
             <View className="flex-row flex-wrap" style={{ gap: 6 }}>
-              <Tag tone="glassDark" icon="star" label={`${restaurant.rating.toFixed(1)} (${restaurant.ratingCount})`} />
+              <Tag tone="glassDark" label={`★ ${restaurant.rating.toFixed(1)} (${restaurant.ratingCount})`} />
               <Tag tone="glassDark" label={t('restaurant.distance', '{{km}} km', { km: restaurant.distanceKm })} />
               <Tag
                 tone="glassDark"
-                label={t('restaurant.eta', '{{from}} to {{to}} min', { from: restaurant.etaMin[0], to: restaurant.etaMin[1] })}
+                label={t('restaurant.etaRange', '{{from}}–{{to}} min', { from: restaurant.etaMin[0], to: restaurant.etaMin[1] })}
               />
               <Tag tone="glassDark" label={t('restaurant.hygiene', 'Hygiene {{score}}', { score: restaurant.hygiene })} />
             </View>
@@ -100,7 +100,7 @@ export default function RestaurantScreen() {
         </PhotoCard>
 
         <SheetPanel>
-          <View style={{ marginHorizontal: -20 }}>
+          <View style={{ marginHorizontal: -20, marginBottom: -3 }}>
             <ChipRow>
               {restaurant.categories.map((c) => (
                 <Chip key={c} label={c} on={category === c} onPress={() => setCategory(c)} />
@@ -126,7 +126,7 @@ export default function RestaurantScreen() {
       {count > 0 ? (
         <View
           className="flex-row items-center justify-between bg-night"
-          style={{ position: 'absolute', left: 20, right: 20, bottom, height: 58, borderRadius: 29, paddingStart: 22, paddingEnd: 7, zIndex: 3 }}
+          style={{ position: 'absolute', left: 20, right: 20, bottom, height: 58, borderRadius: 29, paddingStart: 22, paddingEnd: 8, gap: 10, zIndex: 3 }}
         >
           <RNText className="text-paper" style={{ fontFamily: FONT.display, fontSize: 15 }}>
             {t('restaurant.cartSummary', '{{items}} · {{price}}', {
@@ -139,6 +139,7 @@ export default function RestaurantScreen() {
             variant="accent"
             label={t('restaurant.viewOrder', 'View order')}
             onPress={() => router.push('/order/sheet')}
+            style={{ flex: 1, alignSelf: 'auto' }}
           />
         </View>
       ) : null}

@@ -20,8 +20,8 @@
      "subtotalPence": 1050,
      "deliveryPence": 199,
      "totalPence": 1249,
-     "status": "Preparing",
-     "placedAt": "2026-11-13T23:55:15.738Z",
+     "status": "On the way",
+     "placedAt": "2026-11-14T01:38:54.351Z",
      "etaMin": 12,
      "rider": {
       "name": "Tunde",
@@ -30,6 +30,20 @@
      },
      "loggedToHealth": false,
      "demo": true
+    }
+   ]
+  },
+  "message": {
+   "conversations": [
+    {
+     "id": "conv-order-fx",
+     "kind": "order",
+     "title": "Smash Shack",
+     "participantIds": [],
+     "lastPreview": "Your order is on the way",
+     "lastAt": "2026-11-14T01:39:14.359Z",
+     "unread": 0,
+     "orderId": "order-fixture"
     }
    ]
   }

@@ -84,9 +84,9 @@ export default function OrderTrackingScreen() {
       <View style={{ flex: 1, marginTop: 434 }}>
         <SheetPanel>
           <View className="flex-row items-center justify-between">
-            <View accessible accessibilityLabel={t('orders.track.status', 'Order status: {{status}}', { status: t(STATUS_KEY[order.status].key, STATUS_KEY[order.status].fallback) })}>
+            <View style={{ paddingTop: 2, paddingBottom: 4 }} accessible accessibilityLabel={t('orders.track.status', 'Order status: {{status}}', { status: t(STATUS_KEY[order.status].key, STATUS_KEY[order.status].fallback) })}>
               {arrived ? null : <Muted small>{t('orders.track.arrivingIn', 'Arriving in')}</Muted>}
-              <Display size={36}>
+              <Display size={36} style={{ lineHeight: 45, marginTop: 4 }}>
                 {arrived
                   ? t('orders.track.arrivedTitle', 'Arrived')
                   : t('orders.track.minutes', '{{count}} min', { count: order.etaMin })}
@@ -124,7 +124,7 @@ export default function OrderTrackingScreen() {
           </View>
 
           <View className="flex-row items-center" style={{ gap: 12 }}>
-            <UAvatar name={order.rider.name} source={SAMPLE[order.rider.photo]} size={48} />
+            <UAvatar name={order.rider.name} source={SAMPLE[order.rider.photo]} size={44} />
             <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
               <Title>{order.rider.name}</Title>
               <Muted small>

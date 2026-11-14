@@ -82,7 +82,7 @@ const plan = {
 const order = {
   id: 'order-fixture', number: '2841', restaurantId: 'smash', restaurantName: 'Smash Shack',
   lines: [{ dishId: 'double-smash', name: 'Double smash', qty: 1, extras: [], unitPence: 1050 }],
-  subtotalPence: 1050, deliveryPence: 199, totalPence: 1249, status: 'Preparing', placedAt: new Date(Date.now() - 4 * 60000).toISOString(),
+  subtotalPence: 1050, deliveryPence: 199, totalPence: 1249, status: 'On the way', placedAt: new Date(Date.now() - 20000).toISOString(),
   etaMin: 12, rider: { name: 'Tunde', rating: 4.9, photo: 'rider' }, loggedToHealth: false, demo: true,
 };
 
@@ -103,7 +103,11 @@ w('wanttocook', { wait: 1500, stores: { wantToCook: { items: wtcDesign, isLoadin
 w('pantry', { wait: 1200, stores: { pantry: { items: pantry, isLoading: false, error: null } } });
 w('shopping', { wait: 1200, stores: { wantToCook: { shoppingList, items: wtc, isLoading: false }, pantry: { items: pantry } } });
 w('mealplan', { wait: 1500, stores: { mealPlan: { currentPlan: plan, isLoading: false, isGenerating: false, error: null }, recipe: { recipes }, pantry: { items: pantry } } });
-w('orders', { wait: 800, stores: { order: { orders: [order] } } });
+const orderThread = { id: 'conv-order-fx', kind: 'order', title: 'Smash Shack', participantIds: [], lastPreview: 'Your order is on the way', lastAt: new Date().toISOString(), unread: 0, orderId: 'order-fixture' };
+w('orders', { wait: 800, stores: { order: { orders: [order] }, message: { conversations: [orderThread] } } });
+// Order sheet: signed-in user with no allergies so the sheet shows the "None match your allergies" line.
+w('orderSheet', { wait: 800, stores: { auth: { user: { id: 'user1', email: 'me@example.com', displayName: '[YOUR NAME]', role: 'user', createdAt: now, savedRecipes: [], dietaryPreferences: [], allergies: [], healthConditions: [] }, isGuest: false }, message: { conversations: [{ ...orderThread, id: 'conv-order-rest', title: 'Smash & Co.', orderId: undefined }] } } });
+w('restaurant', { wait: 800, stores: { order: { cart: [{ id: 'line-fx', dishId: 'double-smash', qty: 1, extraIds: [], logToHealth: true }] }, message: { conversations: [{ ...orderThread, id: 'conv-order-rest', title: 'Smash & Co.', orderId: undefined }] } } });
 
 // Mystery Kitchen: drive the real store actions, then reload so route guards see the round.
 w('mkLobby', { navigate: true, wait: 600, stores: {}, calls: [{ store: 'play', fn: 'hostRound' }] });
