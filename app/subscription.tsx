@@ -164,11 +164,14 @@ export default function SubscriptionScreen() {
       <Text className="flex-1 text-ink" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
         {label}
       </Text>
-      {enabled ? (
-        <Tag tone="g" label={t('account.sub.included', 'Included')} />
-      ) : (
-        <Tag icon="lock" label={t('account.sub.pro', 'Pro')} />
-      )}
+      {/* Tag is alignSelf:flex-start; wrap it so the row centres it */}
+      <View>
+        {enabled ? (
+          <Tag tone="g" label={t('account.sub.included', 'Included')} />
+        ) : (
+          <Tag icon="lock" label={t('account.sub.pro', 'Pro')} />
+        )}
+      </View>
     </View>
   );
 
@@ -207,7 +210,7 @@ export default function SubscriptionScreen() {
         <UCard tone="black" style={{ gap: 8, borderRadius: 30, padding: 20 }}>
           <SectionLabel>{t('account.sub.currentPlan', 'Current plan')}</SectionLabel>
           <View className="flex-row items-center" style={{ gap: 10 }}>
-            <Display size={32}>{tierName}</Display>
+            <Display size={32} style={{ lineHeight: 46.4 }}>{subscriptionTier === 'free' ? t('account.sub.freePlan', 'SousChef Free') : tierName}</Display>
             {isSubscribed ? <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} /> : null}
           </View>
           <Muted small>{planNote}</Muted>
@@ -231,8 +234,6 @@ export default function SubscriptionScreen() {
         <Rows>
           {valueRow(t('account.sub.maxRecipes', 'Max Recipes'), unlimitedOr(currentFeatures.maxRecipes))}
           {valueRow(t('account.sub.maxPantry', 'Max Pantry Items'), unlimitedOr(currentFeatures.maxPantryItems))}
-          {flagRow(t('account.sub.aiSubs', 'AI Substitutions'), currentFeatures.aiSubstitutions)}
-          {flagRow(t('account.sub.portion', 'Portion Analysis'), currentFeatures.portionAnalysis)}
           {flagRow(t('account.sub.mealPlanning', 'Meal Planning'), currentFeatures.mealPlanning)}
           {flagRow(t('account.sub.offline', 'Offline Access'), currentFeatures.offlineAccess)}
           {flagRow(t('account.sub.nutrition', 'Advanced Nutrition'), currentFeatures.advancedNutrition)}

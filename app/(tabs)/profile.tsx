@@ -106,13 +106,13 @@ export default function ProfileScreen() {
   const memberItems: MenuItem[] = [
     {
       id: 'subscription',
-      icon: 'award',
+      icon: 'star',
       label: isSubscribed ? t('account.profile.subscription', 'Subscription') : t('account.profile.upgrade', 'Upgrade to Pro'),
       subtitle: isSubscribed ? t('account.profile.managePlan', 'Manage plan') : t('account.profile.upgradeBody', 'Unlock every feature'),
       route: '/subscription',
     },
     { id: 'dietary', icon: 'leaf', label: t('account.profile.dietary', 'Dietary Preferences'), route: '/settings/dietary' },
-    { id: 'weight', icon: 'flame', label: t('account.profile.weight', 'Weight Goals'), route: '/settings/weight-loss' },
+    { id: 'weight', icon: 'trend', label: t('account.profile.weight', 'Weight Goals'), route: '/settings/weight-loss' },
     { id: 'notifications', icon: 'bell', label: t('account.profile.notifications', 'Notifications'), route: '/settings/notifications' },
     { id: 'voice', icon: 'mic', label: t('account.profile.voice', 'Voice Commands'), route: '/settings/voice' },
     { id: 'appearance', icon: 'moon', label: t('account.profile.appearance', 'Appearance'), route: '/settings/appearance' },

@@ -33,6 +33,9 @@ interface AnalyticsData {
   recentActivity: { date: string; views: number; saves: number }[];
 }
 
+/** 5200 -> 5.2k, 32600 -> 32.6k */
+const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/.0$/, '')}k` : `${n}`);
+
 export default function AnalyticsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -79,9 +82,12 @@ export default function AnalyticsScreen() {
       .slice(0, 5);
 
     // Mock recent activity
+    // Monday-first week (M T W T F S S), like the design
+    const monday = new Date();
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
     const recentActivity = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - (6 - i));
+      const date = new Date(monday);
+      date.setDate(monday.getDate() + i);
       return {
         date: date.toLocaleDateString('en-US', { weekday: 'short' }),
         views: Math.floor(Math.random() * 100) + 10,
@@ -119,24 +125,14 @@ export default function AnalyticsScreen() {
     <Screen bare>
       <TopBar variant="compact" title={title} onBack={() => router.back()} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 14 }}>
-        <Segmented<'week' | 'month' | 'all'>
-          value={timeRange}
-          onChange={setTimeRange}
-          options={[
-            { value: 'week', label: t('account.analytics.week', 'Week') },
-            { value: 'month', label: t('account.analytics.month', 'Month') },
-            { value: 'all', label: t('account.analytics.all', 'All Time') },
-          ]}
-        />
-
         <View className="flex-row" style={{ gap: 12 }}>
           <View className="flex-1" style={{ gap: 12 }}>
-            <Tile tone="black" value={analytics.totalViews.toLocaleString()} label={t('account.analytics.views', 'Total views')} />
-            <Tile value={analytics.totalRecipes.toString()} label={t('account.analytics.recipes', 'Recipes')} />
+            <Tile tone="black" labelFirst valueSize={28} value={compact(analytics.totalViews)} label={t('account.analytics.views', 'Total views')} />
+            <Tile labelFirst valueSize={28} value={analytics.totalRecipes.toString()} label={t('account.analytics.recipes', 'Recipes')} />
           </View>
           <View className="flex-1" style={{ gap: 12 }}>
-            <Tile value={analytics.totalSaves.toLocaleString()} label={t('account.analytics.saves', 'Saves')} />
-            <Tile value={analytics.averageRating.toFixed(1)} label={t('account.analytics.rating', 'Avg rating')} />
+            <Tile labelFirst valueSize={28} value={analytics.totalSaves.toLocaleString()} label={t('account.analytics.saves', 'Saves')} />
+            <Tile labelFirst valueSize={28} value={analytics.averageRating.toFixed(1)} label={t('account.analytics.rating', 'Avg rating')} />
           </View>
         </View>
 
@@ -175,10 +171,7 @@ export default function AnalyticsScreen() {
                   key={recipe.id}
                   leading={<Thumb source={recipe.imageURL ? { uri: recipe.imageURL } : undefined} name={recipe.title} size={52} />}
                   title={recipe.title}
-                  subtitle={t('account.analytics.viewsSaves', '{{views}} views · {{saves}} saves', {
-                    views: recipe.views || 0,
-                    saves: recipe.saveCount || 0,
-                  })}
+                  subtitle={t('account.analytics.viewsOnly', '{{views}} views', { views: compact(recipe.views || 0) })}
                   onPress={() => router.push(`/recipe/${recipe.id}`)}
                 />
               ))}
@@ -204,6 +197,16 @@ export default function AnalyticsScreen() {
             </View>
           </>
         ) : null}
+
+        <Segmented<'week' | 'month' | 'all'>
+          value={timeRange}
+          onChange={setTimeRange}
+          options={[
+            { value: 'week', label: t('account.analytics.week', 'Week') },
+            { value: 'month', label: t('account.analytics.month', 'Month') },
+            { value: 'all', label: t('account.analytics.all', 'All Time') },
+          ]}
+        />
       </ScrollView>
     </Screen>
   );

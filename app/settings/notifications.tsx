@@ -150,7 +150,7 @@ export default function NotificationsScreen() {
     <Screen bare>
       <TopBar variant="compact" title={t('account.notif.title', 'Notifications')} onBack={() => router.back()} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 12 }}>
-        {permissionStatus !== 'granted' ? (
+        {permissionStatus === 'denied' ? (
           <UCard>
             <Muted small>
               {t('account.notif.notEnabled', 'Notifications are not enabled. Toggle below to grant permission.')}
@@ -165,8 +165,8 @@ export default function NotificationsScreen() {
                 {t('account.notif.push', 'Push Notifications')}
               </Text>
               <Muted small>
-                {permissionStatus === 'granted'
-                  ? t('account.notif.pushBody', 'Allow SousChef to send alerts')
+                {settings.pushEnabled
+                  ?t('account.notif.pushBody', 'Allow SousChef to send alerts')
                   : t('account.notif.tapToEnable', 'Tap to enable')}
               </Muted>
             </View>

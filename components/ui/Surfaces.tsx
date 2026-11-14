@@ -82,27 +82,32 @@ interface TileProps extends SurfaceProps {
   label?: React.ReactNode;
   /** .tile.on: selected outline. */
   selected?: boolean;
+  /** Caption above the value (analytics / ads stat tiles in the design). */
+  labelFirst?: boolean;
+  /** Value font size override (design uses 28 on stat tiles); line-height stays 1.15. */
+  valueSize?: number;
 }
 
 /** .tile: radius 24, padding 14, value + caption. Children render below the label. */
-export function Tile({ value, label, selected, tone = 'default', children, style, ...rest }: TileProps) {
+export function Tile({ value, label, selected, labelFirst, valueSize, tone = 'default', children, style, ...rest }: TileProps) {
   return (
     <Surface radius={24} pad={14} tone={tone} selected={selected} style={[{ gap: 2, minWidth: 0 }, style]} {...rest}>
+      {labelFirst && label != null && <TileText>{label}</TileText>}
       {value != null && (
-        <TileText value>{value}</TileText>
+        <TileText value size={valueSize}>{value}</TileText>
       )}
-      {label != null && <TileText>{label}</TileText>}
+      {!labelFirst && label != null && <TileText>{label}</TileText>}
       {children}
     </Surface>
   );
 }
 
-function TileText({ children, value }: { children: React.ReactNode; value?: boolean }) {
+function TileText({ children, value, size = 22 }: { children: React.ReactNode; value?: boolean; size?: number }) {
   if (value) {
     return (
       <RNText
         className="text-ink"
-        style={{ fontFamily: FONT.display, fontSize: 22, lineHeight: 25, letterSpacing: -0.44 }}
+        style={{ fontFamily: FONT.display, fontSize: size, lineHeight: size * 1.15, letterSpacing: -size * 0.02 }}
       >
         {children}
       </RNText>

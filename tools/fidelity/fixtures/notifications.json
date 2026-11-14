@@ -1,0 +1,17 @@
+{
+ "wait": 600,
+ "grant": [
+  "notifications"
+ ],
+ "localStorage": {
+  "@souschef_notifications": {
+   "pushEnabled": true,
+   "pantryExpiry": true,
+   "mealReminders": true,
+   "weeklyDigest": true,
+   "newRecipes": false,
+   "promotions": false
+  }
+ },
+ "stores": {}
+}

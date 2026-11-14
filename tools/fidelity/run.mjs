@@ -99,6 +99,13 @@ async function shootRn(browser, base, name, cfg, theme, height, fixture) {
   await ctx.addInitScript(() => {
     try { localStorage.setItem('@souschef_welcome_shown', 'true'); localStorage.setItem('@souschef_onboarding_complete', 'true'); } catch {}
   });
+  // Optional per-fixture browser state: fixture.localStorage = { key: value | object }, fixture.grant = ['notifications', ...]
+  if (fixture?.localStorage) {
+    await ctx.addInitScript((ls) => {
+      try { for (const k of Object.keys(ls)) localStorage.setItem(k, typeof ls[k] === 'string' ? ls[k] : JSON.stringify(ls[k])); } catch {}
+    }, fixture.localStorage);
+  }
+  if (fixture?.grant) await ctx.grantPermissions(fixture.grant).catch(() => {});
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e.message || e).slice(0, 300)));

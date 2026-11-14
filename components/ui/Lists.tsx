@@ -72,7 +72,7 @@ export function ListRow({ title, subtitle, icon, leading, right, chevron = true,
         // Tags / chips set alignSelf flex-start for column parents: centre them in the row like .rows>* align-items:center.
         <View style={{ justifyContent: 'center', flexShrink: 0 }}>{right}</View>
       ) : onPress && chevron ? (
-        <Icon name="chevronRight" color="subtle" />
+        <Icon name="chevronRight" />
       ) : null}
     </View>
   );

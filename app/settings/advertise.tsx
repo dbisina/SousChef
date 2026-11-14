@@ -14,7 +14,6 @@ import {
   Muted,
   PhotoCard,
   Screen,
-  SectionLabel,
   UButton,
   UIconButton,
   Display,
@@ -187,15 +186,6 @@ export default function AdvertiseScreen() {
             </View>
 
             <View style={{ gap: 8 }}>
-              <SectionLabel>{t('account.advertise.budget', 'Monthly budget *')}</SectionLabel>
-              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-                {(Object.entries(AD_BUDGET_LABELS) as [AdBudgetRange, string][]).map(([key, label]) => (
-                  <Chip key={key} label={label} on={budget === key} onPress={() => setBudget(key)} />
-                ))}
-              </View>
-            </View>
-
-            <View style={{ gap: 8 }}>
               <Muted small style={{ paddingStart: 4 }}>
                 {t('account.advertise.placements', 'Placements *')}
               </Muted>
@@ -213,6 +203,17 @@ export default function AdvertiseScreen() {
               placeholder={t('account.advertise.campaignPlaceholder', 'What do you want to promote?')}
               multiline
             />
+
+            <View style={{ gap: 8 }}>
+              <Muted small style={{ paddingStart: 4 }}>
+                {t('account.advertise.budget', 'Monthly budget *')}
+              </Muted>
+              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                {(Object.entries(AD_BUDGET_LABELS) as [AdBudgetRange, string][]).map(([key, label]) => (
+                  <Chip key={key} label={label} on={budget === key} onPress={() => setBudget(key)} />
+                ))}
+              </View>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

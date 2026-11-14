@@ -46,6 +46,9 @@ type ScreenMode = 'list' | 'create';
 const DEFAULT_ACCENT: string = FIXED.accent;
 type TagTone = NonNullable<React.ComponentProps<typeof Tag>['tone']>;
 
+/** 12100 -> 12.1k */
+const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1).replace(/.0$/, '')}k` : `${n}`);
+
 export default function ManageAdsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -229,13 +232,13 @@ export default function ManageAdsScreen() {
         >
           <View className="flex-row" style={{ gap: 10 }}>
             <View className="flex-1">
-              <Tile value={ads.filter((a) => a.status === 'active').length} label={t('account.ads.active', 'Active')} />
+              <Tile labelFirst value={ads.filter((a) => a.status === 'active').length} label={t('account.ads.active', 'Active')} />
             </View>
             <View className="flex-1">
-              <Tile value={ads.reduce((sum, a) => sum + a.impressions, 0).toLocaleString()} label={t('account.ads.views', 'Views')} />
+              <Tile labelFirst value={compact(ads.reduce((sum, a) => sum + a.impressions, 0))} label={t('account.ads.views', 'Views')} />
             </View>
             <View className="flex-1">
-              <Tile value={ads.reduce((sum, a) => sum + a.clicks, 0).toLocaleString()} label={t('account.ads.clicks', 'Clicks')} />
+              <Tile labelFirst value={compact(ads.reduce((sum, a) => sum + a.clicks, 0))} label={t('account.ads.clicks', 'Clicks')} />
             </View>
           </View>
 
@@ -262,7 +265,7 @@ export default function ManageAdsScreen() {
                   title={featured.title}
                   subtitle={t('account.ads.featuredMeta', '{{advertiser}} · {{views}} views · {{ctr}}% CTR', {
                     advertiser: featured.advertiserName,
-                    views: getAdMetrics(featured).impressions.toLocaleString(),
+                    views: compact(getAdMetrics(featured).impressions),
                     ctr: getAdMetrics(featured).ctr,
                   })}
                   onPress={() => setSelectedAd(featured)}
@@ -279,7 +282,7 @@ export default function ManageAdsScreen() {
                         leading={<Thumb source={{ uri: ad.imageURL }} name={ad.title} size={52} />}
                         title={ad.title}
                         subtitle={t('account.ads.rowMeta', '{{views}} views · {{ctr}}% CTR', {
-                          views: m.impressions.toLocaleString(),
+                          views: compact(m.impressions),
                           ctr: m.ctr,
                         })}
                         right={statusTag(ad.status)}
