@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform, Pressable, Text as RNText, View } from 'react-native';
+import { Pressable, Text as RNText, View } from 'react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -48,7 +48,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const dark = tone === 'dark';
   const current = state.routes[state.index]?.name ?? 'index';
   const active = PARENT[current] ?? current;
-  const bottom = Math.max(insets.bottom, Platform.OS === 'ios' ? 0 : 12) + 16;
+  const bottom = Math.max(insets.bottom - 6, 16);
 
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom, alignItems: 'center' }}>
