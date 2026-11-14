@@ -21,10 +21,12 @@ const W = 390, H = 844;
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(n);
 const opt = (n, d) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : d; };
-const valueFlags = new Set(['--theme', '--url', '--top']);
+const valueFlags = new Set(['--theme', '--url', '--top', '--crop']);
 const names = argv.filter((a, i) => !a.startsWith('--') && !valueFlags.has(argv[i - 1]));
 const themeOverride = opt('--theme');
 const TOP = Number(opt('--top', 15));
+// --crop [px]: for tall scroll captures (Home is 3300px) also write <Name>.crop<N>.jpg slices of design | app | diff
+const CROP = flag('--crop') ? Number(opt('--crop', 844)) || 844 : 0;
 const screens = JSON.parse(fs.readFileSync(path.join(HERE, 'screens.json'), 'utf8'));
 const designNames = fs.readdirSync(DESIGN_DIR).filter((f) => f.endsWith('.html')).map((f) => f.replace('.html', ''));
 const todo = flag('--all') ? Object.keys(screens).filter((n) => screens[n].route) : names;
@@ -97,7 +99,7 @@ async function shootRn(browser, base, name, cfg, theme, height, fixture) {
   const ctx = await browser.newContext({ viewport: { width: W, height }, deviceScaleFactor: 2, colorScheme: theme });
   // First-run flags, so the welcome modal / onboarding redirect never cover the screen under test.
   await ctx.addInitScript(() => {
-    try { localStorage.setItem('@souschef_welcome_shown', 'true'); localStorage.setItem('@souschef_onboarding_complete', 'true'); } catch {}
+    try { localStorage.setItem('@souschef_welcome_shown', 'true'); localStorage.setItem('@souschef_welcome_last_shown', String(Date.now())); localStorage.setItem('@souschef_onboarding_complete', 'true'); } catch {}
   });
   // Optional per-fixture browser state: fixture.localStorage = { key: value | object }, fixture.grant = ['notifications', ...]
   if (fixture?.localStorage) {
@@ -185,6 +187,22 @@ async function sideBySide(browser, name, h) {
   await ctx.close();
 }
 
+// One JPEG per CROP-px slice, 1x, so every section can be read at full size.
+async function cropSlices(browser, name, h) {
+  const slices = Math.ceil(h / CROP);
+  const ctx = await browser.newContext({ viewport: { width: 390 * 3 + 60, height: CROP + 20 }, deviceScaleFactor: 1 });
+  const page = await ctx.newPage();
+  const tmp = path.join(OUT, '.crop.html');
+  for (let i = 0; i < slices; i++) {
+    const panel = (k) => `<div style="width:390px;height:${CROP}px;overflow:hidden;background:#fff"><img src="${name}.${k}.png" width="390" style="display:block;margin-top:-${i * CROP}px"></div>`;
+    fs.writeFileSync(tmp, `<body style="margin:0;background:#888;display:flex;gap:20px;padding:10px">${['design', 'rn', 'diff'].map(panel).join('')}</body>`);
+    await page.goto(pathToFileURL(tmp).href);
+    await page.waitForFunction(() => [...document.images].every((im) => im.complete));
+    await page.screenshot({ path: path.join(OUT, `${name}.crop${i + 1}.jpg`), type: 'jpeg', quality: 18 });
+  }
+  await ctx.close();
+}
+
 const pad = (s, n) => (String(s).length > n ? String(s).slice(0, n - 1) + '…' : String(s).padEnd(n));
 function printSummary(name, rep) {
   console.log(`\n=== ${name}  route=${rep.route}  theme=${rep.theme}  mismatch=${rep.pixel.mismatchPct}%  matched=${rep.summary.matched} missing=${rep.summary.missing} flagged=${rep.summary.flagged}${rep.rnProblem ? '  RN PROBLEM: ' + rep.rnProblem : ''}`);
@@ -220,6 +238,7 @@ try {
       const rn = await shootRn(browser, base, name, cfg, theme, d.height, fixture);
       const pixel = diffPngs(d.file, rn.file, path.join(OUT, `${name}.diff.png`));
       await sideBySide(browser, name, d.height);
+      if (CROP && d.height > CROP + 100) await cropSlices(browser, name, d.height);
       const cmp = compare(d.data, rn.data);
       const rep = {
         screen: name, route: cfg.route, theme, fixture: cfg.fixture ?? null, fixtureResult: rn.fx,

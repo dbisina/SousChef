@@ -314,6 +314,6 @@
  "You": {
   "route": "/you",
   "theme": "light",
-  "fixture": "user"
+  "fixture": "you"
  }
 }

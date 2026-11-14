@@ -12,10 +12,12 @@ interface UInputProps extends Omit<TextInputProps, 'style'> {
   /** Trailing slot, e.g. a UIconButton (pill keeps 6px right padding like .inp). */
   right?: React.ReactNode;
   label: string;
+  /** Pill height; 56 unless a screen specifies otherwise. */
+  height?: number;
 }
 
 /** .inp: 56px pill input (search bars, chat composer). `label` is the accessible name. */
-export function UInput({ icon, right, label, ...rest }: UInputProps) {
+export function UInput({ icon, right, label, height = 56, ...rest }: UInputProps) {
   const t = useTokens();
   return (
     <View
@@ -23,8 +25,8 @@ export function UInput({ icon, right, label, ...rest }: UInputProps) {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: t['surface-2'],
-        height: 56,
-        borderRadius: 28,
+        height,
+        borderRadius: height / 2,
         paddingStart: 20,
         paddingRight: 6,
         gap: 10,

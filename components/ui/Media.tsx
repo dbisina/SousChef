@@ -51,13 +51,12 @@ export function AvatarStack({ people, size = 30, max = 5 }: AvatarStackProps) {
     <View
       accessibilityLabel={people.map((p) => p.name).join(', ')}
       className="flex-row"
-      style={{ paddingStart: 8 }}
     >
       {shown.map((p, i) => (
         <View
           key={`${p.name}-${i}`}
           className="border-2 border-ground bg-ground"
-          style={{ marginLeft: -8, borderRadius: (size + 4) / 2 }}
+          style={{ marginLeft: i === 0 ? -2 : -12, borderRadius: (size + 4) / 2 }}
         >
           <UAvatar source={p.source} name={p.name} size={size} />
         </View>
