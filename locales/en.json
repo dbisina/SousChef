@@ -1417,7 +1417,11 @@
       "compact": "Compact Mode",
       "compactBody": "Show more recipes at once",
       "calories": "Show Calories",
-      "caloriesBody": "Display calorie info on recipes"
+      "caloriesBody": "Display calorie info on recipes",
+      "sounds": "Sounds",
+      "soundsBody": "Chat and reaction sounds. Off when your phone is silent.",
+      "haptics": "Haptics",
+      "hapticsBody": "Small taps when you send, react and swipe"
     },
     "dietary": {
       "savedBody": "All set! We've updated your dietary preferences.",

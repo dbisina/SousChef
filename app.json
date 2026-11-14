@@ -105,7 +105,13 @@
       "./plugins/withDisableBundleSigning",
       "./plugins/withPodsMinDeploymentTarget",
       "./plugins/withShareExtension",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "SousChef uses the microphone to record voice notes and voice comments."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

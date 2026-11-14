@@ -5,6 +5,8 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore, type ThemeOption } from '@/stores/themeStore';
+import { useFeedbackStore } from '@/stores/feedbackStore';
+import { playSound, tap } from '@/lib/feedback';
 import { SAMPLE } from '@/assets/sample';
 import { FONT, Icon, Muted, Rows, Screen, Segmented, ToneBlock, TopBar, USwitch } from '@/components/ui';
 
@@ -51,6 +53,7 @@ export default function AppearanceScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { settings, effectiveTheme, updateSetting } = useThemeStore();
+  const { sounds, haptics, setSounds, setHaptics } = useFeedbackStore();
 
   const setTheme = (theme: ThemeOption) => updateSetting('theme', theme);
 
@@ -108,6 +111,38 @@ export default function AppearanceScreen() {
               label={t('account.appearance.calories', 'Show Calories')}
               value={settings.showCalories}
               onValueChange={(v) => updateSetting('showCalories', v)}
+            />
+          </View>
+          <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+            <View className="flex-1" style={{ gap: 2 }}>
+              <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+                {t('account.appearance.sounds', 'Sounds')}
+              </Text>
+              <Muted small>{t('account.appearance.soundsBody', 'Chat and reaction sounds. Off when your phone is silent.')}</Muted>
+            </View>
+            <USwitch
+              label={t('account.appearance.sounds', 'Sounds')}
+              value={sounds}
+              onValueChange={(v) => {
+                setSounds(v);
+                if (v) playSound('react');
+              }}
+            />
+          </View>
+          <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
+            <View className="flex-1" style={{ gap: 2 }}>
+              <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+                {t('account.appearance.haptics', 'Haptics')}
+              </Text>
+              <Muted small>{t('account.appearance.hapticsBody', 'Small taps when you send, react and swipe')}</Muted>
+            </View>
+            <USwitch
+              label={t('account.appearance.haptics', 'Haptics')}
+              value={haptics}
+              onValueChange={(v) => {
+                setHaptics(v);
+                if (v) tap('medium');
+              }}
             />
           </View>
         </Rows>
