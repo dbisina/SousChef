@@ -1,0 +1,319 @@
+{
+ "AddOfficial": {
+  "route": "/admin/add-recipe",
+  "theme": "light",
+  "fixture": "admin"
+ },
+ "AddPantry": {
+  "route": null,
+  "theme": "light",
+  "note": "bottom sheet inside Pantry (no route)"
+ },
+ "Advertise": {
+  "route": "/settings/advertise",
+  "theme": "light"
+ },
+ "Analytics": {
+  "route": "/settings/analytics",
+  "theme": "light",
+  "fixture": "analytics"
+ },
+ "Appearance": {
+  "route": "/settings/appearance",
+  "theme": "light"
+ },
+ "Browse": {
+  "route": "/browse",
+  "theme": "light",
+  "fixture": "browse"
+ },
+ "Chat": {
+  "route": "/messages/conv-ama",
+  "theme": "light"
+ },
+ "Community": {
+  "route": "/community/budget",
+  "theme": "light"
+ },
+ "Cook": {
+  "route": "/cook/fx-salmon?stage=cooking&step=2",
+  "theme": "dark",
+  "fixture": "cook"
+ },
+ "CookDone": {
+  "route": "/cook/fx-salmon?stage=done&min=24",
+  "theme": "dark",
+  "fixture": "cook"
+ },
+ "Cookbook": {
+  "route": "/cookbook/fx-book",
+  "theme": "dark",
+  "fixture": "polishD-cookbook"
+ },
+ "Create": {
+  "route": "/create",
+  "theme": "dark"
+ },
+ "CreatePost": {
+  "route": "/post/new",
+  "theme": "light"
+ },
+ "DailyDish": {
+  "route": "/play/daily-dish",
+  "theme": "light",
+  "fixture": "dailyDish"
+ },
+ "Dietary": {
+  "route": "/settings/dietary",
+  "theme": "light"
+ },
+ "DoctorReport": {
+  "route": "/health/report",
+  "theme": "light"
+ },
+ "EditProfile": {
+  "route": "/settings/edit-profile",
+  "theme": "light",
+  "fixture": "editprofile"
+ },
+ "FoodScanner": {
+  "route": "/scan",
+  "theme": "dark"
+ },
+ "HealthHome": {
+  "route": "/health",
+  "theme": "light"
+ },
+ "Help": {
+  "route": "/settings/help",
+  "theme": "light"
+ },
+ "Home": {
+  "route": "/",
+  "theme": "light"
+ },
+ "Import": {
+  "route": "/import",
+  "theme": "light"
+ },
+ "Imported": {
+  "route": "/imported-recipe/fx-salmon",
+  "theme": "light",
+  "fixture": "recipes"
+ },
+ "Kitchen": {
+  "route": "/kitchen",
+  "theme": "light",
+  "fixture": "kitchen"
+ },
+ "Language": {
+  "route": "/settings/language",
+  "theme": "light"
+ },
+ "Legal": {
+  "route": "/settings/terms",
+  "theme": "light"
+ },
+ "LogReading": {
+  "route": "/health/log",
+  "theme": "light"
+ },
+ "Login": {
+  "route": "/auth/login",
+  "theme": "light"
+ },
+ "MKLobby": {
+  "route": "/play/mystery/lobby",
+  "theme": "dark",
+  "fixture": "mkLobby"
+ },
+ "MKReveal": {
+  "route": "/play/mystery/reveal",
+  "theme": "dark",
+  "fixture": "mkReveal"
+ },
+ "MKRound": {
+  "route": "/play/mystery/round",
+  "theme": "dark",
+  "fixture": "mkRound"
+ },
+ "Main": {
+  "route": "/onboarding",
+  "theme": "dark"
+ },
+ "ManageAds": {
+  "route": "/admin/manage-ads",
+  "theme": "light"
+ },
+ "MealPlan": {
+  "route": "/mealplan",
+  "theme": "light",
+  "fixture": "polishD-mealplan"
+ },
+ "MealResponse": {
+  "route": "/health/meal/meal-today-l",
+  "theme": "light"
+ },
+ "Messages": {
+  "route": "/messages",
+  "theme": "light"
+ },
+ "Notifications": {
+  "route": "/settings/notifications",
+  "theme": "light",
+  "fixture": "notifications"
+ },
+ "Onboarding2": {
+  "route": "/onboarding?slide=1",
+  "theme": "dark"
+ },
+ "Onboarding3": {
+  "route": "/onboarding?slide=2",
+  "theme": "dark"
+ },
+ "OrderSheet": {
+  "route": "/order/sheet?dishId=double-smash",
+  "theme": "light",
+  "fixture": "orderSheet"
+ },
+ "OrderTracking": {
+  "route": "/order/order-fixture",
+  "theme": "light",
+  "fixture": "orders"
+ },
+ "Pantry": {
+  "route": "/pantry",
+  "theme": "light",
+  "fixture": "pantry"
+ },
+ "Paywall": {
+  "route": null,
+  "theme": "dark",
+  "note": "native RevenueCat paywall UI (not renderable on web)"
+ },
+ "PlanGenerator": {
+  "route": null,
+  "theme": "light",
+  "note": "sheet inside MealPlan (no route)"
+ },
+ "PlanShopping": {
+  "route": "/mealplan/shopping",
+  "theme": "light",
+  "fixture": "polishD-mealplan"
+ },
+ "PlayHub": {
+  "route": "/play",
+  "theme": "light"
+ },
+ "PostDetail": {
+  "route": "/post/post-katsu",
+  "theme": "light"
+ },
+ "Profile": {
+  "route": "/profile",
+  "theme": "light",
+  "fixture": "user"
+ },
+ "Recipe": {
+  "route": "/recipe/fx-salmon",
+  "theme": "light",
+  "fixture": "recipes"
+ },
+ "Reels": {
+  "route": "/reels",
+  "theme": "dark"
+ },
+ "Register": {
+  "route": "/auth/register",
+  "theme": "light"
+ },
+ "Restaurant": {
+  "route": "/restaurant/smash",
+  "theme": "light",
+  "fixture": "restaurant"
+ },
+ "ScanResult": {
+  "route": null,
+  "theme": "light",
+  "note": "state inside FoodScanner (needs camera result)"
+ },
+ "Scanner": {
+  "route": null,
+  "theme": "dark",
+  "note": "camera barcode overlay (no route; needs camera)"
+ },
+ "Seed": {
+  "route": "/admin/seed",
+  "theme": "dark"
+ },
+ "SetupTaste": {
+  "route": "/setup",
+  "theme": "light"
+ },
+ "Shelf": {
+  "route": "/cookbook-library",
+  "theme": "light",
+  "fixture": "polishD-shelf"
+ },
+ "ShelfCookbook": {
+  "route": "/shelf-cookbook/fx-book",
+  "theme": "light",
+  "fixture": "polishD-shelf"
+ },
+ "ShelfRecipe": {
+  "route": "/shelf-recipe/fx-gnocchi?cookbookId=fx-book",
+  "theme": "light",
+  "fixture": "polishD-shelf"
+ },
+ "Shopping": {
+  "route": "/shopping",
+  "theme": "light",
+  "fixture": "shopping"
+ },
+ "StoryView": {
+  "route": "/story/story-ama",
+  "theme": "dark"
+ },
+ "Subscription": {
+  "route": "/subscription",
+  "theme": "light"
+ },
+ "Upload": {
+  "route": "/upload",
+  "theme": "light"
+ },
+ "UserProfile": {
+  "route": "/user/ama",
+  "theme": "light",
+  "fixture": "polishD-profile"
+ },
+ "Voice": {
+  "route": null,
+  "theme": "dark",
+  "note": "full-screen overlay opened from Cook (no route)"
+ },
+ "VoiceSettings": {
+  "route": "/settings/voice",
+  "theme": "light"
+ },
+ "WantToCook": {
+  "route": "/want-to-cook",
+  "theme": "light",
+  "fixture": "wanttocook"
+ },
+ "Waste": {
+  "route": "/mealplan/waste",
+  "theme": "light",
+  "fixture": "polishD-mealplan"
+ },
+ "WeightLoss": {
+  "route": "/settings/weight-loss",
+  "theme": "light",
+  "fixture": "polishD-weight"
+ },
+ "You": {
+  "route": "/you",
+  "theme": "light",
+  "fixture": "you"
+ }
+}

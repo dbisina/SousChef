@@ -1,0 +1,1099 @@
+{
+ "wait": 1500,
+ "stores": {
+  "recipe": {
+   "recipes": [
+    {
+     "id": "fx-chicken",
+     "title": "Grilled chicken avocado salad",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/salad.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-pancakes",
+     "title": "Blueberry pancakes",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/pancakes.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "breakfast",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 15,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-ramen",
+     "title": "Spicy egg ramen",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/ramen.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-salmon",
+     "title": "Herb salmon with broccoli",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/salmon.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "dinner",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 15,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "currentRecipe": {
+    "id": "fx-salmon",
+    "title": "Herb salmon with broccoli",
+    "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+    "imageURL": "/__assets/salmon.jpg",
+    "authorId": "chef",
+    "authorName": "[CHEF NAME]",
+    "isOfficial": true,
+    "status": "published",
+    "category": "dinner",
+    "cuisine": "mediterranean",
+    "difficulty": "easy",
+    "prepTime": 10,
+    "cookTime": 15,
+    "servings": 2,
+    "ingredients": [
+     {
+      "name": "Salmon",
+      "amount": 2,
+      "unit": "fillets",
+      "calories": 300,
+      "optional": false
+     },
+     {
+      "name": "Broccoli",
+      "amount": 1,
+      "unit": "head",
+      "calories": 55,
+      "optional": false
+     },
+     {
+      "name": "Garlic",
+      "amount": 3,
+      "unit": "cloves",
+      "calories": 12,
+      "optional": false
+     },
+     {
+      "name": "Avocado",
+      "amount": 1,
+      "unit": "whole",
+      "calories": 240,
+      "optional": false
+     },
+     {
+      "name": "Lemon",
+      "amount": 1,
+      "unit": "whole",
+      "calories": 17,
+      "optional": false
+     },
+     {
+      "name": "Olive oil",
+      "amount": 2,
+      "unit": "tbsp",
+      "calories": 240,
+      "optional": false
+     }
+    ],
+    "instructions": [
+     "Heat the oven to 200C.",
+     "Roast the broccoli with garlic and oil for 12 minutes.",
+     "Sear the salmon",
+     "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+     "Rest the fish, squeeze over lemon.",
+     "Plate everything with the herbs."
+    ],
+    "nutrition": {
+     "caloriesPerServing": 520,
+     "totalCalories": 1040,
+     "protein": 38,
+     "carbs": 32,
+     "fat": 24,
+     "fiber": 7
+    },
+    "tags": [
+     "quick",
+     "high-protein"
+    ],
+    "likes": 385,
+    "rating": 4.8,
+    "ratingCount": 120,
+    "createdAt": {
+     "$daysFromNow": 0
+    }
+   },
+   "isLoading": false,
+   "error": null
+  },
+  "wantToCook": {
+   "items": [
+    {
+     "id": "fx-salmon",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "fx-tacos",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-tacos-r",
+      "title": "Chickpea avocado tacos",
+      "description": "",
+      "imageURL": "/__assets/tacos.jpg",
+      "sourceURL": "https://tiktok.example/fx-tacos",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "fx-penne",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-penne-r",
+      "title": "Creamy garlic penne",
+      "description": "",
+      "imageURL": "/__assets/penne.jpg",
+      "sourceURL": "https://youtube.example/fx-penne",
+      "sourcePlatform": "youtube",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 25,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "fx-brownie",
+     "ownerId": "guest",
+     "status": "cooked",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-brownie-r",
+      "title": "Fudgy brownies",
+      "description": "",
+      "imageURL": "/__assets/brownie.jpg",
+      "sourceURL": "https://website.example/fx-brownie",
+      "sourcePlatform": "website",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 45,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     },
+     "cookedAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "isLoading": false,
+   "error": null
+  },
+  "cookbook": {
+   "cookbooks": [
+    {
+     "id": "fx-book",
+     "title": "Weeknight Comforts",
+     "description": "Curated cookbook",
+     "coverImageURL": "/__assets/cookbook.jpg",
+     "recipeIds": [
+      "fx-salmon",
+      "fx-pancakes",
+      "fx-ramen",
+      "fx-chicken"
+     ],
+     "likes": 348,
+     "createdAt": {
+      "$daysFromNow": 0
+     },
+     "updatedAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "currentCookbook": {
+    "id": "fx-book",
+    "title": "Weeknight Comforts",
+    "description": "Curated cookbook",
+    "coverImageURL": "/__assets/cookbook.jpg",
+    "recipeIds": [
+     "fx-salmon",
+     "fx-pancakes",
+     "fx-ramen",
+     "fx-chicken"
+    ],
+    "likes": 348,
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "updatedAt": {
+     "$daysFromNow": 0
+    }
+   },
+   "currentCookbookRecipes": [
+    {
+     "id": "fx-salmon",
+     "title": "Herb salmon with broccoli",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/salmon.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "dinner",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 15,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-pancakes",
+     "title": "Blueberry pancakes",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/pancakes.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "breakfast",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 15,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-ramen",
+     "title": "Spicy egg ramen",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/ramen.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-chicken",
+     "title": "Grilled chicken avocado salad",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/salad.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "isLoading": false,
+   "error": null
+  },
+  "subscription": {
+   "subscriptionTier": "pro"
+  }
+ }
+}

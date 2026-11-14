@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { RevenueCatUI, PAYWALL_RESULT } from '@/lib/revenuecat';
+import { RevenueCatUI, PAYWALL_RESULT, isRevenueCatDisabled } from '@/lib/revenuecat';
 import { PurchasesOffering, PurchasesError } from 'react-native-purchases';
 
 interface RevenueCatPaywallProps {
@@ -70,6 +70,11 @@ export const RevenueCatPaywall: React.FC<RevenueCatPaywallProps> = ({
     ...(offering && { offering }),
     ...(customVariables && { customVariables }),
   };
+
+  // The native paywall view crashes if RevenueCat was never configured (test/missing key).
+  if (isRevenueCatDisabled()) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>

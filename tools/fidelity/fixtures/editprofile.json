@@ -1,0 +1,22 @@
+{
+ "wait": 600,
+ "stores": {
+  "auth": {
+   "user": {
+    "id": "user1",
+    "email": "[your@email.com]",
+    "displayName": "",
+    "role": "chef",
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "savedRecipes": [],
+    "dietaryPreferences": [],
+    "allergies": [],
+    "healthConditions": [],
+    "photoURL": "/__assets/chef.jpg"
+   },
+   "isGuest": false
+  }
+ }
+}

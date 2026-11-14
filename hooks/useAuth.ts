@@ -4,6 +4,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/stores/authStore';
 import { isOnboardingComplete } from '@/app/onboarding';
+import { isDesignReview } from '@/lib/designReview';
 
 // Hook to handle auth state changes and protected routes
 export const useAuth = () => {
@@ -26,6 +27,7 @@ export const useAuth = () => {
 
   // Listen to Firebase auth state changes
   useEffect(() => {
+    if (isDesignReview) return; // review mode: stay a pre-initialised guest
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is signed in, fetch their data from Firestore
@@ -43,7 +45,7 @@ export const useAuth = () => {
 
   // Handle protected routes
   useEffect(() => {
-    if (!isInitialized) return;
+    if (isDesignReview || !isInitialized) return; // review mode: no route guard
 
     const inAuthGroup = segments[0] === 'auth';
     const inAdminGroup = segments[0] === 'admin';

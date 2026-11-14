@@ -1,21 +1,14 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { useRouter, Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Image, Text as RNText, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
-import { useThemeColors } from '@/stores/themeStore';
-import { Button, Input } from '@/components/ui';
+import { Field, FONT, H1, Dim, Icon, Muted, Screen, TopBar, UButton } from '@/components/ui';
+import { SAMPLE } from '@/assets/sample';
 
 const registerSchema = z
   .object({
@@ -31,12 +24,28 @@ const registerSchema = z
 
 type RegisterFormData = z.infer<typeof registerSchema>;
 
+const FACES = [SAMPLE.toast, SAMPLE.bowl, SAMPLE.pancakes];
+
+function EyeToggle({ shown, onPress, label }: { shown: boolean; onPress: () => void; label: string }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+    >
+      <Icon name={shown ? 'eyeOff' : 'eye'} size="sm" color="muted" />
+    </Pressable>
+  );
+}
+
 export default function RegisterScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { signUp, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const colors = useThemeColors();
 
   const {
     control,
@@ -55,160 +64,181 @@ export default function RegisterScreen() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       await signUp(data.email, data.password, data.displayName);
-      router.replace('/(tabs)');
+      router.replace('/setup');
     } catch (err) {
       // Error is handled by the store
     }
   };
 
+  const faces = (
+    <View className="flex-row items-center">
+      {FACES.map((src, i) => (
+        <Image
+          key={i}
+          source={src}
+          accessibilityLabel=""
+          className="border-ground"
+          style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 3, marginLeft: i === 0 ? 0 : -2 }}
+        />
+      ))}
+    </View>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
+    <Screen bare>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+        <TopBar onBack={() => router.back()} backLabel={t('welcome.back', 'Back')} title={null} right={faces} />
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, gap: 15, paddingBottom: Math.max(insets.bottom, 20) + 4 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 px-6 py-8">
-            {/* Back button */}
-            <TouchableOpacity
-              onPress={() => router.back()}
-              className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center mb-6"
+          <View style={{ gap: 8, marginTop: 4, marginBottom: 8 }}>
+            <H1 style={{ fontSize: 36, lineHeight: 39, letterSpacing: -1.08 }}>
+              <Dim>{t('welcome.register.line1', 'Create your')}</Dim>
+              {'\n'}
+              {t('welcome.register.line2', 'account')}
+            </H1>
+            <Muted style={{ fontSize: 15, lineHeight: 22 }}>
+              {t('welcome.register.subtitle', 'Save recipes and sync them across devices.')}
+            </Muted>
+          </View>
+
+          {error ? (
+            <View className="bg-tag-r" style={{ borderRadius: 18, padding: 14 }}>
+              <RNText className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+                {error}
+              </RNText>
+            </View>
+          ) : null}
+
+          <Controller
+            control={control}
+            name="displayName"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Field
+                label={t('welcome.register.name', 'Full Name')}
+                placeholder="John Doe"
+                autoCapitalize="words"
+                autoComplete="name"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.displayName?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <Field
+                label={t('welcome.login.email', 'Email')}
+                placeholder="your@email.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                value={value}
+                onChangeText={onChange}
+                onBlur={onBlur}
+                error={errors.email?.message}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <Field
+                  label={t('welcome.login.password', 'Password')}
+                  placeholder={t('welcome.register.passwordPlaceholder', 'Create a password')}
+                  secureTextEntry={!showPassword}
+                  autoComplete="new-password"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.password?.message}
+                  trailing={
+                    <EyeToggle
+                    shown={showPassword}
+                    onPress={() => setShowPassword((v) => !v)}
+                    label={showPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')}
+                    />
+                  }
+                />
+              </View>
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="confirmPassword"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <View>
+                <Field
+                  label={t('welcome.register.confirm', 'Confirm Password')}
+                  placeholder={t('welcome.register.confirmPlaceholder', 'Confirm your password')}
+                  secureTextEntry={!showConfirmPassword}
+                  autoComplete="new-password"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.confirmPassword?.message}
+                  trailing={
+                    <EyeToggle
+                    shown={showConfirmPassword}
+                    onPress={() => setShowConfirmPassword((v) => !v)}
+                    label={
+                    showConfirmPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')
+                    }
+                    />
+                  }
+                />
+              </View>
+            )}
+          />
+
+          <UButton
+            variant="accent"
+            label={t('welcome.register.create', 'Create Account')}
+            onPress={handleSubmit(onSubmit)}
+            loading={isLoading}
+            style={{ marginTop: 6 }}
+          />
+
+          <Muted small center>
+            {t('welcome.register.termsPrefix', 'By continuing you agree to our')}{' '}
+            <RNText
+              accessibilityRole="link"
+              style={{ textDecorationLine: 'underline' }}
+              onPress={() => router.push('/settings/terms')}
             >
-              <Ionicons name="arrow-back" size={24} color={colors.icon} />
-            </TouchableOpacity>
+              {t('welcome.register.terms', 'Terms of Service')}
+            </RNText>{' '}
+            {t('welcome.register.and', 'and')}{' '}
+            <RNText
+              accessibilityRole="link"
+              style={{ textDecorationLine: 'underline' }}
+              onPress={() => router.push('/settings/privacy')}
+            >
+              {t('welcome.register.privacy', 'Privacy Policy')}
+            </RNText>
+          </Muted>
 
-            {/* Header */}
-            <View className="mb-8">
-              <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-                Create account
-              </Text>
-              <Text className="text-neutral-500 dark:text-neutral-400 mt-2">
-                Join SousChef and start cooking smarter
-              </Text>
-            </View>
-
-            {/* Form */}
-            <View className="flex-1">
-              {error && (
-                <View className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
-                  <Text className="text-red-600 dark:text-red-400">{error}</Text>
-                </View>
-              )}
-
-              <Controller
-                control={control}
-                name="displayName"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Full Name"
-                    placeholder="John Doe"
-                    autoCapitalize="words"
-                    autoComplete="name"
-                    leftIcon="person-outline"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.displayName?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Email"
-                    placeholder="your@email.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    leftIcon="mail-outline"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.email?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Password"
-                    placeholder="Create a password"
-                    secureTextEntry={!showPassword}
-                    autoComplete="new-password"
-                    leftIcon="lock-closed-outline"
-                    rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    onRightIconPress={() => setShowPassword(!showPassword)}
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.password?.message}
-                    hint="Must be at least 6 characters"
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="confirmPassword"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Confirm Password"
-                    placeholder="Confirm your password"
-                    secureTextEntry={!showConfirmPassword}
-                    autoComplete="new-password"
-                    leftIcon="lock-closed-outline"
-                    rightIcon={
-                      showConfirmPassword ? 'eye-off-outline' : 'eye-outline'
-                    }
-                    onRightIconPress={() =>
-                      setShowConfirmPassword(!showConfirmPassword)
-                    }
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.confirmPassword?.message}
-                  />
-                )}
-              />
-
-              <Button
-                title="Create Account"
-                onPress={handleSubmit(onSubmit)}
-                isLoading={isLoading}
-                fullWidth
-                className="mt-4"
-              />
-
-              {/* Terms */}
-              <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center mt-4">
-                By signing up, you agree to our{' '}
-                <Text style={{ color: colors.accent }}>Terms of Service</Text> and{' '}
-                <Text style={{ color: colors.accent }}>Privacy Policy</Text>
-              </Text>
-            </View>
-
-            {/* Sign in link */}
-            <View className="flex-row justify-center mt-8">
-              <Text className="text-neutral-500 dark:text-neutral-400">Already have an account? </Text>
-              <Link href="/auth/login" asChild>
-                <TouchableOpacity>
-                  <Text className="font-semibold" style={{ color: colors.accent }}>Sign in</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
+          <View className="flex-row justify-center items-center" style={{ marginTop: 'auto', paddingTop: 12 }}>
+            <Muted>{t('welcome.register.haveAccount', 'Already have an account?')} </Muted>
+            <Pressable accessibilityRole="link" onPress={() => router.replace('/auth/login')} hitSlop={10}>
+              <RNText className="text-ink" style={{ fontFamily: FONT.sansMedium, fontSize: 14 }}>
+                {t('welcome.register.signIn', 'Sign in')}
+              </RNText>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }

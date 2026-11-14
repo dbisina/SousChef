@@ -11,6 +11,7 @@ import RevenueCatUI, {
   PAYWALL_RESULT,
   type CustomerCenterCallbacks as RCCustomerCenterCallbacks,
 } from 'react-native-purchases-ui';
+import { isDesignReview } from '@/lib/designReview';
 import {
   ENTITLEMENTS,
   SubscriptionTier,
@@ -30,16 +31,49 @@ const getApiKey = (): string => {
 
 let isConfigured = false;
 
+// RevenueCat Test Store keys (test_...) abort the native SDK in release builds, and any
+// SDK call made before configure() crashes it ("no singleton instance"). When the key is
+// missing or a test key we never configure, and every wrapper below becomes a safe no-op.
+export const isRevenueCatDisabled = (): boolean => {
+  if (isDesignReview) return true;
+  const key = getApiKey();
+  return !key || key.startsWith('test_');
+};
+
+const UNAVAILABLE_MESSAGE = 'Purchases are not available in this build';
+
+// Empty customer info returned while RevenueCat is unavailable (free tier, no entitlements).
+// Cast is deliberate: the SDK exposes no constructor for CustomerInfo.
+const EMPTY_CUSTOMER_INFO = {
+  entitlements: { active: {}, all: {}, verification: 'NOT_REQUESTED' },
+  activeSubscriptions: [],
+  allPurchasedProductIdentifiers: [],
+  nonSubscriptionTransactions: [],
+  latestExpirationDate: null,
+  firstSeen: '',
+  originalAppUserId: '',
+  requestDate: '',
+  allExpirationDates: {},
+  allPurchaseDates: {},
+  originalApplicationVersion: null,
+  originalPurchaseDate: null,
+  managementURL: null,
+  subscriptionsByProductIdentifier: {},
+} as unknown as CustomerInfo;
+
 // Initialize RevenueCat
 export const initializeRevenueCat = async (userId?: string): Promise<void> => {
   const apiKey = getApiKey();
 
-  if (!apiKey) {
-    console.warn(
-      `[RevenueCat] API key not configured for ${Platform.OS}. ` +
-      `Ensure EXPO_PUBLIC_REVENUECAT_${Platform.OS === 'ios' ? 'IOS' : 'ANDROID'}_API_KEY ` +
-      `is set as an EAS secret with the EXPO_PUBLIC_ prefix.`
-    );
+  if (isRevenueCatDisabled()) {
+    // A test key is intentional (UI review builds): stay silent. Only a missing key is worth a warning.
+    if (!apiKey) {
+      console.warn(
+        `[RevenueCat] API key not configured for ${Platform.OS}. ` +
+        `Ensure EXPO_PUBLIC_REVENUECAT_${Platform.OS === 'ios' ? 'IOS' : 'ANDROID'}_API_KEY ` +
+        `is set as an EAS secret with the EXPO_PUBLIC_ prefix.`
+      );
+    }
     return;
   }
 
@@ -65,28 +99,33 @@ export const initializeRevenueCat = async (userId?: string): Promise<void> => {
 
 // Login user to RevenueCat (sync with your auth system)
 export const loginToRevenueCat = async (userId: string): Promise<CustomerInfo> => {
+  if (!isConfigured) return EMPTY_CUSTOMER_INFO;
   const { customerInfo } = await Purchases.logIn(userId);
   return customerInfo;
 };
 
 // Logout user from RevenueCat
 export const logoutFromRevenueCat = async (): Promise<CustomerInfo> => {
+  if (!isConfigured) return EMPTY_CUSTOMER_INFO;
   return await Purchases.logOut();
 };
 
 // Get current customer info
 export const getCustomerInfo = async (): Promise<CustomerInfo> => {
+  if (!isConfigured) return EMPTY_CUSTOMER_INFO;
   return await Purchases.getCustomerInfo();
 };
 
 // Get available offerings (subscription packages)
 export const getOfferings = async (): Promise<PurchasesOffering | null> => {
+  if (!isConfigured) return null;
   const offerings = await Purchases.getOfferings();
   return offerings.current;
 };
 
 // Get all offerings
 export const getAllOfferings = async (): Promise<Record<string, PurchasesOffering>> => {
+  if (!isConfigured) return {};
   const offerings = await Purchases.getOfferings();
   return offerings.all;
 };
@@ -95,6 +134,7 @@ export const getAllOfferings = async (): Promise<Record<string, PurchasesOfferin
 export const purchasePackage = async (
   packageToPurchase: PurchasesPackage
 ): Promise<PurchaseResult> => {
+  if (!isConfigured) return { success: false, error: UNAVAILABLE_MESSAGE };
   try {
     const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
     return {
@@ -122,6 +162,9 @@ export const purchasePackage = async (
 
 // Restore purchases
 export const restorePurchases = async (): Promise<RestoreResult> => {
+  if (!isConfigured) {
+    return { success: false, error: UNAVAILABLE_MESSAGE, hasActiveSubscription: false };
+  }
   try {
     const customerInfo = await Purchases.restorePurchases();
     const hasActiveSubscription = checkHasActiveSubscription(customerInfo);
@@ -214,6 +257,7 @@ export const setUserAttributes = async (attributes: {
   displayName?: string;
   [key: string]: string | undefined;
 }): Promise<void> => {
+  if (!isConfigured) return;
   if (attributes.email) {
     await Purchases.setEmail(attributes.email);
   }
@@ -233,6 +277,7 @@ export const setUserAttributes = async (attributes: {
 export const addCustomerInfoListener = (
   listener: (customerInfo: CustomerInfo) => void
 ): (() => void) => {
+  if (!isConfigured) return () => {};
   Purchases.addCustomerInfoUpdateListener(listener);
 
   // Return unsubscribe function
@@ -297,6 +342,7 @@ export const calculateAnnualSavings = (
 export const presentPaywall = async (
   offering?: PurchasesOffering
 ): Promise<PaywallResult> => {
+  if (!isConfigured) return { status: 'not_presented' };
   try {
     const options = offering ? { offering } : undefined;
     const result = await RevenueCatUI.presentPaywall(options);
@@ -316,6 +362,7 @@ export const presentPaywallIfNeeded = async (
   requiredEntitlementId: string,
   offering?: PurchasesOffering
 ): Promise<PaywallResult> => {
+  if (!isConfigured) return { status: 'not_presented' };
   try {
     const options: { requiredEntitlementIdentifier: string; offering?: PurchasesOffering } = {
       requiredEntitlementIdentifier: requiredEntitlementId,
@@ -364,6 +411,7 @@ const mapPaywallResult = (result: PAYWALL_RESULT): PaywallResult => {
 export const presentCustomerCenter = async (
   callbacks?: RCCustomerCenterCallbacks
 ): Promise<void> => {
+  if (!isConfigured) return;
   try {
     await RevenueCatUI.presentCustomerCenter(
       callbacks ? { callbacks } : undefined

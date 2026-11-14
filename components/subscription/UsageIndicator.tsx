@@ -1,17 +1,18 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
+import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { FONT, Icon, ProgressBar, type IconName } from '@/components/ui';
 
 interface UsageIndicatorProps {
   label: string;
   remaining: number | 'unlimited';
   limit?: number;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   showProgress?: boolean;
   compact?: boolean;
 }
 
+/** Usage row: label + "2 of 3" with a 6px progress bar (.bar). */
 export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
   label,
   remaining,
@@ -20,82 +21,50 @@ export const UsageIndicator: React.FC<UsageIndicatorProps> = ({
   showProgress = true,
   compact = false,
 }) => {
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   const isUnlimited = remaining === 'unlimited';
   const remainingNum = isUnlimited ? 0 : remaining;
   const usedCount = limit ? limit - remainingNum : 0;
-  const progress = limit ? (usedCount / limit) * 100 : 0;
+  const progress = limit ? Math.min(usedCount / limit, 1) : 0;
+  const exhausted = !isUnlimited && remainingNum === 0;
 
-  const getProgressColor = () => {
-    if (isUnlimited) return 'bg-green-500';
-    if (progress >= 100) return 'bg-red-500';
-    if (progress >= 75) return 'bg-yellow-500';
-    return '';
-  };
-
-  const getTextColor = () => {
-    if (isUnlimited) return 'text-green-600';
-    if (remainingNum === 0) return 'text-red-600';
-    if (limit && remainingNum <= 2) return 'text-yellow-600';
-    return 'text-neutral-700 dark:text-neutral-300';
-  };
+  const valueText = isUnlimited
+    ? t('account.usage.unlimited', 'Unlimited')
+    : limit
+      ? t('account.usage.ofLimit', '{{used}} of {{limit}}', { used: usedCount, limit })
+      : t('account.usage.left', '{{n}} left', { n: remainingNum });
 
   if (compact) {
     return (
-      <View className="flex-row items-center">
-        {icon && (
-          <Ionicons
-            name={icon}
-            size={14}
-            color={isUnlimited ? '#22C55E' : remainingNum === 0 ? '#EF4444' : colors.textMuted}
-            style={{ marginRight: 4 }}
-          />
-        )}
-        <Text className={`text-sm font-medium ${getTextColor()}`}>
-          {isUnlimited ? (
-            <Ionicons name="infinite" size={14} />
-          ) : (
-            `${remaining}${limit ? `/${limit}` : ''}`
-          )}
+      <View className="flex-row items-center" style={{ gap: 4 }}>
+        {icon ? <Icon name={icon} size="sm" color={exhausted ? 'tag-r-fg' : 'muted'} /> : null}
+        <Text
+          className={exhausted ? 'text-tag-r-fg' : 'text-ink'}
+          style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}
+        >
+          {isUnlimited ? '∞' : `${remaining}${limit ? `/${limit}` : ''}`}
         </Text>
       </View>
     );
   }
 
   return (
-    <View className="space-y-1">
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center">
-          {icon && (
-            <Ionicons
-              name={icon}
-              size={16}
-              color={colors.textMuted}
-              style={{ marginRight: 6 }}
-            />
-          )}
-          <Text className="text-sm text-neutral-600 dark:text-neutral-400">{label}</Text>
+    <View style={{ gap: 8 }}>
+      <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
+        <View className="flex-row items-center flex-1" style={{ gap: 6 }}>
+          {icon ? <Icon name={icon} size="sm" color="muted" /> : null}
+          <Text className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14 }}>
+            {label}
+          </Text>
         </View>
-        <Text className={`text-sm font-semibold ${getTextColor()}`}>
-          {isUnlimited ? (
-            <View className="flex-row items-center">
-              <Ionicons name="infinite" size={16} color="#22C55E" />
-              <Text className="text-green-600 ml-1">Unlimited</Text>
-            </View>
-          ) : (
-            `${remaining}${limit ? ` / ${limit}` : ''} left`
-          )}
+        <Text
+          className={exhausted ? 'text-tag-r-fg' : 'text-ink'}
+          style={{ fontFamily: FONT.sansMedium, fontSize: 14 }}
+        >
+          {valueText}
         </Text>
       </View>
-
-      {showProgress && !isUnlimited && limit && (
-        <View className="h-2 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
-          <View
-            className={`h-full ${getProgressColor()} rounded-full`}
-            style={[{ width: `${Math.min(progress, 100)}%` }, !getProgressColor() && { backgroundColor: colors.accent }]}
-          />
-        </View>
-      )}
+      {showProgress && !isUnlimited && limit ? <ProgressBar value={progress} label={label} /> : null}
     </View>
   );
 };
@@ -106,40 +75,34 @@ interface UsageBadgeProps {
   size?: 'small' | 'medium';
 }
 
-export const UsageBadge: React.FC<UsageBadgeProps> = ({
-  remaining,
-  size = 'medium',
-}) => {
-  const colors = useThemeColors();
+export const UsageBadge: React.FC<UsageBadgeProps> = ({ remaining, size = 'medium' }) => {
   const isUnlimited = remaining === 'unlimited';
   const remainingNum = isUnlimited ? 0 : remaining;
 
-  const getBgColor = () => {
-    if (isUnlimited) return 'bg-green-100';
-    if (remainingNum === 0) return 'bg-red-100';
-    if (remainingNum <= 2) return 'bg-yellow-100';
-    return 'bg-neutral-100 dark:bg-neutral-700';
-  };
-
-  const getTextColor = () => {
-    if (isUnlimited) return 'text-green-700';
-    if (remainingNum === 0) return 'text-red-700';
-    if (remainingNum <= 2) return 'text-yellow-700';
-    return 'text-neutral-700 dark:text-neutral-300';
-  };
-
-  const sizeClasses = size === 'small' ? 'px-1.5 py-0.5' : 'px-2 py-1';
-  const textSize = size === 'small' ? 'text-xs' : 'text-sm';
+  const bg = isUnlimited
+    ? 'bg-tag-g'
+    : remainingNum === 0
+      ? 'bg-tag-r'
+      : remainingNum <= 2
+        ? 'bg-tag-o'
+        : 'bg-surface-3';
+  const fg = isUnlimited
+    ? 'text-tag-g-fg'
+    : remainingNum === 0
+      ? 'text-tag-r-fg'
+      : remainingNum <= 2
+        ? 'text-tag-o-fg'
+        : 'text-ink';
+  const h = size === 'small' ? 22 : 28;
 
   return (
-    <View className={`rounded-full ${getBgColor()} ${sizeClasses}`}>
-      {isUnlimited ? (
-        <Ionicons name="infinite" size={size === 'small' ? 12 : 14} color="#22C55E" />
-      ) : (
-        <Text className={`font-medium ${getTextColor()} ${textSize}`}>
-          {remaining}
-        </Text>
-      )}
+    <View
+      className={`items-center justify-center ${bg}`}
+      style={{ height: h, minWidth: h, borderRadius: h / 2, paddingHorizontal: 8 }}
+    >
+      <Text className={fg} style={{ fontFamily: FONT.sansMedium, fontSize: size === 'small' ? 11 : 12 }}>
+        {isUnlimited ? '∞' : remaining}
+      </Text>
     </View>
   );
 };

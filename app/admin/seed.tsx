@@ -1,19 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { Alert, Platform, ScrollView, Text, View } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useAuthStore } from '@/stores/authStore';
-import { Button } from '@/components/ui';
-import { SEED_RECIPES, SEED_USERS, SEED_COOKBOOKS, SeedUser } from '@/data/seedData';
-import { db, auth, doc, setDoc, collection, addDoc, Timestamp, createUserWithEmailAndPassword, updateProfile } from '@/lib/firebase';
+import { SAMPLE } from '@/assets/sample';
+import { CtaBar, Muted, PhotoCard, ProgressBar, Screen, SectionLabel, TopBar, UButton } from '@/components/ui';
+import { SEED_RECIPES, SEED_USERS, SEED_COOKBOOKS } from '@/data/seedData';
+import { db, auth, doc, setDoc, collection, Timestamp, createUserWithEmailAndPassword, updateProfile } from '@/lib/firebase';
 import { COLLECTIONS } from '@/lib/firebase';
 import { seedDemoAd } from '@/services/adService';
 import { calculateNutrition, calculateIngredientCalories } from '@/lib/utils';
 
+const MONO = Platform.select({ ios: 'Menlo', android: 'monospace', default: 'monospace' });
+
 export default function SeedDataScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { createRecipe } = useRecipeStore();
   const { user: currentUser } = useAuthStore();
   
@@ -80,10 +83,10 @@ export default function SeedDataScreen() {
                 photoURL: seedUser.photoURL,
               });
 
-              addLog(`  - ✅ Auth account created (UID: ${finalUserId})`);
+              addLog(`  - OK: Auth account created (UID: ${finalUserId})`);
             } catch (authError: any) {
               if (authError.code === 'auth/email-already-in-use') {
-                addLog(`  - ℹ️ Auth account already exists, using seed ID`);
+                addLog(`  - Note: Auth account already exists, using seed ID`);
               } else {
                 throw authError;
               }
@@ -123,10 +126,10 @@ export default function SeedDataScreen() {
           }
           
           userCount++;
-          addLog(`✅ Created/Updated user: ${seedUser.displayName}`);
+          addLog(`OK: Created/Updated user: ${seedUser.displayName}`);
         } catch (error) {
           console.error(error);
-          addLog(`❌ Failed user: ${seedUser.displayName} - ${error instanceof Error ? error.message : String(error)}`);
+          addLog(`Failed: Failed user: ${seedUser.displayName} - ${error instanceof Error ? error.message : String(error)}`);
         }
         currentStep++;
         setProgress(currentStep / totalSteps);
@@ -188,10 +191,10 @@ export default function SeedDataScreen() {
           
           recipeIdMap[i] = recipe.id;
           recipeCount++;
-          addLog(`✅ Added/Updated recipe: ${recipe.title}`);
+          addLog(`OK: Added/Updated recipe: ${recipe.title}`);
         } catch (error) {
           console.error(error);
-          addLog(`❌ Failed recipe: ${recipe.title}`);
+          addLog(`Failed: Failed recipe: ${recipe.title}`);
         }
         currentStep++;
         setProgress(currentStep / totalSteps);
@@ -227,16 +230,16 @@ export default function SeedDataScreen() {
           });
 
           cookbookCount++;
-          addLog(`✅ Created/Updated cookbook: ${cookbook.title} (${realRecipeIds.length} recipes)`);
+          addLog(`OK: Created/Updated cookbook: ${cookbook.title} (${realRecipeIds.length} recipes)`);
         } catch (error) {
           console.error(error);
-          addLog(`❌ Failed cookbook: ${cookbook.title}`);
+          addLog(`Failed: Failed cookbook: ${cookbook.title}`);
         }
         currentStep++;
         setProgress(currentStep / totalSteps);
       }
       
-      addLog(`\n🎉 DONE! Users: ${userCount}, Recipes: ${recipeCount}, Cookbooks: ${cookbookCount}`);
+      addLog(`\nDONE! Users: ${userCount}, Recipes: ${recipeCount}, Cookbooks: ${cookbookCount}`);
       Alert.alert('Seeding Complete', `Added ${recipeCount} recipes and ${cookbookCount} cookbooks.`);
       
     } catch (error) {
@@ -248,35 +251,69 @@ export default function SeedDataScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-      <Stack.Screen 
-        options={{ 
-          title: 'Full Database Seed',
-          headerBackTitle: 'Profile'
-        }} 
-      />
-      
-      <View className="p-6 flex-1">
-        <View className="mb-6 items-center">
-          <View className="w-20 h-20 bg-primary-100 rounded-full items-center justify-center mb-4">
-            <Ionicons name="server-outline" size={40} color="#F97316" />
-          </View>
-          <Text className="text-2xl font-bold text-neutral-900 text-center">
-            Master Data Seeder
-          </Text>
-          <Text className="text-neutral-500 text-center mt-2 px-4">
-            Populate Users, Chefs, Recipes, and linked Cookbooks.
-          </Text>
-        </View>
+    <Screen
+      tone="dark"
+      bare
+      footer={
+        <CtaBar vertical>
+          <UButton
+            variant="accent"
+            label={isSeeding ? t('account.seed.seeding', 'Seeding Data...') : t('account.seed.run', 'Run Full Seed')}
+            loading={isSeeding}
+            disabled={isSeeding}
+            onPress={handleSeed}
+          />
+          <UButton
+            variant="ghost"
+            label={t('account.seed.demoAd', 'Seed Demo Ad')}
+            onPress={async () => {
+              try {
+                const adId = await seedDemoAd();
+                Alert.alert(
+                  t('account.seed.adCreated', 'Ad Created'),
+                  t('account.seed.adCreatedBody', 'Demo sponsored ad seeded to Firestore.\nDoc ID: {{id}}', { id: adId })
+                );
+              } catch (e: unknown) {
+                Alert.alert(
+                  t('account.error', 'Error'),
+                  e instanceof Error && e.message ? e.message : t('account.seed.adFailed', 'Failed to seed ad.')
+                );
+              }
+            }}
+          />
+        </CtaBar>
+      }
+    >
+      <Stack.Screen options={{ headerShown: false }} />
+      <TopBar variant="compact" title={t('account.seed.title', 'Database Seed')} onBack={() => router.back()} />
+      <View className="flex-1" style={{ paddingHorizontal: 20, paddingBottom: 190, gap: 16 }}>
+        <PhotoCard
+          source={SAMPLE.veg}
+          height={180}
+          title={t('account.seed.hero', 'Master Data Seeder')}
+          subtitle={t('account.seed.heroBody', 'Users, chefs, recipes and linked cookbooks')}
+        />
 
-        <View className="bg-neutral-50 rounded-xl p-4 flex-1 mb-6 border border-neutral-200">
-          <Text className="font-semibold text-neutral-700 mb-2">Process Logs:</Text>
-          <ScrollView className="flex-1" ref={ref => ref?.scrollToEnd({ animated: true })}>
+        <SectionLabel>{t('account.seed.log', 'Process log')}</SectionLabel>
+        <View className="bg-surface" style={{ borderRadius: 28, padding: 18, height: 200 }}>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            ref={(ref) => ref?.scrollToEnd({ animated: true })}
+          >
             {logs.length === 0 ? (
-              <Text className="text-neutral-400 italic">Ready to initialize database...</Text>
+              <>
+                <Text className="text-ink" style={{ fontFamily: MONO, fontSize: 12, lineHeight: 20.4 }}>
+                  {'> '}
+                  {t('account.seed.ready', 'Ready to initialize database...')}
+                </Text>
+                <Text className="text-subtle" style={{ fontFamily: MONO, fontSize: 12, lineHeight: 20.4 }}>
+                  {'> '}
+                  {t('account.seed.waiting', 'waiting for command')}
+                </Text>
+              </>
             ) : (
               logs.map((log, index) => (
-                <Text key={index} className="text-neutral-600 text-xs mb-1 font-mono">
+                <Text key={index} className="text-ink" style={{ fontFamily: MONO, fontSize: 12, lineHeight: 20.4 }}>
                   {log}
                 </Text>
               ))
@@ -284,42 +321,13 @@ export default function SeedDataScreen() {
           </ScrollView>
         </View>
 
-        {isSeeding && (
-          <View className="mb-6">
-            <View className="h-2 bg-neutral-100 rounded-full overflow-hidden">
-              <View 
-                className="h-full bg-primary-500 rounded-full" 
-                style={{ width: `${progress * 100}%` }} 
-              />
-            </View>
-            <Text className="text-right text-xs text-neutral-400 mt-1">
-              {Math.round(progress * 100)}%
-            </Text>
+        {isSeeding ? (
+          <View style={{ gap: 6 }}>
+            <ProgressBar value={progress} variant="accent" label={t('account.seed.progress', 'Seed progress')} />
+            <Muted small>{Math.round(progress * 100)}%</Muted>
           </View>
-        )}
-
-        <Button 
-          title={isSeeding ? "Seeding Data..." : "Start Full Seed"} 
-          onPress={handleSeed}
-          isLoading={isSeeding}
-          disabled={isSeeding}
-        />
-
-        <View className="mt-4">
-          <Button
-            title="Seed Demo Sponsored Ad"
-            variant="outline"
-            onPress={async () => {
-              try {
-                const adId = await seedDemoAd();
-                Alert.alert('Ad Created', `Demo sponsored ad seeded to Firestore.\nDoc ID: ${adId}`);
-              } catch (e: any) {
-                Alert.alert('Error', e.message || 'Failed to seed ad.');
-              }
-            }}
-          />
-        </View>
+        ) : null}
       </View>
-    </SafeAreaView>
+    </Screen>
   );
 }

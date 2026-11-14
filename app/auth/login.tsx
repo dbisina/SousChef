@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  Image,
-  Alert,
-} from 'react-native';
-import { useRouter, Link } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Image, Text as RNText, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
-import { useThemeColors } from '@/stores/themeStore';
-import { Button, Input } from '@/components/ui';
+import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton } from '@/components/ui';
+import { FIXED } from '@/stores/themeStore';
+import { SAMPLE } from '@/assets/sample';
 import {
   signInWithGoogle,
   signInWithApple,
@@ -36,11 +28,12 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { signIn, setUser, resetPassword, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [socialLoading, setSocialLoading] = useState(false);
-  const colors = useThemeColors();
 
   // Google Auth
   const { response: googleResponse, promptAsync: googlePromptAsync, isReady: googleReady } = useGoogleAuth();
@@ -92,20 +85,6 @@ export default function LoginScreen() {
     }
   };
 
-  const handleForgotPassword = async () => {
-    const email = getValues('email');
-    if (!email) {
-      showInfoToast('Please enter your email address so we know where to send the link!', 'Email Needed');
-      return;
-    }
-    try {
-      await resetPassword(email);
-      showSuccessToast('Check your inbox for password reset instructions. It\'s on the way! 📧', 'Email Sent');
-    } catch (err) {
-      // Error handled by store
-    }
-  };
-
   const {
     control,
     handleSubmit,
@@ -119,6 +98,20 @@ export default function LoginScreen() {
     },
   });
 
+  const handleForgotPassword = async () => {
+    const email = getValues('email');
+    if (!email) {
+      showInfoToast('Please enter your email address so we know where to send the link!', 'Email Needed');
+      return;
+    }
+    try {
+      await resetPassword(email);
+      showSuccessToast('Check your inbox for password reset instructions. It\'s on the way!', 'Email Sent');
+    } catch (err) {
+      // Error handled by store
+    }
+  };
+
   const onSubmit = async (data: LoginFormData) => {
     try {
       await signIn(data.email, data.password);
@@ -129,154 +122,163 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
+    <Screen bare>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ flexGrow: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: Math.max(insets.bottom, 20) + 4 }}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 px-6 py-8">
-            {/* Logo/Header */}
-            <View className="items-center mb-8">
+          <PhotoCard
+            source={SAMPLE.salmon}
+            height={300}
+            radius={0}
+            style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}
+          >
+            <View style={{ position: 'absolute', top: Math.max(insets.top, 20) + 14, left: 20 }}>
               <Image
                 source={require('../../assets/icon.png')}
-                className="w-28 h-28 mb-4"
-                resizeMode="contain"
+                accessibilityLabel=""
+                style={{ width: 42, height: 42, borderRadius: 13 }}
               />
-              <Text className="text-3xl font-bold text-neutral-900 dark:text-neutral-50">
-                SousChef
-              </Text>
-              <Text className="text-neutral-500 dark:text-neutral-400 mt-2">
-                Your AI-powered cooking companion
-              </Text>
             </View>
+            <View style={{ position: 'absolute', left: 24, bottom: 26, gap: 5 }}>
+              <RNText
+                accessibilityRole="header"
+                style={{ fontFamily: FONT.display, fontSize: 30, lineHeight: 34.5, letterSpacing: -0.6, color: FIXED.paper }}
+              >
+                {t('welcome.login.title', 'Welcome back')}
+              </RNText>
+              <RNText style={{ fontFamily: FONT.sans, fontSize: 14, color: FIXED.captionSub }}>
+                {t('welcome.login.subtitle', 'Your cooking companion')}
+              </RNText>
+            </View>
+          </PhotoCard>
 
-            {/* Form */}
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 mb-6">
-                Welcome back
-              </Text>
+          <View style={{ paddingTop: 26, paddingHorizontal: 24, gap: 16 }}>
+            {error ? (
+              <View className="bg-tag-r" style={{ borderRadius: 18, padding: 14 }}>
+                <RNText className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+                  {error}
+                </RNText>
+              </View>
+            ) : null}
 
-              {error && (
-                <View className="bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-4">
-                  <Text className="text-red-600 dark:text-red-400">{error}</Text>
-                </View>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <Field
+                  label={t('welcome.login.email', 'Email')}
+                  placeholder="your@email.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  value={value}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                  error={errors.email?.message}
+                />
               )}
+            />
 
-              <Controller
-                control={control}
-                name="email"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Email"
-                    placeholder="your@email.com"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    leftIcon="mail-outline"
-                    value={value}
-                    onChangeText={onChange}
-                    onBlur={onBlur}
-                    error={errors.email?.message}
-                  />
-                )}
-              />
-
-              <Controller
-                control={control}
-                name="password"
-                render={({ field: { onChange, onBlur, value } }) => (
-                  <Input
-                    label="Password"
-                    placeholder="Enter your password"
+            <Controller
+              control={control}
+              name="password"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View>
+                  <Field
+                    label={t('welcome.login.password', 'Password')}
+                    placeholder={t('welcome.login.passwordPlaceholder', 'Enter your password')}
                     secureTextEntry={!showPassword}
                     autoComplete="password"
-                    leftIcon="lock-closed-outline"
-                    rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                    onRightIconPress={() => setShowPassword(!showPassword)}
                     value={value}
                     onChangeText={onChange}
                     onBlur={onBlur}
                     error={errors.password?.message}
+                    trailing={
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={showPassword ? t('welcome.hidePassword', 'Hide password') : t('welcome.showPassword', 'Show password')}
+                        onPress={() => setShowPassword((v) => !v)}
+                        style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <Icon name={showPassword ? 'eyeOff' : 'eye'} size="sm" color="muted" />
+                      </Pressable>
+                    }
                   />
-                )}
-              />
-
-              <TouchableOpacity className="self-end mb-6" onPress={handleForgotPassword}>
-                <Text className="font-medium" style={{ color: colors.accent }}>
-                  Forgot password?
-                </Text>
-              </TouchableOpacity>
-
-              <Button
-                title="Sign In"
-                onPress={handleSubmit(onSubmit)}
-                isLoading={isLoading}
-                fullWidth
-              />
-
-              {/* Divider */}
-              <View className="flex-row items-center my-6">
-                <View className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-                <Text className="mx-4 text-neutral-500 dark:text-neutral-400">or</Text>
-                <View className="flex-1 h-px bg-neutral-200 dark:bg-neutral-700" />
-              </View>
-
-              {/* Social login buttons */}
-              <Button
-                title="Continue with Google"
-                variant="outline"
-                leftIcon={
-                  <Ionicons name="logo-google" size={20} color="#DB4437" />
-                }
-                onPress={() => googlePromptAsync()}
-                isLoading={socialLoading}
-                disabled={!googleReady}
-                fullWidth
-              />
-
-              {appleAvailable && (
-                <View className="mt-3">
-                  <AppleAuthentication.AppleAuthenticationButton
-                    buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                    buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                    cornerRadius={12}
-                    style={{ width: '100%', height: 50 }}
-                    onPress={handleAppleSignIn}
-                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={handleForgotPassword}
+                    hitSlop={{ top: 14, bottom: 14, left: 14, right: 4 }}
+                    style={{ position: 'absolute', top: 0, right: 0 }}
+                  >
+                    <LinkText style={{ fontSize: 12 }}>{t('welcome.login.forgot', 'Forgot password?')}</LinkText>
+                  </Pressable>
                 </View>
               )}
+            />
 
-              {/* Guest mode */}
-              <TouchableOpacity
-                className="mt-4 py-3 items-center"
-                onPress={() => {
-                  useAuthStore.getState().continueAsGuest();
-                  router.replace('/(tabs)');
-                }}
-              >
-                <Text className="text-neutral-500 dark:text-neutral-400 font-medium">
-                  Skip for now — try it first
-                </Text>
-              </TouchableOpacity>
+            <UButton
+              label={t('welcome.login.signIn', 'Sign In')}
+              onPress={handleSubmit(onSubmit)}
+              loading={isLoading}
+              style={{ marginTop: 4 }}
+            />
+
+            <View className="flex-row items-center" style={{ gap: 12, height: 17 }}>
+              <View className="flex-1 bg-divider" style={{ height: 1 }} />
+              <Muted small>{t('welcome.login.or', 'or')}</Muted>
+              <View className="flex-1 bg-divider" style={{ height: 1 }} />
             </View>
 
-            {/* Sign up link */}
-            <View className="flex-row justify-center mt-8">
-              <Text className="text-neutral-500 dark:text-neutral-400">Don't have an account? </Text>
-              <Link href="/auth/register" asChild>
-                <TouchableOpacity>
-                  <Text className="font-semibold" style={{ color: colors.accent }}>Sign up</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
+            <UButton
+              variant="ghost"
+              icon="globe"
+              label={t('welcome.login.google', 'Continue with Google')}
+              onPress={() => googlePromptAsync()}
+              loading={socialLoading}
+              disabled={!googleReady}
+            />
+
+            {appleAvailable ? (
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={29}
+                style={{ alignSelf: 'stretch', width: '100%', height: 58 }}
+                onPress={handleAppleSignIn}
+              />
+            ) : null}
+
+            {/* Guest mode */}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                useAuthStore.getState().continueAsGuest();
+                router.replace('/(tabs)');
+              }}
+              style={{ paddingVertical: 12, alignItems: 'center' }}
+            >
+              <LinkText>{t('welcome.login.skip', 'Skip for now, try it first')}</LinkText>
+            </Pressable>
+          </View>
+
+          <View className="flex-row justify-center items-center" style={{ marginTop: 'auto', paddingTop: 20 }}>
+            <Muted>{t('welcome.login.noAccount', 'Don’t have an account?')} </Muted>
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => router.push('/auth/register')}
+              hitSlop={10}
+            >
+              <RNText className="text-ink" style={{ fontFamily: FONT.sansMedium, fontSize: 14 }}>
+                {t('welcome.login.signUp', 'Sign up')}
+              </RNText>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }

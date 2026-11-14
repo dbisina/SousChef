@@ -1,49 +1,34 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
-  Modal,
-  Alert,
-  FlatList,
-} from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useWasteTracking, useMealPlanAccess } from '@/hooks/useMealPlan';
+import { useTranslation } from 'react-i18next';
+import { useWasteTracking } from '@/hooks/useMealPlan';
+import { WasteStatsCard, WasteEntryRow, WasteBreakdown } from '@/components/mealplan';
 import {
-  WasteStatsCard,
-  WasteEntryRow,
-  WasteBreakdown,
-} from '@/components/mealplan';
-import { Card, Button, Loading, Empty } from '@/components/ui';
+  Chip,
+  CtaBar,
+  Field,
+  H2,
+  Icon,
+  Muted,
+  Rows,
+  Screen,
+  Tag,
+  Title,
+  TopBar,
+  UButton,
+  UCard,
+  UIconButton,
+} from '@/components/ui';
+import { Loading } from '@/components/ui/Loading';
 import { Paywall } from '@/components/subscription';
-import { useThemeColors } from '@/stores/themeStore';
-import {
-  WasteReason,
-  WasteEntryFormData,
-  WASTE_REASON_LABELS,
-} from '@/types/mealplan';
-import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
+import { WasteReason, WasteEntryFormData, WASTE_REASON_LABELS } from '@/types/mealplan';
+import { showErrorToast, showInfoToast } from '@/stores/toastStore';
 
 export default function WasteTrackingScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
-  const {
-    wasteLog,
-    wasteStats,
-    isLoading,
-    canTrack,
-    weeklyWaste,
-    monthlyWaste,
-    savedByPlanning,
-    logWaste,
-    deleteWaste,
-  } = useWasteTracking();
-
-  const { isPremium, isPro } = useMealPlanAccess();
+  const { t } = useTranslation();
+  const { wasteLog, wasteStats, isLoading, canTrack, logWaste, deleteWaste } = useWasteTracking();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -57,20 +42,20 @@ export default function WasteTrackingScreen() {
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Handle log waste
   const handleLogWaste = async () => {
     if (!itemName.trim()) {
-      showInfoToast('What item are we logging today? ✍️', 'Missing Info');
+      showInfoToast(t('planWaste.needName', 'What item are we logging today?'), t('planWaste.missingInfo', 'Missing Info'));
       return;
     }
-
     if (!amount || parseFloat(amount) <= 0) {
-      showInfoToast('How much was there? We need a number to track your impact. ⚖️', 'Missing Amount');
+      showInfoToast(
+        t('planWaste.needAmount', 'How much was there? We need a number to track your impact.'),
+        t('planWaste.missingAmount', 'Missing Amount')
+      );
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       const data: WasteEntryFormData = {
         itemName: itemName.trim(),
@@ -80,10 +65,8 @@ export default function WasteTrackingScreen() {
         estimatedValue: parseFloat(estimatedValue) || 0,
         notes: notes.trim() || undefined,
       };
-
       await logWaste(data);
 
-      // Reset form
       setItemName('');
       setAmount('');
       setUnit('piece');
@@ -91,295 +74,206 @@ export default function WasteTrackingScreen() {
       setEstimatedValue('');
       setNotes('');
       setShowAddModal(false);
-    } catch (error) {
-      showErrorToast('Oops! We couldn\'t log that waste. Let\'s try once more? 🔄', 'Log Problem');
+    } catch {
+      showErrorToast(
+        t('planWaste.logErrBody', "We couldn't log that waste. Let's try once more."),
+        t('planWaste.logErrTitle', 'Log Problem')
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle delete waste
   const handleDeleteWaste = (entryId: string) => {
     Alert.alert(
-      'Delete Log?',
-      'Are you sure you want to remove this waste entry from your log?',
+      t('planWaste.deleteTitle', 'Delete Log?'),
+      t('planWaste.deleteBody', 'Are you sure you want to remove this waste entry from your log?'),
       [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => deleteWaste(entryId),
-        },
+        { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+        { text: t('planWaste.delete', 'Delete'), style: 'destructive', onPress: () => deleteWaste(entryId) },
       ]
     );
   };
 
-  // Show paywall for users without access
+  const proTag = <Tag tone="k" label={t('planWaste.pro', 'Pro')} />;
+  const title = t('planWaste.title', 'Waste Tracking');
+
+  // Pro gate
   if (!canTrack) {
     return (
-      <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950">
-        <View className="flex-row items-center px-4 py-3 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.icon} />
-          </TouchableOpacity>
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100 ml-4">
-            Waste Tracking
-          </Text>
-        </View>
-
-        <View className="flex-1 items-center justify-center p-8">
-          <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-6">
-            <Ionicons name="leaf-outline" size={40} color="#22C55E" />
+      <Screen bare>
+        <TopBar variant="compact" title={title} onBack={() => router.back()} right={proTag} />
+        <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 32, gap: 16 }}>
+          <View className="items-center justify-center bg-surface-2" style={{ width: 80, height: 80, borderRadius: 40 }}>
+            <Icon name="leaf" size="lg" />
           </View>
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 text-center mb-2">
-            Waste Tracking
-          </Text>
-          <Text className="text-neutral-500 dark:text-neutral-400 text-center mb-6">
-            Track food waste, see trends, and learn how much you're saving
-            with meal planning.
-          </Text>
-          <Button
-            title="Upgrade to Premium"
-            onPress={() => setShowPaywall(true)}
-            leftIcon={<Ionicons name="star" size={20} color="white" />}
-          />
+          <H2 center>{title}</H2>
+          <Muted center>
+            {t(
+              'planWaste.gateBody',
+              "Track food waste, see trends, and learn how much you're saving with meal planning."
+            )}
+          </Muted>
+          <View style={{ alignSelf: 'stretch' }}>
+            <UButton
+              variant="accent"
+              icon="star"
+              label={t('plan.upgrade', 'Upgrade to Premium')}
+              onPress={() => setShowPaywall(true)}
+            />
+          </View>
         </View>
-
         <Paywall
           visible={showPaywall}
           onClose={() => setShowPaywall(false)}
           feature="Waste Tracking"
           requiredTier="premium"
         />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
   if (isLoading) {
-    return <Loading fullScreen message="Loading waste data..." />;
+    return <Loading fullScreen message={t('planWaste.loading', 'Loading waste data...')} />;
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-950" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-neutral-900 border-b border-neutral-100 dark:border-neutral-800">
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Waste Tracking</Text>
-        <TouchableOpacity onPress={() => setShowAddModal(true)}>
-          <Ionicons name="add-circle-outline" size={28} color={colors.accent} />
-        </TouchableOpacity>
-      </View>
+    <Screen
+      bare
+      footer={
+        <CtaBar fade>
+          <UButton icon="plus" label={t('planWaste.log', 'Log Waste')} onPress={() => setShowAddModal(true)} />
+        </CtaBar>
+      }
+    >
+      <TopBar variant="compact" title={title} onBack={() => router.back()} right={proTag} />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="p-4">
-          {/* Stats card */}
-          <WasteStatsCard stats={wasteStats} />
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 150 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <WasteStatsCard stats={wasteStats} />
 
-          {/* Waste breakdown */}
-          {wasteStats && (
-            <Card className="mt-4">
-              <WasteBreakdown wasteByReason={wasteStats.wasteByReason} />
-            </Card>
-          )}
-
-          {/* Recent waste log */}
-          <View className="mt-6">
-            <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-3">
-              Recent Waste Log
-            </Text>
-
-            {wasteLog.length === 0 ? (
-              <Card className="bg-neutral-50 dark:bg-neutral-800">
-                <View className="items-center py-6">
-                  <Ionicons name="checkmark-circle-outline" size={48} color="#22C55E" />
-                  <Text className="text-neutral-600 dark:text-neutral-400 mt-2 text-center">
-                    No waste logged yet!
-                  </Text>
-                  <Text className="text-neutral-400 dark:text-neutral-500 text-sm text-center mt-1">
-                    Keep up the great work
-                  </Text>
-                </View>
-              </Card>
-            ) : (
-              <Card variant="outlined" className="p-0 overflow-hidden">
-                {wasteLog.slice(0, 10).map((entry) => (
-                  <WasteEntryRow
-                    key={entry.id}
-                    entry={entry}
-                    onDelete={() => handleDeleteWaste(entry.id)}
-                  />
-                ))}
-                {wasteLog.length > 10 && (
-                  <TouchableOpacity className="p-4 items-center">
-                    <Text className="font-medium" style={{ color: colors.accent }}>
-                      View all {wasteLog.length} entries
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </Card>
-            )}
-          </View>
-
-          {/* Tips */}
-          <Card className="mt-6 bg-green-50 border border-green-200">
-            <View className="flex-row items-start">
-              <Ionicons name="bulb" size={20} color="#22C55E" />
-              <View className="flex-1 ml-3">
-                <Text className="text-green-800 font-semibold">
-                  Tips to Reduce Waste
-                </Text>
-                <Text className="text-green-600 text-sm mt-1">
-                  • Plan meals around expiring ingredients{'\n'}
-                  • Use the "first in, first out" method{'\n'}
-                  • Freeze items before they spoil{'\n'}
-                  • Store produce properly
-                </Text>
-              </View>
-            </View>
-          </Card>
+        <View className="flex-row items-center justify-between">
+          <H2>{t('planWaste.recent', 'Recent')}</H2>
+          <Muted small>{t('planWaste.thisWeek', 'This week')}</Muted>
         </View>
+
+        {wasteLog.length === 0 ? (
+          <UCard>
+            <View className="items-center" style={{ paddingVertical: 12, gap: 8 }}>
+              <Icon name="check" size="lg" color="muted" />
+              <Title>{t('planWaste.none', 'No waste logged yet')}</Title>
+              <Muted small center>
+                {t('planWaste.noneHint', 'Keep up the great work')}
+              </Muted>
+            </View>
+          </UCard>
+        ) : (
+          <Rows>
+            {wasteLog.slice(0, 10).map((entry) => (
+              <WasteEntryRow key={entry.id} entry={entry} onDelete={() => handleDeleteWaste(entry.id)} />
+            ))}
+          </Rows>
+        )}
+
+        {wasteStats ? (
+          <View style={{ paddingTop: 72 }}>
+            <UCard>
+              <WasteBreakdown wasteByReason={wasteStats.wasteByReason} />
+            </UCard>
+          </View>
+        ) : null}
       </ScrollView>
 
-      {/* Add waste modal */}
       <Modal
         visible={showAddModal}
         animationType="slide"
-        presentationStyle="pageSheet"
+        presentationStyle="fullScreen"
         onRequestClose={() => setShowAddModal(false)}
       >
-        <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900">
-          {/* Modal header */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
-            <TouchableOpacity onPress={() => setShowAddModal(false)}>
-              <Text className="text-neutral-500 dark:text-neutral-400">Cancel</Text>
-            </TouchableOpacity>
-            <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100">Log Waste</Text>
-            <View style={{ width: 60 }} />
-          </View>
-
-          <ScrollView className="flex-1 p-4">
-            {/* Item name */}
-            <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Item Name *
-              </Text>
-              <TextInput
+        <Screen
+          bare
+          footer={
+            <CtaBar fade>
+              <UButton
+                icon="plus"
+                label={t('planWaste.log', 'Log Waste')}
+                loading={isSubmitting}
+                onPress={handleLogWaste}
+              />
+            </CtaBar>
+          }
+        >
+          <TopBar
+            variant="compact"
+            title={t('planWaste.log', 'Log Waste')}
+            left={<UIconButton icon="close" label={t('planGen.cancel', 'Cancel')} onPress={() => setShowAddModal(false)} />}
+          />
+          <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 150 }}
+            >
+              <Field
+                label={t('planWaste.itemName', 'Item name')}
                 value={itemName}
                 onChangeText={setItemName}
-                placeholder="e.g., Spinach, Chicken, Milk"
-                className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
+                placeholder={t('planWaste.itemPh', 'e.g., Spinach, Chicken, Milk')}
               />
-            </View>
-
-            {/* Amount and unit */}
-            <View className="flex-row mb-4">
-              <View className="flex-1 mr-2">
-                <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Amount *
-                </Text>
-                <TextInput
-                  value={amount}
-                  onChangeText={setAmount}
-                  placeholder="e.g., 2"
-                  keyboardType="decimal-pad"
-                  className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
-                />
+              <View className="flex-row" style={{ gap: 12 }}>
+                <View className="flex-1">
+                  <Field
+                    label={t('planWaste.amount', 'Amount')}
+                    value={amount}
+                    onChangeText={setAmount}
+                    placeholder="2"
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View className="flex-1">
+                  <Field
+                    label={t('planWaste.unit', 'Unit')}
+                    value={unit}
+                    onChangeText={setUnit}
+                    placeholder={t('planWaste.unitPh', 'cups, oz')}
+                  />
+                </View>
               </View>
-              <View className="flex-1 ml-2">
-                <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                  Unit
-                </Text>
-                <TextInput
-                  value={unit}
-                  onChangeText={setUnit}
-                  placeholder="e.g., cups, oz"
-                  className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
-                />
-              </View>
-            </View>
 
-            {/* Reason */}
-            <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Reason
-              </Text>
-              <View className="flex-row flex-wrap">
-                {(Object.keys(WASTE_REASON_LABELS) as WasteReason[]).map(
-                  (reasonKey) => (
-                    <TouchableOpacity
-                      key={reasonKey}
-                      onPress={() => setReason(reasonKey)}
-                      className={`mr-2 mb-2 px-4 py-2 rounded-full border ${
-                        reason === reasonKey
-                          ? 'bg-red-500 border-red-500'
-                          : 'bg-white dark:bg-neutral-800 border-neutral-300 dark:border-neutral-600'
-                      }`}
-                    >
-                      <Text
-                        className={
-                          reason === reasonKey
-                            ? 'text-white font-medium'
-                            : 'text-neutral-600 dark:text-neutral-400'
-                        }
-                      >
-                        {WASTE_REASON_LABELS[reasonKey]}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                )}
+              <View style={{ gap: 10 }}>
+                <Title>{t('planWaste.reason', 'Reason')}</Title>
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                  {(Object.keys(WASTE_REASON_LABELS) as WasteReason[]).map((key) => (
+                    <Chip
+                      key={key}
+                      label={WASTE_REASON_LABELS[key]}
+                      on={reason === key}
+                      onPress={() => setReason(key)}
+                    />
+                  ))}
+                </View>
               </View>
-            </View>
 
-            {/* Estimated value */}
-            <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Estimated Value ($)
-              </Text>
-              <TextInput
+              <Field
+                label={t('planWaste.value', 'Estimated value ($)')}
                 value={estimatedValue}
                 onChangeText={setEstimatedValue}
-                placeholder="e.g., 5.00"
+                placeholder="5.00"
                 keyboardType="decimal-pad"
-                className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
               />
-            </View>
-
-            {/* Notes */}
-            <View className="mb-4">
-              <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Notes (optional)
-              </Text>
-              <TextInput
+              <Field
+                label={t('planWaste.notes', 'Notes (optional)')}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Any additional details..."
+                placeholder={t('planWaste.notesPh', 'Any additional details...')}
                 multiline
-                numberOfLines={3}
-                className="border border-neutral-300 dark:border-neutral-600 rounded-xl px-4 py-3 text-base dark:text-neutral-100 dark:bg-neutral-800"
-                style={{ textAlignVertical: 'top', minHeight: 80 }}
               />
-            </View>
-          </ScrollView>
-
-          {/* Submit button */}
-          <View className="p-4 border-t border-neutral-100 dark:border-neutral-800">
-            <Button
-              title={isSubmitting ? 'Logging...' : 'Log Waste'}
-              onPress={handleLogWaste}
-              isLoading={isSubmitting}
-              fullWidth
-              leftIcon={
-                !isSubmitting && (
-                  <Ionicons name="trash-outline" size={20} color="white" />
-                )
-              }
-              variant="danger"
-            />
-          </View>
-        </SafeAreaView>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </Screen>
       </Modal>
-    </SafeAreaView>
+    </Screen>
   );
 }

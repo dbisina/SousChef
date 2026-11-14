@@ -1,0 +1,29 @@
+{
+ "wait": 800,
+ "stores": {
+  "order": {
+   "cart": [
+    {
+     "id": "line-fx",
+     "dishId": "double-smash",
+     "qty": 1,
+     "extraIds": [],
+     "logToHealth": true
+    }
+   ]
+  },
+  "message": {
+   "conversations": [
+    {
+     "id": "conv-order-rest",
+     "kind": "order",
+     "title": "Smash & Co.",
+     "participantIds": [],
+     "lastPreview": "Your order is on the way",
+     "lastAt": "2026-11-14T01:39:14.359Z",
+     "unread": 0
+    }
+   ]
+  }
+ }
+}

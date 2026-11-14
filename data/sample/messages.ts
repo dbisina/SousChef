@@ -1,0 +1,93 @@
+import { ME_ID } from '@/types/social';
+import type { Conversation, Message } from '@/types/social';
+import { minutesAgo } from './util';
+
+export const buildConversations = (now: Date = new Date()): Conversation[] => [
+  {
+    id: 'conv-ama',
+    kind: 'friend',
+    title: 'Ama',
+    participantIds: ['ama'],
+    lastPreview: 'Sent you a recipe: Katsu bowl',
+    lastAt: minutesAgo(2, now),
+    unread: 2,
+    online: true,
+  },
+  {
+    id: 'conv-game',
+    kind: 'group',
+    title: 'Friday game night',
+    participantIds: ['tolu', 'dayo'],
+    lastPreview: 'Dayo: room 4821 is open, join!',
+    lastAt: minutesAgo(18, now),
+    unread: 5,
+  },
+  {
+    id: 'conv-order',
+    kind: 'order',
+    title: 'Smash & Co.',
+    participantIds: [],
+    photo: 'burger',
+    lastPreview: 'Your order is on the way',
+    lastAt: minutesAgo(60, now),
+    unread: 0,
+    orderId: 'order-demo',
+  },
+  {
+    id: 'conv-tolu',
+    kind: 'friend',
+    title: 'Tolu',
+    participantIds: ['tolu'],
+    lastPreview: 'Voice message · 0:42',
+    lastAt: minutesAgo(60 * 24 * 4, now),
+    unread: 0,
+  },
+  {
+    id: 'conv-budget',
+    kind: 'community',
+    title: 'Student Budget Meals',
+    participantIds: ['kemi'],
+    photo: 'tacos',
+    lastPreview: 'Kemi: who’s doing the £5 one?',
+    lastAt: minutesAgo(60 * 24 * 5, now),
+    unread: 0,
+    communityId: 'budget',
+  },
+];
+
+export const buildMessages = (now: Date = new Date()): Message[] => [
+  { id: 'm1', conversationId: 'conv-ama', senderId: 'ama', kind: 'text', text: 'Are you cooking tonight?', createdAt: minutesAgo(30, now) },
+  { id: 'm2', conversationId: 'conv-ama', senderId: ME_ID, kind: 'text', text: 'Thinking katsu. Send me yours?', createdAt: minutesAgo(28, now), status: 'read' },
+  {
+    id: 'm3',
+    conversationId: 'conv-ama',
+    senderId: 'ama',
+    kind: 'recipe-card',
+    recipeId: 'sample-katsu',
+    title: 'Chicken katsu rice bowl',
+    photo: 'ricebowl',
+    meta: '35 min · 8 ingredients',
+    createdAt: minutesAgo(26, now),
+  },
+  {
+    id: 'm4',
+    conversationId: 'conv-ama',
+    senderId: 'ama',
+    kind: 'voice',
+    durationSec: 18,
+    waveform: [30, 70, 45, 90, 55, 80, 40, 65, 35, 75, 50, 85, 30, 60],
+    createdAt: minutesAgo(24, now),
+  },
+  { id: 'm5', conversationId: 'conv-ama', senderId: ME_ID, kind: 'text', text: 'Ordering the sauce stuff now', createdAt: minutesAgo(5, now), status: 'delivered' },
+  { id: 'm6', conversationId: 'conv-game', senderId: 'dayo', kind: 'text', text: 'Room code is 4821', createdAt: minutesAgo(40, now) },
+  {
+    id: 'm7',
+    conversationId: 'conv-tolu',
+    senderId: 'tolu',
+    kind: 'voice',
+    durationSec: 42,
+    waveform: [40, 60, 30, 80, 50, 70, 45, 90, 35, 55],
+    createdAt: minutesAgo(60 * 24 * 4, now),
+  },
+  { id: 'm8', conversationId: 'conv-budget', senderId: 'kemi', kind: 'text', text: 'Who’s doing the £5 one?', createdAt: minutesAgo(60 * 24 * 4, now) },
+];

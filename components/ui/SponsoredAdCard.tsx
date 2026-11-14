@@ -1,17 +1,16 @@
 import React, { useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Linking,
-  ActivityIndicator,
-} from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable, Text, View, Linking, ActivityIndicator } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useAdStore } from '@/stores/adStore';
+import { FIXED } from '@/stores/themeStore';
 import { AdPlacement, SponsoredAd } from '@/types/ads';
+import { FONT } from './fonts';
+import { PhotoCard } from './PhotoCard';
+import { Tag } from './Chips';
+import { useColor } from './tone';
+import { cleanCopy } from '@/lib/text';
 
 interface SponsoredAdCardProps {
   placement: AdPlacement;
@@ -29,7 +28,9 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
   ad: adOverride,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const { ads, loading, fetchAdForPlacement, trackImpression, trackClick } = useAdStore();
+  const spinner = useColor('subtle');
 
   const ad = adOverride || ads[placement];
   const isLoading = loading[placement];
@@ -66,92 +67,92 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
   if (isLoading && !ad) {
     return (
       <View className={`mx-6 mt-4 items-center justify-center py-8 ${className}`}>
-        <ActivityIndicator size="small" color="#9CA3AF" />
+        <ActivityIndicator size="small" color={spinner} />
       </View>
     );
   }
 
   if (!ad) return null;
 
+  const cta = cleanCopy(ad.ctaText);
+  const title = cleanCopy(ad.title);
+  const subtitle = cleanCopy(ad.subtitle);
+  const advertiser = cleanCopy(ad.advertiserName);
+  const sponsored = t('account.ads.sponsored', 'Sponsored');
+
   // ── Compact Banner Format ──
   if (compact) {
     return (
-      <Animated.View entering={FadeIn.duration(400)} className={`mx-4 mt-3 ${className}`}>
-        <Text className="text-[10px] text-neutral-400 dark:text-neutral-500 mb-1 text-center tracking-widest">
-          SPONSORED
-        </Text>
-        <TouchableOpacity
-          activeOpacity={0.85}
+      <Animated.View entering={FadeIn.duration(400)} className={className} style={{ marginHorizontal: 16, marginTop: 12 }}>
+        <Pressable
+          accessibilityRole="link"
+          accessibilityLabel={`${sponsored}: ${title}`}
           onPress={handlePress}
-          className="flex-row items-center bg-neutral-50 dark:bg-neutral-800 rounded-2xl p-3 border border-neutral-100 dark:border-neutral-700"
+          className="flex-row items-center bg-surface"
+          style={{ borderRadius: 24, padding: 12, gap: 12 }}
         >
           <Image
             source={{ uri: ad.imageURL }}
-            className="w-14 h-14 rounded-xl"
-            resizeMode="cover"
+            style={{ width: 56, height: 56, borderRadius: 17 }}
+            contentFit="cover"
+            accessible={false}
           />
-          <View className="flex-1 ml-3 mr-2">
-            <Text className="text-sm font-semibold text-neutral-800 dark:text-white" numberOfLines={1}>
-              {ad.title}
+          <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+            <Tag label={sponsored} />
+            <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15 }}>
+              {title}
             </Text>
-            <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5" numberOfLines={1}>
-              {ad.subtitle}
+            <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+              {subtitle}
             </Text>
           </View>
           <View
-            className="px-3.5 py-1.5 rounded-full"
-            style={{ backgroundColor: ad.accentColor || '#22C55E' }}
+            className="items-center justify-center"
+            style={{ height: 36, paddingHorizontal: 14, borderRadius: 18, backgroundColor: ad.accentColor || FIXED.accent }}
           >
-            <Text className="text-white text-xs font-semibold">{ad.ctaText}</Text>
+            <Text style={{ fontFamily: FONT.sansMedium, fontSize: 12, color: FIXED.night }}>{cta}</Text>
           </View>
-        </TouchableOpacity>
+        </Pressable>
       </Animated.View>
     );
   }
 
   // ── Full Card Format (used in WelcomeModal, Home Feed) ──
   return (
-    <Animated.View entering={FadeIn.duration(400)} className={`mx-6 mt-4 ${className}`}>
-      <Text className="text-xs text-neutral-400 dark:text-neutral-500 text-center mb-2 tracking-widest">
-        SPONSORED
-      </Text>
-      <TouchableOpacity activeOpacity={0.9} onPress={handlePress}>
-        <View className="rounded-2xl overflow-hidden bg-neutral-100 dark:bg-neutral-800">
-          {/* 1:1 Aspect Ratio Image */}
-          <Image
-            source={{ uri: ad.imageURL }}
-            className="w-full aspect-square"
-            resizeMode="cover"
-          />
-          {/* Gradient overlay with advertiser info + CTA */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.85)']}
-            className="absolute bottom-0 left-0 right-0 p-6"
-          >
-            <View className="flex-row items-center justify-between p-[20px]">
-              <View className="flex-1 mr-4">
-                {ad.advertiserLogo && (
-                  <View className="flex-row items-center mb-1.5">
-                    <Image
-                      source={{ uri: ad.advertiserLogo }}
-                      className="w-5 h-5 rounded-full mr-1.5"
-                    />
-                    <Text className="text-white/60 text-xs">{ad.advertiserName}</Text>
-                  </View>
-                )}
-                <Text className="text-white font-bold text-lg">{ad.title}</Text>
-                <Text className="text-white/80 text-sm mt-0.5">{ad.subtitle}</Text>
-              </View>
-              <View
-                className="px-5 py-2.5 rounded-full shadow-sm"
-                style={{ backgroundColor: ad.accentColor || '#22C55E' }}
-              >
-                <Text className="text-white font-semibold">{ad.ctaText}</Text>
-              </View>
+    <Animated.View entering={FadeIn.duration(400)} className={className} style={{ marginHorizontal: 24, marginTop: 16 }}>
+      <PhotoCard
+        source={{ uri: ad.imageURL }}
+        height={320}
+        topLeft={<Tag tone="glassDark" label={sponsored} />}
+        onPress={handlePress}
+        accessibilityLabel={`${sponsored}: ${title}`}
+        glassBar={
+          <>
+            <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+              {ad.advertiserLogo ? (
+                <View className="flex-row items-center" style={{ gap: 6 }}>
+                  <Image source={{ uri: ad.advertiserLogo }} style={{ width: 18, height: 18, borderRadius: 9 }} accessible={false} />
+                  <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+                    {advertiser}
+                  </Text>
+                </View>
+              ) : null}
+              <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 16 }}>
+                {title}
+              </Text>
+              <Text className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+                {subtitle}
+              </Text>
             </View>
-          </LinearGradient>
-        </View>
-      </TouchableOpacity>
+            <View
+              className="items-center justify-center"
+              style={{ height: 44, paddingHorizontal: 18, borderRadius: 22, backgroundColor: ad.accentColor || FIXED.accent }}
+            >
+              <Text style={{ fontFamily: FONT.display, fontSize: 14, color: FIXED.night }}>{cta}</Text>
+            </View>
+          </>
+        }
+      />
     </Animated.View>
   );
 };

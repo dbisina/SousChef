@@ -1,0 +1,11 @@
+{
+ "navigate": true,
+ "wait": 600,
+ "stores": {},
+ "calls": [
+  {
+   "store": "play",
+   "fn": "hostRound"
+  }
+ ]
+}

@@ -1,270 +1,248 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  Modal,
-  TouchableOpacity,
-  Dimensions,
-  ScrollView,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Modal, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
-  useSharedValue,
+  Easing,
+  runOnJS,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
-  runOnJS,
 } from 'react-native-reanimated';
-import { Button } from './Button';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { Dim, H1, LinkText, Muted } from './Typography';
+import { UIconButton } from './IconButton';
+import { Rows, ListRow } from './Lists';
+import { UButton } from './UButton';
+import { ToneBlock, useColor } from './tone';
+import { FIXED, useThemeStore } from '@/stores/themeStore';
 import { SponsoredAdCard } from './SponsoredAdCard';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
+import { isReviewWelcome } from '@/lib/designReview';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-const MODAL_HEIGHT = SCREEN_HEIGHT * 0.7;
-const STORAGE_KEY = '@souschef_welcome_shown';
+const STORAGE_KEY = '@souschef_welcome_last_shown';
+const COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
+const CLOSE_FALLBACK_MS = 350;
+const CLOSE_DURATION_MS = 260;
+
+/**
+ * Module-level: survives remounts of Home, resets only on a cold app launch.
+ * Once the sheet has been evaluated (shown or skipped) it is never evaluated again this launch.
+ */
+let sessionHandled = false;
 
 interface WelcomeModalProps {
+  /** Open regardless of the 3 day cooldown (still respects the once per launch flag unless forced). */
   forceShow?: boolean;
   onDismiss?: () => void;
 }
 
-export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow, onDismiss }) => {
+/**
+ * Welcome bottom sheet. Show logic: at most once per app launch, and only if it was not
+ * shown in the last 3 days (AsyncStorage timestamp). Subscription state changes never re-trigger it.
+ */
+export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShowProp, onDismiss }) => {
+  const forceShow = forceShowProp || isReviewWelcome();
   const [visible, setVisible] = useState(false);
-  const translateY = useSharedValue(MODAL_HEIGHT);
-  const backdropOpacity = useSharedValue(0);
-  const { isSubscribed, isInitialized, subscriptionTier } = useSubscription();
-  const features = getTierFeatures(subscriptionTier);
+  const { height: screenH } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
+  const theme = useThemeStore((st) => st.effectiveTheme);
+  const { subscriptionTier } = useSubscription();
+  const adFree = getTierFeatures(subscriptionTier).adFree;
+  const grabber = useColor('divider');
+  const sheetFill = useColor('ground');
 
+  const sheetH = useSharedValue(screenH);
+  const translateY = useSharedValue(screenH);
+  const backdrop = useSharedValue(0);
+  const closing = useRef(false);
+  const fallback = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
+
+  // Evaluate once on mount. Deliberately no dependency on subscription state.
   useEffect(() => {
-    if (isInitialized) {
-      checkIfShouldShow();
-    }
-  }, [forceShow, isInitialized, isSubscribed]);
-
-  const checkIfShouldShow = async () => {
-    if (forceShow) {
-      showModal();
-      return;
-    }
-
-    // Always show for free users (not subscribed)
-    if (isInitialized && !isSubscribed) {
-      // Small delay ensuring smooth mount
-      setTimeout(() => {
-        showModal();
-      }, 500);
-      return;
-    }
-
-    try {
-      const hasShown = await AsyncStorage.getItem(STORAGE_KEY);
-      if (!hasShown) {
-        // Small delay to let the app load first
-        setTimeout(() => {
-          showModal();
-        }, 500);
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      if (cancelled) return;
+      if (sessionHandled && !forceShow) return;
+      sessionHandled = true;
+      if (!forceShow) {
+        try {
+          const last = Number(await AsyncStorage.getItem(STORAGE_KEY));
+          if (last && Date.now() - last < COOLDOWN_MS) return;
+        } catch {
+          // storage unavailable: still show once this launch
+        }
       }
-    } catch (error) {
-      console.error('Error checking welcome modal status:', error);
+      if (cancelled) return;
+      closing.current = false;
+      setVisible(true);
+    }, 600);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Slide in when the Modal mounts.
+  useEffect(() => {
+    if (!visible) return;
+    translateY.value = sheetH.value || screenH;
+    translateY.value = withSpring(0, { damping: 22, stiffness: 170 });
+    backdrop.value = withTiming(1, { duration: 250 });
+    AsyncStorage.setItem(STORAGE_KEY, String(Date.now())).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  const finish = useCallback(() => {
+    if (fallback.current) {
+      clearTimeout(fallback.current);
+      fallback.current = null;
     }
-  };
+    setVisible(false);
+    onDismissRef.current?.();
+  }, []);
 
-  const showModal = () => {
-    setVisible(true);
-    translateY.value = withSpring(0, { damping: 20, stiffness: 90 });
-    backdropOpacity.value = withTiming(1, { duration: 300 });
-  };
+  const close = useCallback(() => {
+    if (closing.current) return;
+    closing.current = true;
+    const target = sheetH.value || screenH;
+    translateY.value = withTiming(target, { duration: CLOSE_DURATION_MS, easing: Easing.out(Easing.cubic) });
+    backdrop.value = withTiming(0, { duration: CLOSE_DURATION_MS });
+    // Never rely on the UI-thread callback alone: always hide the Modal.
+    fallback.current = setTimeout(finish, CLOSE_FALLBACK_MS);
+  }, [finish, screenH, sheetH, translateY, backdrop]);
 
-  const hideModal = async () => {
-    translateY.value = withTiming(MODAL_HEIGHT, { duration: 300 });
-    backdropOpacity.value = withTiming(0, { duration: 300 }, () => {
-      runOnJS(setVisible)(false);
+  useEffect(
+    () => () => {
+      if (fallback.current) clearTimeout(fallback.current);
+    },
+    [],
+  );
+
+  const pan = Gesture.Pan()
+    .activeOffsetY([-8, 8])
+    .failOffsetX([-24, 24])
+    .onUpdate((e) => {
+      translateY.value = Math.max(0, e.translationY);
+      backdrop.value = Math.max(0, 1 - translateY.value / (sheetH.value || 1));
+    })
+    .onEnd((e) => {
+      const h = sheetH.value || 1;
+      if (translateY.value > h * 0.25 || e.velocityY > 900) {
+        runOnJS(close)();
+      } else {
+        translateY.value = withSpring(0, { damping: 22, stiffness: 170 });
+        backdrop.value = withTiming(1, { duration: 150 });
+      }
     });
 
-    try {
-      await AsyncStorage.setItem(STORAGE_KEY, 'true');
-    } catch (error) {
-      console.error('Error saving welcome modal status:', error);
-    }
-
-    onDismiss?.();
-  };
-
-  const animatedModalStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  const animatedBackdropStyle = useAnimatedStyle(() => ({
-    opacity: backdropOpacity.value,
-  }));
+  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
+  const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value }));
 
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" statusBarTranslucent>
-      {/* Backdrop */}
-      <Animated.View
-        style={[
-          {
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          },
-          animatedBackdropStyle,
-        ]}
-      />
-
-      {/* Modal Content */}
-      <View className="flex-1 justify-end">
-        <Animated.View
-          style={[
-            {
-              height: MODAL_HEIGHT,
-              backgroundColor: 'white',
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              overflow: 'hidden',
-            },
-            animatedModalStyle,
-          ]}
-        >
-          {/* Handle bar */}
-          <View className="items-center pt-3 pb-2">
-            <View className="w-10 h-1 rounded-full bg-neutral-300" />
-          </View>
-
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 24 }}
-          >
-            {/* Header */}
-            <View className="items-center px-6 pt-4">
-              <View className="w-20 h-20 rounded-full bg-primary-100 items-center justify-center mb-4">
-                <Ionicons name="restaurant" size={40} color="#FF6B35" />
-              </View>
-              <Text className="text-2xl font-bold text-neutral-900 text-center">
-                Welcome to SousChef!
-              </Text>
-              <Text className="text-neutral-500 text-center mt-2 px-4">
-                Your AI-powered cooking companion for delicious meals
-              </Text>
-            </View>
-
-            {/* Features highlight - Top 2 */}
-            <View className="px-6 mt-6">
-              <FeatureItem
-                icon="scan-outline"
-                title="Scan Any Food"
-                description="Instantly get calorie info and nutritional breakdown"
-                color="#FF6B35"
-              />
-              <FeatureItem
-                icon="mic-outline"
-                title="Voice Control"
-                description="Hands-free cooking with voice commands"
-                color="#22C55E"
-              />
-            </View>
-
-            {/* Sponsored Ad — hidden for ad-free subscribers */}
-            {!features.adFree && (
-              <SponsoredAdCard placement="welcome_modal" />
-            )}
-
-            {/* Feature - Bottom */}
-            <View className="px-6 mt-4">
-              <FeatureItem
-                icon="calendar-outline"
-                title="Meal Planning"
-                description="Plan your week and generate shopping lists"
-                color="#3B82F6"
-              />
-            </View>
-
-            {/* Upgrade to Pro Section */}
-            <View className="mx-6 mt-6  bg-amber-100/50 rounded-3xl">
-              <LinearGradient
-                colors={['#FFF7ED', '#FFEDD5']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                className="p-[15px] rounded-3xl"
-                style={{
-                  shadowColor: '#F97316',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.15,
-                  shadowRadius: 10,
-                  elevation: 4,
-                }}
-              >
-                <View className=" pl-4 pt-4 flex-row items-center ">
-                  <View className="w-14 h-14 rounded-2xl bg-primary-500 items-center justify-center shadow-sm">
-                    <Ionicons name="star" size={28} color="white" />
-                  </View>
-                  <View className="flex-1 ml-4">
-                    <Text className="text-lg font-bold text-neutral-900">
-                      Upgrade to Pro
-                    </Text>
-                    <Text className="text-sm text-neutral-600 mt-1 leading-5">
-                      Unlock unlimited AI features and exclusive recipes!
-                    </Text>
-                  </View>
-                </View>
-                <View className="p-4 flex-row items-center mt-4 pt-4 border-t border-primary-200/50">
-                  <View className="bg-primary-100 px-2 py-1 rounded-md mr-2">
-                     <Ionicons name="checkmark" size={12} color="#C2410C" />
-                  </View>
-                  <Text className="text-primary-800 font-medium text-sm">7-day free trial available</Text>
-                </View>
-              </LinearGradient>
-            </View>
-          </ScrollView>
-
-          {/* Button */}
-          <View className="px-6 pb-8 pt-4 border-t border-neutral-100">
-            <Button
-              title="Okay, got it!"
-              onPress={hideModal}
-              fullWidth
-              size="lg"
+    <Modal transparent visible animationType="none" statusBarTranslucent onRequestClose={close}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ToneBlock tone={theme} style={{ flex: 1, justifyContent: 'flex-end' }}>
+          <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: FIXED.scrim }, backdropStyle]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('common.close', 'Close')}
+              onPress={close}
+              style={StyleSheet.absoluteFill}
             />
-          </View>
-        </Animated.View>
-      </View>
+          </Animated.View>
+
+          <GestureDetector gesture={pan}>
+            <Animated.View
+              accessibilityViewIsModal
+              onLayout={(e) => {
+                sheetH.value = e.nativeEvent.layout.height;
+              }}
+              style={[
+                {
+                  backgroundColor: sheetFill,
+                  maxHeight: Math.round(screenH * 0.7),
+                  borderTopLeftRadius: 34,
+                  borderTopRightRadius: 34,
+                  paddingTop: 24,
+                  paddingHorizontal: 20,
+                  paddingBottom: Math.max(insets.bottom, 20),
+                  gap: 16,
+                },
+                sheetStyle,
+              ]}
+            >
+              <View pointerEvents="none" style={{ position: 'absolute', top: 8, left: 0, right: 0, alignItems: 'center' }}>
+                <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: grabber }} />
+              </View>
+              <View style={{ position: 'absolute', right: 12, top: 10, zIndex: 1 }}>
+                <UIconButton icon="close" label={t('common.close', 'Close')} size={44} onPress={close} />
+              </View>
+
+              <View style={{ gap: 6 }}>
+                <H1>
+                  <Dim>{t('welcome.modal.line1', 'Welcome to')}</Dim>
+                  {'\n'}
+                  SousChef
+                </H1>
+                <Muted>{t('welcome.modal.subtitle', 'Your AI cooking companion.')}</Muted>
+              </View>
+
+              <Rows>
+                <ListRow
+                  icon="scan"
+                  title={t('welcome.modal.scanTitle', 'Scan your plate')}
+                  subtitle={t('welcome.modal.scanBody', 'Calories and nutrition in a snap.')}
+                />
+                <ListRow
+                  icon="mic"
+                  title={t('welcome.modal.voiceTitle', 'Cook hands-free')}
+                  subtitle={t('welcome.modal.voiceBody', 'Voice guidance while you cook.')}
+                />
+                <ListRow
+                  icon="grid"
+                  title={t('welcome.modal.planTitle', 'Plan your week')}
+                  subtitle={t('welcome.modal.planBody', 'Meals and shopping lists, sorted.')}
+                />
+              </Rows>
+
+              {!adFree ? (
+                <View style={{ marginHorizontal: -16, marginTop: -12 }}>
+                  <SponsoredAdCard placement="welcome_modal" compact />
+                </View>
+              ) : null}
+
+              <View style={{ gap: 4 }}>
+                <UButton label={t('welcome.modal.ok', 'Get started')} onPress={close} />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('welcome.modal.later', 'Maybe later')}
+                  onPress={close}
+                  style={{ minHeight: 44, alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <LinkText>{t('welcome.modal.later', 'Maybe later')}</LinkText>
+                </Pressable>
+              </View>
+            </Animated.View>
+          </GestureDetector>
+        </ToneBlock>
+      </GestureHandlerRootView>
     </Modal>
   );
 };
 
-interface FeatureItemProps {
-  icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  description: string;
-  color: string;
-}
-
-const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, color }) => (
-  <View className="flex-row items-center p-4 bg-neutral-50 rounded-2xl border border-neutral-100">
-    <View
-      className="w-12 h-12 rounded-xl items-center justify-center"
-      style={{ backgroundColor: `${color}15` }}
-    >
-      <Ionicons name={icon} size={24} color={color} />
-    </View>
-    <View className="flex-1 ml-3">
-      <Text className="font-bold text-neutral-900 text-base">{title}</Text>
-      <Text className="text-sm text-neutral-500 leading-5 mt-0.5">{description}</Text>
-    </View>
-  </View>
-);
-
-// Helper to reset the welcome modal (for testing)
+/** Reset the cooldown (for testing). */
 export const resetWelcomeModal = async () => {
+  sessionHandled = false;
   try {
     await AsyncStorage.removeItem(STORAGE_KEY);
   } catch (error) {

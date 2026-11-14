@@ -1,45 +1,31 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Dimensions,
-  StyleSheet,
-  Image,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { useRouter, type Href } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useCookbookLibraryStore } from '@/stores/cookbookLibraryStore';
 import { usePantryStore } from '@/stores/pantryStore';
-import { useThemeColors } from '@/stores/themeStore';
-import { showSuccessToast, showErrorToast, showInfoToast, showWarningToast } from '@/stores/toastStore';
+import { showErrorToast, showInfoToast } from '@/stores/toastStore';
 import { lookupCookbook, fetchBookCoverImage } from '@/services/cookbookLibraryService';
 import { CookbookEntry, CookbookSuggestion } from '@/types/cookbookLibrary';
-import { CookbookScanner } from '@/components/import';
-import { CookbookSuggestionCarousel } from '@/components/cookbook';
+import {
+  BookCover,
+  Dim,
+  H1,
+  H2,
+  Muted,
+  Screen,
+  TopBar,
+  UButton,
+  UCard,
+} from '@/components/ui';
+import { CookbookPageScanner, CookbookSuggestionCarousel, coverPhoto } from '@/components/cookbook';
+import { RaisedField } from '@/components/cookbook/RaisedField';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const bookShadow = {
-  shadowColor: '#000',
-  shadowOffset: { width: 4, height: 4 },
-  shadowOpacity: 0.3,
-  shadowRadius: 5,
-  elevation: 8,
-};
+const COVER_WIDTH = 142;
 
 export default function CookbookLibraryScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   const {
     cookbooks,
     suggestions,
@@ -52,7 +38,6 @@ export default function CookbookLibraryScreen() {
   } = useCookbookLibraryStore();
   const { items: pantryItems } = usePantryStore();
 
-  const [showAddForm, setShowAddForm] = useState(false);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [isLookingUp, setIsLookingUp] = useState(false);
@@ -88,400 +73,247 @@ export default function CookbookLibraryScreen() {
     setIsLookingUp(false);
     setTitle('');
     setAuthor('');
-    setShowAddForm(false);
 
-    // Auto-fetch recipes from AI, then navigate to the cookbook
+    // Auto-fetch recipes from AI, then offer to scan the physical copy if incomplete
     fetchRecipesForCookbook(cookbookId).then(({ isComplete }) => {
       if (!isComplete) {
         Alert.alert(
-          'Wait, we\'re missing a few! 📚',
-          "We couldn't find all the recipes for this book online. Would you like to scan some pages from your physical copy to fill them in?",
+          t('cookbooks.library.missingTitle', "Wait, we're missing a few"),
+          t(
+            'cookbooks.library.missingBody',
+            "We couldn't find all the recipes for this book online. Would you like to scan some pages from your physical copy to fill them in?"
+          ),
           [
-            { text: 'Scan Now', onPress: () => { setScannerCookbookId(cookbookId); setShowScanner(true); } },
-            { text: 'Later', style: 'cancel' },
+            {
+              text: t('cookbooks.library.scanNow', 'Scan now'),
+              onPress: () => {
+                setScannerCookbookId(cookbookId);
+                setShowScanner(true);
+              },
+            },
+            { text: t('cookbooks.library.later', 'Later'), style: 'cancel' },
           ]
         );
       }
     });
 
     // Navigate immediately to the cookbook detail (shows loading)
-    router.push(`/shelf-cookbook/${cookbookId}` as any);
-  }, [title, author, addCookbook, fetchRecipesForCookbook, router]);
+    router.push(`/shelf-cookbook/${cookbookId}` as Href);
+  }, [title, author, addCookbook, fetchRecipesForCookbook, router, t]);
 
   const handleRemove = useCallback(
     (cookbook: CookbookEntry) => {
-      Alert.alert('Remove Cookbook?', `Are you sure you want to remove "${cookbook.title}"? You'll lose all its recipes from your shelf.`, [
-        { text: 'Keep It', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => removeCookbook(cookbook.id),
-        },
-      ]);
-    },
-    [removeCookbook]
-  );
-
-  const handleRetryFetch = useCallback(async (cookbook: CookbookEntry) => {
-    const { isComplete } = await fetchRecipesForCookbook(cookbook.id);
-    if (!isComplete) {
       Alert.alert(
-        'Still Incomplete',
-        'Would you like to scan your physical cookbook to add the recipes we couldn\'t find?',
+        t('cookbooks.library.removeTitle', 'Remove cookbook?'),
+        t(
+          'cookbooks.library.removeBody',
+          'Are you sure you want to remove "{{title}}"? You\'ll lose all its recipes from your shelf.',
+          { title: cookbook.title }
+        ),
         [
-          { text: 'Scan Pages', onPress: () => { setScannerCookbookId(cookbook.id); setShowScanner(true); } },
-          { text: 'Not Now', style: 'cancel' },
+          { text: t('cookbooks.library.keepIt', 'Keep it'), style: 'cancel' },
+          {
+            text: t('cookbooks.library.remove', 'Remove'),
+            style: 'destructive',
+            onPress: () => removeCookbook(cookbook.id),
+          },
         ]
       );
-    }
-  }, [fetchRecipesForCookbook]);
+    },
+    [removeCookbook, t]
+  );
 
-  const handleScanSuccess = useCallback((recipeTitle: string) => {
-    if (scannerCookbookId) {
-      const store = useCookbookLibraryStore.getState();
-      store.addScannedRecipe(scannerCookbookId, {
-        id: `scanned-${Date.now()}`,
-        name: recipeTitle,
-        source: 'scanned',
+  const handleScanSuccess = useCallback(
+    (recipeTitle: string) => {
+      if (scannerCookbookId) {
+        const store = useCookbookLibraryStore.getState();
+        store.addScannedRecipe(scannerCookbookId, {
+          id: `scanned-${Date.now()}`,
+          name: recipeTitle,
+          source: 'scanned',
+        });
+      }
+    },
+    [scannerCookbookId]
+  );
+
+  const handlePressSuggestion = useCallback(
+    (suggestion: CookbookSuggestion) => {
+      // Find the cookbook and recipe by name to navigate to the detail screen
+      const cookbook = cookbooks.find(
+        (c) => c.title.toLowerCase() === suggestion.cookbookTitle.toLowerCase()
+      );
+      if (!cookbook) {
+        showErrorToast(
+          t('cookbooks.library.bookMissingBody', '"{{title}}" isn\'t on your shelf anymore.', { title: suggestion.cookbookTitle }),
+          t('cookbooks.library.bookMissingTitle', 'Book missing')
+        );
+        return;
+      }
+      const recipe = cookbook.recipes?.find(
+        (r) => r.name.toLowerCase() === suggestion.recipeName.toLowerCase()
+      );
+      if (!recipe) {
+        showErrorToast(
+          t('cookbooks.library.recipeMissingBody', 'We couldn\'t find "{{name}}" in that book. It might have been removed.', { name: suggestion.recipeName }),
+          t('cookbooks.library.recipeMissingTitle', 'Recipe missing')
+        );
+        return;
+      }
+      router.push({
+        pathname: '/shelf-recipe/[id]',
+        params: { id: recipe.id, cookbookId: cookbook.id },
       });
-    }
-  }, [scannerCookbookId]);
-
-  const handlePressSuggestion = useCallback((suggestion: CookbookSuggestion) => {
-    // Find the cookbook and recipe by name to navigate to the detail screen
-    const cookbook = cookbooks.find(
-      (c) => c.title.toLowerCase() === suggestion.cookbookTitle.toLowerCase()
-    );
-    if (!cookbook) {
-      showErrorToast(`"${suggestion.cookbookTitle}" isn't on your shelf anymore! 📚`, 'Book Missing');
-      return;
-    }
-    const recipe = cookbook.recipes?.find(
-      (r) => r.name.toLowerCase() === suggestion.recipeName.toLowerCase()
-    );
-    if (!recipe) {
-      showErrorToast(`We couldn't find "${suggestion.recipeName}" in that book. It might have been removed. 🍳`, 'Recipe Missing');
-      return;
-    }
-    router.push({
-      pathname: '/shelf-recipe/[id]',
-      params: { id: recipe.id, cookbookId: cookbook.id },
-    } as any);
-  }, [cookbooks, router]);
+    },
+    [cookbooks, router, t]
+  );
 
   const handleGetSuggestions = useCallback(() => {
     if (cookbooks.length === 0) {
-      showInfoToast('Add some cookbooks to your shelf so we can find the perfect recipe for you! 📚', 'Add a Book');
+      showInfoToast(
+        t('cookbooks.library.addBooksFirst', 'Add some cookbooks to your shelf so we can find the perfect recipe for you.'),
+        t('cookbooks.library.addBooksFirstTitle', 'Add a book')
+      );
       return;
     }
     if (pantryItems.length === 0) {
-      showInfoToast('Add some items to your pantry so we can match them with recipes you\'ll love! 🍎', 'Fill Your Pantry');
+      showInfoToast(
+        t('cookbooks.library.fillPantry', "Add some items to your pantry so we can match them with recipes you'll love."),
+        t('cookbooks.library.fillPantryTitle', 'Fill your pantry')
+      );
       return;
     }
     getSuggestions(pantryItems);
-  }, [cookbooks, pantryItems, getSuggestions]);
+  }, [cookbooks, pantryItems, getSuggestions, t]);
 
-  // Book cover colors - cycle through if AI didn't provide one
-  const BOOK_COLORS = ['#B91C1C', '#1D4ED8', '#047857', '#7C3AED', '#C2410C', '#0F766E', '#4338CA', '#9D174D'];
-  const getBookColor = (item: CookbookEntry, index: number) =>
-    item.coverColor || BOOK_COLORS[index % BOOK_COLORS.length];
-
-  const renderBookCover = ({ item, index }: { item: CookbookEntry; index: number }) => {
-    const isFetching = item.fetchStatus === 'fetching';
-    const recipeCount = item.recipes?.length || 0;
-    const bookColor = getBookColor(item, index);
-    const hasCoverImage = !!item.coverImageURL;
-
-    return (
-      <Animated.View entering={FadeInDown.duration(300).delay(index * 80)}>
-        <TouchableOpacity
-          onPress={() => router.push(`/shelf-cookbook/${item.id}` as any)}
-          onLongPress={() => handleRemove(item)}
-          activeOpacity={0.9}
-          className="mb-5"
-          style={{ width: (SCREEN_WIDTH - 60) / 2 }}
-        >
-          {/* Book Cover */}
-          <View
-            className="rounded-r-lg rounded-l-sm overflow-hidden relative"
-            style={[{ height: 220, backgroundColor: bookColor }, bookShadow]}
-          >
-            {/* Cover Image (when available) */}
-            {hasCoverImage && (
-              <Image
-                source={{ uri: item.coverImageURL }}
-                style={{ position: 'absolute', width: '100%', height: '100%' }}
-                resizeMode="cover"
-              />
-            )}
-
-            {/* Spine Effect */}
-            <LinearGradient
-              colors={['rgba(255,255,255,0.35)', 'rgba(255,255,255,0.08)', 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0.25)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 14, zIndex: 10 }}
-            />
-            <View
-              className="absolute top-0 bottom-0 w-[0.5px] bg-black/20"
-              style={{ left: 14, zIndex: 10 }}
-            />
-
-            {/* Embossed title area — only show text overlay when there's a cover image */}
-            {hasCoverImage ? (
-              <View className="flex-1 justify-end">
-                <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.7)']}
-                  className="px-3 pb-3 pt-10"
-                >
-                  <Text className="text-white font-bold text-sm leading-tight" numberOfLines={2}
-                    style={{ textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }}>
-                    {item.title}
-                  </Text>
-                  {item.author ? (
-                    <Text className="text-white/80 text-[10px] mt-0.5 font-medium" numberOfLines={1}>
-                      {item.author}
-                    </Text>
-                  ) : null}
-                  {recipeCount > 0 && (
-                    <View className="flex-row items-center bg-black/30 self-start px-2 py-0.5 rounded-full mt-1.5">
-                      <Ionicons name="restaurant-outline" size={9} color="white" />
-                      <Text className="text-white text-[9px] font-medium ml-1">{recipeCount}</Text>
-                    </View>
-                  )}
-                </LinearGradient>
-              </View>
-            ) : (
-              <View className="flex-1 pr-5 pl-[22px] pt-6 pb-3 justify-between">
-                <View>
-                  <Text className="text-white font-bold text-lg leading-tight" numberOfLines={3}
-                    style={{ textShadowColor: 'rgba(0,0,0,0.3)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 2 }}>
-                    {item.title}
-                  </Text>
-                  {item.author ? (
-                    <Text className="text-white/70 text-xs mt-1.5 font-medium" numberOfLines={1}>
-                      {item.author}
-                    </Text>
-                  ) : null}
-                </View>
-
-                <View>
-                  {isFetching ? (
-                    <View className="flex-row items-center">
-                      <ActivityIndicator size={10} color="rgba(255,255,255,0.8)" />
-                      <Text className="text-white/60 text-[10px] ml-1.5">Finding recipes...</Text>
-                    </View>
-                  ) : recipeCount > 0 ? (
-                    <View className="flex-row items-center bg-black/20 self-start px-2 py-1 rounded-full">
-                      <Ionicons name="restaurant-outline" size={10} color="white" />
-                      <Text className="text-white text-[10px] font-medium ml-1">
-                        {recipeCount} recipes
-                      </Text>
-                    </View>
-                  ) : null}
-                </View>
-              </View>
-            )}
-
-            {/* Subtle decorative line at bottom */}
-            {!hasCoverImage && (
-              <View className="absolute bottom-0 left-4 right-2 h-[0.5px] bg-white/15" />
-            )}
-          </View>
-
-          {/* Pages Effect (Right Edge) */}
-          <View
-            className="absolute top-1 bottom-1 -right-1.5 w-1.5 bg-neutral-100 rounded-r-sm border-r border-t border-b border-neutral-300"
-            style={{ zIndex: -1 }}
-          >
-            <View className="h-full w-full flex-col justify-evenly opacity-30">
-              {[...Array(8)].map((_, i) => (
-                <View key={i} className="h-[0.5px] bg-black w-full" />
-              ))}
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
-    );
+  const kicker = (item: CookbookEntry) => {
+    if (item.fetchStatus === 'fetching') return t('cookbooks.library.finding', 'Finding…');
+    const n = item.recipes?.length || 0;
+    return n > 0 ? t('cookbooks.library.recipeCount', '{{count}} recipes', { count: n }) : '';
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* Cookbook Scanner Modal */}
-      <CookbookScanner
+    <Screen bare>
+      <CookbookPageScanner
         visible={showScanner}
-        onClose={() => { setShowScanner(false); setScannerCookbookId(null); }}
+        onClose={() => {
+          setShowScanner(false);
+          setScannerCookbookId(null);
+        }}
         onSuccess={handleScanSuccess}
       />
 
-      {/* Header */}
-      <View className="flex-row items-center px-5 py-4 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
-          <Ionicons name="arrow-back" size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <View className="flex-1">
-          <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-50">
-            My Cookbook Shelf
-          </Text>
-          <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-            {cookbooks.length} cookbook{cookbooks.length !== 1 ? 's' : ''} · {cookbooks.reduce((sum, c) => sum + (c.recipes?.length || 0), 0)} recipes
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => setShowAddForm(true)}
-          className="bg-amber-500 w-9 h-9 rounded-full items-center justify-center"
-        >
-          <Ionicons name="add" size={22} color="#fff" />
-        </TouchableOpacity>
-      </View>
+      <TopBar
+        variant="compact"
+        title={t('cookbooks.library.title', 'My Shelf')}
+        onBack={() => router.back()}
+        backLabel={t('common.back', 'Back')}
+      />
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1"
-      >
-        <FlatList
-          data={cookbooks}
-          keyExtractor={(item) => item.id}
-          renderItem={renderBookCover}
-          numColumns={2}
-          columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 20 }}
-          contentContainerStyle={{ paddingTop: 16, paddingBottom: 100 }}
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 60 }}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <>
-              {/* Add form */}
-              {showAddForm && (
-                <Animated.View entering={FadeInDown.duration(300)} className="mx-5 mb-4 p-4 rounded-2xl bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800">
-                  <Text className="font-bold text-neutral-900 dark:text-neutral-50 mb-1">
-                    Add a Cookbook
-                  </Text>
-                  <Text className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
-                    We'll search online for all the recipes in it
-                  </Text>
-                  <TextInput
-                    value={title}
-                    onChangeText={setTitle}
-                    placeholder='e.g. "Salt, Fat, Acid, Heat"'
-                    placeholderTextColor={colors.textMuted}
-                    className="p-3 mb-2 rounded-xl bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                    autoFocus
-                  />
-                  <TextInput
-                    value={author}
-                    onChangeText={setAuthor}
-                    placeholder="Author (optional — helps find the right book)"
-                    placeholderTextColor={colors.textMuted}
-                    className="p-3 mb-3 rounded-xl bg-neutral-100 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  />
-                  <View className="flex-row gap-2">
-                    <TouchableOpacity
-                      onPress={() => {
-                        setShowAddForm(false);
-                        setTitle('');
-                        setAuthor('');
-                      }}
-                      className="flex-1 py-3 rounded-xl bg-neutral-200 dark:bg-neutral-600 items-center"
-                    >
-                      <Text className="font-semibold text-neutral-700 dark:text-neutral-300">Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={handleAdd}
-                      disabled={!title.trim() || isLookingUp}
-                      className="flex-1 py-3 rounded-xl bg-amber-500 items-center flex-row justify-center"
-                      style={{ opacity: !title.trim() || isLookingUp ? 0.5 : 1 }}
-                    >
-                      {isLookingUp ? (
-                        <>
-                          <ActivityIndicator size="small" color="#fff" />
-                          <Text className="font-semibold text-white ml-2">Finding...</Text>
-                        </>
-                      ) : (
-                        <>
-                          <Ionicons name="sparkles" size={16} color="#fff" />
-                          <Text className="font-semibold text-white ml-1.5">Add & Fetch Recipes</Text>
-                        </>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </Animated.View>
-              )}
+          keyboardShouldPersistTaps="handled"
+        >
+          <H1>
+            <Dim>{t('cookbooks.library.headlineTop', 'Your')}</Dim>
+            {'\n'}
+            {t('cookbooks.library.headlineBottom', 'cookbooks')}
+          </H1>
 
-              {/* Suggestion carousel */}
-              {(suggestions.length > 0 || isSuggesting) && (
-                <CookbookSuggestionCarousel
-                  suggestions={suggestions}
-                  onClear={clearSuggestions}
-                  onPressSuggestion={handlePressSuggestion}
-                  isSuggesting={isSuggesting}
-                />
-              )}
-
-              {/* What can I cook? button */}
-              {cookbooks.length > 0 && (
-                <TouchableOpacity
-                  onPress={handleGetSuggestions}
-                  disabled={isSuggesting}
-                  className={`mx-5 mb-4 p-4 rounded-2xl items-center flex-row justify-center ${
-                    suggestions.length > 0
-                      ? 'border border-amber-400 dark:border-amber-600'
-                      : 'bg-amber-500'
-                  }`}
-                  style={{ opacity: isSuggesting ? 0.7 : 1 }}
+          {cookbooks.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginHorizontal: -20, flexGrow: 0 }}
+              contentContainerStyle={{ gap: 14, alignItems: 'flex-end', paddingHorizontal: 20, paddingBottom: 14 }}
+            >
+              {cookbooks.map((item, index) => (
+                <Pressable
+                  key={item.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={item.title}
+                  accessibilityHint={t('cookbooks.library.removeHint', 'Long press to remove')}
+                  onPress={() => router.push(`/shelf-cookbook/${item.id}` as Href)}
+                  onLongPress={() => handleRemove(item)}
                 >
-                  {isSuggesting ? (
-                    <ActivityIndicator size="small" color={suggestions.length > 0 ? '#D97706' : '#fff'} className="mr-2" />
-                  ) : (
-                    <Ionicons
-                      name={suggestions.length > 0 ? 'refresh' : 'sparkles'}
-                      size={20}
-                      color={suggestions.length > 0 ? '#D97706' : '#fff'}
-                      style={{ marginRight: 8 }}
-                    />
-                  )}
-                  <Text className={`font-bold text-base ${
-                    suggestions.length > 0
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-white'
-                  }`}>
-                    {isSuggesting
-                      ? 'Finding recipes...'
-                      : suggestions.length > 0
-                        ? 'Refresh suggestions'
-                        : 'What can I cook from my books?'}
-                  </Text>
-                </TouchableOpacity>
+                  <BookCover
+                    source={coverPhoto(item)}
+                    title={item.title}
+                    kicker={kicker(item)}
+                    width={COVER_WIDTH}
+                    height={index % 2 === 1 ? 186 : 200}
+                  />
+                </Pressable>
+              ))}
+            </ScrollView>
+          ) : (
+            <Muted>
+              {t(
+                'cookbooks.library.empty',
+                "Your shelf is empty. Add a cookbook and we'll find its recipes online. If we can't, you can scan the pages."
               )}
+            </Muted>
+          )}
 
-              {/* Shelf label */}
-              {cookbooks.length > 0 && (
-                <Text className="px-5 mb-2 font-bold text-neutral-900 dark:text-neutral-50 text-base">
-                  Your Shelf
-                </Text>
-              )}
-            </>
-          }
-          ListEmptyComponent={
-            !showAddForm ? (
-              <View className="items-center justify-center px-8 py-16">
-                <Ionicons name="library-outline" size={64} color={colors.textMuted} />
-                <Text className="text-lg font-bold text-neutral-600 dark:text-neutral-400 mt-4 text-center">
-                  Your cookbook shelf is empty
-                </Text>
-                <Text className="text-neutral-400 dark:text-neutral-500 text-center mt-2 mb-6">
-                  Add a cookbook and we'll automatically find all its recipes online. If we can't find them, you can scan the pages.
-                </Text>
-                <TouchableOpacity
-                  onPress={() => setShowAddForm(true)}
-                  className="flex-row items-center bg-amber-500 px-6 py-3 rounded-full"
-                >
-                  <Ionicons name="add" size={20} color="#fff" />
-                  <Text className="font-bold text-white ml-2">Add Your First Cookbook</Text>
-                </TouchableOpacity>
-              </View>
-            ) : null
-          }
-        />
+          {(suggestions.length > 0 || isSuggesting) && (
+            <View style={{ marginHorizontal: -20 }}>
+              <CookbookSuggestionCarousel
+                suggestions={suggestions}
+                onClear={clearSuggestions}
+                onPressSuggestion={handlePressSuggestion}
+                isSuggesting={isSuggesting}
+              />
+            </View>
+          )}
+
+          <UCard style={{ borderRadius: 30, gap: 12 }}>
+            <View style={{ gap: 4 }}>
+              <H2>{t('cookbooks.library.addTitle', 'Add a cookbook')}</H2>
+              <Muted small>{t('cookbooks.library.addSubtitle', "We'll find all the recipes in it online")}</Muted>
+            </View>
+            <RaisedField
+              label={t('cookbooks.library.titleLabel', 'Cookbook title')}
+              placeholder={t('cookbooks.library.titlePlaceholder', 'Cookbook title')}
+              value={title}
+              onChangeText={setTitle}
+              returnKeyType="next"
+            />
+            <RaisedField
+              label={t('cookbooks.library.authorLabel', 'Author (optional)')}
+              placeholder={t('cookbooks.library.authorPlaceholder', 'Helps find the right book')}
+              value={author}
+              onChangeText={setAuthor}
+              returnKeyType="done"
+              onSubmitEditing={handleAdd}
+            />
+            <UButton
+              label={t('cookbooks.library.addButton', 'Add & Fetch Recipes')}
+              loading={isLookingUp}
+              disabled={!title.trim()}
+              onPress={handleAdd}
+            />
+          </UCard>
+
+          {cookbooks.length > 0 && (
+            <UButton
+              variant="ghost"
+              icon={suggestions.length > 0 ? 'refresh' : undefined}
+              loading={isSuggesting}
+              disabled={isSuggesting}
+              onPress={handleGetSuggestions}
+              label={
+                isSuggesting
+                  ? t('cookbooks.library.findingRecipes', 'Finding recipes...')
+                  : suggestions.length > 0
+                    ? t('cookbooks.library.refreshSuggestions', 'Refresh suggestions')
+                    : t('cookbooks.library.whatCanICook', 'What can I cook from my books?')
+              }
+            />
+          )}
+        </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </Screen>
   );
 }

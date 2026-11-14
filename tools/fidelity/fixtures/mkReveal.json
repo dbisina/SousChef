@@ -1,0 +1,19 @@
+{
+ "navigate": true,
+ "wait": 600,
+ "stores": {},
+ "calls": [
+  {
+   "store": "play",
+   "fn": "hostRound"
+  },
+  {
+   "store": "play",
+   "fn": "startRound"
+  },
+  {
+   "store": "play",
+   "fn": "submitPlate"
+  }
+ ]
+}

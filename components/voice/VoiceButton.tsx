@@ -1,14 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import {
-  TouchableOpacity,
-  View,
-  Text,
-  Animated,
-  StyleSheet,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable, View, Text, Animated } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { VoiceListeningState } from '@/types/voice';
-import { useThemeColors } from '@/stores/themeStore';
+import { Icon, useTokens, FONT } from '@/components/ui';
+import type { IconName } from '@/components/ui';
 
 interface VoiceButtonProps {
   isListening: boolean;
@@ -21,170 +16,131 @@ interface VoiceButtonProps {
   showLabel?: boolean;
 }
 
+// Orange mic, pulsing rings while listening (Voice.html .ring stack)
 export const VoiceButton: React.FC<VoiceButtonProps> = ({
   isListening,
   isSpeaking,
   isProcessing,
-  state,
   onPress,
   disabled = false,
   size = 'medium',
   showLabel = true,
 }) => {
+  const { t } = useTranslation();
+  const tokens = useTokens();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
-  const colors = useThemeColors();
 
   // Pulse animation when listening
   useEffect(() => {
-    if (isListening) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.2,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    } else {
+    if (!isListening) {
       pulseAnim.setValue(1);
+      return;
     }
-  }, [isListening]);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1.12, duration: 700, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isListening, pulseAnim]);
 
   // Rotate animation when processing
   useEffect(() => {
-    if (isProcessing) {
-      Animated.loop(
-        Animated.timing(rotateAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        })
-      ).start();
-    } else {
+    if (!isProcessing) {
       rotateAnim.setValue(0);
+      return;
     }
-  }, [isProcessing]);
+    const loop = Animated.loop(Animated.timing(rotateAnim, { toValue: 1, duration: 1000, useNativeDriver: true }));
+    loop.start();
+    return () => loop.stop();
+  }, [isProcessing, rotateAnim]);
 
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
+  const spin = rotateAnim.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
-  // Size configurations
+  // button = core circle; mid/outer = halo rings (design: 104 / 164 / 220)
   const sizeConfig = {
-    small: { button: 40, icon: 20, ring: 48 },
-    medium: { button: 56, icon: 28, ring: 68 },
-    large: { button: 72, icon: 36, ring: 88 },
-  };
-
+    small: { button: 44, icon: 20, mid: 52, outer: 52 },
+    medium: { button: 56, icon: 24, mid: 72, outer: 88 },
+    large: { button: 104, icon: 28, mid: 164, outer: 220 },
+  } as const;
   const config = sizeConfig[size];
 
-  // Get icon name based on state
-  const getIcon = () => {
-    if (isProcessing) return 'sync';
-    if (isSpeaking) return 'volume-high';
-    if (isListening) return 'mic';
-    return 'mic-outline';
-  };
+  const icon: IconName = isProcessing ? 'refresh' : isSpeaking ? 'chat' : 'mic';
+  const bg = disabled ? tokens.track : tokens.accent;
+  const fg = disabled ? tokens.muted : tokens['accent-ink'];
 
-  // Get background color based on state
-  const getBackgroundColor = () => {
-    if (disabled) return '#D4D4D4';
-    if (isListening) return colors.accent;
-    if (isSpeaking) return '#22C55E';
-    if (isProcessing) return '#F59E0B';
-    return '#FFFFFF';
-  };
+  const label = isListening
+    ? t('cooking.listening', 'Listening')
+    : isProcessing
+    ? t('cooking.processing', 'Processing...')
+    : isSpeaking
+    ? t('cooking.speaking', 'Speaking...')
+    : t('cooking.tapToSpeak', 'Tap to speak');
 
-  // Get icon color based on state
-  const getIconColor = () => {
-    if (disabled) return colors.textMuted;
-    if (isListening || isSpeaking || isProcessing) return '#FFFFFF';
-    return colors.accent;
-  };
-
-  // Get status text
-  const getStatusText = () => {
-    if (isListening) return 'Listening...';
-    if (isProcessing) return 'Processing...';
-    if (isSpeaking) return 'Speaking...';
-    return 'Tap to speak';
-  };
+  const halo = size !== 'small' && !disabled;
 
   return (
-    <View className="items-center">
-      {/* Pulse ring for listening state */}
-      {isListening && (
-        <Animated.View
-          style={[
-            styles.pulseRing,
-            {
-              width: config.ring,
-              height: config.ring,
-              borderRadius: config.ring / 2,
-              transform: [{ scale: pulseAnim }],
-            },
-          ]}
-        />
-      )}
-
-      {/* Main button */}
-      <TouchableOpacity
-        onPress={onPress}
-        disabled={disabled || isProcessing}
-        activeOpacity={0.8}
-        style={[
-          styles.button,
-          {
+    <View className="items-center" style={{ gap: 8 }}>
+      <View style={{ width: config.outer, height: config.outer, alignItems: 'center', justifyContent: 'center' }}>
+        {halo ? (
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              width: config.outer,
+              height: config.outer,
+              borderRadius: config.outer / 2,
+              backgroundColor: tokens.accent,
+              opacity: 0.1,
+              transform: [{ scale: isListening ? pulseAnim : 1 }],
+            }}
+          />
+        ) : null}
+        {halo ? (
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              width: config.mid,
+              height: config.mid,
+              borderRadius: config.mid / 2,
+              backgroundColor: tokens.accent,
+              opacity: 0.2,
+              transform: [{ scale: isListening ? pulseAnim : 1 }],
+            }}
+          />
+        ) : null}
+        <Pressable
+          onPress={onPress}
+          disabled={disabled || isProcessing}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          accessibilityState={{ disabled: disabled || isProcessing, busy: isProcessing }}
+          hitSlop={size === 'small' ? 4 : 0}
+          style={({ pressed }) => ({
             width: config.button,
             height: config.button,
             borderRadius: config.button / 2,
-            backgroundColor: getBackgroundColor(),
-          },
-        ]}
-      >
-        <Animated.View
-          style={
-            isProcessing
-              ? { transform: [{ rotate: spin }] }
-              : undefined
-          }
+            backgroundColor: bg,
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: pressed ? 0.85 : 1,
+          })}
         >
-          <Ionicons name={getIcon()} size={config.icon} color={getIconColor()} />
-        </Animated.View>
-      </TouchableOpacity>
+          <Animated.View style={isProcessing ? { transform: [{ rotate: spin }] } : undefined}>
+            <Icon name={icon} size={config.icon} color={fg} />
+          </Animated.View>
+        </Pressable>
+      </View>
 
-      {/* Status label */}
-      {showLabel && (
-        <Text className="text-xs text-neutral-500 dark:text-neutral-400 mt-2">{getStatusText()}</Text>
-      )}
+      {showLabel ? (
+        <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+          {label}
+        </Text>
+      ) : null}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 4,
-    borderWidth: 2,
-    borderColor: '#FF6B35',
-  },
-  pulseRing: {
-    position: 'absolute',
-    backgroundColor: 'rgba(255, 107, 53, 0.2)',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 107, 53, 0.4)',
-  },
-});

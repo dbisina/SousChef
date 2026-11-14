@@ -1,22 +1,37 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  TextInput,
-  Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
+  ScrollView,
+  Text as RNText,
+  View,
+  useWindowDimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';
 import { PantryCategory, PantryItemFormData } from '@/types';
-import { Button, Input } from '@/components/ui';
+import {
+  Chip,
+  CtaBar,
+  Field,
+  FONT,
+  Icon,
+  PhotoCard,
+  Screen,
+  SectionLabel,
+  Segmented,
+  TopBar,
+  UButton,
+  UIconButton,
+  UInput,
+  useTokens,
+} from '@/components/ui';
 import { COMMON_PANTRY_ITEMS } from '@/stores/pantryStore';
-import { useThemeColors } from '@/stores/themeStore';
 import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
+import { pantryPhoto } from './photos';
+import { CATEGORY_ORDER, CategoryChips, UnitPicker, useCategoryLabel } from './shared';
 
 interface AddPantryItemProps {
   visible: boolean;
@@ -24,57 +39,167 @@ interface AddPantryItemProps {
   onAdd: (item: PantryItemFormData) => Promise<void>;
 }
 
-export const AddPantryItemModal: React.FC<AddPantryItemProps> = ({
-  visible,
-  onClose,
-  onAdd,
-}) => {
-  const colors = useThemeColors();
-  const [isQuickAdd, setIsQuickAdd] = useState(true);
+type Mode = 'quick' | 'custom';
+type CommonItem = (typeof COMMON_PANTRY_ITEMS)[number];
+
+const EMPTY_FORM: PantryItemFormData = { name: '', amount: 1, unit: 'piece', category: 'other' };
+
+/** Selected-state check badge (.ck.on, top right of a tile). */
+function TileCheck() {
+  return (
+    <View
+      className="bg-ink items-center justify-center"
+      style={{ width: 26, height: 26, borderRadius: 13 }}
+    >
+      <Icon name="check" size="sm" color="ink-inverse" />
+    </View>
+  );
+}
+
+interface TileProps {
+  item: CommonItem;
+  size: number;
+  selected: boolean;
+  onPress: () => void;
+}
+
+/** Ingredient tile (112px, radius 22): photo when we have one, plain surface otherwise. */
+function IngredientTile({ item, size, selected, onPress }: TileProps) {
+  const tokens = useTokens();
+  const photo = pantryPhoto(item.name);
+  const ring = { borderWidth: selected ? 2 : 0, borderColor: tokens.ink };
+
+  if (photo) {
+    return (
+      <PhotoCard
+        source={photo}
+        width={size}
+        height={112}
+        radius={22}
+        title={item.name}
+        titleSize={13}
+        captionInset={12}
+        topRight={selected ? <TileCheck /> : undefined}
+        onPress={onPress}
+        accessibilityLabel={item.name}
+        style={ring}
+      />
+    );
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+      accessibilityState={{ selected }}
+      onPress={onPress}
+      style={({ pressed }) => ({ width: size, opacity: pressed ? 0.85 : 1 })}
+    >
+      <View
+        className="bg-surface-2 justify-end"
+        style={[{ height: 112, borderRadius: 22, padding: 12 }, ring]}
+      >
+        {selected ? (
+          <View style={{ position: 'absolute', top: 8, right: 8 }}>
+            <TileCheck />
+          </View>
+        ) : null}
+        <RNText className="text-ink" numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 13, lineHeight: 16 }}>
+          {item.name}
+        </RNText>
+      </View>
+    </Pressable>
+  );
+}
+
+export const AddPantryItemModal: React.FC<AddPantryItemProps> = ({ visible, onClose, onAdd }) => {
+  const { t } = useTranslation();
+  const { width } = useWindowDimensions();
+  const categoryLabel = useCategoryLabel();
+  const [mode, setMode] = useState<Mode>('quick');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showUnitDropdown, setShowUnitDropdown] = useState(false);
-  const [recentlyAdded, setRecentlyAdded] = useState<string | null>(null);
-  const [showCustomUnitInput, setShowCustomUnitInput] = useState(false);
-  const [customUnitValue, setCustomUnitValue] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<PantryCategory | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [quickAmount, setQuickAmount] = useState('');
+  const [quickUnit, setQuickUnit] = useState('');
 
   const {
     control,
     handleSubmit,
     reset,
-    setValue,
     formState: { errors },
-  } = useForm<PantryItemFormData>({
-    defaultValues: {
-      name: '',
-      amount: 1,
-      unit: 'piece',
-      category: 'other',
-    },
-  });
+  } = useForm<PantryItemFormData>({ defaultValues: EMPTY_FORM });
 
-  const handleQuickAdd = async (
-    name: string,
-    category: PantryCategory,
-    unit: string
-  ) => {
-    if (isSubmitting) return;
+  const tileSize = Math.floor((width - 40 - 20) / 3);
+
+  const visibleItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    const filtered = COMMON_PANTRY_ITEMS.filter(
+      (item) =>
+        (!q || item.name.toLowerCase().includes(q)) && (!categoryFilter || item.category === categoryFilter)
+    );
+    // Items with a photo first, otherwise keep catalogue order.
+    return [...filtered].sort((a, b) => Number(!!pantryPhoto(b.name)) - Number(!!pantryPhoto(a.name)));
+  }, [searchQuery, categoryFilter]);
+
+  const resetAll = () => {
+    reset(EMPTY_FORM);
+    setSearchQuery('');
+    setCategoryFilter(null);
+    setSelected([]);
+    setQuickAmount('');
+    setQuickUnit('');
+    setMode('quick');
+  };
+
+  const handleClose = () => {
+    resetAll();
+    onClose();
+  };
+
+  const toggle = (name: string) =>
+    setSelected((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
+
+  const handleQuickAdd = async () => {
+    if (isSubmitting || selected.length === 0) return;
     setIsSubmitting(true);
+    const parsed = parseFloat(quickAmount);
+    const amount = parsed > 0 ? parsed : 1;
+    let added = 0;
     try {
-      await onAdd({ name, amount: 1, unit, category });
-      setRecentlyAdded(name);
-      setTimeout(() => setRecentlyAdded(null), 1500);
-    } catch (error) {
-      console.error('Quick add error:', error);
-      showErrorToast(`Something went wrong adding your ${name}. Let's try that again?`, 'Pantry Issue');
+      for (const name of selected) {
+        const item = COMMON_PANTRY_ITEMS.find((c) => c.name === name);
+        if (!item) continue;
+        try {
+          await onAdd({ name: item.name, amount, unit: quickUnit || item.unit, category: item.category });
+          added++;
+        } catch (error) {
+          console.error('Quick add error:', error);
+          showErrorToast(
+            t('pantryUi.addFailed', "Something went wrong adding your {{name}}. Let's try that again?", { name: item.name }),
+            t('pantryUi.pantryIssue', 'Pantry Issue')
+          );
+        }
+      }
     } finally {
       setIsSubmitting(false);
+    }
+    if (added > 0) {
+      showSuccessToast(
+        t('pantryUi.addedMany', '{{n}} items added to your pantry.', { n: added }),
+        t('pantryUi.added', 'Added!')
+      );
+      handleClose();
     }
   };
 
   const handleCustomAdd = async (data: PantryItemFormData) => {
     if (!data.name?.trim()) {
-      showInfoToast('Wait! Don\'t forget to name your ingredient.', 'Missing Name');
+      showInfoToast(
+        t('pantryUi.missingNameBody', "Wait! Don't forget to name your ingredient."),
+        t('pantryUi.missingName', 'Missing Name')
+      );
       return;
     }
     const finalAmount = data.amount && data.amount > 0 ? data.amount : 1;
@@ -87,485 +212,179 @@ export const AddPantryItemModal: React.FC<AddPantryItemProps> = ({
         unit: finalUnit,
         category: data.category || 'other',
       });
-      showSuccessToast(`${data.name} is now in your pantry! 🍎`, 'Added!');
-      reset({ name: '', amount: 1, unit: 'piece', category: 'other' });
-      setShowCustomUnitInput(false);
-      setCustomUnitValue('');
+      showSuccessToast(
+        t('pantryUi.addedOne', '{{name}} is now in your pantry!', { name: data.name }),
+        t('pantryUi.added', 'Added!')
+      );
+      reset(EMPTY_FORM);
     } catch (error) {
       console.error('Custom add error:', error);
-      showErrorToast(`We couldn't add your ${data.name} just yet. Please try again!`, 'Pantry Issue');
+      showErrorToast(
+        t('pantryUi.addOneFailed', "We couldn't add your {{name}} just yet. Please try again!", { name: data.name }),
+        t('pantryUi.pantryIssue', 'Pantry Issue')
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    reset({ name: '', amount: 1, unit: 'piece', category: 'other' });
-    setSearchQuery('');
-    setShowCustomUnitInput(false);
-    setCustomUnitValue('');
-    setShowUnitDropdown(false);
-    onClose();
-  };
+  const quickCta =
+    selected.length === 1
+      ? t('pantryUi.addOneItem', 'Add 1 item')
+      : t('pantryUi.addNItems', 'Add {{n}} items', { n: selected.length });
 
-  const filteredItems = COMMON_PANTRY_ITEMS.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const footer =
+    mode === 'quick' ? (
+      <CtaBar fade>
+        <UButton
+          label={selected.length > 0 ? quickCta : t('pantryUi.selectItems', 'Select items to add')}
+          onPress={handleQuickAdd}
+          disabled={selected.length === 0}
+          loading={isSubmitting}
+        />
+      </CtaBar>
+    ) : (
+      <CtaBar fade>
+        <UButton
+          label={t('pantryUi.addToPantry', 'Add to Pantry')}
+          onPress={handleSubmit(handleCustomAdd)}
+          loading={isSubmitting}
+        />
+      </CtaBar>
+    );
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
-    >
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
-          {/* Header */}
-          <View
-            className="flex-row items-center justify-between px-4 py-4"
-            style={{ borderBottomWidth: 1, borderBottomColor: colors.border }}
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+      <Screen bare footer={footer}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <TopBar
+            variant="compact"
+            title={t('pantryUi.addTitle', 'Add to Pantry')}
+            left={<UIconButton icon="close" label={t('general.close', 'Close')} onPress={handleClose} />}
+          />
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 14, paddingBottom: 140 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <TouchableOpacity onPress={handleClose}>
-              <Ionicons name="close" size={24} color={colors.icon} />
-            </TouchableOpacity>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>
-              Add to Pantry
-            </Text>
-            <View style={{ width: 24 }} />
-          </View>
+            <Segmented<Mode>
+              value={mode}
+              onChange={setMode}
+              options={[
+                { value: 'quick', label: t('pantryUi.quickAdd', 'Quick Add') },
+                { value: 'custom', label: t('pantryUi.custom', 'Custom') },
+              ]}
+            />
 
-          {/* Toggle */}
-          <View className="flex-row p-4">
-            <TouchableOpacity
-              onPress={() => setIsQuickAdd(true)}
-              className="flex-1 py-2.5 rounded-l-xl"
-              style={{
-                backgroundColor: isQuickAdd ? colors.accent : colors.surfaceSecondary,
-                borderWidth: isQuickAdd ? 0 : 1,
-                borderColor: colors.border,
-              }}
-            >
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontWeight: '600',
-                  color: isQuickAdd ? '#FFFFFF' : colors.textMuted,
-                }}
-              >
-                Quick Add
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setIsQuickAdd(false)}
-              className="flex-1 py-2.5 rounded-r-xl"
-              style={{
-                backgroundColor: !isQuickAdd ? colors.accent : colors.surfaceSecondary,
-                borderWidth: !isQuickAdd ? 0 : 1,
-                borderColor: colors.border,
-              }}
-            >
-              <Text
-                style={{
-                  textAlign: 'center',
-                  fontWeight: '600',
-                  color: !isQuickAdd ? '#FFFFFF' : colors.textMuted,
-                }}
-              >
-                Custom
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {isQuickAdd ? (
-            <>
-              {/* Search */}
-              <View className="px-4 mb-4">
-                <View
-                  className="flex-row items-center rounded-xl px-4 py-3"
-                  style={{ backgroundColor: colors.surfaceSecondary }}
+            {mode === 'quick' ? (
+              <>
+                <UInput
+                  icon="search"
+                  label={t('pantryUi.searchIngredients', 'Search ingredients')}
+                  placeholder={t('pantryUi.searchIngredientsPlaceholder', 'Search ingredients...')}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                  autoCorrect={false}
+                />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={{ flexGrow: 0, marginHorizontal: -20 }}
+                  contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}
                 >
-                  <Ionicons name="search" size={20} color={colors.textMuted} />
-                  <TextInput
-                    placeholder="Search ingredients..."
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    className="flex-1 ml-2 text-base"
-                    style={{ color: colors.text }}
-                    placeholderTextColor={colors.textMuted}
-                  />
-                  {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery('')}>
-                      <Ionicons name="close-circle" size={20} color={colors.textMuted} />
-                    </TouchableOpacity>
-                  )}
+                  <Chip label={t('pantryUi.all', 'All')} on={categoryFilter === null} onPress={() => setCategoryFilter(null)} />
+                  {CATEGORY_ORDER.map((cat) => (
+                    <Chip
+                      key={cat}
+                      label={categoryLabel(cat)}
+                      on={categoryFilter === cat}
+                      onPress={() => setCategoryFilter(cat)}
+                    />
+                  ))}
+                </ScrollView>
+
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+                  {visibleItems.map((item) => (
+                    <IngredientTile
+                      key={item.name}
+                      item={item}
+                      size={tileSize}
+                      selected={selected.includes(item.name)}
+                      onPress={() => toggle(item.name)}
+                    />
+                  ))}
                 </View>
-              </View>
 
-              {/* Common items */}
-              <ScrollView className="flex-1 px-4" showsVerticalScrollIndicator={false}>
-                {CATEGORY_ORDER.map((category) => {
-                  const items = filteredItems.filter(
-                    (item) => item.category === category
-                  );
-                  if (items.length === 0) return null;
-
-                  return (
-                    <View key={category} className="mb-5">
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          fontWeight: '700',
-                          color: colors.textMuted,
-                          textTransform: 'uppercase',
-                          letterSpacing: 0.5,
-                          marginBottom: 10,
-                        }}
-                      >
-                        {CATEGORY_EMOJI[category]} {category}
-                      </Text>
-                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-                        {items.map((item) => {
-                          const isAdded = recentlyAdded === item.name;
-                          return (
-                            <TouchableOpacity
-                              key={item.name}
-                              onPress={() =>
-                                handleQuickAdd(item.name, item.category, item.unit)
-                              }
-                              disabled={isSubmitting}
-                              activeOpacity={0.7}
-                              style={{
-                                paddingHorizontal: 14,
-                                paddingVertical: 9,
-                                borderRadius: 8,
-                                backgroundColor: isAdded
-                                  ? '#DCFCE7'
-                                  : colors.surfaceSecondary,
-                                borderWidth: isAdded ? 1 : 0,
-                                borderColor: isAdded ? '#86EFAC' : 'transparent',
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: isAdded ? '#16A34A' : colors.text,
-                                  fontWeight: isAdded ? '600' : '400',
-                                  fontSize: 14,
-                                }}
-                              >
-                                {isAdded ? '✓ ' : ''}{item.name}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
+                {selected.length > 0 ? (
+                  <>
+                    <Field
+                      label={t('pantryUi.amount', 'Amount')}
+                      placeholder="1"
+                      keyboardType="decimal-pad"
+                      value={quickAmount}
+                      onChangeText={setQuickAmount}
+                    />
+                    <View style={{ gap: 8 }}>
+                      <SectionLabel>{t('pantryUi.unit', 'Unit')}</SectionLabel>
+                      <UnitPicker value={quickUnit} onChange={setQuickUnit} allowNone />
                     </View>
-                  );
-                })}
-                <View style={{ height: 40 }} />
-              </ScrollView>
-            </>
-          ) : (
-            <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
-              {/* Custom form */}
-              <Controller
-                control={control}
-                name="name"
-                rules={{ required: 'Name is required' }}
-                render={({ field: { onChange, value } }) => (
-                  <Input
-                    label="Ingredient Name"
-                    placeholder="e.g., Olive Oil"
-                    value={value}
-                    onChangeText={onChange}
-                    error={errors.name?.message}
-                  />
-                )}
-              />
-
-              <View className="flex-row">
-                <View className="flex-1 mr-2">
-                  <Controller
-                    control={control}
-                    name="amount"
-                    rules={{ required: true, min: 0.1 }}
-                    render={({ field: { onChange, value } }) => (
-                      <Input
-                        label="Amount"
-                        placeholder="1"
-                        keyboardType="decimal-pad"
-                        value={value ? value.toString() : ''}
-                        onChangeText={(text) => {
-                          const num = parseFloat(text);
-                          onChange(isNaN(num) ? '' : num);
-                        }}
-                      />
-                    )}
-                  />
-                </View>
-                <View className="flex-1 ml-2">
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <>
+                <Controller
+                  control={control}
+                  name="name"
+                  rules={{ required: t('pantryUi.nameRequired', 'Name is required') }}
+                  render={({ field: { onChange, value } }) => (
+                    <Field
+                      label={t('pantryUi.ingredientName', 'Ingredient Name')}
+                      placeholder={t('pantryUi.ingredientPlaceholder', 'e.g., Olive Oil')}
+                      value={value}
+                      onChangeText={onChange}
+                      error={errors.name?.message}
+                    />
+                  )}
+                />
+                <Controller
+                  control={control}
+                  name="amount"
+                  rules={{ required: true, min: 0.1 }}
+                  render={({ field: { onChange, value } }) => (
+                    <Field
+                      label={t('pantryUi.amount', 'Amount')}
+                      placeholder="1"
+                      keyboardType="decimal-pad"
+                      value={value ? value.toString() : ''}
+                      onChangeText={(text) => {
+                        const num = parseFloat(text);
+                        onChange(isNaN(num) ? '' : num);
+                      }}
+                    />
+                  )}
+                />
+                <View style={{ gap: 8 }}>
+                  <SectionLabel>{t('pantryUi.unit', 'Unit')}</SectionLabel>
                   <Controller
                     control={control}
                     name="unit"
-                    render={({ field: { onChange, value } }) => (
-                      <View className="mb-4">
-                        <Text
-                          style={{
-                            marginBottom: 8,
-                            fontSize: 14,
-                            fontWeight: '500',
-                            color: colors.textSecondary,
-                          }}
-                        >
-                          Unit
-                        </Text>
-                        <View style={{ position: 'relative', zIndex: 50 }}>
-                          <TouchableOpacity
-                            onPress={() => {
-                              setShowUnitDropdown(!showUnitDropdown);
-                              setShowCustomUnitInput(false);
-                            }}
-                            style={{
-                              flexDirection: 'row',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              paddingHorizontal: 16,
-                              paddingVertical: 12,
-                              backgroundColor: colors.surfaceSecondary,
-                              borderRadius: 12,
-                              borderWidth: 1,
-                              borderColor: showUnitDropdown ? colors.accent : colors.border,
-                            }}
-                          >
-                            <Text style={{ color: colors.text, fontSize: 16 }}>
-                              {showCustomUnitInput ? customUnitValue || 'Custom...' : value || 'Select Unit'}
-                            </Text>
-                            <Ionicons
-                              name={showUnitDropdown ? 'chevron-up' : 'chevron-down'}
-                              size={20}
-                              color={colors.textMuted}
-                            />
-                          </TouchableOpacity>
-
-                          {showUnitDropdown && (
-                            <View
-                              style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                right: 0,
-                                marginTop: 8,
-                                backgroundColor: colors.surface,
-                                borderRadius: 12,
-                                borderWidth: 1,
-                                borderColor: colors.border,
-                                maxHeight: 200,
-                                zIndex: 50,
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.15,
-                                shadowRadius: 8,
-                                elevation: 8,
-                              }}
-                            >
-                              <ScrollView nestedScrollEnabled style={{ flex: 1 }}>
-                                {UNITS.map((unit) => (
-                                  <TouchableOpacity
-                                    key={unit}
-                                    onPress={() => {
-                                      onChange(unit);
-                                      setShowUnitDropdown(false);
-                                      setShowCustomUnitInput(false);
-                                      setCustomUnitValue('');
-                                    }}
-                                    style={{
-                                      paddingHorizontal: 16,
-                                      paddingVertical: 12,
-                                      borderBottomWidth: 1,
-                                      borderBottomColor: colors.border,
-                                      backgroundColor:
-                                          value === unit ? colors.accent + '15' : 'transparent',
-                                    }}
-                                  >
-                                    <Text
-                                      style={{
-                                        color: value === unit ? colors.accent : colors.text,
-                                        fontWeight: value === unit ? '600' : '400',
-                                      }}
-                                    >
-                                      {unit}
-                                    </Text>
-                                  </TouchableOpacity>
-                                ))}
-                                {/* Other option */}
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    setShowUnitDropdown(false);
-                                    setShowCustomUnitInput(true);
-                                    setCustomUnitValue('');
-                                  }}
-                                  style={{
-                                    paddingHorizontal: 16,
-                                    paddingVertical: 12,
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  <Ionicons
-                                    name="create-outline"
-                                    size={16}
-                                    color={colors.accent}
-                                    style={{ marginRight: 8 }}
-                                  />
-                                  <Text style={{ color: colors.accent, fontWeight: '600' }}>
-                                    Other (custom)
-                                  </Text>
-                                </TouchableOpacity>
-                              </ScrollView>
-                            </View>
-                          )}
-                        </View>
-
-                        {/* Custom unit input */}
-                        {showCustomUnitInput && (
-                          <View style={{ marginTop: 10 }}>
-                            <TextInput
-                              placeholder="Enter custom unit..."
-                              value={customUnitValue}
-                              onChangeText={(text) => {
-                                setCustomUnitValue(text);
-                                onChange(text);
-                              }}
-                              autoFocus
-                              style={{
-                                paddingHorizontal: 16,
-                                paddingVertical: 12,
-                                backgroundColor: colors.surfaceSecondary,
-                                borderRadius: 12,
-                                borderWidth: 1,
-                                borderColor: colors.accent,
-                                color: colors.text,
-                                fontSize: 16,
-                              }}
-                              placeholderTextColor={colors.textMuted}
-                            />
-                          </View>
-                        )}
-                      </View>
-                    )}
+                    render={({ field: { onChange, value } }) => <UnitPicker value={value} onChange={onChange} />}
                   />
                 </View>
-              </View>
-
-              <Controller
-                control={control}
-                name="category"
-                render={({ field: { onChange, value } }) => (
-                  <View className="mb-4">
-                    <Text
-                      style={{
-                        marginBottom: 8,
-                        fontSize: 14,
-                        fontWeight: '500',
-                        color: colors.textSecondary,
-                      }}
-                    >
-                      Category
-                    </Text>
-                    <View className="flex-row flex-wrap">
-                      {CATEGORY_ORDER.map((cat) => (
-                        <TouchableOpacity
-                          key={cat}
-                          onPress={() => onChange(cat)}
-                          style={{
-                            paddingHorizontal: 12,
-                            paddingVertical: 8,
-                            borderRadius: 8,
-                            marginRight: 8,
-                            marginBottom: 8,
-                            backgroundColor: value === cat ? colors.accent : colors.surfaceSecondary,
-                            borderWidth: value === cat ? 0 : 1,
-                            borderColor: colors.border,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              textTransform: 'capitalize',
-                              color: value === cat ? '#FFFFFF' : colors.text,
-                              fontWeight: value === cat ? '600' : '400',
-                            }}
-                          >
-                            {cat}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                )}
-              />
-
-              <Button
-                title="Add to Pantry"
-                onPress={handleSubmit(handleCustomAdd)}
-                isLoading={isSubmitting}
-                fullWidth
-              />
-              <View style={{ height: 40 }} />
-            </ScrollView>
-          )}
-        </View>
-      </KeyboardAvoidingView>
+                <View style={{ gap: 8 }}>
+                  <SectionLabel>{t('pantryUi.category', 'Category')}</SectionLabel>
+                  <Controller
+                    control={control}
+                    name="category"
+                    render={({ field: { onChange, value } }) => <CategoryChips value={value} onChange={onChange} />}
+                  />
+                </View>
+              </>
+            )}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </Screen>
     </Modal>
   );
 };
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  produce: '🥬',
-  dairy: '🥛',
-  meat: '🥩',
-  seafood: '🐟',
-  grains: '🌾',
-  spices: '🧂',
-  condiments: '🫙',
-  canned: '🥫',
-  frozen: '🧊',
-  beverages: '🥤',
-  other: '📦',
-};
-
-const CATEGORY_ORDER: PantryCategory[] = [
-  'produce',
-  'dairy',
-  'meat',
-  'seafood',
-  'grains',
-  'spices',
-  'condiments',
-  'canned',
-  'frozen',
-  'beverages',
-  'other',
-];
-
-const UNITS = [
-  'piece',
-  'cup',
-  'tbsp',
-  'tsp',
-  'oz',
-  'lb',
-  'g',
-  'kg',
-  'ml',
-  'l',
-  'can',
-  'bottle',
-  'bag',
-  'bunch',
-  'head',
-  'clove',
-  'slice',
-];

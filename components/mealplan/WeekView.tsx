@@ -1,163 +1,128 @@
 /**
- * @fileoverview WeekView Component - Weekly meal plan view with navigation
+ * @fileoverview WeekView - week strip (Mon..Sun) plus the selected day's meal photo cards.
  *
- * This component displays a full week's meal plan with day-by-day meal cards.
- * It includes week navigation controls and highlights the current week/day.
- * Performance-optimized with memoized calculations to prevent unnecessary recalculations.
+ * Design: MealPlan.html. 46x66 day buttons, the selected one filled with ink. Week navigation stays
+ * reachable through the small range row above the strip.
  *
  * @module components/mealplan/WeekView
  */
 
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
-import { MealPlanDay } from '@/types/mealplan';
+import React, { useMemo, useState } from 'react';
+import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Muted, Title, UIconButton, FONT } from '@/components/ui';
+import { MealPlanDay, MealType } from '@/types/mealplan';
 import { DayCard } from './DayCard';
-import { getDayName } from '@/services/mealPlanService';
 
-/**
- * Props for the WeekView component
- *
- * @interface WeekViewProps
- * @property {MealPlanDay[]} days - Array of 7 days representing the week's meal plan
- * @property {string} selectedWeekStart - ISO date string of the week's start date (Monday)
- * @property {Function} onPreviousWeek - Callback to navigate to the previous week
- * @property {Function} onNextWeek - Callback to navigate to the next week
- * @property {Function} onMealPress - Callback when a meal is pressed (date, mealType, recipeId)
- * @property {Function} onAddMeal - Callback when add meal button is pressed (date, mealType)
- * @property {Function} [onRemoveMeal] - Optional callback when remove meal button is pressed
- * @property {boolean} isCurrentWeek - Whether the displayed week is the current week
- */
 interface WeekViewProps {
   days: MealPlanDay[];
-  selectedWeekStart: string;
-  onPreviousWeek: () => void;
-  onNextWeek: () => void;
-  onMealPress: (date: string, mealType: string, recipeId?: string) => void;
-  onAddMeal: (date: string, mealType: string) => void;
-  onRemoveMeal?: (date: string, mealType: string) => void;
-  isCurrentWeek: boolean;
+  onMealPress: (date: string, mealType: MealType, recipeId?: string) => void;
+  onAddMeal: (date: string, mealType: MealType) => void;
+  onRemoveMeal?: (date: string, mealType: MealType) => void;
 }
 
-/**
- * WeekView Component
- *
- * A scrollable view displaying a full week's meal plan with navigation controls.
- * Shows 7 DayCard components (Monday through Sunday) with week navigation header.
- *
- * Features:
- * - Week navigation (previous/next week buttons)
- * - Week range display (e.g., "Jan 15 - 21")
- * - Current week indicator
- * - Scrollable day cards
- * - Highlights today's date
- * - Supports meal viewing, adding, and removing
- *
- * Performance Optimizations:
- * - Memoizes week range calculation to avoid recalculation on every render
- * - Only recalculates when selectedWeekStart changes
- * - Passes date-specific callbacks to child DayCards
- *
- * @component
- * @example
- * ```tsx
- * <WeekView
- *   days={currentWeekDays}
- *   selectedWeekStart="2026-02-10"
- *   onPreviousWeek={() => navigateToWeek(-1)}
- *   onNextWeek={() => navigateToWeek(1)}
- *   onMealPress={(date, type, id) => openRecipe(id)}
- *   onAddMeal={(date, type) => showRecipePicker(date, type)}
- *   onRemoveMeal={(date, type) => confirmRemove(date, type)}
- *   isCurrentWeek={true}
- * />
- * ```
- */
-export const WeekView: React.FC<WeekViewProps> = ({
-  days,
-  selectedWeekStart,
-  onPreviousWeek,
-  onNextWeek,
-  onMealPress,
-  onAddMeal,
-  onRemoveMeal,
-  isCurrentWeek,
-}) => {
-  const colors = useThemeColors();
+const localKey = (d: Date) => {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
+};
 
-  // Format week range for display - memoized to avoid recalculation
+const parse = (key: string) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+};
+
+export const WeekView: React.FC<WeekViewProps> = ({ days, onMealPress, onAddMeal, onRemoveMeal }) => {
+  const { t } = useTranslation();
+  const todayKey = localKey(new Date());
+  const [picked, setPicked] = useState<string | null>(null);
+
+  const selectedDate =
+    (picked && days.some((d) => d.date === picked) && picked) ||
+    (days.some((d) => d.date === todayKey) && todayKey) ||
+    days[0]?.date;
+  const selectedDay = days.find((d) => d.date === selectedDate);
+
+  const strip = days.map((day) => {
+    const date = parse(day.date);
+    const on = day.date === selectedDate;
+    const shortName = date.toLocaleDateString(undefined, { weekday: 'short' });
+    return (
+      <Pressable
+        key={day.date}
+        accessibilityRole="button"
+        accessibilityLabel={date.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+        accessibilityState={{ selected: on }}
+        onPress={() => setPicked(day.date)}
+        className={`items-center justify-center ${on ? 'bg-ink' : ''}`}
+        style={{ width: 46, height: 66, borderRadius: 23 }}
+      >
+        <RNText
+          className={on ? 'text-ink-inverse' : 'text-muted'}
+          style={{ fontFamily: FONT.sans, fontSize: 12, opacity: on ? 0.75 : 1 }}
+        >
+          {shortName}
+        </RNText>
+        <RNText className={on ? 'text-ink-inverse' : 'text-ink'} style={{ fontFamily: FONT.display, fontSize: 15 }}>
+          {date.getDate()}
+        </RNText>
+      </Pressable>
+    );
+  });
+
+  return (
+    <View style={{ gap: 14 }}>
+      {days.length > 7 ? (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          {strip}
+        </ScrollView>
+      ) : (
+        <View className="flex-row justify-between">{strip}</View>
+      )}
+
+      {selectedDay ? (
+        <DayCard
+          day={selectedDay}
+          dayName={parse(selectedDay.date).toLocaleDateString(undefined, { weekday: 'long' })}
+          isToday={selectedDay.date === todayKey}
+          onMealPress={(mealType, recipeId) => onMealPress(selectedDay.date, mealType, recipeId)}
+          onAddMeal={(mealType) => onAddMeal(selectedDay.date, mealType)}
+          onRemoveMeal={onRemoveMeal ? (mealType) => onRemoveMeal(selectedDay.date, mealType) : undefined}
+        />
+      ) : null}
+    </View>
+  );
+};
+
+interface WeekNavProps {
+  selectedWeekStart: string;
+  isCurrentWeek: boolean;
+  onPreviousWeek: () => void;
+  onNextWeek: () => void;
+}
+
+/** Previous / next week control. The design shows only the current week, so this sits below the plan. */
+export const WeekNav: React.FC<WeekNavProps> = ({ selectedWeekStart, isCurrentWeek, onPreviousWeek, onNextWeek }) => {
+  const { t } = useTranslation();
   const weekRangeText = useMemo(() => {
-    const start = new Date(selectedWeekStart);
+    const start = parse(selectedWeekStart);
     const end = new Date(start);
     end.setDate(end.getDate() + 6);
-
-    const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
-    const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-
-    if (startMonth === endMonth) {
-      return `${startMonth} ${startDay} - ${endDay}`;
-    }
-    return `${startMonth} ${startDay} - ${endMonth} ${endDay}`;
+    const startMonth = start.toLocaleDateString(undefined, { month: 'short' });
+    const endMonth = end.toLocaleDateString(undefined, { month: 'short' });
+    return startMonth === endMonth
+      ? `${startMonth} ${start.getDate()} - ${end.getDate()}`
+      : `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}`;
   }, [selectedWeekStart]);
 
   return (
-    <View className="flex-1">
-      {/* Week navigation header */}
-      <View className="flex-row items-center justify-between px-4 py-3 bg-white dark:bg-neutral-800 border-b border-neutral-100 dark:border-neutral-700">
-        <TouchableOpacity
-          onPress={onPreviousWeek}
-          className="p-2 rounded-full bg-neutral-100 dark:bg-neutral-700"
-        >
-          <Ionicons name="chevron-back" size={20} color={colors.icon} />
-        </TouchableOpacity>
-
-        <View className="items-center">
-          <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
-            {weekRangeText}
-          </Text>
-          {isCurrentWeek && (
-            <Text className="text-xs font-medium" style={{ color: colors.accent }}>
-              This Week
-            </Text>
-          )}
-        </View>
-
-        <TouchableOpacity
-          onPress={onNextWeek}
-          className="p-2 rounded-full bg-neutral-100 dark:bg-neutral-700"
-        >
-          <Ionicons name="chevron-forward" size={20} color={colors.icon} />
-        </TouchableOpacity>
+    <View className="flex-row items-center justify-between">
+      <UIconButton icon="back" size={44} label={t('plan.prevWeek', 'Previous week')} onPress={onPreviousWeek} />
+      <View className="items-center">
+        <Title>{weekRangeText}</Title>
+        {isCurrentWeek ? <Muted small>{t('plan.thisWeek', 'This week')}</Muted> : null}
       </View>
-
-      {/* Days scroll view */}
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16 }}
-      >
-        {days.map((day, index) => {
-          const isToday =
-            day.date === new Date().toISOString().split('T')[0];
-
-          return (
-            <DayCard
-              key={day.date}
-              day={day}
-              dayName={getDayName(day.date)}
-              isToday={isToday}
-              onMealPress={(mealType, recipeId) =>
-                onMealPress(day.date, mealType, recipeId)
-              }
-              onAddMeal={(mealType) => onAddMeal(day.date, mealType)}
-              onRemoveMeal={onRemoveMeal ? (mealType) => onRemoveMeal(day.date, mealType) : undefined}
-            />
-          );
-        })}
-      </ScrollView>
+      <UIconButton icon="chevronRight" size={44} label={t('plan.nextWeek', 'Next week')} onPress={onNextWeek} />
     </View>
   );
 };

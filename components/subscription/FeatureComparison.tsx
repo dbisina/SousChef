@@ -1,16 +1,8 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-} from 'react-native';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { Modal, ScrollView, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { SubscriptionTier, TIER_FEATURES, TierFeatures } from '@/types/subscription';
+import { FONT, Icon, Screen, Tag, TopBar, UButton, UIconButton } from '@/components/ui';
 
 interface FeatureComparisonProps {
   visible: boolean;
@@ -21,91 +13,33 @@ interface FeatureComparisonProps {
 interface FeatureRowData {
   key: keyof TierFeatures;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
   formatValue?: (value: TierFeatures[keyof TierFeatures]) => string;
 }
 
 const FEATURE_ROWS: FeatureRowData[] = [
-  {
-    key: 'maxRecipes',
-    label: 'Recipes',
-    icon: 'book',
-    formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : `${v}`),
-  },
-  {
-    key: 'maxPantryItems',
-    label: 'Pantry items',
-    icon: 'cube',
-    formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : `${v}`),
-  },
-  {
-    key: 'aiSubstitutionsPerDay',
-    label: 'AI substitutions',
-    icon: 'sparkles',
-    formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : `${v}/day`),
-  },
-  {
-    key: 'portionAnalysis',
-    label: 'Portion analysis',
-    icon: 'camera',
-  },
+  { key: 'maxRecipes', label: 'Recipes', formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : `${v}`) },
+  { key: 'maxPantryItems', label: 'Pantry items', formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : `${v}`) },
+  { key: 'aiSubstitutionsPerDay', label: 'AI substitutions', formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : `${v}/day`) },
+  { key: 'portionAnalysis', label: 'Portion analysis' },
   {
     key: 'portionAnalysisPerDay',
     label: 'Analysis limit',
-    icon: 'analytics',
     formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : v === 0 ? '-' : `${v}/day`),
   },
-  {
-    key: 'voiceHandsFree',
-    label: 'Voice commands',
-    icon: 'mic',
-  },
+  { key: 'voiceHandsFree', label: 'Voice commands' },
   {
     key: 'voiceUsagePerDay',
     label: 'Voice limit',
-    icon: 'chatbubble',
     formatValue: (v) => (v === 'unlimited' ? 'Unlimited' : v === 0 ? '-' : `${v}/day`),
   },
-  {
-    key: 'mealPlanning',
-    label: 'Meal planning',
-    icon: 'calendar',
-  },
-  {
-    key: 'mealPlanGeneration',
-    label: 'AI meal generation',
-    icon: 'bulb',
-  },
-  {
-    key: 'wasteTracking',
-    label: 'Waste tracking',
-    icon: 'leaf',
-  },
-  {
-    key: 'advancedNutrition',
-    label: 'Advanced nutrition',
-    icon: 'nutrition',
-  },
-  {
-    key: 'offlineAccess',
-    label: 'Offline access',
-    icon: 'cloud-offline',
-  },
-  {
-    key: 'adFree',
-    label: 'Ad-free',
-    icon: 'ban',
-  },
-  {
-    key: 'prioritySupport',
-    label: 'Priority support',
-    icon: 'headset',
-  },
-  {
-    key: 'exclusiveRecipes',
-    label: 'Exclusive recipes',
-    icon: 'star',
-  },
+  { key: 'mealPlanning', label: 'Meal planning' },
+  { key: 'mealPlanGeneration', label: 'AI meal generation' },
+  { key: 'wasteTracking', label: 'Waste tracking' },
+  { key: 'advancedNutrition', label: 'Advanced nutrition' },
+  { key: 'offlineAccess', label: 'Offline access' },
+  { key: 'adFree', label: 'Ad-free' },
+  { key: 'prioritySupport', label: 'Priority support' },
+  { key: 'exclusiveRecipes', label: 'Exclusive recipes' },
 ];
 
 const TIERS: SubscriptionTier[] = ['free', 'premium', 'pro'];
@@ -116,51 +50,32 @@ const TIER_LABELS: Record<SubscriptionTier, string> = {
   pro: 'Pro',
 };
 
-const TIER_COLORS: Record<SubscriptionTier, string> = {
-  free: '#78716C',
-  premium: '#F97316',
-  pro: '#8B5CF6',
-};
-
 export const FeatureComparison: React.FC<FeatureComparisonProps> = ({
   visible,
   onClose,
   onSelectTier,
 }) => {
-  const renderValue = (tier: SubscriptionTier, row: FeatureRowData) => {
-    const features = TIER_FEATURES[tier];
-    const value = features[row.key];
+  const { t } = useTranslation();
 
-    // Boolean values
+  const renderValue = (tier: SubscriptionTier, row: FeatureRowData) => {
+    const value = TIER_FEATURES[tier][row.key];
+
     if (typeof value === 'boolean') {
       return value ? (
-        <View className="w-6 h-6 rounded-full bg-secondary-100 items-center justify-center">
-          <Ionicons name="checkmark" size={14} color="#16A34A" />
-        </View>
+        <Icon name="check" size="sm" color="tag-g-fg" accessibilityLabel={t('account.compare.included', 'Included')} />
       ) : (
-        <View className="w-6 h-6 rounded-full bg-neutral-100 items-center justify-center">
-          <Ionicons name="close" size={14} color="#A8A29E" />
-        </View>
+        <Icon name="minus" size="sm" color="subtle" accessibilityLabel={t('account.compare.notIncluded', 'Not included')} />
       );
     }
 
-    // Number or string values
-    const displayValue = row.formatValue
-      ? row.formatValue(value)
-      : String(value);
-
+    const displayValue = row.formatValue ? row.formatValue(value) : String(value);
     const isUnlimited = displayValue === 'Unlimited';
     const isZero = displayValue === '-' || displayValue === '0';
 
     return (
       <Text
-        className={`text-sm font-medium text-center ${
-          isUnlimited
-            ? 'text-secondary-600'
-            : isZero
-            ? 'text-neutral-400'
-            : 'text-neutral-700'
-        }`}
+        className={isUnlimited ? 'text-tag-g-fg' : isZero ? 'text-subtle' : 'text-ink'}
+        style={{ fontFamily: FONT.sansMedium, fontSize: 12, textAlign: 'center' }}
       >
         {displayValue}
       </Text>
@@ -168,69 +83,33 @@ export const FeatureComparison: React.FC<FeatureComparisonProps> = ({
   };
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
-      <View className="flex-1 bg-neutral-50">
-        {/* Header */}
-        <View className="flex-row items-center justify-between px-4 pt-4 pb-3 border-b border-neutral-200 bg-white">
-          <Text className="text-lg font-bold text-neutral-900">Compare Plans</Text>
-          <TouchableOpacity
-            onPress={onClose}
-            className="w-8 h-8 items-center justify-center rounded-full bg-neutral-100"
-          >
-            <Ionicons name="close" size={20} color="#44403C" />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 40 }}
-        >
-          {/* Tier Headers - Sticky */}
-          <View className="flex-row bg-white border-b border-neutral-100 py-4 px-4">
-            <View className="w-28" />
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <Screen bare>
+        <TopBar
+          variant="compact"
+          title={t('account.compare.title', 'Compare Plans')}
+          right={<UIconButton icon="close" label={t('account.close', 'Close')} onPress={onClose} />}
+        />
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 16 }}>
+          <View className="flex-row items-center" style={{ gap: 8 }}>
+            <View style={{ width: 104 }} />
             {TIERS.map((tier) => (
               <View key={tier} className="flex-1 items-center">
-                <View
-                  className="px-3 py-1.5 rounded-full mb-1"
-                  style={{ backgroundColor: `${TIER_COLORS[tier]}15` }}
-                >
-                  <Text
-                    className="text-sm font-bold"
-                    style={{ color: TIER_COLORS[tier] }}
-                  >
-                    {TIER_LABELS[tier]}
-                  </Text>
-                </View>
+                <Tag label={TIER_LABELS[tier]} tone={tier === 'pro' ? 'k' : tier === 'premium' ? 'o' : 'default'} />
               </View>
             ))}
           </View>
 
-          {/* Feature Rows */}
-          <View className="bg-white">
+          <View className="bg-surface" style={{ borderRadius: 26, paddingHorizontal: 16 }}>
             {FEATURE_ROWS.map((row, index) => (
               <View
                 key={row.key}
-                className={`flex-row items-center py-4 px-4 ${
-                  index < FEATURE_ROWS.length - 1 ? 'border-b border-neutral-100' : ''
-                }`}
+                className={`flex-row items-center ${index > 0 ? 'border-t border-divider' : ''}`}
+                style={{ minHeight: 52, gap: 8 }}
               >
-                {/* Feature Label */}
-                <View className="w-28 flex-row items-center">
-                  <View className="w-7 h-7 rounded-lg bg-neutral-100 items-center justify-center mr-2">
-                    <Ionicons name={row.icon} size={14} color="#57534E" />
-                  </View>
-                  <Text className="text-xs text-neutral-700 flex-1" numberOfLines={2}>
-                    {row.label}
-                  </Text>
-                </View>
-
-                {/* Tier Values */}
+                <Text className="text-ink" numberOfLines={2} style={{ width: 88, fontFamily: FONT.sans, fontSize: 12 }}>
+                  {row.label}
+                </Text>
                 {TIERS.map((tier) => (
                   <View key={tier} className="flex-1 items-center justify-center">
                     {renderValue(tier, row)}
@@ -240,50 +119,16 @@ export const FeatureComparison: React.FC<FeatureComparisonProps> = ({
             ))}
           </View>
 
-          {/* CTA Section */}
-          {onSelectTier && (
-            <View className="px-4 mt-6 gap-3">
-              <TouchableOpacity
-                onPress={() => onSelectTier('premium')}
-                className="py-4 rounded-2xl items-center"
-                style={[styles.ctaButton, { backgroundColor: '#FFF7ED' }]}
-              >
-                <Text className="font-bold text-primary-600">
-                  Choose Premium
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => onSelectTier('pro')}
-                className="py-4 rounded-2xl items-center overflow-hidden"
-                style={styles.ctaButton}
-              >
-                <LinearGradient
-                  colors={['#8B5CF6', '#7C3AED']}
-                  style={StyleSheet.absoluteFill}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                />
-                <Text className="font-bold text-white">
-                  Choose Pro
-                </Text>
-              </TouchableOpacity>
+          {onSelectTier ? (
+            <View style={{ gap: 10 }}>
+              <UButton variant="ghost" label={t('account.compare.choosePremium', 'Choose Premium')} onPress={() => onSelectTier('premium')} />
+              <UButton variant="accent" label={t('account.compare.choosePro', 'Choose Pro')} onPress={() => onSelectTier('pro')} />
             </View>
-          )}
+          ) : null}
         </ScrollView>
-      </View>
+      </Screen>
     </Modal>
   );
 };
-
-const styles = StyleSheet.create({
-  ctaButton: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-});
 
 export default FeatureComparison;

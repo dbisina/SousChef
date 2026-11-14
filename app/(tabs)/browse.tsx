@@ -1,42 +1,60 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, View, useWindowDimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import { SAMPLE } from '@/assets/sample';
 import { useRecipes, useRecipeSearch } from '@/hooks/useRecipes';
 import { useCookbooks } from '@/hooks/useCookbooks';
-import { useThemeColors } from '@/stores/themeStore';
 import { useMealPlanStore } from '@/stores/mealPlanStore';
-import { Recipe, Cookbook } from '@/types';
+import { Recipe, Cookbook, RecipeCategory } from '@/types';
 import { MealType, PlannedMeal } from '@/types/mealplan';
-import { RecipeCard } from '@/components/recipe';
-import { CookbookCard } from '@/components/cookbook';
 import { RecipeFilters } from '@/components/recipe/RecipeFilters';
-import { Loading, EmptySearch, EmptyRecipes, SearchInput, SponsoredAdCard } from '@/components/ui';
+import {
+  Chip,
+  ChipRow,
+  Icon,
+  Muted,
+  PhotoCard,
+  Screen,
+  SponsoredAdCard,
+  Tag,
+  Title,
+  TopBar,
+  UButton,
+  UCard,
+  UIconButton,
+  UInput,
+  useColor,
+} from '@/components/ui';
+import type { PhotoSource } from '@/components/ui';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
 import { debounce } from '@/lib/utils';
 
 type BrowseTab = 'recipes' | 'cookbooks';
 
+const CATEGORY_CHIPS: Array<{ id: RecipeCategory; key: string; label: string }> = [
+  { id: 'breakfast', key: 'breakfast', label: 'Breakfast' },
+  { id: 'lunch', key: 'lunch', label: 'Lunch' },
+  { id: 'dinner', key: 'dinner', label: 'Dinner' },
+];
+
+const photoFor = (url?: string): PhotoSource => (url ? { uri: url } : SAMPLE.plating);
+
 export default function BrowseScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const { width: windowWidth } = useWindowDimensions();
+  // Two columns inside the 20px page padding with a 12px gap.
+  const cardWidth = Math.floor((windowWidth - 52) / 2);
+  const spinner = useColor('muted');
   const { subscriptionTier } = useSubscription();
   const adFree = getTierFeatures(subscriptionTier).adFree;
   const params = useLocalSearchParams<{ selectForMeal?: string; date?: string }>();
   const isMealSelection = !!params.selectForMeal && !!params.date;
   const { addMealToPlan } = useMealPlanStore();
   const [activeTab, setActiveTab] = useState<BrowseTab>('recipes');
+  const [showFilters, setShowFilters] = useState(false);
   const {
     recipes,
     isLoading: recipesLoading,
@@ -46,8 +64,6 @@ export default function BrowseScreen() {
     clearFilters,
     loadMore,
     refresh: refreshRecipes,
-    toggleSave: toggleRecipeSave,
-    isRecipeSaved,
   } = useRecipes();
 
   const {
@@ -58,11 +74,9 @@ export default function BrowseScreen() {
     isCookbookSaved,
   } = useCookbooks();
 
-  const { results, isSearching, query, search, clear } = useRecipeSearch();
+  const { results, isSearching, search, clear } = useRecipeSearch();
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
-
-  const isLoading = activeTab === 'recipes' ? recipesLoading : cookbooksLoading;
 
   const debouncedSearch = useCallback(
     debounce((text: string) => {
@@ -83,10 +97,7 @@ export default function BrowseScreen() {
     if (!searchText.trim() || activeTab !== 'cookbooks') return cookbooks;
     const lowerSearch = searchText.toLowerCase();
     return cookbooks.filter(
-      (c) =>
-        c.name.toLowerCase().includes(lowerSearch) ||
-        c.description?.toLowerCase().includes(lowerSearch) ||
-        c.author?.toLowerCase().includes(lowerSearch)
+      (c) => c.title.toLowerCase().includes(lowerSearch) || c.description?.toLowerCase().includes(lowerSearch)
     );
   }, [cookbooks, searchText, activeTab]);
 
@@ -117,264 +128,280 @@ export default function BrowseScreen() {
         imageURL: recipe.imageURL,
       };
       addMealToPlan(params.date!, params.selectForMeal as MealType, meal);
-      Alert.alert('Meal Added', `${recipe.title} added to ${params.selectForMeal}`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        t('browseUi.mealAdded', 'Meal Added'),
+        t('browseUi.mealAddedBody', '{{title}} added to {{meal}}', { title: recipe.title, meal: params.selectForMeal }),
+        [{ text: t('kitchen.ok', 'OK'), onPress: () => router.back() }]
+      );
       return;
     }
     router.push(`/recipe/${recipe.id}`);
   };
 
   const handleCookbookPress = (cookbook: Cookbook) => {
-    router.push(`/cookbook/${cookbook.id}` as any);
+    router.push(`/cookbook/${cookbook.id}` as never);
   };
 
   const displayedRecipes = searchText.trim() ? results : recipes;
   const isShowingSearch = searchText.trim().length > 0 && activeTab === 'recipes';
 
+  // First recipe is the featured card (when not searching); the rest fill the 2-column grid.
+  const featured = !isShowingSearch ? displayedRecipes[0] : undefined;
+  const gridRecipes = featured ? displayedRecipes.slice(1) : displayedRecipes;
+
+  const selectCategory = (category?: RecipeCategory) => {
+    setActiveTab('recipes');
+    applyFilters({ ...filters, category: filters.category === category ? undefined : category });
+  };
+
+  const minutes = (r: Recipe) => (r.prepTime || 0) + (r.cookTime || 0);
+  const difficultyLabel = (r: Recipe) => t(`browseUi.difficulty.${r.difficulty}`, r.difficulty.charAt(0).toUpperCase() + r.difficulty.slice(1));
+
   const renderRecipe = ({ item }: { item: Recipe }) => (
-    <RecipeCard
-      recipe={item}
+    <PhotoCard
+      source={photoFor(item.imageURL)}
+      height={200}
+      radius={26}
+      width={cardWidth}
+      title={item.title}
+      titleSize={16}
+      captionInset={16}
+      accessibilityLabel={item.title}
+      topLeft={minutes(item) > 0 ? <Tag tone="glassDark" label={t('browseUi.minutes', '{{n}} min', { n: minutes(item) })} /> : undefined}
       onPress={() => handleRecipePress(item)}
-      onSave={() => toggleRecipeSave(item.id)}
-      isSaved={isRecipeSaved(item.id)}
     />
   );
 
   const renderCookbook = ({ item }: { item: Cookbook }) => (
-    <CookbookCard
-      cookbook={item}
+    <PhotoCard
+      source={photoFor(item.coverImageURL)}
+      height={170}
+      title={item.title}
+      subtitle={item.description}
+      accessibilityLabel={item.title}
+      topRight={
+        <UIconButton
+          icon="bookmark"
+          tone="glassDark"
+          size={44}
+          iconSize="sm"
+          filled={isCookbookSaved(item.id)}
+          label={isCookbookSaved(item.id) ? t('browseUi.unsave', 'Remove from saved') : t('browseUi.save', 'Save recipe')}
+          onPress={() => toggleCookbookSave(item.id)}
+        />
+      }
       onPress={() => handleCookbookPress(item)}
-      onSave={() => toggleCookbookSave(item.id)}
-      isSaved={isCookbookSaved(item.id)}
     />
   );
 
-  const renderFooter = () => {
-    if (activeTab !== 'recipes' || !hasMore || isShowingSearch) return null;
-    if (recipesLoading) {
+  const searchSummary = isShowingSearch
+    ? isSearching
+      ? t('browseUi.searching', 'Searching...')
+      : t('browseUi.resultsFor', '{{n}} results for "{{q}}"', { n: results.length, q: searchText })
+    : isSearchingCookbooks
+      ? t('browseUi.cookbooksFor', '{{n}} cookbooks for "{{q}}"', { n: displayedCookbooks.length, q: searchText })
+      : null;
+
+  const renderFeatured = () => {
+    if (!featured) return null;
+    return (
+      <PhotoCard
+        source={photoFor(featured.imageURL)}
+        height={250}
+        fade="both"
+        accessibilityLabel={featured.title}
+        topLeft={
+          featured.isOfficial ? <Tag tone="glassDark" large label={t('browseUi.chefsPick', "Chef's Pick")} /> : undefined
+        }
+        topRight={<Tag tone="glassDark" large icon="heart" label={String(featured.likes ?? 0)} />}
+        glassBarTone="dark"
+        glassBar={
+          <>
+            <View className="flex-1" style={{ minWidth: 0, gap: 4 }}>
+              <Title numberOfLines={1} style={{ fontSize: 17 }}>
+                {featured.title}
+              </Title>
+              <Muted small numberOfLines={1}>
+                {[minutes(featured) > 0 ? t('browseUi.minutes', '{{n}} min', { n: minutes(featured) }) : null, difficultyLabel(featured)]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Muted>
+            </View>
+            <View
+              className="bg-paper items-center justify-center"
+              style={{ width: 44, height: 44, borderRadius: 22 }}
+            >
+              <Icon name="arrowUpRight" color="night" />
+            </View>
+          </>
+        }
+        onPress={() => handleRecipePress(featured)}
+      />
+    );
+  };
+
+  const renderListHeader = () => (
+    <View style={{ gap: 14, paddingBottom: 14 }}>
+      {searchSummary ? <Muted small>{searchSummary}</Muted> : null}
+      {activeTab === 'recipes' ? renderFeatured() : null}
+    </View>
+  );
+
+  const renderEmpty = () => {
+    const loading = activeTab === 'recipes' ? recipesLoading : cookbooksLoading;
+    if (loading) {
       return (
-        <View className="py-4">
-          <Loading size="small" />
+        <View style={{ paddingVertical: 48 }}>
+          <ActivityIndicator color={spinner} />
         </View>
       );
     }
-    return null;
-  };
-
-  const renderEmptyRecipes = () => {
-    if (recipesLoading) return <Loading fullScreen message="Finding recipes..." />;
-    if (isShowingSearch) return <EmptySearch />;
-    return <EmptyRecipes onAction={() => router.push('/(tabs)/upload')} />;
-  };
-
-  const renderEmptyCookbooks = () => {
-    if (cookbooksLoading) return <Loading fullScreen message="Loading cookbooks..." />;
-    if (isSearchingCookbooks) return <EmptySearch />;
-    return (
-      <View className="flex-1 items-center justify-center py-12">
-        <View className="w-20 h-20 rounded-full bg-neutral-100 dark:bg-neutral-800 items-center justify-center mb-4">
-          <Ionicons name="book-outline" size={40} color={colors.textMuted} />
+    if (isShowingSearch || isSearchingCookbooks) {
+      return (
+        <View className="items-center" style={{ paddingVertical: 40, gap: 6 }}>
+          <Title>{t('browseUi.noResults', 'No results found')}</Title>
+          <Muted center>{t('browseUi.noResultsBody', 'Try different keywords or filters')}</Muted>
         </View>
-        <Text className="text-neutral-800 dark:text-neutral-100 text-lg font-semibold text-center">
-          No cookbooks yet
-        </Text>
-        <Text className="text-neutral-500 dark:text-neutral-400 mt-2 text-center px-8">
-          Chef-curated cookbook collections will appear here
-        </Text>
+      );
+    }
+    if (activeTab === 'cookbooks') {
+      return (
+        <View className="items-center" style={{ paddingVertical: 40, gap: 6 }}>
+          <Title>{t('browseUi.noCookbooks', 'No cookbooks yet')}</Title>
+          <Muted center>{t('browseUi.noCookbooksBody', 'Chef-curated cookbook collections will appear here')}</Muted>
+        </View>
+      );
+    }
+    return (
+      <View className="items-center" style={{ paddingVertical: 40, gap: 12 }}>
+        <Title>{t('browseUi.noRecipes', 'No recipes yet')}</Title>
+        <Muted center>{t('browseUi.noRecipesBody', 'Be the first to share a recipe')}</Muted>
+        <UButton size="sm" label={t('browseUi.createRecipe', 'Create a recipe')} onPress={() => router.push('/(tabs)/upload')} />
       </View>
     );
   };
 
+  const renderFooter = () =>
+    activeTab === 'recipes' && hasMore && !isShowingSearch && recipesLoading && displayedRecipes.length > 0 ? (
+      <View style={{ paddingVertical: 16 }}>
+        <ActivityIndicator color={spinner} />
+      </View>
+    ) : null;
+
+  const refreshControl = <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />;
+
   return (
-    <View className="flex-1">
-      {/* Gradient Background */}
-      <LinearGradient
-        colors={colors.gradientBg}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFill}
+    <Screen bare>
+      <TopBar
+        title={isMealSelection ? t('browseUi.chooseRecipe', 'Choose a Recipe') : t('browseUi.title', 'Discover')}
+        right={
+          activeTab === 'recipes' && !isShowingSearch ? (
+            <UIconButton
+              icon="filters"
+              tone={showFilters ? 'black' : 'default'}
+              label={t('browseUi.filters', 'Filters')}
+              onPress={() => setShowFilters((v) => !v)}
+            />
+          ) : undefined
+        }
       />
-
-      {/* Decorative circles */}
-      <View
-        className="absolute w-72 h-72 rounded-full bg-primary-200/30 dark:bg-primary-800/20"
-        style={{ top: -100, right: -80 }}
-      />
-      <View
-        className="absolute w-56 h-56 rounded-full bg-secondary-200/20 dark:bg-secondary-800/10"
-        style={{ top: 300, left: -100 }}
-      />
-
-      <SafeAreaView className="flex-1" edges={['top']}>
-        {/* Meal Selection Banner */}
-        {isMealSelection && (
-          <View className="mx-5 mt-4 mb-2 px-4 py-3 bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-700 rounded-xl flex-row items-center">
-            <Ionicons name="calendar" size={20} color={colors.accent} />
-            <Text className="flex-1 ml-3 text-sm font-medium text-primary-800 dark:text-primary-200">
-              Select a recipe for {params.selectForMeal}
-            </Text>
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="close-circle" size={22} color={colors.textMuted} />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Header */}
-        <View className="px-5 pt-4 pb-4">
-          <View className="mb-4">
-            <Text className="text-3xl font-bold text-neutral-800 dark:text-neutral-100 tracking-tight">
-              {isMealSelection ? 'Choose a Recipe' : 'Browse'}
-            </Text>
-            <Text className="text-neutral-500 dark:text-neutral-400 text-sm mt-1">
-              {isMealSelection
-                ? `Pick a recipe to add to ${params.selectForMeal} on ${params.date}`
-                : activeTab === 'recipes' ? 'Discover delicious recipes' : 'Explore curated collections'}
-            </Text>
-          </View>
-
-          {/* Glass Search bar */}
-          <SearchInput
-            placeholder={activeTab === 'recipes' ? 'Search recipes, ingredients...' : 'Search cookbooks...'}
-            value={searchText}
-            onChangeText={handleSearchChange}
-            onClear={handleClearSearch}
-          />
-        </View>
-
-        {/* Tab Switcher */}
-        <View className="px-5 mb-3">
-          <View className="flex-row rounded-xl overflow-hidden" style={[styles.tabContainer, { backgroundColor: colors.surface + '99' }]}>
-            <TouchableOpacity
-              onPress={() => setActiveTab('recipes')}
-              className="flex-1 flex-row items-center justify-center py-3"
-              style={activeTab === 'recipes' ? [styles.activeTab, { backgroundColor: colors.accent }] : null}
-            >
-              <Ionicons
-                name="restaurant-outline"
-                size={18}
-                color={activeTab === 'recipes' ? 'white' : colors.textMuted}
-              />
-              <Text
-                className={`ml-2 font-semibold ${
-                  activeTab === 'recipes' ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'
-                }`}
-              >
-                Recipes
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setActiveTab('cookbooks')}
-              className="flex-1 flex-row items-center justify-center py-3"
-              style={activeTab === 'cookbooks' ? [styles.activeTab, { backgroundColor: colors.accent }] : null}
-            >
-              <Ionicons
-                name="book-outline"
-                size={18}
-                color={activeTab === 'cookbooks' ? 'white' : colors.textMuted}
-              />
-              <Text
-                className={`ml-2 font-semibold ${
-                  activeTab === 'cookbooks' ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'
-                }`}
-              >
-                Cookbooks
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Sponsored Ad — compact, hidden for ad-free subscribers */}
-        {!adFree && (
-          <SponsoredAdCard placement="browse" compact />
-        )}
-
-        {/* Filters (only for recipes tab, not when searching) */}
-        {activeTab === 'recipes' && !isShowingSearch && (
-          <RecipeFilters
-            filters={filters}
-            onApplyFilters={applyFilters}
-            onClearFilters={clearFilters}
-          />
-        )}
-
-        {/* Search indicator */}
-        {(isShowingSearch || isSearchingCookbooks) && (
-          <View className="px-5 py-3">
-            <View className="rounded-xl overflow-hidden" style={styles.searchIndicator}>
-              <View className="px-4 py-2.5 bg-white/60 dark:bg-neutral-800/60 flex-row items-center">
-                <View className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: colors.accent }} />
-                <Text className="text-neutral-600 dark:text-neutral-300 font-medium">
-                  {isShowingSearch
-                    ? isSearching
-                      ? 'Searching...'
-                      : `${results.length} result${results.length !== 1 ? 's' : ''} for "${searchText}"`
-                    : `${displayedCookbooks.length} cookbook${displayedCookbooks.length !== 1 ? 's' : ''} for "${searchText}"`}
-                </Text>
+      <View style={{ paddingHorizontal: 20, gap: 14, paddingBottom: 14 }}>
+        {isMealSelection ? (
+          <UCard>
+            <View className="flex-row items-center" style={{ gap: 12 }}>
+              <Icon name="clock" color="accent-text" />
+              <View className="flex-1">
+                <Title numberOfLines={2}>
+                  {t('browseUi.selectFor', 'Select a recipe for {{meal}}', { meal: params.selectForMeal })}
+                </Title>
+                <Muted small>{params.date}</Muted>
               </View>
+              <UIconButton icon="close" size={44} label={t('general.cancel', 'Cancel')} onPress={() => router.back()} />
             </View>
-          </View>
-        )}
+          </UCard>
+        ) : null}
+        <UInput
+          icon="search"
+          label={t('browseUi.searchLabel', 'Search recipes')}
+          placeholder={
+            activeTab === 'recipes'
+              ? t('browseUi.searchPlaceholder', 'Search recipes, cuisines…')
+              : t('browseUi.searchCookbooks', 'Search cookbooks...')
+          }
+          value={searchText}
+          onChangeText={handleSearchChange}
+          autoCorrect={false}
+          returnKeyType="search"
+          right={
+            searchText.length > 0 ? (
+              <UIconButton icon="close" size={44} label={t('browseUi.clearSearch', 'Clear search')} onPress={handleClearSearch} />
+            ) : undefined
+          }
+        />
+      </View>
+      <ChipRow>
+        <Chip
+          label={t('browseUi.all', 'All')}
+          on={activeTab === 'recipes' && !filters.category}
+          onPress={() => {
+            setActiveTab('recipes');
+            applyFilters({ ...filters, category: undefined });
+          }}
+        />
+        {CATEGORY_CHIPS.map((c) => (
+          <Chip
+            key={c.id}
+            label={t(`browseUi.cat.${c.key}`, c.label)}
+            on={activeTab === 'recipes' && filters.category === c.id}
+            onPress={() => selectCategory(c.id)}
+          />
+        ))}
+        <Chip
+          label={t('browseUi.cookbooks', 'Cookbooks')}
+          on={activeTab === 'cookbooks'}
+          onPress={() => setActiveTab('cookbooks')}
+        />
+      </ChipRow>
 
-        {/* Content */}
-        {activeTab === 'recipes' ? (
-          <FlatList
-            data={displayedRecipes}
-            renderItem={renderRecipe}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120, flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={colors.accent}
-              />
-            }
-            onEndReached={loadMore}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={renderFooter}
-            ListEmptyComponent={renderEmptyRecipes}
-          />
-        ) : (
-          <FlatList
-            data={displayedCookbooks}
-            renderItem={renderCookbook}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 120, flexGrow: 1 }}
-            showsVerticalScrollIndicator={false}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor={colors.accent}
-              />
-            }
-            ListEmptyComponent={renderEmptyCookbooks}
-          />
-        )}
-      </SafeAreaView>
-    </View>
+      {/* Sponsored Ad: compact, hidden for ad-free subscribers */}
+      {!adFree && <SponsoredAdCard placement="browse" compact />}
+
+      {/* Full filter set (cuisine, difficulty, time, calories, dietary) */}
+      {activeTab === 'recipes' && !isShowingSearch && showFilters ? (
+        <RecipeFilters filters={filters} onApplyFilters={applyFilters} onClearFilters={clearFilters} />
+      ) : null}
+
+      {activeTab === 'recipes' ? (
+        <FlatList
+          key="recipes"
+          data={gridRecipes}
+          renderItem={renderRecipe}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12, marginBottom: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 130, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListHeaderComponent={renderListHeader}
+          ListFooterComponent={renderFooter}
+          ListEmptyComponent={featured ? null : renderEmpty}
+        />
+      ) : (
+        <FlatList
+          key="cookbooks"
+          data={displayedCookbooks}
+          renderItem={renderCookbook}
+          keyExtractor={(item) => item.id}
+          ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 130, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={refreshControl}
+          ListHeaderComponent={renderListHeader}
+          ListEmptyComponent={renderEmpty}
+        />
+      )}
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  tabContainer: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  activeTab: {
-    borderRadius: 12,
-    margin: 4,
-  },
-  searchIndicator: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-});

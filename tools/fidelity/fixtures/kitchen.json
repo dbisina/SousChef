@@ -1,0 +1,2405 @@
+{
+ "wait": 1500,
+ "stores": {
+  "pantry": {
+   "items": [
+    {
+     "id": "p1",
+     "name": "Chicken thighs",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p2",
+     "name": "Spinach",
+     "amount": 1,
+     "unit": "bag",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p3",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 14
+     }
+    },
+    {
+     "id": "p4",
+     "name": "Yogurt",
+     "amount": 1,
+     "unit": "tub",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p5",
+     "name": "Rice",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 200
+     }
+    },
+    {
+     "id": "p6",
+     "name": "Tomatoes",
+     "amount": 4,
+     "unit": "pieces",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 20
+     }
+    },
+    {
+     "id": "p7",
+     "name": "Milk",
+     "amount": 1,
+     "unit": "carton",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 21
+     }
+    },
+    {
+     "id": "p8",
+     "name": "Cheddar",
+     "amount": 200,
+     "unit": "g",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 22
+     }
+    },
+    {
+     "id": "p9",
+     "name": "Beef mince",
+     "amount": 500,
+     "unit": "g",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 23
+     }
+    },
+    {
+     "id": "p10",
+     "name": "Pasta",
+     "amount": 500,
+     "unit": "g",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 24
+     }
+    },
+    {
+     "id": "p11",
+     "name": "Olive oil",
+     "amount": 1,
+     "unit": "bottle",
+     "category": "condiments",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 25
+     }
+    },
+    {
+     "id": "p12",
+     "name": "Onions",
+     "amount": 3,
+     "unit": "pieces",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 26
+     }
+    },
+    {
+     "id": "p13",
+     "name": "Garlic",
+     "amount": 1,
+     "unit": "bulb",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 27
+     }
+    },
+    {
+     "id": "p14",
+     "name": "Butter",
+     "amount": 250,
+     "unit": "g",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 28
+     }
+    },
+    {
+     "id": "p15",
+     "name": "Salt",
+     "amount": 1,
+     "unit": "jar",
+     "category": "spices",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 29
+     }
+    },
+    {
+     "id": "p16",
+     "name": "Lentils",
+     "amount": 400,
+     "unit": "g",
+     "category": "canned",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 30
+     }
+    },
+    {
+     "id": "p17",
+     "name": "Peas",
+     "amount": 1,
+     "unit": "bag",
+     "category": "frozen",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 31
+     }
+    },
+    {
+     "id": "p18",
+     "name": "Flour",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 32
+     }
+    }
+   ],
+   "isLoading": false,
+   "error": null
+  },
+  "mealPlan": {
+   "currentPlan": {
+    "id": "plan",
+    "userId": "guest",
+    "weekStartDate": "2026-11-08",
+    "days": [
+     {
+      "date": "2026-11-08",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-09",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-10",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-11",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-12",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-13",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-14",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     }
+    ],
+    "isGenerated": true,
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "updatedAt": {
+     "$daysFromNow": 0
+    },
+    "shoppingList": [
+     {
+      "id": "m1",
+      "name": "Broccoli",
+      "amount": 1,
+      "unit": "head",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 1,
+      "checked": false
+     },
+     {
+      "id": "m2",
+      "name": "Avocado",
+      "amount": 2,
+      "unit": "pieces",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 2,
+      "checked": false
+     },
+     {
+      "id": "m3",
+      "name": "Cherry tomatoes",
+      "amount": 250,
+      "unit": "g",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 250,
+      "checked": false
+     },
+     {
+      "id": "m4",
+      "name": "Salmon fillets",
+      "amount": 2,
+      "unit": "pieces",
+      "category": "seafood",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 2,
+      "checked": false
+     },
+     {
+      "id": "m5",
+      "name": "Steak",
+      "amount": 400,
+      "unit": "g",
+      "category": "meat",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 400,
+      "checked": false
+     },
+     {
+      "id": "m6",
+      "name": "Eggs",
+      "amount": 6,
+      "unit": "pieces",
+      "category": "dairy",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 6,
+      "toBuy": 0,
+      "checked": false
+     }
+    ],
+    "stats": {
+     "pantryItemsUsed": 9,
+     "expiringItemsUsed": 3,
+     "ingredientOverlap": 68,
+     "estimatedSavings": 14,
+     "totalMeals": 21,
+     "uniqueRecipes": 12
+    }
+   },
+   "isLoading": false,
+   "isGenerating": false,
+   "error": null
+  },
+  "cookbookLibrary": {
+   "cookbooks": [
+    {
+     "id": "fx-book",
+     "title": "Weeknight Italian",
+     "author": "Ama Cooks",
+     "coverImageURL": "/__assets/cookbook.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-13T23:59:15.745Z",
+     "recipesScanned": 32,
+     "recipes": [
+      {
+       "id": "fx-salmon",
+       "name": "Herb salmon with broccoli",
+       "pageNumber": 12,
+       "source": "fetched",
+       "description": "Herb salmon with broccoli",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Herb salmon with broccoli",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      },
+      {
+       "id": "fx-chicken",
+       "name": "Grilled chicken avocado salad",
+       "pageNumber": 40,
+       "source": "fetched",
+       "description": "Grilled chicken avocado salad",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Grilled chicken avocado salad",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      }
+     ],
+     "fetchStatus": "done"
+    },
+    {
+     "id": "fx-book2",
+     "title": "The Green Table",
+     "author": "Kemi",
+     "coverImageURL": "/__assets/greens.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-13T23:59:15.745Z",
+     "recipesScanned": 18,
+     "recipes": [
+      {
+       "id": "fx-salmon",
+       "name": "Herb salmon with broccoli",
+       "pageNumber": 12,
+       "source": "fetched",
+       "description": "Herb salmon with broccoli",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Herb salmon with broccoli",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      },
+      {
+       "id": "fx-chicken",
+       "name": "Grilled chicken avocado salad",
+       "pageNumber": 40,
+       "source": "fetched",
+       "description": "Grilled chicken avocado salad",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Grilled chicken avocado salad",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      }
+     ],
+     "fetchStatus": "done"
+    },
+    {
+     "id": "fx-book3",
+     "title": "Bakes & Brunch",
+     "author": "Dayo",
+     "coverImageURL": "/__assets/pancakes.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-13T23:59:15.745Z",
+     "recipesScanned": 0,
+     "recipes": [
+      {
+       "id": "fx-salmon",
+       "name": "Herb salmon with broccoli",
+       "pageNumber": 12,
+       "source": "fetched",
+       "description": "Herb salmon with broccoli",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Herb salmon with broccoli",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      },
+      {
+       "id": "fx-chicken",
+       "name": "Grilled chicken avocado salad",
+       "pageNumber": 40,
+       "source": "fetched",
+       "description": "Grilled chicken avocado salad",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Grilled chicken avocado salad",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      }
+     ],
+     "fetchStatus": "fetching"
+    }
+   ],
+   "isLoading": false
+  },
+  "wantToCook": {
+   "shoppingList": [
+    {
+     "id": "s1",
+     "name": "Broccoli",
+     "amount": 1,
+     "unit": "head",
+     "category": "produce",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s2",
+     "name": "Avocado",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "produce",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s3",
+     "name": "Cherry tomatoes",
+     "amount": 250,
+     "unit": "g",
+     "category": "produce",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s4",
+     "name": "Salmon fillets",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "seafood",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s5",
+     "name": "Steak",
+     "amount": 400,
+     "unit": "g",
+     "category": "meat",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s6",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s7",
+     "name": "Milk",
+     "amount": 1,
+     "unit": "carton",
+     "category": "dairy",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "s8",
+     "name": "Butter",
+     "amount": 250,
+     "unit": "g",
+     "category": "dairy",
+     "checked": false,
+     "addedAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "items": [
+    {
+     "id": "sv0",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv1",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv2",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv3",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv4",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv5",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv6",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv7",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv8",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv9",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv10",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv11",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv12",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv13",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv14",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv15",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv16",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv17",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv18",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv19",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv20",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv21",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv22",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    },
+    {
+     "id": "sv23",
+     "ownerId": "guest",
+     "status": "saved",
+     "savedAt": {
+      "$daysFromNow": 0
+     },
+     "addedToShoppingList": false,
+     "pantryMatchPercent": 60,
+     "importedRecipe": {
+      "id": "fx-salmon-r",
+      "title": "Chicken katsu rice bowl",
+      "description": "",
+      "imageURL": "/__assets/ricebowl.jpg",
+      "sourceURL": "https://tiktok.example/fx-salmon",
+      "sourcePlatform": "tiktok",
+      "ingredients": [
+       {
+        "name": "Chicken breast",
+        "amount": 2,
+        "unit": "pieces",
+        "calories": 330,
+        "optional": false
+       },
+       {
+        "name": "Eggs",
+        "amount": 1,
+        "unit": "",
+        "calories": 70,
+        "optional": false
+       },
+       {
+        "name": "Panko",
+        "amount": 100,
+        "unit": "g",
+        "calories": 350,
+        "optional": false
+       },
+       {
+        "name": "Rice",
+        "amount": 200,
+        "unit": "g",
+        "calories": 260,
+        "optional": false
+       }
+      ],
+      "instructions": [
+       "Crumb the chicken.",
+       "Fry until golden.",
+       "Serve over rice."
+      ],
+      "servings": 2,
+      "prepTime": 15,
+      "cookTime": 20,
+      "difficulty": "easy",
+      "tags": [
+       "weeknight"
+      ],
+      "extractedAt": {
+       "$daysFromNow": 0
+      },
+      "extractionConfidence": 0.9
+     }
+    }
+   ],
+   "isLoading": false
+  }
+ }
+}

@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useSubscription, usePremiumFeature } from '@/hooks/useSubscription';
+import { Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { useSubscription } from '@/hooks/useSubscription';
 import { SubscriptionTier } from '@/types/subscription';
+import { FONT, Icon, UButton, type IconName } from '@/components/ui';
+import { FIXED } from '@/stores/themeStore';
 import { Paywall } from './Paywall';
 
 interface FeatureGateProps {
@@ -20,7 +22,8 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
   fallback,
   showLockOverlay = true,
 }) => {
-  const { isPremium, isPro, subscriptionTier } = useSubscription();
+  const { t } = useTranslation();
+  const { isPremium, isPro } = useSubscription();
   const [showPaywall, setShowPaywall] = useState(false);
 
   const hasAccess = (() => {
@@ -44,22 +47,28 @@ export const FeatureGate: React.FC<FeatureGateProps> = ({
 
   return (
     <>
-      <TouchableOpacity
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={feature || t('account.gate.premiumFeature', 'Premium Feature')}
         onPress={() => setShowPaywall(true)}
-        className="relative"
-        activeOpacity={0.8}
+        style={{ position: 'relative' }}
       >
-        <View className="opacity-50">{children}</View>
-        <View className="absolute inset-0 items-center justify-center bg-black/20 rounded-xl">
-          <View className="bg-white rounded-full p-3 shadow-lg">
-            <Ionicons name="lock-closed" size={24} color="#FF6B35" />
+        <View style={{ opacity: 0.5 }}>{children}</View>
+        <View
+          className="items-center justify-center"
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: 24, gap: 6, backgroundColor: FIXED.scrim }}
+        >
+          <View className="items-center justify-center bg-paper" style={{ width: 46, height: 46, borderRadius: 23 }}>
+            <Icon name="lock" color="night" />
           </View>
-          <Text className="text-white font-semibold mt-2 text-center px-4">
-            {feature || 'Premium Feature'}
+          <Text className="text-paper text-center px-4" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+            {feature || t('account.gate.premiumFeature', 'Premium Feature')}
           </Text>
-          <Text className="text-white/80 text-sm">Tap to upgrade</Text>
+          <Text className="text-paper" style={{ fontFamily: FONT.sans, fontSize: 12, opacity: 0.82 }}>
+            {t('account.gate.tapToUpgrade', 'Tap to upgrade')}
+          </Text>
         </View>
-      </TouchableOpacity>
+      </Pressable>
 
       <Paywall
         visible={showPaywall}
@@ -132,8 +141,7 @@ interface LockedButtonProps {
   onPress: () => void;
   requiredTier?: SubscriptionTier;
   feature?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
-  className?: string;
+  icon?: IconName;
 }
 
 export const LockedButton: React.FC<LockedButtonProps> = ({
@@ -142,7 +150,6 @@ export const LockedButton: React.FC<LockedButtonProps> = ({
   requiredTier = 'premium',
   feature,
   icon,
-  className = '',
 }) => {
   const { hasAccess, requireAccess, PaywallModal } = useFeatureGate({
     requiredTier,
@@ -151,36 +158,12 @@ export const LockedButton: React.FC<LockedButtonProps> = ({
 
   return (
     <>
-      <TouchableOpacity
+      <UButton
+        label={title}
+        icon={hasAccess ? icon : 'lock'}
+        variant={hasAccess ? 'primary' : 'ghost'}
         onPress={() => requireAccess(onPress)}
-        className={`flex-row items-center justify-center py-3 px-4 rounded-xl ${
-          hasAccess ? 'bg-primary-500' : 'bg-neutral-200'
-        } ${className}`}
-      >
-        {icon && (
-          <Ionicons
-            name={icon}
-            size={20}
-            color={hasAccess ? 'white' : '#737373'}
-            style={{ marginRight: 8 }}
-          />
-        )}
-        <Text
-          className={`font-semibold ${
-            hasAccess ? 'text-white' : 'text-neutral-500'
-          }`}
-        >
-          {title}
-        </Text>
-        {!hasAccess && (
-          <Ionicons
-            name="lock-closed"
-            size={14}
-            color="#737373"
-            style={{ marginLeft: 8 }}
-          />
-        )}
-      </TouchableOpacity>
+      />
       <PaywallModal />
     </>
   );

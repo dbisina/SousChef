@@ -1,22 +1,25 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
-import { useThemeColors } from '@/stores/themeStore';
-import { Button } from '@/components/ui';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
+import { SAMPLE } from '@/assets/sample';
+import {
+  Chip,
+  CtaBar,
+  Field,
+  FONT,
+  H2,
+  Icon,
+  Muted,
+  PhotoCard,
+  Screen,
+  UButton,
+  UIconButton,
+  Display,
+} from '@/components/ui';
 import { submitAdInquiry } from '@/services/adService';
-import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
+import { showErrorToast, showInfoToast } from '@/stores/toastStore';
 import {
   AdPlacement,
   AdBudgetRange,
@@ -26,7 +29,8 @@ import {
 
 export default function AdvertiseScreen() {
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,12 +52,17 @@ export default function AdvertiseScreen() {
     setPlacements(newSet);
   };
 
+  const missing = (body: string) => {
+    showInfoToast(body, t('account.advertise.missingInfo', 'Missing Info'));
+    return false;
+  };
+
   const validate = (): boolean => {
-    if (!name.trim()) { showInfoToast('Please enter your name so we know who to talk to! ✍️', 'Missing Info'); return false; }
-    if (!email.trim() || !email.includes('@')) { showInfoToast('Double-check your email address? We want to make sure we can reach you. 📧', 'Missing Info'); return false; }
-    if (!company.trim()) { showInfoToast('Don\'t forget to tell us your company name! 🏢', 'Missing Info'); return false; }
-    if (!budget) { showInfoToast('Please select a budget range that works for you. 💰', 'Missing Info'); return false; }
-    if (placements.size === 0) { showInfoToast('Where would you like your ads to appear? 📍', 'Missing Info'); return false; }
+    if (!name.trim()) return missing(t('account.advertise.needName', 'Please enter your name so we know who to talk to!'));
+    if (!email.trim() || !email.includes('@')) return missing(t('account.advertise.needEmail', 'Double-check your email address? We want to make sure we can reach you.'));
+    if (!company.trim()) return missing(t('account.advertise.needCompany', "Don't forget to tell us your company name!"));
+    if (!budget) return missing(t('account.advertise.needBudget', 'Please select a budget range that works for you.'));
+    if (placements.size === 0) return missing(t('account.advertise.needPlacement', 'Where would you like your ads to appear?'));
     return true;
   };
 
@@ -71,244 +80,143 @@ export default function AdvertiseScreen() {
         message: message.trim(),
       });
       setSubmitted(true);
-    } catch (error: any) {
-      showErrorToast('Oops! We couldn\'t send your inquiry. Let\'s try once more? 🔄', 'Inquiry Problem');
+    } catch (error: unknown) {
+      showErrorToast(
+        t('account.advertise.sendFailed', "Oops! We couldn't send your inquiry. Let's try once more?"),
+        t('account.advertise.inquiryProblem', 'Inquiry Problem')
+      );
     } finally {
       setSubmitting(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [name, email, company, website, budget, placements, message]);
 
   // ── Success State ──
   if (submitted) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900" edges={['top']}>
-        <View className="flex-1 items-center justify-center px-8">
-          <View className="w-20 h-20 rounded-full bg-green-100 items-center justify-center mb-6">
-            <Ionicons name="checkmark-circle" size={48} color="#22C55E" />
+      <Screen
+        bare
+        footer={
+          <CtaBar>
+            <UButton label={t('account.advertise.backToSettings', 'Back to Settings')} onPress={() => router.back()} />
+          </CtaBar>
+        }
+      >
+        <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 32, gap: 16 }}>
+          <View className="items-center justify-center bg-tag-g" style={{ width: 80, height: 80, borderRadius: 40 }}>
+            <Icon name="check" size="lg" color="tag-g-fg" />
           </View>
-          <Text className="text-2xl font-bold text-neutral-800 dark:text-white text-center mb-3">
-            Inquiry Sent!
-          </Text>
-          <Text className="text-base text-neutral-500 dark:text-neutral-400 text-center mb-8 leading-6">
-            Thanks for your interest in advertising on SousChef. We'll review
-            your inquiry and get back to you within 48 hours.
-          </Text>
-          <Button
-            title="Back to Settings"
-            onPress={() => router.back()}
-            variant="primary"
-          />
+          <Display size={28} center>
+            {t('account.advertise.sent', 'Inquiry Sent!')}
+          </Display>
+          <Muted center>
+            {t(
+              'account.advertise.sentBody',
+              "Thanks for your interest in advertising on SousChef. We'll review your inquiry and get back to you within 48 hours."
+            )}
+          </Muted>
         </View>
-      </SafeAreaView>
+      </Screen>
     );
   }
 
+  const stat = (value: string, label: string) => (
+    <Text className="text-paper" style={{ fontFamily: FONT.sans, fontSize: 12, opacity: 0.85 }}>
+      <Text style={{ fontFamily: FONT.sansMedium }}>{value}</Text> {label}
+    </Text>
+  );
+
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-800">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-800 dark:text-white ml-2">
-          Advertise on SousChef
-        </Text>
-      </View>
-
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-5 pb-10 pt-4"
-          keyboardShouldPersistTaps="handled"
-        >
-          {/* Hero */}
-          <LinearGradient
-            colors={['#F0FDF4', '#DCFCE7']}
-            className="rounded-2xl p-5 mb-6"
-          >
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="megaphone" size={22} color="#16A34A" />
-              <Text className="text-lg font-bold text-green-800 ml-2">
-                Reach Passionate Home Cooks
-              </Text>
-            </View>
-            <Text className="text-sm text-green-700 leading-5">
-              SousChef users actively cook 3-5 times per week. Place your brand
-              in front of an engaged audience at the moment they're making
-              purchasing decisions about ingredients and kitchen tools.
-            </Text>
-          </LinearGradient>
-
-          {/* Stats Row */}
-          <View className="flex-row mb-6 gap-3">
-            {[
-              { label: 'Active Cooks', value: '10K+', icon: 'people' as const },
-              { label: 'Recipes/Week', value: '50K+', icon: 'restaurant' as const },
-              { label: 'Avg. Session', value: '8 min', icon: 'time' as const },
-            ].map((stat) => (
-              <View
-                key={stat.label}
-                className="flex-1 bg-neutral-50 dark:bg-neutral-800 rounded-xl p-3 items-center"
-              >
-                <Ionicons name={stat.icon} size={20} color="#9CA3AF" />
-                <Text className="text-lg font-bold text-neutral-800 dark:text-white mt-1">
-                  {stat.value}
-                </Text>
-                <Text className="text-[10px] text-neutral-500 mt-0.5">{stat.label}</Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Form */}
-          <Text className="text-sm font-semibold text-neutral-600 dark:text-neutral-300 mb-3 tracking-wide uppercase">
-            Contact Info
-          </Text>
-
-          <InputField label="Your Name *" value={name} onChangeText={setName} placeholder="Jane Smith" colors={colors} />
-          <InputField label="Email *" value={email} onChangeText={setEmail} placeholder="jane@brand.com" keyboardType="email-address" colors={colors} />
-          <InputField label="Company *" value={company} onChangeText={setCompany} placeholder="FreshCart Inc." colors={colors} />
-          <InputField label="Website" value={website} onChangeText={setWebsite} placeholder="https://freshcart.com" keyboardType="url" colors={colors} />
-
-          {/* Budget */}
-          <Text className="text-sm font-semibold text-neutral-600 dark:text-neutral-300 mb-3 mt-4 tracking-wide uppercase">
-            Monthly Budget *
-          </Text>
-          <View className="flex-row flex-wrap gap-2 mb-5">
-            {(Object.entries(AD_BUDGET_LABELS) as [AdBudgetRange, string][]).map(
-              ([key, label]) => (
-                <TouchableOpacity
-                  key={key}
-                  onPress={() => setBudget(key)}
-                  className={`px-4 py-2.5 rounded-full border ${
-                    budget === key
-                      ? 'bg-green-500 border-green-500'
-                      : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${
-                      budget === key ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                    }`}
-                  >
-                    {label}
-                  </Text>
-                </TouchableOpacity>
-              )
-            )}
-          </View>
-
-          {/* Placements */}
-          <Text className="text-sm font-semibold text-neutral-600 dark:text-neutral-300 mb-3 tracking-wide uppercase">
-            Preferred Placements *
-          </Text>
-          <View className="gap-2 mb-5">
-            {(Object.entries(AD_PLACEMENT_LABELS) as [AdPlacement, string][]).map(
-              ([key, label]) => {
-                const selected = placements.has(key);
-                return (
-                  <TouchableOpacity
-                    key={key}
-                    onPress={() => togglePlacement(key)}
-                    className={`flex-row items-center px-4 py-3 rounded-xl border ${
-                      selected
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-400'
-                        : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700'
-                    }`}
-                  >
-                    <Ionicons
-                      name={selected ? 'checkbox' : 'square-outline'}
-                      size={22}
-                      color={selected ? '#22C55E' : '#9CA3AF'}
-                    />
-                    <Text
-                      className={`ml-3 text-sm font-medium ${
-                        selected ? 'text-green-700 dark:text-green-400' : 'text-neutral-700 dark:text-neutral-300'
-                      }`}
-                    >
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }
-            )}
-          </View>
-
-          {/* Message */}
-          <Text className="text-sm font-semibold text-neutral-600 dark:text-neutral-300 mb-3 tracking-wide uppercase">
-            Tell Us About Your Campaign
-          </Text>
-          <TextInput
-            className="bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-800 dark:text-white border border-neutral-200 dark:border-neutral-700 mb-6"
-            placeholder="What product or message do you want to promote?"
-            placeholderTextColor="#9CA3AF"
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            style={{ minHeight: 100 }}
-          />
-
-          {/* Submit */}
-          <TouchableOpacity
+    <Screen
+      bare
+      footer={
+        <CtaBar fade vertical>
+          <UButton
+            variant="accent"
+            label={submitting ? t('account.advertise.sending', 'Sending...') : t('account.advertise.send', 'Send Inquiry')}
+            loading={submitting}
             onPress={handleSubmit}
-            disabled={submitting}
-            activeOpacity={0.85}
+          />
+          <Muted small center>
+            {t('account.advertise.reply', 'We reply within 48 hours.')}
+          </Muted>
+        </CtaBar>
+      }
+    >
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 190 }}>
+          <PhotoCard
+            source={SAMPLE.veg}
+            height={260}
+            radius={0}
+            fade="both"
+            style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}
           >
-            <LinearGradient
-              colors={['#22C55E', '#16A34A']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              className="rounded-xl py-4 items-center"
-            >
-              <Text className="text-white font-bold text-base">
-                {submitting ? 'Submitting...' : 'Submit Inquiry'}
+            <View style={{ position: 'absolute', top: Math.max(insets.top, 20) + 14, left: 20, zIndex: 2 }}>
+              <UIconButton icon="back" tone="glassDark" label={t('account.back', 'Back')} onPress={() => router.back()} />
+            </View>
+            <View style={{ position: 'absolute', left: 22, right: 22, bottom: 22, gap: 6, zIndex: 2 }}>
+              <Text className="text-paper" style={{ fontFamily: FONT.display, fontSize: 26, letterSpacing: -0.52 }}>
+                {t('account.advertise.hero', 'Reach home cooks')}
               </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <View className="flex-row flex-wrap" style={{ columnGap: 16, rowGap: 2 }}>
+                {stat('10K+', t('account.advertise.statCooks', 'cooks'))}
+                {stat('50K+', t('account.advertise.statRecipes', 'recipes/week'))}
+                {stat('8 min', t('account.advertise.statSessions', 'sessions'))}
+              </View>
+            </View>
+          </PhotoCard>
 
-          <Text className="text-xs text-neutral-400 text-center mt-3 mb-6">
-            We'll get back to you within 48 hours.
-          </Text>
+          <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 12 }}>
+            <View className="flex-row" style={{ gap: 12 }}>
+              <View className="flex-1">
+                <Field label={t('account.advertise.name', 'Your name *')} value={name} onChangeText={setName} placeholder="Jane Smith" autoCapitalize="words" />
+              </View>
+              <View className="flex-1">
+                <Field label={t('account.advertise.email', 'Email *')} value={email} onChangeText={setEmail} placeholder="jane@brand.com" keyboardType="email-address" autoCapitalize="none" />
+              </View>
+            </View>
+            <View className="flex-row" style={{ gap: 12 }}>
+              <View className="flex-1">
+                <Field label={t('account.advertise.company', 'Company *')} value={company} onChangeText={setCompany} placeholder="FreshCart Inc." autoCapitalize="words" />
+              </View>
+              <View className="flex-1">
+                <Field label={t('account.advertise.website', 'Website')} value={website} onChangeText={setWebsite} placeholder="https://" keyboardType="url" autoCapitalize="none" />
+              </View>
+            </View>
+
+            <View style={{ gap: 8 }}>
+              <Muted small style={{ paddingStart: 4 }}>
+                {t('account.advertise.placements', 'Placements *')}
+              </Muted>
+              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                {(Object.entries(AD_PLACEMENT_LABELS) as [AdPlacement, string][]).map(([key, label]) => (
+                  <Chip key={key} label={label} on={placements.has(key)} onPress={() => togglePlacement(key)} />
+                ))}
+              </View>
+            </View>
+
+            <Field
+              label={t('account.advertise.campaign', 'Your campaign')}
+              value={message}
+              onChangeText={setMessage}
+              placeholder={t('account.advertise.campaignPlaceholder', 'What do you want to promote?')}
+              multiline
+            />
+
+            <View style={{ gap: 8 }}>
+              <Muted small style={{ paddingStart: 4 }}>
+                {t('account.advertise.budget', 'Monthly budget *')}
+              </Muted>
+              <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                {(Object.entries(AD_BUDGET_LABELS) as [AdBudgetRange, string][]).map(([key, label]) => (
+                  <Chip key={key} label={label} on={budget === key} onPress={() => setBudget(key)} />
+                ))}
+              </View>
+            </View>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
-  );
-}
-
-// ── Reusable Input Field ──
-function InputField({
-  label,
-  value,
-  onChangeText,
-  placeholder,
-  keyboardType,
-  colors,
-}: {
-  label: string;
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-  keyboardType?: 'default' | 'email-address' | 'url';
-  colors: any;
-}) {
-  return (
-    <View className="mb-4">
-      <Text className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1.5">
-        {label}
-      </Text>
-      <TextInput
-        className="bg-neutral-50 dark:bg-neutral-800 rounded-xl px-4 py-3 text-base text-neutral-800 dark:text-white border border-neutral-200 dark:border-neutral-700"
-        placeholder={placeholder}
-        placeholderTextColor="#9CA3AF"
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType || 'default'}
-        autoCapitalize={keyboardType === 'email-address' || keyboardType === 'url' ? 'none' : 'words'}
-      />
-    </View>
+    </Screen>
   );
 }

@@ -205,7 +205,7 @@ const ThinkingNotesView: React.FC<{ accentColor: string }> = ({ accentColor }) =
   const phaseInfo = PHASE_CONFIG[phase];
 
   return (
-    <Animated.View entering={FadeIn.duration(300)} className="mt-4">
+    <Animated.View entering={FadeIn.duration(300)} style={{ marginTop: 16 }}>
       <View
         className="rounded-2xl overflow-hidden border"
         style={{ backgroundColor: accentColor + '10', borderColor: accentColor + '30' }}
@@ -470,7 +470,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                 Import Any Recipe
               </Text>
               <Text className="text-white/80 text-center mt-1 mb-2">
-                Links, videos, images, PDFs, JSON, text — we handle it all
+                Links, videos, images, PDFs, JSON, text: we handle it all
               </Text>
             </View>
           </LinearGradient>
@@ -578,7 +578,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
               </Animated.View>
             )}
 
-            {/* Import progress -- thinking notes or simple progress bar */}
+            {/* Import progress: thinking notes or simple progress bar */}
             {isImporting && thinkingPhase !== 'idle' ? (
               <ThinkingNotesView accentColor={colors.accent} />
             ) : isImporting ? (

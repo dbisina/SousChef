@@ -1,0 +1,37 @@
+{
+ "navigate": true,
+ "wait": 600,
+ "stores": {},
+ "calls": [
+  {
+   "store": "play",
+   "fn": "startDaily"
+  },
+  {
+   "store": "play",
+   "fn": "revealNextClue"
+  },
+  {
+   "store": "play",
+   "fn": "revealNextClue"
+  },
+  {
+   "store": "play",
+   "fn": "revealNextClue"
+  },
+  {
+   "store": "play",
+   "fn": "guessDaily",
+   "args": [
+    "Pad thai"
+   ]
+  },
+  {
+   "store": "play",
+   "fn": "guessDaily",
+   "args": [
+    "Pho"
+   ]
+  }
+ ]
+}

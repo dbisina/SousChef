@@ -1,165 +1,97 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { PantryItem as PantryItemType } from '@/types';
-import { useThemeColors } from '@/stores/themeStore';
-import { formatDate, isExpiringSoon, isExpired } from '@/lib/utils';
+import { Chip, Icon, Muted, SectionLabel, Tag, Thumb, Title } from '@/components/ui';
+import type { TagTone } from '@/components/ui/Chips';
+import { isExpired, isExpiringSoon } from '@/lib/utils';
+import { pantryPhoto } from './photos';
+import { useCategoryLabel } from './shared';
+
+type Expiry = PantryItemType['expiryDate'];
+
+const DAY = 24 * 60 * 60 * 1000;
+
+const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+
+/** Freshness tag for an expiry date (same thresholds as isExpired / isExpiringSoon in lib/utils). */
+export function getFreshness(expiryDate: Expiry, t: TFunction): { label: string; tone: TagTone } | null {
+  if (!expiryDate) return null;
+  if (isExpired(expiryDate)) return { label: t('pantryUi.expired', 'Expired'), tone: 'r' };
+  const days = Math.round((startOfDay(expiryDate.toDate()) - startOfDay(new Date())) / DAY);
+  if (isExpiringSoon(expiryDate)) {
+    if (days <= 0) return { label: t('pantryUi.today', 'Today'), tone: 'r' };
+    if (days === 1) return { label: t('pantryUi.tomorrow', 'Tomorrow'), tone: 'r' };
+    return { label: t('pantryUi.inDays', '{{days}} days', { days }), tone: 'o' };
+  }
+  return { label: t('pantryUi.fresh', 'Fresh'), tone: 'g' };
+}
 
 interface PantryItemProps {
   item: PantryItemType;
   onPress?: () => void;
+  /** Long-press shortcut for delete (the edit sheet also exposes delete). */
   onDelete?: () => void;
   showExpiry?: boolean;
 }
 
-export const PantryItemCard: React.FC<PantryItemProps> = ({
-  item,
-  onPress,
-  onDelete,
-  showExpiry = true,
-}) => {
-  const expiringSoon = item.expiryDate ? isExpiringSoon(item.expiryDate) : false;
-  const expired = item.expiryDate ? isExpired(item.expiryDate) : false;
-  const colors = useThemeColors();
+/** Pantry row: photo thumb, name + "amount unit · Category", freshness tag. */
+export const PantryItemCard: React.FC<PantryItemProps> = ({ item, onPress, onDelete, showExpiry = true }) => {
+  const { t } = useTranslation();
+  const categoryLabel = useCategoryLabel();
+  const fresh = showExpiry ? getFreshness(item.expiryDate, t) : null;
 
   return (
-    <TouchableOpacity
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={item.name}
+      disabled={!onPress && !onDelete}
       onPress={onPress}
-      disabled={!onPress}
-      className={`
-        bg-white dark:bg-neutral-800 rounded-xl p-4 mb-2 flex-row items-center
-        ${expired ? 'border-l-4 border-red-500' : expiringSoon ? 'border-l-4 border-amber-500' : ''}
-      `}
-      activeOpacity={onPress ? 0.7 : 1}
+      onLongPress={onDelete}
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
     >
-      {/* Category icon */}
-      <View className="w-10 h-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: colors.accent + '20' }}>
-        <Ionicons
-          name={getCategoryIcon(item.category)}
-          size={20}
-          color={colors.accent}
-        />
-      </View>
-
-      {/* Item info */}
-      <View className="flex-1">
-        <Text className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-          {item.name}
-        </Text>
-        <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-          {item.amount} {item.unit}
-        </Text>
-        {showExpiry && item.expiryDate && (
-          <Text
-            className={`text-xs mt-1 ${
-              expired
-                ? 'text-red-500'
-                : expiringSoon
-                ? 'text-amber-500'
-                : 'text-neutral-400'
-            }`}
-          >
-            {expired ? 'Expired: ' : expiringSoon ? 'Expires: ' : 'Exp: '}
-            {formatDate(item.expiryDate)}
-          </Text>
-        )}
-      </View>
-
-      {/* Status indicator */}
-      {(expired || expiringSoon) && (
-        <View className="mr-2">
-          <Ionicons
-            name={expired ? 'warning' : 'alert-circle'}
-            size={20}
-            color={expired ? '#EF4444' : '#F59E0B'}
-          />
+      <View className="flex-row items-center" style={{ minHeight: 64, gap: 14, paddingVertical: 2 }}>
+        <Thumb source={pantryPhoto(item.name)} name={item.name} />
+        <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
+          <Title numberOfLines={1}>{item.name}</Title>
+          <Muted small numberOfLines={1}>
+            {`${item.amount} ${item.unit} · ${categoryLabel(item.category)}`}
+          </Muted>
         </View>
-      )}
-
-      {/* Delete button */}
-      {onDelete && (
-        <TouchableOpacity onPress={onDelete} className="p-2">
-          <Ionicons name="trash-outline" size={20} color="#EF4444" />
-        </TouchableOpacity>
-      )}
-    </TouchableOpacity>
+        {fresh ? (
+          <View style={{ justifyContent: 'center', flexShrink: 0 }}>
+            <Tag label={fresh.label} tone={fresh.tone} />
+          </View>
+        ) : null}
+      </View>
+    </Pressable>
   );
 };
 
-// Compact pantry item for lists
 interface CompactPantryItemProps {
   item: PantryItemType;
   onPress?: () => void;
   selected?: boolean;
 }
 
-export const CompactPantryItem: React.FC<CompactPantryItemProps> = ({
-  item,
-  onPress,
-  selected = false,
-}) => {
-  const colors = useThemeColors();
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className={`
-        flex-row items-center px-3 py-2 rounded-lg mr-2 mb-2
-        ${selected ? '' : 'bg-neutral-100 dark:bg-neutral-700'}
-      `}
-      style={selected ? { backgroundColor: colors.accent } : undefined}
-    >
-      <Ionicons
-        name={getCategoryIcon(item.category)}
-        size={16}
-        color={selected ? 'white' : colors.textMuted}
-      />
-      <Text
-        className={`ml-2 ${selected ? 'text-white font-medium' : 'text-neutral-700 dark:text-neutral-300'}`}
-      >
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
-};
+/** Compact selectable pantry item (chip). */
+export const CompactPantryItem: React.FC<CompactPantryItemProps> = ({ item, onPress, selected = false }) => (
+  <Chip label={item.name} on={selected} onPress={onPress} />
+);
 
-// Helper function to get category icon
-const getCategoryIcon = (category: string): keyof typeof Ionicons.glyphMap => {
-  const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
-    produce: 'leaf-outline',
-    dairy: 'water-outline',
-    meat: 'restaurant-outline',
-    seafood: 'fish-outline',
-    grains: 'nutrition-outline',
-    spices: 'flask-outline',
-    condiments: 'color-fill-outline',
-    canned: 'cube-outline',
-    frozen: 'snow-outline',
-    beverages: 'cafe-outline',
-    other: 'ellipse-outline',
-  };
-  return icons[category] || 'ellipse-outline';
-};
-
-// Category header for grouped lists
 interface CategoryHeaderProps {
   category: string;
   itemCount: number;
 }
 
-export const CategoryHeader: React.FC<CategoryHeaderProps> = ({
-  category,
-  itemCount,
-}) => {
-  const colors = useThemeColors();
+/** Category header for grouped lists. */
+export const CategoryHeader: React.FC<CategoryHeaderProps> = ({ category, itemCount }) => {
+  const categoryLabel = useCategoryLabel();
   return (
-    <View className="flex-row items-center py-2 mt-2">
-      <Ionicons name={getCategoryIcon(category)} size={20} color={colors.textMuted} />
-      <Text className="ml-2 text-sm font-semibold text-neutral-600 dark:text-neutral-400 capitalize">
-        {category}
-      </Text>
-      <View className="ml-2 px-2 py-0.5 bg-neutral-200 dark:bg-neutral-700 rounded-full">
-        <Text className="text-xs text-neutral-600 dark:text-neutral-400">{itemCount}</Text>
-      </View>
+    <View className="flex-row items-center" style={{ gap: 8, paddingVertical: 8 }}>
+      <Icon name="leaf" size="sm" color="muted" />
+      <SectionLabel>{`${categoryLabel(category)} · ${itemCount}`}</SectionLabel>
     </View>
   );
 };

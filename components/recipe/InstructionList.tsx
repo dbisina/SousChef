@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
+import { Pressable, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Icon, UButton, FONT } from '@/components/ui';
 
 interface InstructionListProps {
   instructions: string[];
@@ -19,7 +19,7 @@ export const InstructionList: React.FC<InstructionListProps> = ({
   onRemoveStep,
 }) => {
   return (
-    <View className="space-y-4">
+    <View style={{ gap: 16 }}>
       {instructions.map((instruction, index) => (
         <InstructionStep
           key={index}
@@ -55,53 +55,52 @@ export const InstructionStep: React.FC<InstructionStepProps> = ({
   editable = false,
   onRemove,
 }) => {
-  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const badge = isCompleted ? 'bg-ink' : isActive ? 'bg-accent' : 'bg-surface-3';
   const content = (
-    <View className="flex-row">
-      {/* Step number */}
-      <View
-        className={`
-          w-8 h-8 rounded-full items-center justify-center mr-4
-          ${isCompleted ? 'bg-secondary-500' : isActive ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-700'}
-        `}
-      >
+    <View className="flex-row" style={{ gap: 14 }}>
+      <View className={`items-center justify-center ${badge}`} style={{ width: 32, height: 32, borderRadius: 16 }}>
         {isCompleted ? (
-          <Ionicons name="checkmark" size={18} color="white" />
+          <Icon name="check" size="sm" color="ink-inverse" />
         ) : (
           <Text
-            className={`text-sm font-bold ${isActive ? 'text-white' : 'text-neutral-600 dark:text-neutral-400'}`}
+            className={isActive ? 'text-accent-ink' : 'text-muted'}
+            style={{ fontFamily: FONT.display, fontSize: 13 }}
           >
             {stepNumber}
           </Text>
         )}
       </View>
 
-      {/* Instruction text */}
-      <View className="flex-1">
+      <View className="flex-1" style={{ paddingTop: 5 }}>
         <Text
-          className={`
-            text-base leading-relaxed
-            ${isCompleted ? 'text-neutral-400 dark:text-neutral-500' : 'text-neutral-800 dark:text-neutral-100'}
-          `}
+          className={isCompleted ? 'text-subtle' : 'text-ink'}
+          style={{ fontFamily: FONT.sans, fontSize: 15, lineHeight: 22 }}
         >
           {instruction}
         </Text>
       </View>
 
-      {/* Remove button for edit mode */}
-      {editable && onRemove && (
-        <TouchableOpacity onPress={onRemove} className="ml-2 p-1">
-          <Ionicons name="close-circle" size={22} color="#EF4444" />
-        </TouchableOpacity>
-      )}
+      {editable && onRemove ? (
+        <Pressable
+          onPress={onRemove}
+          accessibilityRole="button"
+          accessibilityLabel={t('cooking.removeStep', 'Remove step')}
+          className="items-center justify-center bg-surface-3"
+          style={{ width: 34, height: 34, borderRadius: 17 }}
+          hitSlop={5}
+        >
+          <Icon name="close" size="sm" />
+        </Pressable>
+      ) : null}
     </View>
   );
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <Pressable onPress={onPress} accessibilityRole="button" style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
         {content}
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
@@ -118,27 +117,27 @@ export const CompactInstructionList: React.FC<CompactInstructionListProps> = ({
   instructions,
   maxVisible = 3,
 }) => {
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   const visibleInstructions = instructions.slice(0, maxVisible);
   const remaining = instructions.length - maxVisible;
 
   return (
-    <View>
+    <View style={{ gap: 4 }}>
       {visibleInstructions.map((instruction, index) => (
-        <View key={index} className="flex-row items-start py-1">
-          <Text className="text-sm font-medium text-primary-500 w-6">
+        <View key={index} className="flex-row items-start" style={{ gap: 8 }}>
+          <Text className="text-accent-text" style={{ fontFamily: FONT.sansMedium, fontSize: 13, width: 20 }}>
             {index + 1}.
           </Text>
-          <Text className="flex-1 text-sm text-neutral-700 dark:text-neutral-300" numberOfLines={2}>
+          <Text className="flex-1 text-ink" style={{ fontFamily: FONT.sans, fontSize: 13 }} numberOfLines={2}>
             {instruction}
           </Text>
         </View>
       ))}
-      {remaining > 0 && (
-        <Text className="text-sm text-neutral-400 dark:text-neutral-500 mt-1 ml-6">
-          +{remaining} more steps
+      {remaining > 0 ? (
+        <Text className="text-subtle" style={{ fontFamily: FONT.sans, fontSize: 12, marginLeft: 28 }}>
+          {t('cooking.moreSteps', '+{{count}} more steps', { count: remaining })}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 };
@@ -163,73 +162,34 @@ export const CookingModeInstruction: React.FC<CookingModeInstructionProps> = ({
   canGoPrevious = true,
   canGoNext = true,
 }) => {
-  const colors = useThemeColors();
+  const { t } = useTranslation();
   return (
-    <View className="bg-white dark:bg-neutral-800 rounded-2xl p-6 shadow-lg">
-      {/* Progress */}
-      <View className="flex-row items-center justify-between mb-4">
-        <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400">
-          Step {stepNumber} of {totalSteps}
-        </Text>
-        <View className="flex-row">
-          {Array.from({ length: totalSteps }).map((_, idx) => (
-            <View
-              key={idx}
-              className={`
-                w-2 h-2 rounded-full mx-0.5
-                ${idx < stepNumber ? 'bg-primary-500' : 'bg-neutral-200 dark:bg-neutral-700'}
-              `}
-            />
-          ))}
-        </View>
-      </View>
-
-      {/* Instruction */}
-      <Text className="text-xl leading-relaxed text-neutral-900 dark:text-neutral-50 mb-6">
+    <View className="bg-surface" style={{ borderRadius: 28, padding: 18, gap: 16 }}>
+      <Text className="text-muted" style={{ fontFamily: FONT.sansMedium, fontSize: 12 }}>
+        {t('cooking.stepOf', 'Step {{current}} of {{total}}', { current: stepNumber, total: totalSteps })}
+      </Text>
+      <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 22, lineHeight: 28, letterSpacing: -0.3 }}>
         {instruction}
       </Text>
-
-      {/* Media Slot (Placeholder for future video/image support) */}
-      <View className="mb-6 rounded-xl bg-neutral-100 dark:bg-neutral-700 h-48 items-center justify-center border-2 border-dashed border-neutral-200 dark:border-neutral-700">
-        <View className="items-center">
-          <Ionicons name="images-outline" size={32} color={colors.textMuted} />
-          <Text className="text-neutral-400 dark:text-neutral-500 text-sm mt-2 font-medium">
-             Step Video / Image
-          </Text>
-        </View>
-      </View>
-
-      {/* Navigation */}
-      <View className="flex-row items-center justify-between">
-        <TouchableOpacity
-          onPress={onPrevious}
-          disabled={!canGoPrevious}
-          className={`
-            flex-row items-center px-4 py-2 rounded-lg
-            ${canGoPrevious ? 'bg-neutral-100 dark:bg-neutral-700' : 'opacity-40'}
-          `}
-        >
-          <Ionicons name="arrow-back" size={20} color={colors.icon} />
-          <Text className="ml-2 font-medium text-neutral-700 dark:text-neutral-300">Previous</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={onNext}
-          disabled={!canGoNext}
-          className={`
-            flex-row items-center px-4 py-2 rounded-lg
-            ${canGoNext ? 'bg-primary-500' : 'bg-secondary-500'}
-          `}
-        >
-          <Text className="mr-2 font-medium text-white">
-            {canGoNext ? 'Next' : 'Done!'}
-          </Text>
-          <Ionicons
-            name={canGoNext ? 'arrow-forward' : 'checkmark'}
-            size={20}
-            color="white"
+      <View className="flex-row" style={{ gap: 10 }}>
+        <View style={{ width: 120 }}>
+          <UButton
+            label={t('cooking.prev', 'Prev')}
+            variant="ghost"
+            size="sm"
+            onPress={onPrevious}
+            disabled={!canGoPrevious}
           />
-        </TouchableOpacity>
+        </View>
+        <View className="flex-1">
+          <UButton
+            label={canGoNext ? t('cooking.nextStep', 'Next Step') : t('cooking.finish', 'Finish')}
+            variant="accent"
+            size="sm"
+            onPress={onNext}
+            style={{ alignSelf: 'stretch' }}
+          />
+        </View>
       </View>
     </View>
   );

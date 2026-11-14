@@ -1,0 +1,245 @@
+{
+ "wait": 1200,
+ "stores": {
+  "pantry": {
+   "items": [
+    {
+     "id": "p1",
+     "name": "Chicken thighs",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p2",
+     "name": "Spinach",
+     "amount": 1,
+     "unit": "bag",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p3",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 14
+     }
+    },
+    {
+     "id": "p4",
+     "name": "Yogurt",
+     "amount": 1,
+     "unit": "tub",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p5",
+     "name": "Rice",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 200
+     }
+    },
+    {
+     "id": "p6",
+     "name": "Tomatoes",
+     "amount": 4,
+     "unit": "pieces",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 20
+     }
+    },
+    {
+     "id": "p7",
+     "name": "Milk",
+     "amount": 1,
+     "unit": "carton",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 21
+     }
+    },
+    {
+     "id": "p8",
+     "name": "Cheddar",
+     "amount": 200,
+     "unit": "g",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 22
+     }
+    },
+    {
+     "id": "p9",
+     "name": "Beef mince",
+     "amount": 500,
+     "unit": "g",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 23
+     }
+    },
+    {
+     "id": "p10",
+     "name": "Pasta",
+     "amount": 500,
+     "unit": "g",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 24
+     }
+    },
+    {
+     "id": "p11",
+     "name": "Olive oil",
+     "amount": 1,
+     "unit": "bottle",
+     "category": "condiments",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 25
+     }
+    },
+    {
+     "id": "p12",
+     "name": "Onions",
+     "amount": 3,
+     "unit": "pieces",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 26
+     }
+    },
+    {
+     "id": "p13",
+     "name": "Garlic",
+     "amount": 1,
+     "unit": "bulb",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 27
+     }
+    },
+    {
+     "id": "p14",
+     "name": "Butter",
+     "amount": 250,
+     "unit": "g",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 28
+     }
+    },
+    {
+     "id": "p15",
+     "name": "Salt",
+     "amount": 1,
+     "unit": "jar",
+     "category": "spices",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 29
+     }
+    },
+    {
+     "id": "p16",
+     "name": "Lentils",
+     "amount": 400,
+     "unit": "g",
+     "category": "canned",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 30
+     }
+    },
+    {
+     "id": "p17",
+     "name": "Peas",
+     "amount": 1,
+     "unit": "bag",
+     "category": "frozen",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 31
+     }
+    },
+    {
+     "id": "p18",
+     "name": "Flour",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 32
+     }
+    }
+   ],
+   "isLoading": false,
+   "error": null
+  }
+ }
+}

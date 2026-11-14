@@ -15,6 +15,7 @@ import {
 import type { CustomerCenterCallbacks } from '@/lib/revenuecat';
 import {
   initializeRevenueCat,
+  isRevenueCatDisabled,
   loginToRevenueCat,
   logoutFromRevenueCat,
   getCustomerInfo,
@@ -104,7 +105,12 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       // Check if RevenueCat was actually configured (API key might be missing)
       const configured = await isPurchasesConfigured();
       if (!configured) {
-        console.warn('[Subscriptions] RevenueCat not configured — skipping offerings fetch');
+        if (isRevenueCatDisabled()) {
+          // Test/missing key: run as free tier with no banner or warning.
+          set({ isInitialized: true, isLoading: false, error: null });
+          return;
+        }
+        console.warn('[Subscriptions] RevenueCat not configured, skipping offerings fetch');
         set({
           isInitialized: true,
           isLoading: false,
@@ -274,6 +280,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       // Ensure RevenueCat is configured before fetching
       const configured = await isPurchasesConfigured();
       if (!configured) {
+        if (isRevenueCatDisabled()) {
+          set({ isLoading: false });
+          return;
+        }
         // Attempt re-initialization
         const { useAuthStore } = await import('./authStore');
         const user = useAuthStore.getState().user;
