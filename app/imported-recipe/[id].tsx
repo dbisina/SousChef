@@ -24,6 +24,23 @@ import { SAMPLE } from '@/assets/sample';
 
 type Panel = 'ingredients' | 'steps' | 'tags';
 
+/** Imported.html stat tile: caption above the value (the shared Tile puts the value first). */
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <Tile>
+      <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4 }}>
+        {label}
+      </Text>
+      <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 22, lineHeight: 25, letterSpacing: -0.44 }}>
+        {value}
+      </Text>
+    </Tile>
+  );
+}
+
+// Below this the extraction is worth flagging; a confident match is not shown.
+const LOW_CONFIDENCE = 0.8;
+
 export default function ImportedRecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -154,6 +171,7 @@ export default function ImportedRecipeDetailScreen() {
         <DetailHero
           source={recipe.imageURL ? { uri: recipe.imageURL } : SAMPLE.bowl}
           height={360}
+          captionBottom={54}
           onBack={() => router.back()}
           backLabel={t('cooking.back', 'Back')}
           actions={
@@ -192,19 +210,20 @@ export default function ImportedRecipeDetailScreen() {
         >
           <View className="flex-row" style={{ gap: 10 }}>
             <View className="flex-1">
-              <Tile label={t('cooking.prep', 'Prep')} value={recipe.prepTime ? t('cooking.minutes', '{{count}} min', { count: recipe.prepTime }) : '-'} />
+              <Stat label={t('cooking.prep', 'Prep')} value={recipe.prepTime ? t('cooking.minutes', '{{count}} min', { count: recipe.prepTime }) : '-'} />
             </View>
             <View className="flex-1">
-              <Tile label={t('cooking.cook', 'Cook')} value={recipe.cookTime ? t('cooking.minutes', '{{count}} min', { count: recipe.cookTime }) : '-'} />
+              <Stat label={t('cooking.cook', 'Cook')} value={recipe.cookTime ? t('cooking.minutes', '{{count}} min', { count: recipe.cookTime }) : '-'} />
             </View>
             <View className="flex-1">
-              <Tile label={t('cooking.serves', 'Serves')} value={`${recipe.servings}`} />
+              <Stat label={t('cooking.serves', 'Serves')} value={`${recipe.servings}`} />
             </View>
           </View>
 
           {recipe.description ? <Muted style={{ fontSize: 15, lineHeight: 22 }}>{recipe.description}</Muted> : null}
 
           {/* Pantry match + extraction confidence */}
+          {item.pantryMatchPercent !== undefined || recipe.extractionConfidence < LOW_CONFIDENCE ? (
           <View className="flex-row flex-wrap" style={{ gap: 8 }}>
             {item.pantryMatchPercent !== undefined ? (
               <Tag
@@ -220,14 +239,14 @@ export default function ImportedRecipeDetailScreen() {
                 }
               />
             ) : null}
-            <Tag
-              tone="o"
-              label={t('cooking.extractionMatch', '{{n}}% match', { n: Math.round(recipe.extractionConfidence * 100) })}
-            />
-            {detailTags.map((d) => (
-              <Tag key={d} label={d} />
-            ))}
+            {recipe.extractionConfidence < LOW_CONFIDENCE ? (
+              <Tag
+                tone="o"
+                label={t('cooking.extractionMatch', '{{n}}% match', { n: Math.round(recipe.extractionConfidence * 100) })}
+              />
+            ) : null}
           </View>
+          ) : null}
 
           <Segmented<Panel>
             value={panel}
@@ -270,6 +289,13 @@ export default function ImportedRecipeDetailScreen() {
 
           {panel === 'tags' ? (
             <View style={{ gap: 16 }}>
+              {detailTags.length > 0 ? (
+                <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+                  {detailTags.map((d) => (
+                    <Tag key={d} label={d} large />
+                  ))}
+                </View>
+              ) : null}
               {recipe.tags && recipe.tags.length > 0 ? (
                 <View className="flex-row flex-wrap" style={{ gap: 8 }}>
                   {recipe.tags.map((tag) => (

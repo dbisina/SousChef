@@ -126,7 +126,7 @@ export default function WantToCookScreen() {
       </View>
 
       {hero ? (
-        <>
+        <View style={{ gap: 14, marginTop: -4 }}>
           {card(hero, 'hero')}
           {tiles.length > 0 ? (
             <View className="flex-row" style={{ gap: 12 }}>
@@ -139,7 +139,7 @@ export default function WantToCookScreen() {
             </View>
           ) : null}
           {rows.length > 0 ? <View style={{ gap: 4 }}>{rows.map((item) => card(item, 'row'))}</View> : null}
-        </>
+        </View>
       ) : (
         <View className="items-center" style={{ paddingTop: 72, paddingHorizontal: 12, gap: 12 }}>
           <View className="items-center justify-center bg-surface" style={{ width: 88, height: 88, borderRadius: 44 }}>

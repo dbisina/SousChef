@@ -82,9 +82,9 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
         accessibilityRole="button"
         accessibilityLabel={recipe.title}
         accessibilityHint={t('cooking.longPressHint', 'Long press for more actions')}
-        className="flex-row items-center"
-        style={({ pressed }) => ({ minHeight: 72, gap: 14, opacity: pressed ? 0.8 : 1 })}
+        style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
       >
+        <View className="flex-row items-center" style={{ minHeight: 64, gap: 14 }}>
         <Thumb source={photo} name={recipe.title} />
         <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
           <Text className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15, letterSpacing: -0.15 }}>
@@ -95,6 +95,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
           </Text>
         </View>
         <Icon name="chevronRight" color="subtle" />
+        </View>
       </Pressable>
     );
   }

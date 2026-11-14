@@ -254,6 +254,7 @@ export default function UploadScreen() {
         }
       />
 
+      <View style={{ gap: 14 }}>
       {/* Cover photo */}
       <ToneBlock
         tone="dark"
@@ -306,76 +307,6 @@ export default function UploadScreen() {
           />
         )}
       />
-
-      <Controller
-        control={control}
-        name="youtubeURL"
-        render={({ field: { onChange, value } }) => (
-          <Field
-            label={t('cooking.youtubeOptional', 'YouTube Video (optional)')}
-            placeholder="https://youtube.com/watch?v=..."
-            value={value}
-            onChangeText={onChange}
-            autoCapitalize="none"
-            keyboardType="url"
-            error={errors.youtubeURL?.message}
-          />
-        )}
-      />
-
-      {/* Category / cuisine / difficulty */}
-      <View style={{ gap: 8 }}>
-        <SectionLabel>{t('cooking.category', 'Category')}</SectionLabel>
-        <View style={{ marginHorizontal: -20 }}>
-          <Controller
-            control={control}
-            name="category"
-            render={({ field: { onChange, value } }) => (
-              <ChipRow>
-                {CATEGORIES.map((o) => (
-                  <Chip key={o.value} label={o.label} on={value === o.value} onPress={() => onChange(o.value)} />
-                ))}
-              </ChipRow>
-            )}
-          />
-        </View>
-      </View>
-
-      <View style={{ gap: 8 }}>
-        <SectionLabel>{t('cooking.cuisine', 'Cuisine')}</SectionLabel>
-        <View style={{ marginHorizontal: -20 }}>
-          <Controller
-            control={control}
-            name="cuisine"
-            render={({ field: { onChange, value } }) => (
-              <ChipRow>
-                {CUISINES.map((o) => (
-                  <Chip key={o.value} label={o.label} on={value === o.value} onPress={() => onChange(o.value)} />
-                ))}
-              </ChipRow>
-            )}
-          />
-        </View>
-      </View>
-
-      <View style={{ gap: 8 }}>
-        <SectionLabel>{t('cooking.difficulty', 'Difficulty')}</SectionLabel>
-        <Controller
-          control={control}
-          name="difficulty"
-          render={({ field: { onChange, value } }) => (
-            <Segmented<Difficulty>
-              value={value}
-              onChange={onChange}
-              options={[
-                { value: 'easy', label: t('cooking.easy', 'Easy') },
-                { value: 'medium', label: t('cooking.medium', 'Medium') },
-                { value: 'hard', label: t('cooking.hard', 'Hard') },
-              ]}
-            />
-          )}
-        />
-      </View>
 
       {/* Time and servings */}
       <View className="flex-row" style={{ gap: 10 }}>
@@ -448,7 +379,7 @@ export default function UploadScreen() {
         </Pressable>
       </View>
       {errors.ingredients ? (
-        <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: -10 }}>
+        <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: -6 }}>
           {errors.ingredients.message || t('cooking.fixIngredients', 'Please fix ingredient errors below')}
         </Text>
       ) : null}
@@ -511,10 +442,81 @@ export default function UploadScreen() {
         ))}
       </Rows>
 
+      {/* Optional details sit after the ingredients so the form opens as in Upload.html. */}
+      <Controller
+        control={control}
+        name="youtubeURL"
+        render={({ field: { onChange, value } }) => (
+          <Field
+            label={t('cooking.youtubeOptional', 'YouTube Video (optional)')}
+            placeholder="https://youtube.com/watch?v=..."
+            value={value}
+            onChangeText={onChange}
+            autoCapitalize="none"
+            keyboardType="url"
+            error={errors.youtubeURL?.message}
+          />
+        )}
+      />
+
+      {/* Category / cuisine / difficulty */}
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('cooking.category', 'Category')}</SectionLabel>
+        <View style={{ marginHorizontal: -20 }}>
+          <Controller
+            control={control}
+            name="category"
+            render={({ field: { onChange, value } }) => (
+              <ChipRow>
+                {CATEGORIES.map((o) => (
+                  <Chip key={o.value} label={o.label} on={value === o.value} onPress={() => onChange(o.value)} />
+                ))}
+              </ChipRow>
+            )}
+          />
+        </View>
+      </View>
+
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('cooking.cuisine', 'Cuisine')}</SectionLabel>
+        <View style={{ marginHorizontal: -20 }}>
+          <Controller
+            control={control}
+            name="cuisine"
+            render={({ field: { onChange, value } }) => (
+              <ChipRow>
+                {CUISINES.map((o) => (
+                  <Chip key={o.value} label={o.label} on={value === o.value} onPress={() => onChange(o.value)} />
+                ))}
+              </ChipRow>
+            )}
+          />
+        </View>
+      </View>
+
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('cooking.difficulty', 'Difficulty')}</SectionLabel>
+        <Controller
+          control={control}
+          name="difficulty"
+          render={({ field: { onChange, value } }) => (
+            <Segmented<Difficulty>
+              value={value}
+              onChange={onChange}
+              options={[
+                { value: 'easy', label: t('cooking.easy', 'Easy') },
+                { value: 'medium', label: t('cooking.medium', 'Medium') },
+                { value: 'hard', label: t('cooking.hard', 'Hard') },
+              ]}
+            />
+          )}
+        />
+      </View>
+
       {/* Instructions */}
       <H2>{t('cooking.instructions', 'Instructions')}</H2>
       {errors.instructions ? (
-        <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: -10 }}>
+        <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: -6 }}>
           {errors.instructions.message || t('cooking.needInstruction', 'At least one instruction is required')}
         </Text>
       ) : null}
@@ -598,6 +600,7 @@ export default function UploadScreen() {
           />
         }
       />
+      </View>
     </Screen>
   );
 }
