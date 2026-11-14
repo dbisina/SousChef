@@ -6,7 +6,7 @@
     {
      "id": "fx-salmon",
      "title": "Herb salmon with broccoli",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/salmon.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -65,10 +65,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -82,7 +82,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -92,7 +92,7 @@
     {
      "id": "fx-pancakes",
      "title": "Blueberry pancakes",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/pancakes.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -151,10 +151,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -168,7 +168,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -178,7 +178,7 @@
     {
      "id": "fx-ramen",
      "title": "Spicy egg ramen",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/ramen.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -237,10 +237,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -254,7 +254,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -264,7 +264,7 @@
     {
      "id": "fx-chicken",
      "title": "Grilled chicken avocado salad",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/salad.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -323,10 +323,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -340,7 +340,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -351,7 +351,7 @@
    "currentRecipe": {
     "id": "fx-salmon",
     "title": "Herb salmon with broccoli",
-    "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+    "description": "",
     "imageURL": "/__assets/salmon.jpg",
     "authorId": "chef",
     "authorName": "[CHEF NAME]",
@@ -410,10 +410,10 @@
     "instructions": [
      "Heat the oven to 200C.",
      "Roast the broccoli with garlic and oil for 12 minutes.",
-     "Sear the salmon",
-     "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+     "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
      "Rest the fish, squeeze over lemon.",
-     "Plate everything with the herbs."
+     "Plate everything with the herbs.",
+     "Serve warm."
     ],
     "nutrition": {
      "caloriesPerServing": 520,
@@ -427,7 +427,7 @@
      "quick",
      "high-protein"
     ],
-    "likes": 385,
+    "likes": 0,
     "rating": 4.8,
     "ratingCount": 120,
     "createdAt": {
@@ -447,7 +447,6 @@
       "$daysFromNow": 0
      },
      "addedToShoppingList": false,
-     "pantryMatchPercent": 60,
      "importedRecipe": {
       "id": "fx-salmon-r",
       "title": "Chicken katsu rice bowl",
@@ -468,20 +467,6 @@
         "amount": 1,
         "unit": "",
         "calories": 70,
-        "optional": false
-       },
-       {
-        "name": "Panko",
-        "amount": 100,
-        "unit": "g",
-        "calories": 350,
-        "optional": false
-       },
-       {
-        "name": "Rice",
-        "amount": 200,
-        "unit": "g",
-        "calories": 260,
         "optional": false
        }
       ],
@@ -747,7 +732,7 @@
     {
      "id": "fx-salmon",
      "title": "Herb salmon with broccoli",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/salmon.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -806,10 +791,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -823,7 +808,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -833,7 +818,7 @@
     {
      "id": "fx-pancakes",
      "title": "Blueberry pancakes",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/pancakes.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -892,10 +877,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -909,7 +894,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -919,7 +904,7 @@
     {
      "id": "fx-ramen",
      "title": "Spicy egg ramen",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/ramen.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -978,10 +963,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -995,7 +980,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {
@@ -1005,7 +990,7 @@
     {
      "id": "fx-chicken",
      "title": "Grilled chicken avocado salad",
-     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "description": "",
      "imageURL": "/__assets/salad.jpg",
      "authorId": "chef",
      "authorName": "[CHEF NAME]",
@@ -1064,10 +1049,10 @@
      "instructions": [
       "Heat the oven to 200C.",
       "Roast the broccoli with garlic and oil for 12 minutes.",
-      "Sear the salmon",
-      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
       "Rest the fish, squeeze over lemon.",
-      "Plate everything with the herbs."
+      "Plate everything with the herbs.",
+      "Serve warm."
      ],
      "nutrition": {
       "caloriesPerServing": 520,
@@ -1081,7 +1066,7 @@
       "quick",
       "high-protein"
      ],
-     "likes": 385,
+     "likes": 0,
      "rating": 4.8,
      "ratingCount": 120,
      "createdAt": {

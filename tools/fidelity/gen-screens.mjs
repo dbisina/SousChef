@@ -10,7 +10,7 @@ const map = {
   HealthHome: ['/health'], LogReading: ['/health/log'], MealResponse: ['/health/meal/meal-today-b'],
   DoctorReport: ['/health/report'], Kitchen: ['/(tabs)/kitchen'], Create: ['/create'], Import: ['/import'],
   Browse: ['/(tabs)/browse', 'recipes'], Pantry: ['/(tabs)/pantry', 'pantry'], Shopping: ['/(tabs)/shopping', 'shopping'],
-  Cook: ['/cook/fx-salmon', 'recipes'], Imported: ['/imported-recipe/fx-salmon', 'recipes'], WantToCook: ['/want-to-cook', 'recipes'],
+  Cook: ['/cook/fx-salmon?stage=cooking&step=2', 'cook'], CookDone: ['/cook/fx-salmon?stage=done&min=24', 'cook'], Imported: ['/imported-recipe/fx-salmon', 'recipes'], WantToCook: ['/want-to-cook', 'wanttocook'],
   Upload: ['/(tabs)/upload'], Shelf: ['/cookbook-library', 'shelf'], Cookbook: ['/cookbook/fx-book', 'recipes'],
   UserProfile: ['/user/ama'], MealPlan: ['/(tabs)/mealplan', 'mealplan'], PlanShopping: ['/mealplan/shopping', 'mealplan'],
   Waste: ['/mealplan/waste', 'mealplan'], FoodScanner: ['/(tabs)/scan'], WeightLoss: ['/settings/weight-loss'],
@@ -24,7 +24,7 @@ const map = {
 const notes = {
   AddPantry: 'bottom sheet inside Pantry (no route)', Voice: 'full-screen overlay opened from Cook (no route)',
   Scanner: 'camera barcode overlay (no route; needs camera)', PlanGenerator: 'sheet inside MealPlan (no route)',
-  Paywall: 'native RevenueCat paywall UI (not renderable on web)', CookDone: 'state of Cook (no route)',
+  Paywall: 'native RevenueCat paywall UI (not renderable on web)',
   Onboarding2: 'step 2 of /onboarding (state inside Main route)', Onboarding3: 'step 3 of /onboarding (state inside Main route)',
   ScanResult: 'state inside FoodScanner (needs camera result)',
 };

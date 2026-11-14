@@ -12,12 +12,12 @@ const ing = (name, amount, unit, calories = 80) => ({ name, amount, unit, calori
 const nutrition = { caloriesPerServing: 520, totalCalories: 1040, protein: 38, carbs: 32, fat: 24, fiber: 7 };
 
 const salmon = {
-  id: 'fx-salmon', title: 'Herb salmon with broccoli', description: 'Crisp-skinned salmon, garlic broccoli and avocado.',
+  id: 'fx-salmon', title: 'Herb salmon with broccoli', description: '',
   imageURL: A('salmon'), authorId: 'chef', authorName: '[CHEF NAME]', isOfficial: true, status: 'published',
   category: 'dinner', cuisine: 'mediterranean', difficulty: 'easy', prepTime: 10, cookTime: 15, servings: 2,
   ingredients: [ing('Salmon', 2, 'fillets', 300), ing('Broccoli', 1, 'head', 55), ing('Garlic', 3, 'cloves', 12), ing('Avocado', 1, 'whole', 240), ing('Lemon', 1, 'whole', 17), ing('Olive oil', 2, 'tbsp', 240)],
-  instructions: ['Heat the oven to 200C.', 'Roast the broccoli with garlic and oil for 12 minutes.', 'Sear the salmon', 'Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.', 'Rest the fish, squeeze over lemon.', 'Plate everything with the herbs.'],
-  nutrition, tags: ['quick', 'high-protein'], likes: 385, rating: 4.8, ratingCount: 120, createdAt: now,
+  instructions: ['Heat the oven to 200C.', 'Roast the broccoli with garlic and oil for 12 minutes.', 'Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.', 'Rest the fish, squeeze over lemon.', 'Plate everything with the herbs.', 'Serve warm.'],
+  nutrition, tags: ['quick', 'high-protein'], likes: 0, rating: 4.8, ratingCount: 120, createdAt: now,
 };
 const recipes = [
   salmon,
@@ -25,20 +25,27 @@ const recipes = [
   { ...salmon, id: 'fx-ramen', title: 'Spicy egg ramen', imageURL: A('ramen'), prepTime: 5, cookTime: 10, category: 'lunch' },
   { ...salmon, id: 'fx-chicken', title: 'Grilled chicken avocado salad', imageURL: A('salad'), prepTime: 10, cookTime: 10, category: 'lunch' },
 ];
-const imported = (id, title, platform, img, cook) => ({
+const imported = (id, title, platform, img, cook, prep = 15, nIng = 4) => ({
   id, ownerId: 'guest', status: 'saved', savedAt: now, addedToShoppingList: false, pantryMatchPercent: 60,
   importedRecipe: {
     id: id + '-r', title, description: '', imageURL: A(img), sourceURL: 'https://' + platform + '.example/' + id, sourcePlatform: platform,
-    ingredients: [ing('Chicken breast', 2, 'pieces', 330), ing('Eggs', 1, '', 70), ing('Panko', 100, 'g', 350), ing('Rice', 200, 'g', 260)],
-    instructions: ['Crumb the chicken.', 'Fry until golden.', 'Serve over rice.'], servings: 2, prepTime: 15, cookTime: cook, difficulty: 'easy',
+    ingredients: [ing('Chicken breast', 2, 'pieces', 330), ing('Eggs', 1, '', 70), ing('Panko', 100, 'g', 350), ing('Rice', 200, 'g', 260), ing('Soy sauce', 2, 'tbsp', 20), ing('Spring onion', 2, 'stalks', 10)].slice(0, nIng),
+    instructions: ['Crumb the chicken.', 'Fry until golden.', 'Serve over rice.'], servings: 2, prepTime: prep, cookTime: cook, difficulty: 'easy',
     tags: ['weeknight'], extractedAt: now, extractionConfidence: 0.9,
   },
 });
 const wtc = [
-  imported('fx-salmon', 'Chicken katsu rice bowl', 'tiktok', 'ricebowl', 20),
+  { ...imported('fx-salmon', 'Chicken katsu rice bowl', 'tiktok', 'ricebowl', 20, 15, 2), pantryMatchPercent: undefined },
   imported('fx-tacos', 'Chickpea avocado tacos', 'tiktok', 'tacos', 20),
   imported('fx-penne', 'Creamy garlic penne', 'youtube', 'penne', 25),
   { ...imported('fx-brownie', 'Fudgy brownies', 'website', 'brownie', 45), status: 'cooked', cookedAt: now },
+];
+// Want to Cook as drawn in WantToCook.html (hero, two tiles, one cookbook row).
+const wtcDesign = [
+  imported('fx-tacos', 'Chickpea avocado tacos', 'tiktok', 'tacos2', 10, 10, 6),
+  imported('fx-penne', 'Creamy garlic penne', 'youtube', 'penne', 15, 10),
+  { ...imported('fx-brownie', 'Fudgy brownies', 'website', 'brownie', 30, 15), status: 'cooked', cookedAt: now },
+  imported('fx-greens', 'Kale & chickpea bowl', 'Cookbook scan', 'greens', 10, 5),
 ];
 const cookbook = { id: 'fx-book', title: 'Weeknight Comforts', description: 'Curated cookbook', coverImageURL: A('cookbook'), recipeIds: recipes.map((r) => r.id), likes: 348, createdAt: now, updatedAt: now };
 
@@ -86,6 +93,13 @@ w('recipes', { wait: 1500, stores: {
   wantToCook: { items: wtc, isLoading: false, error: null },
   cookbook: { cookbooks: [cookbook], currentCookbook: cookbook, currentCookbookRecipes: recipes, isLoading: false, error: null },
 } });
+// Cook mode: a running step timer (4:32 left of 12:36) and a 5 day streak for the done screen.
+w('cook', { wait: 1500, stores: {
+  recipe: { recipes, currentRecipe: salmon, isLoading: false, error: null },
+  voice: { timers: [{ id: 'fx-timer', name: 'Step 3', totalSeconds: 756, remainingSeconds: 272, isRunning: true, createdAt: now, endTime: now }], activeTimerCount: 1 },
+  gamification: { streak: { currentStreak: 5, longestStreak: 5, lastCookDate: null } },
+} });
+w('wanttocook', { wait: 1500, stores: { wantToCook: { items: wtcDesign, isLoading: false, error: null } } });
 w('pantry', { wait: 1200, stores: { pantry: { items: pantry, isLoading: false, error: null } } });
 w('shopping', { wait: 1200, stores: { wantToCook: { shoppingList, items: wtc, isLoading: false }, pantry: { items: pantry } } });
 w('mealplan', { wait: 1500, stores: { mealPlan: { currentPlan: plan, isLoading: false, isGenerating: false, error: null }, recipe: { recipes }, pantry: { items: pantry } } });

@@ -35,14 +35,14 @@
   "theme": "light"
  },
  "Cook": {
-  "route": "/cook/fx-salmon",
+  "route": "/cook/fx-salmon?stage=cooking&step=2",
   "theme": "dark",
-  "fixture": "recipes"
+  "fixture": "cook"
  },
  "CookDone": {
-  "route": null,
+  "route": "/cook/fx-salmon?stage=done&min=24",
   "theme": "dark",
-  "note": "state of Cook (no route)"
+  "fixture": "cook"
  },
  "Cookbook": {
   "route": "/cookbook/fx-book",
@@ -293,7 +293,7 @@
  "WantToCook": {
   "route": "/want-to-cook",
   "theme": "light",
-  "fixture": "recipes"
+  "fixture": "wanttocook"
  },
  "Waste": {
   "route": "/mealplan/waste",
