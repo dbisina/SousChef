@@ -24,6 +24,9 @@ describe('social store', () => {
 });
 
 describe('message store', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
   it('sends a message and updates the conversation preview', () => {
     useMessageStore.getState().sendMessage('conv-ama', { kind: 'text', text: 'On my way' });
     const conv = useMessageStore.getState().conversations.find((c) => c.id === 'conv-ama')!;

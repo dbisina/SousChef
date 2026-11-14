@@ -97,13 +97,31 @@ export interface Community {
 
 export type MessageKind = 'text' | 'recipe-card' | 'voice';
 
+/** sending: shown on screen, not yet confirmed. failed: tap to retry. */
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
+
+export interface MessageReaction {
+  emoji: string;
+  /** 'me' for the current user, else an Author id. */
+  userIds: string[];
+}
+
+/** Quote of the message being replied to; stored so the quote survives if the original scrolls out of memory. */
+export interface ReplyRef {
+  messageId: string;
+  senderId: string;
+  preview: string;
+}
+
 interface MessageBase {
   id: string;
   conversationId: string;
   /** 'me' for the current user, else an Author id. */
   senderId: string;
   createdAt: string;
-  status?: 'sent' | 'delivered' | 'read';
+  status?: MessageStatus;
+  replyTo?: ReplyRef;
+  reactions?: MessageReaction[];
 }
 export interface TextMessage extends MessageBase {
   kind: 'text';
@@ -121,6 +139,8 @@ export interface VoiceMessage extends MessageBase {
   durationSec: number;
   /** Bar heights, 0..100. */
   waveform: number[];
+  /** Local file (or, later, a server URL) of the recording. Sample notes have none. */
+  uri?: string;
 }
 export type Message = TextMessage | RecipeCardMessage | VoiceMessage;
 
