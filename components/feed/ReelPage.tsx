@@ -25,7 +25,7 @@ function Rail({ children, count }: { children: React.ReactNode; count: string })
   return (
     <View className="items-center" style={{ gap: 4 }}>
       {children}
-      <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.paper }}>{count}</RNText>
+      <RNText style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4, color: FIXED.paper }}>{count}</RNText>
     </View>
   );
 }
@@ -56,7 +56,7 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
     <View style={{ height }}>
       <PhotoCard source={photoOf(reel.photo)} height={height} radius={0} fade="both" accessibilityLabel={reel.title} />
 
-      <View pointerEvents="box-none" style={{ position: 'absolute', right: 14, bottom: base + 180, gap: 18, zIndex: 2 }}>
+      <View pointerEvents="box-none" style={{ position: 'absolute', right: 14, bottom: base + 166, gap: 18, zIndex: 2 }}>
         <Rail count={compactCount(reel.likes)}>
           <UIconButton
             tone="glassDark"
@@ -88,7 +88,7 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
         </Rail>
       </View>
 
-      <View style={{ position: 'absolute', left: 20, right: 84, bottom: base + 98, gap: 10, zIndex: 2 }}>
+      <View style={{ position: 'absolute', left: 20, right: 84, bottom: base + 84, gap: 10, zIndex: 2 }}>
         {author ? (
           <View className="flex-row items-center" style={{ gap: 10 }}>
             <UAvatar source={photoOf(author.avatar)} name={author.displayName} size={40} />
@@ -102,21 +102,19 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
               onPress={() => toggleFollow(author.id)}
               hitSlop={6}
             >
-              <View
+              <Glass
+                dark={!following}
                 style={{
                   height: 32,
                   borderRadius: 16,
                   paddingHorizontal: 14,
                   justifyContent: 'center',
-                  backgroundColor: following ? FIXED.glassDark : FIXED.paper,
-                  borderWidth: following ? 1 : 0,
-                  borderColor: FIXED.glassEdge,
                 }}
               >
-                <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: following ? FIXED.paper : FIXED.night }}>
+                <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: following ? FIXED.night : FIXED.paper }}>
                   {following ? t('reels.following', 'Following') : t('reels.follow', 'Follow')}
                 </RNText>
-              </View>
+              </Glass>
             </Pressable>
           </View>
         ) : null}
@@ -131,7 +129,7 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
           position: 'absolute',
           left: 12,
           right: 12,
-          bottom: base + 14,
+          bottom: base,
           borderRadius: 26,
           padding: 10,
           flexDirection: 'row',
@@ -141,13 +139,13 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
         }}
       >
         <UAvatar source={photoOf(reel.recipePhoto)} name={reel.recipeTitle} size={52} square />
-        <BarText title={reel.recipeTitle} sub={reel.recipeMeta} />
+        <BarText title={reel.recipeTitle} sub={reel.recipeMeta} size={15} />
         <UButton size="sm" variant="accent" label={t('reels.cookThis', 'Cook this')} onPress={onCook} />
       </Glass>
 
       <View
         pointerEvents="none"
-        style={{ position: 'absolute', left: 20, right: 20, bottom: base + 2, height: 3, borderRadius: 2, overflow: 'hidden', zIndex: 2, backgroundColor: FIXED.glassEdge }}
+        style={{ position: 'absolute', left: 20, right: 20, bottom: base - 12, height: 3, borderRadius: 2, overflow: 'hidden', zIndex: 2, backgroundColor: FIXED.glassEdge }}
       >
         <Animated.View style={[{ height: '100%', backgroundColor: FIXED.paper, borderRadius: 2 }, barStyle]} />
       </View>

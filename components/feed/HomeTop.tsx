@@ -3,11 +3,14 @@ import { Pressable, ScrollView, Text as RNText, View } from 'react-native';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Dot, Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, type PhotoSource } from '@/components/ui';
+import { Dot, Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, useTokens, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { SAMPLE } from '@/assets/sample';
 import { useSocialStore } from '@/stores/socialStore';
 import { PREVIEW_LABEL } from '@/constants/features';
+
+/** The design shows no "Preview" tags; flip to true to label sample content again. */
+const SHOW_PREVIEW = false;
 import { DarkBar, BarText, GlassPill, photoOf } from './shared';
 
 interface HomeHeaderProps {
@@ -64,14 +67,14 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages }: Ho
 /** Link-paste bar: opens /import. */
 export function LinkBar({ onPress }: { onPress: () => void }) {
   const { t } = useTranslation();
+  const tokens = useTokens();
   const label = t('home.pasteLink', 'Paste a recipe or video link');
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
-      className="flex-row items-center bg-surface-2"
-      style={({ pressed }) => ({ height: 56, borderRadius: 28, paddingStart: 20, paddingRight: 6, gap: 10, opacity: pressed ? 0.85 : 1 })}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', backgroundColor: tokens['surface-2'], height: 56, borderRadius: 28, paddingStart: 20, paddingRight: 6, gap: 10, opacity: pressed ? 0.85 : 1 })}
     >
       <Icon name="link" color="muted" />
       <RNText className="text-muted flex-1" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 15 }}>
@@ -137,7 +140,7 @@ export function TonightCard({ title, sub, photo, preview, onPress }: TonightCard
       height={230}
       fade="both"
       topLeft={<Tag tone="glassDark" large label={t('home.tonight', 'Tonight · from your plan')} />}
-      topRight={preview ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
+      topRight={SHOW_PREVIEW && preview ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
       onPress={onPress}
       accessibilityLabel={title}
     >

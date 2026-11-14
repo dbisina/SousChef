@@ -22,9 +22,9 @@ export function ConversationRow({ conversation: c, onPress }: Props) {
       accessibilityLabel={t('messages.openConversation', 'Open conversation with {{name}}', { name: c.title })}
       accessibilityHint={unread ? t('messages.unreadCount', '{{count}} unread', { count: c.unread }) : undefined}
       onPress={onPress}
-      className="flex-row items-center"
-      style={({ pressed }) => ({ gap: 14, minHeight: 72, paddingVertical: 10, opacity: pressed ? 0.7 : 1 })}
+      style={({ pressed }) => ({ minHeight: 64, justifyContent: 'center', opacity: pressed ? 0.7 : 1 })}
     >
+      <View className="flex-row items-center" style={{ gap: 14 }}>
       <ConversationAvatar conversation={c} />
       <View className="flex-1" style={{ minWidth: 0, gap: 3 }}>
         <Title numberOfLines={1}>{c.title}</Title>
@@ -41,6 +41,7 @@ export function ConversationRow({ conversation: c, onPress }: Props) {
       <View style={{ alignItems: 'flex-end', gap: 6 }}>
         <Muted small>{timeAgo(c.lastAt)}</Muted>
         {unread ? <UBadge count={c.unread} /> : null}
+      </View>
       </View>
     </Pressable>
   );

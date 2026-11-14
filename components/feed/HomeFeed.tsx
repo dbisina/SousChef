@@ -13,11 +13,15 @@ import {
   UAvatar,
   UButton,
   UCard,
+  useTokens,
   type PhotoSource,
 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { PREVIEW_LABEL } from '@/constants/features';
+
+/** The design shows no "Preview" tags; flip to true to label sample content again. */
+const SHOW_PREVIEW = false;
 import { RESTAURANTS, MENU } from '@/data/sample/restaurants';
 import { SAMPLE } from '@/assets/sample';
 import { selectAuthor, selectIsFollowing, selectIsPostLiked, selectIsPostSaved, useSocialStore } from '@/stores/socialStore';
@@ -38,6 +42,7 @@ const CAROUSEL_EXTRAS: Record<string, PhotoRef[]> = {
 
 export function FriendPost({ postId }: { postId: string }) {
   const { t } = useTranslation();
+  const tokens = useTokens();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const post = useSocialStore((s) => s.posts.find((p) => p.id === postId));
@@ -69,11 +74,11 @@ export function FriendPost({ postId }: { postId: string }) {
             accessibilityRole="button"
             accessibilityLabel={following ? t('home.following', 'Following') : t('home.follow', 'Follow')}
             accessibilityState={{ selected: following }}
+            hitSlop={5}
             onPress={() => toggleFollow(author.id)}
-            className={following ? 'bg-surface-2' : 'bg-ink'}
-            style={({ pressed }) => ({ height: 44, borderRadius: 22, paddingHorizontal: 16, justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}
+            style={({ pressed }) => ({ height: 34, borderRadius: 17, paddingHorizontal: 14, justifyContent: 'center', backgroundColor: tokens['surface-2'], opacity: pressed ? 0.8 : 1 })}
           >
-            <RNText className={following ? 'text-ink' : 'text-ink-inverse'} style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
+            <RNText className={following ? 'text-muted' : 'text-ink'} style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
               {following ? t('home.following', 'Following') : t('home.follow', 'Follow')}
             </RNText>
           </Pressable>
@@ -103,7 +108,7 @@ export function FriendPost({ postId }: { postId: string }) {
         <View pointerEvents="none" className="flex-row justify-between" style={{ position: 'absolute', top: 14, left: 14, right: 14 }}>
           <View className="flex-row items-center" style={{ gap: 8 }}>
             {post.meta ? <Tag tone="glassDark" large icon="clock" label={post.meta} /> : null}
-            <Tag tone="glassDark" label={PREVIEW_LABEL} />
+            {SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : null}
           </View>
           {photos.length > 1 ? <Tag tone="glassDark" large label={`${page + 1}/${photos.length}`} /> : null}
         </View>
@@ -151,10 +156,10 @@ export function ReelsRow() {
   if (shown.length === 0) return null;
   return (
     <View style={{ gap: 12 }}>
-      <View className="flex-row items-center justify-between">
+      <View className="flex-row items-center justify-between" style={{ height: 24 }}>
         <View className="flex-row items-center" style={{ gap: 8 }}>
           <H2>{t('home.reels', 'Reels')}</H2>
-          <Tag label={PREVIEW_LABEL} />
+          {SHOW_PREVIEW ? <Tag label={PREVIEW_LABEL} /> : null}
         </View>
         <Pressable accessibilityRole="link" accessibilityLabel={t('home.seeAllReels', 'See all reels')} onPress={() => go(router, '/reels')} hitSlop={10}>
           <LinkText>{t('home.seeAll', 'See all')}</LinkText>
@@ -181,7 +186,7 @@ export function ReelsRow() {
                 <Icon name="play" size="sm" color="paper" />
                 <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.captionSub }}>{compactCount(reel.views)}</RNText>
               </View>
-              <RNText numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 13, lineHeight: 15, color: FIXED.paper }}>
+              <RNText numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 13, lineHeight: 16.4, color: FIXED.paper }}>
                 {reel.title}
               </RNText>
             </View>
@@ -205,6 +210,7 @@ export interface ImportedCardData {
 
 export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPress: () => void }) {
   const { t } = useTranslation();
+  const tokens = useTokens();
   const meta = item.minutes
     ? t('home.importedMeta', '{{n}} min · ready to cook', { n: item.minutes })
     : t('home.importedReady', 'Ready to cook');
@@ -213,8 +219,7 @@ export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPres
       accessibilityRole="button"
       accessibilityLabel={item.title}
       onPress={onPress}
-      className="flex-row items-center bg-surface"
-      style={({ pressed }) => ({ padding: 12, borderRadius: 26, gap: 14, opacity: pressed ? 0.85 : 1 })}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', backgroundColor: tokens.surface, padding: 12, borderRadius: 26, gap: 14, opacity: pressed ? 0.85 : 1 })}
     >
       <UAvatar source={item.photo} name={item.title} size={76} square />
       <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
@@ -222,7 +227,7 @@ export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPres
           <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12, flexShrink: 1 }}>
             {t('home.importedBy', 'Imported by you · {{source}}', { source: item.platform })}
           </RNText>
-          {item.preview ? <Tag label={PREVIEW_LABEL} /> : null}
+          {SHOW_PREVIEW && item.preview ? <Tag label={PREVIEW_LABEL} /> : null}
         </View>
         <RNText className="text-ink" numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20, letterSpacing: -0.15 }}>
           {item.title}
@@ -267,7 +272,7 @@ export function PlanShare({ shared, cards, onUse }: PlanShareProps) {
           sub={t('home.sharedPlanMeta', '5 days · high protein · 1.2k uses')}
           size={44}
           onPress={() => go(router, `/user/${tolu.id}`)}
-          right={<Tag label={PREVIEW_LABEL} />}
+          right={SHOW_PREVIEW ? <Tag label={PREVIEW_LABEL} /> : undefined}
         />
       ) : (
         <View className="flex-row items-center justify-between">
@@ -354,7 +359,7 @@ export function SponsoredDish() {
         radius={28}
         fade="both"
         topLeft={<Tag tone="glassDark" large label={t('home.hygiene', 'Hygiene {{n}}', { n: restaurant.hygiene })} />}
-        topRight={<Tag tone="glassDark" label={PREVIEW_LABEL} />}
+        topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
         onPress={toRestaurant}
         accessibilityLabel={dish.name}
       >
@@ -381,7 +386,7 @@ export function ChallengeCard() {
       height={250}
       fade="both"
       topLeft={<Tag tone="glassDark" large icon="people" label={community.name} />}
-      topRight={<Tag tone="glassDark" label={PREVIEW_LABEL} />}
+      topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
       onPress={() => go(router, `/community/${community.id}`)}
       accessibilityLabel={`${community.name}: ${challenge.title}`}
     >
@@ -431,7 +436,7 @@ export function MadeYourRecipe({ postId }: { postId: string }) {
           fade="none"
           onPress={open}
           accessibilityLabel={t('home.madePhoto', "{{name}}'s {{dish}}", { name: author.displayName, dish: post.title })}
-          topRight={<Tag tone="glassDark" label={PREVIEW_LABEL} />}
+          topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
         />
         <View className="flex-row items-center" style={{ gap: 14 }}>
           <Action icon="heart" label={t('home.like', 'Like')} active={liked} count={post.likes} onPress={() => toggleLike(post.id)} />
@@ -457,7 +462,7 @@ export function MysteryCard() {
           radius={22}
           fade="none"
           topLeft={<Tag tone="glassDark" large icon="gamepad" label={t('home.mysteryTag', 'Mystery Kitchen · last night')} />}
-          topRight={<Tag tone="glassDark" label={PREVIEW_LABEL} />}
+          topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
         />
         <View className="flex-row items-center justify-between" style={{ gap: 10 }}>
           <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
@@ -479,14 +484,14 @@ export function MysteryCard() {
 
 export function GlucoseReminder({ latestLine, onPress }: { latestLine?: string; onPress: () => void }) {
   const { t } = useTranslation();
+  const tokens = useTokens();
   const title = t('home.glucoseTitle', '2-hour check for your rice bowl lunch');
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
       onPress={onPress}
-      className="flex-row items-start bg-surface"
-      style={({ pressed }) => ({ padding: 16, borderRadius: 26, gap: 14, opacity: pressed ? 0.85 : 1 })}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'flex-start', backgroundColor: tokens.surface, padding: 16, borderRadius: 26, gap: 14, opacity: pressed ? 0.85 : 1 })}
     >
       <View className="items-center justify-center bg-accent" style={{ width: 44, height: 44, borderRadius: 22 }}>
         <Icon name="drop" color="accent-ink" />

@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text as RNText, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text as RNText, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Bubble, Muted, Screen, Title, UIconButton, useTokens } from '@/components/ui';
+import { Bubble, Icon, Muted, Screen, Title, UIconButton, useTokens } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { ConversationAvatar, authorById } from '@/components/chat/ConversationAvatar';
 import { RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles';
 import { messagesFor, useMessageStore } from '@/stores/messageStore';
+import { useToastStore } from '@/stores/toastStore';
 import { ME_ID, type Message } from '@/types/social';
 
 const dayKey = (iso: string) => new Date(iso).toDateString();
@@ -25,6 +26,7 @@ export default function ChatScreen() {
 
   const conversation = useMessageStore((s) => s.conversations.find((c) => c.id === id));
   const allMessages = useMessageStore((s) => s.messages);
+  const showToast = useToastStore((s) => s.showToast);
   const sendMessage = useMessageStore((s) => s.sendMessage);
   const markRead = useMessageStore((s) => s.markRead);
   const [draft, setDraft] = useState('');
@@ -36,6 +38,7 @@ export default function ChatScreen() {
     if (id && unread > 0) markRead(id);
   }, [id, unread, markRead]);
 
+  const soon = () => showToast(t('chat.comingSoon', 'Coming soon'), { type: 'info' });
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/messages'));
 
   if (!conversation) {
@@ -123,9 +126,14 @@ export default function ChatScreen() {
           style={{ paddingTop: Math.max(insets.top, 20) + 14, paddingBottom: 12, paddingHorizontal: 20, gap: 10 }}
         >
           <View className="flex-row items-center flex-1" style={{ gap: 10, minWidth: 0 }}>
-            <View style={{ marginLeft: -8 }}>
-              <UIconButton icon="back" label={t('chat.back', 'Back')} onPress={goBack} size={44} tone="default" />
-            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('chat.back', 'Back')}
+              onPress={goBack}
+              style={{ width: 36, height: 46, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Icon name="back" size="md" color="ink" />
+            </Pressable>
             <ConversationAvatar conversation={conversation} size={40} showPresence={false} />
             <View className="flex-1" style={{ minWidth: 0 }}>
               <Title numberOfLines={1}>{conversation.title}</Title>
@@ -140,7 +148,7 @@ export default function ChatScreen() {
               ) : null}
             </View>
           </View>
-          <UIconButton icon="camera" label={t('chat.videoCall', 'Video call')} disabled />
+          <UIconButton icon="camera" label={t('chat.videoCall', 'Video call')} onPress={soon} />
         </View>
 
         <ScrollView
@@ -158,7 +166,7 @@ export default function ChatScreen() {
           className="flex-row items-center"
           style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 30), gap: 8 }}
         >
-          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} disabled />
+          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={soon} />
           <View className="flex-1 bg-surface-2 justify-center" style={{ height: 48, borderRadius: 24, paddingHorizontal: 18 }}>
             <TextInput
               accessibilityLabel={t('chat.message', 'Message')}
@@ -176,7 +184,7 @@ export default function ChatScreen() {
           {draft.trim() ? (
             <UIconButton tone="black" icon="send" label={t('chat.send', 'Send')} onPress={send} />
           ) : (
-            <UIconButton tone="black" icon="mic" label={t('chat.record', 'Record voice note')} disabled />
+            <UIconButton tone="black" icon="mic" label={t('chat.record', 'Record voice note')} onPress={soon} />
           )}
         </View>
       </KeyboardAvoidingView>

@@ -75,7 +75,7 @@ export default function PostDetailScreen() {
   const liked = isPost ? likedPostIds.includes(item.id) : likedReelIds.includes(item.id);
   const saved = isPost ? savedPostIds.includes(item.id) : savedReelIds.includes(item.id);
   const top = Math.max(insets.top, 20) + 14;
-  const bottom = Math.max(insets.bottom, 20) + 10;
+  const bottom = Math.max(insets.bottom, 20);
 
   const send = () => {
     const added = addComment(item.id, draft, replyTo?.id);
@@ -98,9 +98,9 @@ export default function PostDetailScreen() {
       >
         <PhotoCard source={photoOf(item.photo)} height={380} radius={0} fade="none" accessibilityLabel={item.title}>
           <View className="flex-row justify-between" style={{ position: 'absolute', top, left: 20, right: 20 }}>
-            <UIconButton tone="glass" icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />
+            <UIconButton tone="glassDark" icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />
             <UIconButton
-              tone="glass"
+              tone="glassDark"
               icon="bookmark"
               filled={saved}
               label={saved ? t('post.unsave', 'Remove from saved') : t('post.save', 'Save')}
@@ -125,13 +125,8 @@ export default function PostDetailScreen() {
               }
             />
           ) : null}
-          {item.caption ? (
-            <RNText className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
-              {item.caption}
-            </RNText>
-          ) : null}
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center" style={{ gap: 14 }}>
+            <View className="flex-row items-center" style={{ gap: 18 }}>
               <Action
                 icon="heart"
                 label={t('post.like', 'Like')}
@@ -185,6 +180,7 @@ export default function PostDetailScreen() {
             <UAvatar source={photoOf(CURRENT_USER.avatar)} name={CURRENT_USER.displayName} size={40} />
             <View className="flex-1">
               <UInput
+                height={50}
                 label={t('post.addComment', 'Add a comment')}
                 placeholder={t('post.addCommentPlaceholder', 'Add a comment…')}
                 value={draft}
@@ -193,7 +189,7 @@ export default function PostDetailScreen() {
                 returnKeyType="send"
               />
             </View>
-            <UIconButton icon="send" tone="black" label={t('post.postComment', 'Post comment')} onPress={send} disabled={!draft.trim()} />
+            <UIconButton icon="send" tone="black" label={t('post.postComment', 'Post comment')} onPress={send} />
           </View>
         </View>
       </KeyboardAvoidingView>

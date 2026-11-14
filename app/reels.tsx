@@ -86,7 +86,7 @@ export default function ReelsScreen() {
           variant="compact"
           left={<UIconButton tone="glassDark" icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />}
           title={
-            <Glass dark accessibilityRole="tablist" style={{ flexDirection: 'row', padding: 4, borderRadius: 27 }}>
+            <Glass dark accessibilityRole="tablist" style={{ flexDirection: 'row', padding: 3, borderRadius: 27 }}>
               {tabs.map((o) => {
                 const on = o.value === tab;
                 return (

@@ -16,6 +16,7 @@ import {
   UAvatar,
   UButton,
   UIconButton,
+  useTokens,
   type IconName,
   type PhotoSource,
 } from '@/components/ui';
@@ -45,11 +46,11 @@ interface Quick {
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <View className="flex-row items-baseline" style={{ gap: 4 }}>
-      <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+    <View>
+      <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20 }}>
         {value}
       </RNText>
-      <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+      <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: 2 }}>
         {label}
       </RNText>
     </View>
@@ -59,6 +60,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 export default function YouScreen() {
   const router = useRouter();
   const { t } = useTranslation();
+  const tokens = useTokens();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const user = useAuthStore((s) => s.user);
@@ -102,7 +104,9 @@ export default function YouScreen() {
   const savedPosts = useMemo(() => posts.filter((p) => savedPostIds.includes(p.id)), [posts, savedPostIds]);
 
   const latest = useMemo(() => latestGlucose(readings), [readings]);
-  const healthLine = latest
+  const healthLine = latest && readingStatus(latest) === 'in-range' && new Date(latest.at).toDateString() === new Date().toDateString()
+    ? t('you.inRangeToday', 'In range today')
+    : latest
     ? t('you.healthLatest', '{{status}} · {{value}} mmol/L', {
         status:
           readingStatus(latest) === 'in-range'
@@ -197,8 +201,8 @@ export default function YouScreen() {
 
         <View style={{ paddingHorizontal: 20, gap: 14, marginTop: -46 }}>
           <View className="flex-row justify-between" style={{ alignItems: 'flex-end' }}>
-            <View className="bg-ground" style={{ padding: 4, borderRadius: 50 }}>
-              <UAvatar source={avatar} name={name} size={92} />
+            <View className="border-ground bg-ground overflow-hidden" style={{ width: 92, height: 92, borderRadius: 46, borderWidth: 4 }}>
+              <UAvatar source={avatar} name={name} size={84} />
             </View>
             <View className="flex-row items-center" style={{ gap: 8 }}>
               <UButton size="sm" variant="ghost" label={t('you.editProfile', 'Edit profile')} onPress={() => go('/settings/edit-profile')} />
@@ -206,7 +210,7 @@ export default function YouScreen() {
             </View>
           </View>
 
-          <View style={{ gap: 2 }}>
+          <View style={{ gap: 5, paddingTop: 5 }}>
             <Display size={24} numberOfLines={1}>
               {name}
             </Display>
@@ -233,8 +237,7 @@ export default function YouScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={q.subtitle ? `${q.title}, ${q.subtitle}` : q.title}
                   onPress={q.onPress}
-                  className="flex-row items-center bg-surface"
-                  style={({ pressed }) => ({ paddingVertical: 12, paddingHorizontal: 14, borderRadius: 22, gap: 10, minHeight: 60, opacity: pressed ? 0.85 : 1 })}
+                  style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', backgroundColor: tokens.surface, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 22, gap: 10, minHeight: 60, opacity: pressed ? 0.85 : 1 })}
                 >
                   {q.leading}
                   <View>

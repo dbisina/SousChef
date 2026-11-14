@@ -47,8 +47,7 @@ export function AuthorRow({ photo, name, sub, size = 44, onPress, right }: Autho
           accessibilityRole="button"
           accessibilityLabel={name}
           onPress={onPress}
-          className="flex-1"
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.7 : 1 })}
         >
           {body}
         </Pressable>
@@ -76,9 +75,8 @@ export function Action({ icon, label, count, active, onPress }: ActionProps) {
       accessibilityLabel={label}
       accessibilityState={{ selected: !!active }}
       onPress={onPress}
-      hitSlop={6}
-      className="flex-row items-center"
-      style={({ pressed }) => ({ gap: 6, minHeight: 44, opacity: pressed ? 0.6 : 1 })}
+      hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 22, opacity: pressed ? 0.6 : 1 })}
     >
       <Icon name={icon} filled={active} color={active ? 'accent' : 'ink'} />
       {count !== undefined ? (
@@ -122,7 +120,7 @@ export function DarkBar({ children, style }: { children: React.ReactNode; style?
 export function BarText({ title, sub, size = 17 }: { title: string; sub?: string; size?: number }) {
   return (
     <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
-      <RNText numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: size, color: FIXED.paper, letterSpacing: -0.17 }}>
+      <RNText numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: size, color: FIXED.paper, letterSpacing: -0.17 }}>
         {title}
       </RNText>
       {sub ? (
@@ -146,10 +144,11 @@ export function GlassPill({
   onPress?: () => void;
   height?: number;
 }) {
+  const big = height >= 44;
   const body = (
-    <Glass style={{ height, borderRadius: height / 2, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+    <Glass style={{ height, borderRadius: height / 2, paddingHorizontal: big ? 18 : 14, flexDirection: 'row', alignItems: 'center', gap: 5 }}>
       {icon ? <Icon name={icon} size="sm" color="night" /> : null}
-      <RNText numberOfLines={1} style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.night }}>
+      <RNText numberOfLines={1} style={{ fontFamily: FONT.sansMedium, fontSize: big ? 14 : 13, color: FIXED.night }}>
         {label}
       </RNText>
     </Glass>

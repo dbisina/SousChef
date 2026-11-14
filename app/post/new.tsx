@@ -90,6 +90,11 @@ export default function NewPostScreen() {
 
         <View className="flex-row" style={{ gap: 8 }}>
           <View style={{ flex: 2 }}>
+            <View
+              pointerEvents="none"
+              style={{ position: 'absolute', top: -2, left: -2, right: -2, bottom: -2, borderRadius: 22, borderWidth: 2, zIndex: 1 }}
+              className="border-ink"
+            />
             <PhotoCard source={photoOf(photo)} height={308} radius={20} fade="none" accessibilityLabel={t('newPost.selectedPhoto', 'Selected photo')}>
               <View
                 pointerEvents="none"
@@ -123,7 +128,7 @@ export default function NewPostScreen() {
           multiline
         />
 
-        <Rows box>
+        <Rows>
           <ListRow
             icon="book"
             title={t('newPost.attachRecipe', 'Attach recipe')}

@@ -99,7 +99,7 @@ export default function StoryScreen() {
   }
 
   const top = Math.max(insets.top, 20);
-  const bottom = Math.max(insets.bottom, 20) + 14;
+  const bottom = Math.max(insets.bottom, 20);
 
   const send = () => {
     if (!reply.trim()) return;
@@ -153,7 +153,7 @@ export default function StoryScreen() {
       </View>
 
       {story.recipeId ? (
-        <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: '62%', alignItems: 'center' }}>
+        <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, top: '61.6%', alignItems: 'center' }}>
           <GlassPill
             icon="link"
             height={44}

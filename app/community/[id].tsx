@@ -19,7 +19,7 @@ import {
 import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { useSocialStore } from '@/stores/socialStore';
-import { timeAgo } from '@/lib/timeAgo';
+import { compactCount, timeAgo } from '@/lib/timeAgo';
 import { photoOf } from '@/components/feed/shared';
 import type { Challenge, CommunityEvent } from '@/types/social';
 
@@ -61,7 +61,7 @@ function EventRow({ event, reminded, onToggle }: { event: CommunityEvent; remind
         <RNText className="text-ink" numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20, letterSpacing: -0.15 }}>
           {event.title}
         </RNText>
-        <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
+        <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
           {event.detail}
         </RNText>
       </View>
@@ -126,9 +126,9 @@ export default function CommunityScreen() {
             accessibilityRole="button"
             accessibilityLabel={`${a.handle}: ${p.caption}`}
             onPress={() => router.push(`/post/${p.id}` as Href)}
-            className="flex-row items-start"
-            style={({ pressed }) => ({ gap: 12, opacity: pressed ? 0.7 : 1 })}
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           >
+            <View className="flex-row items-start" style={{ gap: 12 }}>
             <UAvatar source={photoOf(a.avatar)} name={a.displayName} size={38} />
             <View className="flex-1" style={{ minWidth: 0 }}>
               <View className="flex-row items-center" style={{ gap: 6 }}>
@@ -142,6 +142,7 @@ export default function CommunityScreen() {
               <RNText className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
                 {p.caption}
               </RNText>
+            </View>
             </View>
           </Pressable>
         );
@@ -176,10 +177,12 @@ export default function CommunityScreen() {
             />
           </View>
           <View style={{ position: 'absolute', left: 22, right: 22, bottom: 22, gap: 8 }}>
-            <Tag
-              tone="glassDark"
-              label={community.visibility === 'public' ? t('community.public', 'Public community') : t('community.private', 'Private community')}
-            />
+            <View style={{ alignSelf: 'flex-start' }}>
+              <Tag
+                tone="glassDark"
+                label={community.visibility === 'public' ? t('community.public', 'Public community') : t('community.private', 'Private community')}
+              />
+            </View>
             <RNText
               accessibilityRole="header"
               numberOfLines={2}
@@ -191,7 +194,7 @@ export default function CommunityScreen() {
               <View className="flex-row items-center" style={{ gap: 10 }}>
                 <AvatarStack people={community.memberAvatars.map((a) => ({ name: a, source: photoOf(a) }))} />
                 <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.paper }}>
-                  {t('community.members', '{{n}} members', { n: community.memberCount.toLocaleString() })}
+                  {t('community.members', '{{n}} members', { n: compactCount(community.memberCount) })}
                 </RNText>
               </View>
               <UButton
