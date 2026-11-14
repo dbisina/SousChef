@@ -150,7 +150,7 @@ export default function NotificationsScreen() {
     <Screen bare>
       <TopBar variant="compact" title={t('account.notif.title', 'Notifications')} onBack={() => router.back()} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 12 }}>
-        {permissionStatus === 'denied' ? (
+        {Platform.OS !== 'web' && permissionStatus === 'denied' ? (
           <UCard>
             <Muted small>
               {t('account.notif.notEnabled', 'Notifications are not enabled. Toggle below to grant permission.')}

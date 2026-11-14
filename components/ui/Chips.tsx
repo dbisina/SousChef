@@ -95,7 +95,8 @@ export function Tag({ label, tone = 'default', icon, large }: TagProps) {
     const dark = tone === 'glassDark';
     return (
       <Glass dark={dark} style={[size, { flexDirection: 'row', alignItems: 'center', gap: 5 }]}>
-        {icon ? <Icon name={icon} size="sm" color={dark ? 'paper' : 'night'} /> : null}
+        {/* positioned wrapper: Glass overlays are absolute and would paint over a bare web <svg> */}
+        {icon ? <View><Icon name={icon} size="sm" color={dark ? 'paper' : 'night'} /></View> : null}
         <RNText style={[textStyle, { color: dark ? FIXED.paper : FIXED.night }]} numberOfLines={1}>
           {label}
         </RNText>

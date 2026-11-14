@@ -295,25 +295,25 @@ export default function SeedDataScreen() {
         />
 
         <SectionLabel>{t('account.seed.log', 'Process log')}</SectionLabel>
-        <View className="bg-surface flex-1" style={{ borderRadius: 28, padding: 18, minHeight: 160 }}>
+        <View className="bg-surface" style={{ borderRadius: 28, padding: 18, height: 200 }}>
           <ScrollView
             showsVerticalScrollIndicator={false}
             ref={(ref) => ref?.scrollToEnd({ animated: true })}
           >
             {logs.length === 0 ? (
               <>
-                <Text className="text-ink" style={{ fontFamily: MONO, fontSize: 12 }}>
+                <Text className="text-ink" style={{ fontFamily: MONO, fontSize: 12, lineHeight: 20.4 }}>
                   {'> '}
                   {t('account.seed.ready', 'Ready to initialize database...')}
                 </Text>
-                <Text className="text-subtle" style={{ fontFamily: MONO, fontSize: 12 }}>
+                <Text className="text-subtle" style={{ fontFamily: MONO, fontSize: 12, lineHeight: 20.4 }}>
                   {'> '}
                   {t('account.seed.waiting', 'waiting for command')}
                 </Text>
               </>
             ) : (
               logs.map((log, index) => (
-                <Text key={index} className="text-ink" style={{ fontFamily: MONO, fontSize: 12, marginBottom: 4 }}>
+                <Text key={index} className="text-ink" style={{ fontFamily: MONO, fontSize: 12, lineHeight: 20.4 }}>
                   {log}
                 </Text>
               ))
