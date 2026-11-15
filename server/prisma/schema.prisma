@@ -101,6 +101,8 @@ model User {
   promoGrants      PromoGrant[]
   aiUsage          AiUsage[]
   imports          Import[]
+  dailyDishGames   DailyDishGame[]
+  dailyDishStreak  DailyDishStreak?
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1105,4 +1107,44 @@ model Import {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+/// One puzzle in the Daily Dish rotation. The answer lives only here and on the server's screens, never in the app.
+model DailyPuzzle {
+  /// Its place in the rotation, 1..N. The puzzle for a day is chosen by the day's number modulo N.
+  position Int      @id
+  answer   String
+  aliases  String[]
+  /// Up to six clues, hardest first.
+  clues    String[]
+  photoUrl String?
+}
+
+/// One person's game on one day.
+model DailyDishGame {
+  userId     String    @db.Uuid
+  /// "YYYY-MM-DD" in UTC
+  dateKey    String
+  cluesShown Int       @default(1)
+  guesses    String[]
+  /// "playing", "solved" or "failed"
+  status     String    @default("playing")
+  score      Int       @default(0)
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, dateKey])
+  @@index([dateKey, status, score(sort: Desc)])
+}
+
+model DailyDishStreak {
+  userId         String @id @db.Uuid
+  current        Int    @default(0)
+  best           Int    @default(0)
+  /// "" until the first solve
+  lastSolvedDate String @default("")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

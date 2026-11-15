@@ -34,6 +34,8 @@ import { MealPlanService, WasteService } from './mealplan/service';
 import { recipeRoutes } from './recipes/routes';
 import { FollowService } from './social/follows';
 import { PostService } from './social/posts';
+import { DailyDishService } from './play/dailyDish';
+import { playRoutes } from './play/routes';
 import type { Requester } from './imports/net';
 import { importRoutes } from './imports/routes';
 import { ImportService } from './imports/service';
@@ -154,6 +156,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
   importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
+  playRoutes(app, new DailyDishService(db, options.now), auth);
   const invites = new InviteService(db, options.now);
   inviteRoutes(app, invites, new HouseService(db, options.now), auth, config);
   const stories = new StoryService(db, uploads, options.now);

@@ -13,6 +13,8 @@ export * from './social';
 export * from './community';
 export * from './invites';
 export * from './imports';
+export * from './dailyDish';
+export * from './play';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';
