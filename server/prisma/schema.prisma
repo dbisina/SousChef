@@ -75,6 +75,7 @@ model User {
   wasteEntries   WasteEntry[]
   cookbookLikes  CookbookLike[]
   cookbookSaves  CookbookSave[]
+  subscription   Subscription?
 }
 
 /// A Google or Apple account linked to a user.
@@ -549,4 +550,40 @@ model AdInquiry {
   submittedAt DateTime        @default(now())
 
   @@index([status, submittedAt(sort: Desc)])
+}
+
+enum SubscriptionState {
+  ACTIVE
+  /// They turned off renewal. Access continues until the period ends.
+  CANCELLED
+  /// The renewal payment failed. Access continues until the period ends (the store's grace period).
+  BILLING_ISSUE
+  EXPIRED
+}
+
+/// A person's paid plan, kept up to date by RevenueCat's webhook. The server, not the phone, decides who has what.
+model Subscription {
+  userId      String            @id @db.Uuid
+  /// "premium" or "pro"
+  tier        String
+  productId   String?
+  store       String?
+  status      SubscriptionState
+  willRenew   Boolean           @default(true)
+  /// End of the paid period; null if the store gave none.
+  expiresAt   DateTime?
+  /// The time of the newest RevenueCat event applied, so an older event arriving late cannot undo a newer one.
+  lastEventAt DateTime
+  updatedAt   DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Webhook events already handled, by the provider's event id (the provider retries, so we must be idempotent).
+model WebhookEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
 }

@@ -48,6 +48,15 @@ const schema = z.object({
   RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
   /** Sign-in, sign-up, refresh and password reset requests per minute per address: the endpoints people guess at. */
   AUTH_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(10),
+
+  /**
+   * The value RevenueCat sends in the Authorization header of its webhook (set it to "Bearer <this secret>" in the
+   * RevenueCat dashboard). Empty turns the webhook off.
+   */
+  REVENUECAT_WEBHOOK_SECRET: z
+    .string()
+    .default('')
+    .refine((v) => v === '' || v.length >= 16, 'REVENUECAT_WEBHOOK_SECRET must be empty or at least 16 characters'),
 });
 
 export type Config = z.infer<typeof schema>;

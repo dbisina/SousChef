@@ -15,6 +15,7 @@ export type ErrorCode =
   | 'provider_not_configured'
   | 'provider_rejected'
   | 'limit_reached'
+  | 'upgrade_required'
   | 'internal';
 
 /** Every error response from the API has this body. */

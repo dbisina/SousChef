@@ -30,6 +30,7 @@ Without Docker you need Node 22, the Rust toolchain, and a PostgreSQL you can po
 | `src/app.ts` | builds the server; everything it needs is passed in, so tests can swap the database, clock and mailer |
 | `src/config.ts` | reads and checks the environment once at startup |
 | `src/auth/` | sign-up and sign-in, tokens, passwords, Google and Apple, password reset |
+| `src/subscriptions/` | plans from RevenueCat's webhook, `GET /v1/me/entitlements`, and what each plan unlocks |
 | `src/recipes/` | recipes: create/edit, filters, search, "cook with what I have", likes, saves, ratings, comments, "I made this", reports |
 | `prisma/schema.prisma` | the database. Every change needs a migration: `npm run db:migrate -- --name what_changed` |
 | `native/` | Rust: `links/` is the logic (plain `cargo test`), `src/` the Node wrapper |
@@ -59,7 +60,8 @@ See `.env.example` for every setting. A bad or missing setting stops the server 
 - **Likes, saves, ratings and comments keep running totals on the recipe.** They change in the same transaction as
   the row, repeating a request changes nothing, and deleting an account recounts the recipes it touched.
 - **Three different people reporting a recipe hide it** until an admin restores it (`PATCH` with `status: published`).
-- **Pro-only (`isExclusive`) recipes are stored but not yet locked**; that arrives with subscriptions.
+- **Subscriptions come from RevenueCat's webhook.** Set `REVENUECAT_WEBHOOK_SECRET`, then in the RevenueCat dashboard point a webhook at `/v1/webhooks/revenuecat` with the Authorization header `Bearer <that secret>`. The app must sign in to RevenueCat with the SousChef user id. `GET /v1/me/entitlements` reports the plan; the server enforces it (Pro-only recipes answer `upgrade_required`, paying people get no ads). Without the secret the webhook answers 501.
+- **A cancelled plan keeps working until the paid period ends**; a period that has run out counts as free even if the expiry event has not arrived yet.
 
 - **Rate limits and Cloudflare.** `TRUST_PROXY=true` takes the visitor's address from `cf-connecting-ip`. Only turn
   it on when the server accepts traffic from Cloudflare alone (firewall), or anyone could fake the header.

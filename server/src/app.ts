@@ -18,6 +18,8 @@ import { PantryService, ShoppingService, WantToCookService } from './kitchen/ser
 import { mealPlanRoutes } from './mealplan/routes';
 import { MealPlanService, WasteService } from './mealplan/service';
 import { recipeRoutes } from './recipes/routes';
+import { subscriptionRoutes } from './subscriptions/routes';
+import { EntitlementService } from './subscriptions/service';
 import { RecipeService } from './recipes/service';
 
 export interface BuildOptions {
@@ -87,12 +89,14 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
 
   healthRoutes(app, db);
   authRoutes(app, auth, config);
-  recipeRoutes(app, new RecipeService(db), auth);
+  const entitlements = new EntitlementService(db, options.now);
+  subscriptionRoutes(app, entitlements, auth, config);
+  recipeRoutes(app, new RecipeService(db, entitlements), auth);
   const pantry = new PantryService(db, options.now);
   const shopping = new ShoppingService(db);
   kitchenRoutes(app, { pantry, shopping, wantToCook: new WantToCookService(db, pantry, shopping, options.now) }, auth);
   cookbookRoutes(app, new CookbookService(db), auth);
-  adRoutes(app, new AdService(db, options.now), auth, config);
+  adRoutes(app, new AdService(db, options.now), auth, config, entitlements);
   mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
   app.addHook('onClose', async () => {
