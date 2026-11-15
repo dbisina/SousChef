@@ -40,3 +40,18 @@ export const SAMPLE = {
 } as const;
 
 export type SampleName = keyof typeof SAMPLE;
+
+/**
+ * A picture in the feed, chat or games: the name of a bundled sample photo, or (when the app talks to the server) the
+ * address of a real one. `photoSource` turns either into something an image can show.
+ */
+export type PhotoLike = SampleName | (string & {});
+
+const isAddress = (ref: string) => /^(https?:|file:|data:|content:)/i.test(ref);
+
+/** The image source for a sample name or an address; null for an unknown name, so a bad value shows nothing instead of crashing. */
+export function photoSource(ref: string | null | undefined): (typeof SAMPLE)[SampleName] | { uri: string } | null {
+  if (!ref) return null;
+  if (isAddress(ref)) return { uri: ref };
+  return (SAMPLE as Record<string, (typeof SAMPLE)[SampleName]>)[ref] ?? null;
+}

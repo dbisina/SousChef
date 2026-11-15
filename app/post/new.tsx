@@ -20,6 +20,8 @@ import {
 import { useSocialStore } from '@/stores/socialStore';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { photoOf } from '@/components/feed/shared';
+import * as ImagePicker from 'expo-image-picker';
+import { apiEnabled } from '@/lib/api';
 import type { PhotoRef, PostKind } from '@/types/social';
 
 const PHOTOS: PhotoRef[] = ['gnocchi', 'pasta', 'penne'];
@@ -49,7 +51,15 @@ export default function NewPostScreen() {
   );
   const community = communities.find((c) => c.id === communityId);
   const others = PHOTOS.filter((p) => p !== photo);
-  const canShare = caption.trim().length > 0;
+  const canShare = caption.trim().length > 0 && !(apiEnabled() && !/^(file|content):/i.test(photo));
+
+  // With the server on, a post needs a real photo from the phone (the sample photos cannot be uploaded).
+  const choosePhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    const uri = !result.canceled ? result.assets[0]?.uri : undefined;
+    if (uri) setPhoto(uri);
+  };
+  const needsRealPhoto = apiEnabled() && !/^(file|content):/i.test(photo);
 
   const share = () => {
     if (!canShare) return;
@@ -119,6 +129,17 @@ export default function NewPostScreen() {
             ))}
           </View>
         </View>
+
+        {apiEnabled() ? (
+          <Rows>
+            <ListRow
+              icon="image"
+              title={t('newPost.choosePhoto', 'Choose a photo')}
+              subtitle={needsRealPhoto ? t('newPost.photoNeeded', 'Pick a photo from your phone to share') : t('newPost.photoChosen', 'Photo chosen. Tap to change it')}
+              onPress={choosePhoto}
+            />
+          </Rows>
+        ) : null}
 
         <Field
           label={t('newPost.caption', 'Caption')}

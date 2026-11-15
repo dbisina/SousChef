@@ -1,15 +1,15 @@
 import React from 'react';
 import { Share, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { SAMPLE } from '@/assets/sample';
+import { photoSource } from '@/assets/sample';
 import { Glass, Icon, Title, UAvatar, type IconName, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { compactCount } from '@/lib/timeAgo';
 import type { PhotoRef } from '@/types/social';
 
-/** Bundled sample photo for a PhotoRef. */
-export const photoOf = (ref: PhotoRef): PhotoSource => SAMPLE[ref] as PhotoSource;
+/** The photo for a PhotoRef: a bundled sample, or a picture from the server. */
+export const photoOf = (ref: PhotoRef): PhotoSource => photoSource(ref) as PhotoSource;
 
 /** Opens the native share sheet; failures (cancelled, unsupported) are ignored. */
 export function shareText(message: string) {

@@ -6,6 +6,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { isOnboardingComplete } from '@/app/onboarding';
 import { isDesignReview } from '@/lib/designReview';
 import { apiEnabled, onApiSignedOut } from '@/lib/api';
+import { useSocialStore } from '@/stores/socialStore';
+import { useMessageStore } from '@/stores/messageStore';
 
 // Hook to handle auth state changes and protected routes
 export const useAuth = () => {
@@ -34,6 +36,18 @@ export const useAuth = () => {
     void useAuthStore.getState().restoreSession();
     return () => onApiSignedOut(null);
   }, []);
+
+  // Server mode: once somebody is signed in, load their feed and conversations (and clear them on sign-out).
+  const signedInId = user?.id;
+  useEffect(() => {
+    if (isDesignReview || !apiEnabled()) return;
+    if (!signedInId) {
+      useMessageStore.getState().stopLive(); // signed out: close the live connection and forget the conversations
+      return;
+    }
+    void useSocialStore.getState().loadFromServer();
+    void useMessageStore.getState().loadFromServer();
+  }, [signedInId]);
 
   // Listen to Firebase auth state changes
   useEffect(() => {

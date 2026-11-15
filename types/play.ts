@@ -1,4 +1,4 @@
-import type { PhotoRef } from './social';
+import type { SampleName as PhotoRef } from '@/assets/sample';
 
 export interface Game {
   id: string;

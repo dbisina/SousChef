@@ -10,7 +10,7 @@ export interface MessageSnapshot {
 export type OutgoingMessage =
   | { kind: 'text'; text: string }
   | { kind: 'recipe-card'; title: string; photo: PhotoRef; meta: string; recipeId?: string }
-  | { kind: 'voice'; durationSec: number; waveform: number[] };
+  | { kind: 'voice'; durationSec: number; waveform: number[]; /** The recording on the phone; needed to send it to the server. */ uri?: string };
 
 export interface MessageService {
   seed(now?: Date): MessageSnapshot;

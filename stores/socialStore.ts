@@ -3,7 +3,23 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { feedService } from '@/services/feedService';
 import type { FeedSnapshot, NewPostInput } from '@/services/feedService';
-import type { Comment, Post } from '@/types/social';
+import type { Author, Comment, Post } from '@/types/social';
+import { ME_ID } from '@/types/social';
+import { apiEnabled } from '@/lib/api';
+import { currentUserId } from '@/lib/session';
+import { uploadFile } from '@/lib/upload';
+import { fetchServerFeed, toComment, toPost } from '@/services/feedServer';
+import {
+  apiAddComment,
+  apiCreatePost,
+  apiSetCommentLiked,
+  apiSetFollowing,
+  apiSetPostLiked,
+  apiSetPostSaved,
+  apiViewStory,
+} from '@/services/socialApi';
+
+const EMPTY_FEED = { authors: [], posts: [], reels: [], stories: [], comments: [], communities: [], challenges: [], events: [] };
 
 interface SocialState extends FeedSnapshot {
   likedPostIds: string[];
@@ -26,6 +42,10 @@ interface SocialState extends FeedSnapshot {
   addComment: (postId: string, text: string, parentId?: string) => Comment | null;
   createPost: (input: NewPostInput) => Post;
   resetSample: () => void;
+  /** Server mode: loads the feed and the story row, and who is liked, saved and followed. */
+  loadFromServer: () => Promise<void>;
+  /** Adds people the server told us about (chat members, for example) without touching the rest. */
+  mergeAuthors: (authors: Author[]) => void;
 }
 
 const flip = (list: string[], id: string): { next: string[]; on: boolean } =>
@@ -35,8 +55,8 @@ const flip = (list: string[], id: string): { next: string[]; on: boolean } =>
 
 export const useSocialStore = create<SocialState>()(
   persist(
-    (set) => ({
-      ...feedService.seed(),
+    (set, get) => ({
+      ...(apiEnabled() ? EMPTY_FEED : feedService.seed()),
       likedPostIds: [],
       savedPostIds: [],
       likedReelIds: [],
@@ -46,47 +66,69 @@ export const useSocialStore = create<SocialState>()(
       joinedCommunityIds: [],
       viewedStoryIds: [],
 
-      toggleLikePost: (id) =>
+      toggleLikePost: (id) => {
+        const wantOn = !get().likedPostIds.includes(id);
+        if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, likes: count } : p)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.likedPostIds, id);
           return {
             likedPostIds: next,
             posts: s.posts.map((p) => (p.id === id ? { ...p, likes: Math.max(0, p.likes + (on ? 1 : -1)) } : p)),
           };
-        }),
-      toggleSavePost: (id) =>
+        });
+      },
+      toggleSavePost: (id) => {
+        const wantOn = !get().savedPostIds.includes(id);
+        if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, saves: count } : p)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.savedPostIds, id);
           return {
             savedPostIds: next,
             posts: s.posts.map((p) => (p.id === id ? { ...p, saves: Math.max(0, p.saves + (on ? 1 : -1)) } : p)),
           };
-        }),
-      toggleLikeReel: (id) =>
+        });
+      },
+      toggleLikeReel: (id) => {
+        const wantOn = !get().likedReelIds.includes(id);
+        if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ reels: s.reels.map((r) => (r.id === id ? { ...r, likes: count } : r)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.likedReelIds, id);
           return {
             likedReelIds: next,
             reels: s.reels.map((r) => (r.id === id ? { ...r, likes: Math.max(0, r.likes + (on ? 1 : -1)) } : r)),
           };
-        }),
-      toggleSaveReel: (id) =>
+        });
+      },
+      toggleSaveReel: (id) => {
+        const wantOn = !get().savedReelIds.includes(id);
+        if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ reels: s.reels.map((r) => (r.id === id ? { ...r, saves: count } : r)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.savedReelIds, id);
           return {
             savedReelIds: next,
             reels: s.reels.map((r) => (r.id === id ? { ...r, saves: Math.max(0, r.saves + (on ? 1 : -1)) } : r)),
           };
-        }),
-      toggleLikeComment: (id) =>
+        });
+      },
+      toggleLikeComment: (id) => {
+        const wantOn = !get().likedCommentIds.includes(id);
+        const postId = get().comments.find((c) => c.id === id)?.postId;
+        if (apiEnabled() && postId) syncToggle(() => apiSetCommentLiked(postId, id, wantOn), (count) => set((s) => ({ comments: s.comments.map((c) => (c.id === id ? { ...c, likes: count } : c)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.likedCommentIds, id);
           return {
             likedCommentIds: next,
             comments: s.comments.map((c) => (c.id === id ? { ...c, likes: Math.max(0, c.likes + (on ? 1 : -1)) } : c)),
           };
-        }),
-      toggleFollow: (authorId) => set((s) => ({ followingIds: flip(s.followingIds, authorId).next })),
+        });
+      },
+      toggleFollow: (authorId) => {
+        if (apiEnabled() && authorId !== ME_ID) {
+          const wantOn = !get().followingIds.includes(authorId);
+          apiSetFollowing(authorId, wantOn).catch(() => void get().loadFromServer());
+        }
+        set((s) => ({ followingIds: flip(s.followingIds, authorId).next }));
+      },
       toggleJoinCommunity: (id) =>
         set((s) => {
           const { next, on } = flip(s.joinedCommunityIds, id);
@@ -97,12 +139,26 @@ export const useSocialStore = create<SocialState>()(
             ),
           };
         }),
-      markStoryViewed: (id) =>
-        set((s) => (s.viewedStoryIds.includes(id) ? s : { viewedStoryIds: [...s.viewedStoryIds, id] })),
+      markStoryViewed: (id) => {
+        if (apiEnabled() && !get().viewedStoryIds.includes(id)) void apiViewStory(id);
+        set((s) => (s.viewedStoryIds.includes(id) ? s : { viewedStoryIds: [...s.viewedStoryIds, id] }));
+      },
 
       addComment: (postId, text, parentId) => {
         if (!text.trim()) return null;
         const comment = feedService.buildComment(postId, text, parentId);
+        if (apiEnabled()) {
+          // Shown at once; swapped for the server's copy (with its real id) when it answers.
+          const meId = currentUserId() ?? '';
+          apiAddComment(postId, { text: text.trim(), ...(parentId ? { parentId } : {}) })
+            .then((saved) => set((s) => ({ comments: s.comments.map((c) => (c.id === comment.id ? toComment(saved, meId) : c)) })))
+            .catch(() =>
+              set((s) => ({
+                comments: s.comments.filter((c) => c.id !== comment.id),
+                posts: s.posts.map((p) => (p.id === postId ? { ...p, commentCount: Math.max(0, p.commentCount - 1) } : p)),
+              })),
+            );
+        }
         set((s) => ({
           comments: [...s.comments, comment],
           posts: s.posts.map((p) => (p.id === postId ? { ...p, commentCount: p.commentCount + 1 } : p)),
@@ -111,8 +167,42 @@ export const useSocialStore = create<SocialState>()(
       },
       createPost: (input) => {
         const post = feedService.buildPost(input);
+        if (apiEnabled()) {
+          // Shown at once. A photo from the phone is uploaded first; if anything fails the post is taken back off the feed.
+          const meId = currentUserId() ?? '';
+          const upload = /^(file|content):/i.test(input.photo) ? uploadFile(input.photo, 'made_post') : Promise.reject(new Error('Choose a photo from your phone'));
+          upload
+            .then((photo) =>
+              apiCreatePost({
+                kind: input.kind,
+                title: input.title ?? (input.caption.slice(0, 40) || 'Post'),
+                caption: input.caption,
+                photoUploadId: photo.id,
+                ...(input.recipeId ? { recipeId: input.recipeId } : {}),
+                ...(input.communityId ? { communityId: input.communityId } : {}),
+              }),
+            )
+            .then((saved) => set((s) => ({ posts: s.posts.map((p) => (p.id === post.id ? toPost(saved, meId) : p)) })))
+            .catch(() => set((s) => ({ posts: s.posts.filter((p) => p.id !== post.id) })));
+        }
         set((s) => ({ posts: [post, ...s.posts] }));
         return post;
+      },
+      mergeAuthors: (authors) =>
+        set((s) => {
+          const known = new Set(s.authors.map((a) => a.id));
+          const fresh = authors.filter((a) => !known.has(a.id));
+          return fresh.length === 0 ? s : { authors: [...s.authors, ...fresh] };
+        }),
+      loadFromServer: async () => {
+        const meId = currentUserId();
+        if (!apiEnabled() || !meId) return;
+        try {
+          const feed = await fetchServerFeed(meId);
+          set((s) => ({ ...s, ...feed }));
+        } catch {
+          // Offline: what is on the phone stays.
+        }
       },
       resetSample: () =>
         set({
@@ -128,7 +218,7 @@ export const useSocialStore = create<SocialState>()(
         }),
     }),
     {
-      name: 'souschef-social-v1',
+      name: apiEnabled() ? 'souschef-social-server-v1' : 'souschef-social-v1',
       storage: createJSONStorage(() => AsyncStorage),
       version: 1,
     },
@@ -138,6 +228,11 @@ export const useSocialStore = create<SocialState>()(
 /* Selectors. Pure functions of state: pass to useSocialStore(sel) for scalars,
    or select the raw arrays and derive with useMemo (avoid returning fresh arrays
    from a selector). */
+/** Runs a like/save/follow on the server; `onCount` gets the real count back, `onFail` puts the screen right. */
+function syncToggle(request: () => Promise<{ count: number }>, onCount: (count: number) => void, onFail: () => void): void {
+  request().then((r) => onCount(r.count)).catch(onFail);
+}
+
 export const selectPost = (id: string) => (s: SocialState) => s.posts.find((p) => p.id === id);
 export const selectReel = (id: string) => (s: SocialState) => s.reels.find((r) => r.id === id);
 export const selectAuthor = (id: string) => (s: SocialState) => s.authors.find((a) => a.id === id);

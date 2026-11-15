@@ -1,7 +1,7 @@
-import type { SampleName } from '@/assets/sample';
+import type { PhotoLike } from '@/assets/sample';
 
-/** Photo reference: a key of SAMPLE in assets/sample/index.ts. */
-export type PhotoRef = SampleName;
+/** Photo reference: a key of SAMPLE in assets/sample/index.ts, or the address of a real photo from the server. */
+export type PhotoRef = PhotoLike;
 
 export interface Author {
   id: string;
@@ -121,6 +121,8 @@ export interface VoiceMessage extends MessageBase {
   durationSec: number;
   /** Bar heights, 0..100. */
   waveform: number[];
+  /** Where the recording is, when it came from the server. */
+  url?: string;
 }
 export type Message = TextMessage | RecipeCardMessage | VoiceMessage;
 

@@ -3,7 +3,7 @@ import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { FONT } from '@/components/ui/fonts';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
+import { photoSource } from '@/assets/sample';
 import { BarChart, Icon, Muted, PhotoCard, Tag, Title } from '@/components/ui';
 import type { RecipeCardMessage, VoiceMessage } from '@/types/social';
 
@@ -25,7 +25,7 @@ export function RecipeCardBubble({ message, side, onCook, onAddToPlan }: RecipeP
       style={{ padding: 8, borderRadius: 24, width: 250, alignSelf: side === 'me' ? 'flex-end' : 'flex-start' }}
     >
       <Pressable accessibilityRole="button" accessibilityLabel={message.title} onPress={onCook}>
-        <PhotoCard source={SAMPLE[message.photo]} height={130} radius={18} fade="none" />
+        <PhotoCard source={photoSource(message.photo)} height={130} radius={18} fade="none" />
         <View style={{ paddingTop: 10, paddingHorizontal: 6, paddingBottom: 4, gap: 2 }}>
           <Title numberOfLines={2}>{message.title}</Title>
           <Muted small>{message.meta}</Muted>

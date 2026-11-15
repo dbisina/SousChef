@@ -1,6 +1,6 @@
 import { SAMPLE } from '@/assets/sample';
 import type { PhotoSource } from '@/components/ui';
-import type { PhotoRef } from '@/types/social';
+import type { SampleName as PhotoRef } from '@/assets/sample';
 
 /** Bundled sample photo for a PhotoRef key. */
 export const samplePhoto = (ref: PhotoRef): PhotoSource => SAMPLE[ref] as PhotoSource;

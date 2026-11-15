@@ -1,4 +1,4 @@
-import type { PhotoRef } from './social';
+import type { SampleName as PhotoRef } from '@/assets/sample';
 
 export type RatingLevel = 'low' | 'medium' | 'high';
 export type TrafficTone = 'green' | 'amber' | 'red';
