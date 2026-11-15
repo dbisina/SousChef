@@ -94,6 +94,7 @@ model User {
   stories          Story[]
   storyViews       StoryView[]
   reports          Report[]
+  communityMemberships CommunityMember[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -767,6 +768,9 @@ model Post {
   photoUrl     String
   videoUrl     String?
   recipeId     String?    @db.Uuid
+  /// Set for a post made inside a community; private communities' posts stay inside them.
+  communityId  String?    @db.Uuid
+  challengeId  String?    @db.Uuid
   status       PostStatus @default(PUBLISHED)
   likeCount    Int        @default(0)
   commentCount Int        @default(0)
@@ -776,12 +780,16 @@ model Post {
 
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   recipe   Recipe?       @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  community Community?   @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  challenge Challenge?   @relation(fields: [challengeId], references: [id], onDelete: SetNull)
   likes    PostLike[]
   saves    PostSave[]
   comments PostComment[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([authorId, createdAt(sort: Desc)])
+  @@index([communityId, createdAt(sort: Desc)])
+  @@index([challengeId])
 }
 
 model PostLike {
@@ -905,4 +913,85 @@ model Report {
   @@unique([reporterId, targetType, targetId])
   @@index([status, createdAt(sort: Desc)])
   @@index([targetType, targetId])
+}
+
+enum CommunityVisibility {
+  PUBLIC
+  /// Anyone can see it exists and ask to join; only members see inside.
+  PRIVATE
+}
+
+enum MemberStatus {
+  MEMBER
+  /// Asked to join a private community and waiting for an admin.
+  PENDING
+}
+
+/// A group of people around a shared interest, with a chat room, posts, challenges and events.
+model Community {
+  id             String              @id @default(uuid(7)) @db.Uuid
+  name           String
+  description    String              @default("")
+  photoUrl       String?
+  visibility     CommunityVisibility @default(PUBLIC)
+  /// People with status MEMBER.
+  memberCount    Int                 @default(0)
+  createdById    String?             @db.Uuid
+  /// The community's chat room.
+  conversationId String?             @db.Uuid
+  createdAt      DateTime            @default(now())
+
+  members    CommunityMember[]
+  challenges Challenge[]
+  events     CommunityEvent[]
+  posts      Post[]
+
+  @@index([visibility, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Community_name_trgm_idx")
+}
+
+model CommunityMember {
+  communityId String       @db.Uuid
+  userId      String       @db.Uuid
+  /// "owner", "admin" or "member"
+  role        String       @default("member")
+  status      MemberStatus @default(MEMBER)
+  joinedAt    DateTime     @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communityId, userId])
+  @@index([userId, status])
+}
+
+/// A cooking challenge inside a community. Entries are the community's posts that name it.
+model Challenge {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  communityId String   @db.Uuid
+  title       String
+  description String   @default("")
+  photoUrl    String?
+  endsAt      DateTime
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  entries   Post[]
+
+  @@index([communityId, endsAt])
+}
+
+model CommunityEvent {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  communityId String   @db.Uuid
+  title       String
+  detail      String   @default("")
+  startsAt    DateTime
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId, startsAt])
 }

@@ -16,6 +16,8 @@ const createPostSchema = z.object({
   caption: text(2000).optional(),
   meta: text(120).optional(),
   recipeId: z.uuid().optional(),
+  communityId: z.uuid().optional(),
+  challengeId: z.uuid().optional(),
   photoUploadId: z.uuid(),
   videoUploadId: z.uuid().optional(),
 }) satisfies z.ZodType<CreatePostRequest>;

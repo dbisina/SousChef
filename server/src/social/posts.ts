@@ -49,6 +49,16 @@ export class PostService {
       const recipe = await this.db.recipe.findFirst({ where: { id: input.recipeId, OR: [{ status: 'PUBLISHED' }, { authorId: userId }] }, select: { id: true } });
       if (!recipe) throw errors.validation({ recipeId: 'That recipe does not exist' });
     }
+    if (input.challengeId && !input.communityId) throw errors.validation({ challengeId: 'A challenge belongs to a community' });
+    if (input.communityId) {
+      const member = await this.db.communityMember.findFirst({ where: { communityId: input.communityId, userId, status: 'MEMBER' }, select: { userId: true } });
+      if (!member) throw errors.forbidden('Join the community to post in it');
+    }
+    if (input.challengeId) {
+      const challenge = await this.db.challenge.findFirst({ where: { id: input.challengeId, communityId: input.communityId as string }, select: { endsAt: true } });
+      if (!challenge) throw errors.validation({ challengeId: 'That challenge is not in this community' });
+      if (challenge.endsAt <= this.now()) throw errors.validation({ challengeId: 'That challenge has ended' });
+    }
     const photoUrl = await this.uploads.urlFor(userId, input.photoUploadId, 'made_post');
     if (!photoUrl) throw errors.validation({ photoUploadId: 'Finish uploading the photo first' });
     let videoUrl: string | null = null;
@@ -67,6 +77,8 @@ export class PostService {
         photoUrl,
         videoUrl,
         recipeId: input.recipeId ?? null,
+        communityId: input.communityId ?? null,
+        challengeId: input.challengeId ?? null,
         createdAt: this.now(),
       },
       include: withAuthor,
@@ -119,7 +131,7 @@ export class PostService {
 
   async listSaved(viewer: Viewer, limit: number, cursor?: string): Promise<Page<Post>> {
     const rows = await this.db.postSave.findMany({
-      where: { userId: viewer.userId, post: { status: 'PUBLISHED' } },
+      where: { userId: viewer.userId, post: { AND: [{ status: 'PUBLISHED' }, this.communityGate(viewer.userId)] } },
       include: { post: { include: withAuthor } },
       orderBy: [{ createdAt: 'desc' }, { postId: 'desc' }],
       take: limit + 1,
@@ -237,12 +249,39 @@ export class PostService {
     const mine = viewer !== null && (row?.authorId === viewer.userId || viewer.role === 'admin');
     if (!row || (row.status !== 'PUBLISHED' && !mine)) throw errors.notFound('Post not found');
     if (viewer && viewer.userId !== row.authorId && (await this.blockedBetween(viewer.userId, row.authorId))) throw errors.notFound('Post not found');
+    if (row.communityId && viewer?.role !== 'admin') {
+      // A post inside a private community is for its members.
+      const inside = await this.db.post.count({ where: { id, ...this.communityGate(viewer?.userId ?? null) } });
+      if (inside === 0) throw errors.notFound('Post not found');
+    }
     return row;
+  }
+
+  /** Posts outside any community, in public ones, or in private ones the viewer belongs to. */
+  private communityGate(viewerId: string | null): Prisma.PostWhereInput {
+    return {
+      OR: [
+        { communityId: null },
+        { community: { visibility: 'PUBLIC' } },
+        ...(viewerId ? [{ community: { members: { some: { userId: viewerId, status: 'MEMBER' as const } } } }] : []),
+      ],
+    };
+  }
+
+  /** A community's posts. Everyone sees a public community's; only members see a private one's. */
+  async byCommunity(communityId: string, viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
+    const community = await this.db.community.findUnique({ where: { id: communityId }, select: { visibility: true } });
+    if (!community) throw errors.notFound('Community not found');
+    if (community.visibility === 'PRIVATE' && viewer?.role !== 'admin') {
+      const member = viewer ? await this.db.communityMember.findFirst({ where: { communityId, userId: viewer.userId, status: 'MEMBER' }, select: { userId: true } }) : null;
+      if (!member) throw errors.notFound('Community not found');
+    }
+    return this.page({ communityId, status: 'PUBLISHED', ...(viewer ? notBlocked(viewer.userId) : {}) }, viewer, limit, cursor);
   }
 
   private async page(where: Prisma.PostWhereInput, viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
     const rows = await this.db.post.findMany({
-      where,
+      where: viewer?.role === 'admin' ? where : { AND: [where, this.communityGate(viewer?.userId ?? null)] },
       include: withAuthor,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
@@ -293,6 +332,8 @@ export class PostService {
       photoUrl: r.photoUrl,
       videoUrl: r.videoUrl,
       recipeId: r.recipeId,
+      communityId: r.communityId,
+      challengeId: r.challengeId,
       likeCount: r.likeCount,
       commentCount: r.commentCount,
       saveCount: r.saveCount,

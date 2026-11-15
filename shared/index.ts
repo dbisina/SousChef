@@ -10,6 +10,7 @@ export * from './tiers';
 export * from './uploads';
 export * from './chat';
 export * from './social';
+export * from './community';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';
