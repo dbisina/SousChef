@@ -4,6 +4,7 @@ export * from './recipe';
 export * from './nutrition';
 export * from './kitchen';
 export * from './mealplan';
+export * from './cookbook';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';

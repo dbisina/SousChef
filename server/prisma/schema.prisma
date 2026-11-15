@@ -73,6 +73,8 @@ model User {
   shoppingItems  ShoppingItem[]
   mealPlans      MealPlan[]
   wasteEntries   WasteEntry[]
+  cookbookLikes  CookbookLike[]
+  cookbookSaves  CookbookSave[]
 }
 
 /// A Google or Apple account linked to a user.
@@ -212,6 +214,7 @@ model Recipe {
   madePosts RecipeMadePost[]
   flags    RecipeFlag[]
   wantToCook WantToCookItem[]
+  cookbooks  CookbookRecipe[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -412,4 +415,64 @@ model WasteEntry {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, wastedAt(sort: Desc)])
+}
+
+/// A curated collection of recipes, written by staff. People can like and save it.
+model Cookbook {
+  id            String   @id @default(uuid(7)) @db.Uuid
+  title         String
+  description   String   @default("")
+  coverImageUrl String
+  category      String?
+  /// Unpublished cookbooks are visible to admins only.
+  published     Boolean  @default(true)
+  likeCount     Int      @default(0)
+  saveCount     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  recipes CookbookRecipe[]
+  likes   CookbookLike[]
+  saves   CookbookSave[]
+
+  @@index([published, createdAt(sort: Desc), id(sort: Desc)])
+}
+
+/// A recipe in a cookbook, in the order staff chose.
+model CookbookRecipe {
+  cookbookId String @db.Uuid
+  recipeId   String @db.Uuid
+  position   Int
+
+  cookbook Cookbook @relation(fields: [cookbookId], references: [id], onDelete: Cascade)
+  recipe   Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+
+  @@id([cookbookId, recipeId])
+  @@index([cookbookId, position])
+  @@index([recipeId])
+}
+
+model CookbookLike {
+  userId     String   @db.Uuid
+  cookbookId String   @db.Uuid
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cookbook Cookbook @relation(fields: [cookbookId], references: [id], onDelete: Cascade)
+
+  @@id([userId, cookbookId])
+  @@index([cookbookId])
+}
+
+model CookbookSave {
+  userId     String   @db.Uuid
+  cookbookId String   @db.Uuid
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cookbook Cookbook @relation(fields: [cookbookId], references: [id], onDelete: Cascade)
+
+  @@id([userId, cookbookId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([cookbookId])
 }

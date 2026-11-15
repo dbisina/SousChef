@@ -75,7 +75,8 @@ export async function makeApp(configOverrides: Record<string, string> = {}): Pro
   });
   await built.app.ready();
   const reset = async () => {
-    await built.db.$executeRaw`TRUNCATE "User" CASCADE`;
+    // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook" CASCADE`;
     offset = 0;
     mail.resets.length = 0;
   };
