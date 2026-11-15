@@ -185,7 +185,7 @@ export class InsightAiService {
     const key = `${now.toISOString().slice(0, 10)}:${facts.glucoseReadings}:${facts.mealsLogged}`;
     const { value } = await this.cache.remember<{ summary: string; aiUsed: boolean }>(userId, 'health_summary', key, async () => {
       try {
-        const out = await this.ai.runJson({ task: 'meal_plan', system: HEALTH_SYSTEM, prompt: `Facts (last 30 days): ${JSON.stringify(facts)}`, json: true, maxOutputTokens: 300, temperature: 0.2 }, healthSchema, await this.limit(userId, 'health_summary'));
+        const out = await this.ai.runJson({ task: 'meal_plan', private: true, system: HEALTH_SYSTEM, prompt: `Facts (last 30 days): ${JSON.stringify(facts)}`, json: true, maxOutputTokens: 300, temperature: 0.2 }, healthSchema, await this.limit(userId, 'health_summary'));
         const summary = clean(out.summary, 600);
         if (safeHealthText(summary, numbersIn(JSON.stringify(facts)))) return { summary, aiUsed: true };
       } catch (err) {
@@ -271,7 +271,7 @@ export class InsightAiService {
       .reverse()
       .map((m) => `${m.senderId === userId ? 'Me' : clean(m.sender.displayName, 40)}: ${clean(String((m.body as { text?: string }).text ?? ''), 300)}`)
       .join('\n');
-    const out = await this.ai.runJson({ task: 'meal_plan', system: ASSIST_SYSTEM, prompt: `Mode: ${mode}\nMessages (oldest first):\n${lines}`, json: true, maxOutputTokens: 400, temperature: 0.6 }, assistSchema, await this.limit(userId, 'chat_assist'));
+    const out = await this.ai.runJson({ task: 'meal_plan', private: true, system: ASSIST_SYSTEM, prompt: `Mode: ${mode}\nMessages (oldest first):\n${lines}`, json: true, maxOutputTokens: 400, temperature: 0.6 }, assistSchema, await this.limit(userId, 'chat_assist'));
     if (mode === 'replies') {
       const replies = [...new Set((out.replies ?? []).map((r) => clean(r, 80)).filter(Boolean))].slice(0, 3);
       if (replies.length === 0) throw errors.aiUnavailable('The AI had no suggestions');

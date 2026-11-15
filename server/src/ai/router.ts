@@ -17,6 +17,8 @@ export interface RouterSettings {
   prices: Record<string, Price>;
   /** The most all AI calls together may cost in a calendar month (US dollars). When reached, calls are refused. */
   monthlyBudgetUsd: number;
+  /** Providers allowed to see private requests (health numbers, private chats, receipts). Default: only Gemini. */
+  privateProviders?: string[];
 }
 
 export interface RunOptions {
@@ -115,7 +117,12 @@ export class AiRouter {
 
   private candidates(request: AiRequest): AiProvider[] {
     const byName = new Map(this.settings.providers.map((p) => [p.name, p]));
-    return (this.settings.routes[request.task] ?? []).map((n) => byName.get(n)).filter((p): p is AiProvider => p !== undefined && p.supports(request));
+    const privateOk = new Set(this.settings.privateProviders ?? ['gemini']);
+    return (this.settings.routes[request.task] ?? [])
+      .map((n) => byName.get(n))
+      .filter((p): p is AiProvider => p !== undefined && p.supports(request))
+      // Private content only goes to providers the owner has allowed, and only when they are ready for it.
+      .filter((p) => !request.private || (privateOk.has(p.name) && p.allowsPrivate !== false));
   }
 
   private async checkBudget(): Promise<void> {

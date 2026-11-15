@@ -67,6 +67,24 @@ const schema = z
      */
     AI_GEMINI_API_KEY: z.string().default(''),
     AI_GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+    /**
+     * Key pool. AI_GEMINI_API_KEY is the funded key. AI_GEMINI_FREE_KEYS are keys without billing, separated by commas:
+     * ordinary requests rotate across them (cost 0) and a rate-limited key rests for a while. Private requests and the
+     * paid-only tasks use the funded key only. Free-tier content may be used by Google to improve its products.
+     */
+    AI_GEMINI_FREE_KEYS: csv,
+    /** When every free key is resting, may the funded key take an ordinary request? */
+    AI_GEMINI_SPILL_TO_PAID: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
+    /** Extra tasks that always use the funded key (names from ai/types.ts), separated by commas. Anything with a video link already does. */
+    AI_GEMINI_PAID_ONLY_TASKS: z
+      .string()
+      .default('')
+      .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
+    /** Providers allowed to see private requests (health numbers, private chats, receipts), separated by commas. */
+    AI_PRIVATE_PROVIDERS: z
+      .string()
+      .default('gemini')
+      .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
     AI_DEEPSEEK_API_KEY: z.string().default(''),
     AI_DEEPSEEK_MODEL: z.string().default('deepseek-chat'),
     AI_DEEPSEEK_BASE_URL: z.string().default('https://api.deepseek.com'),
@@ -114,6 +132,12 @@ const schema = z
       .refine((v) => v === '' || Buffer.from(v, 'base64').length === 32, 'HEALTH_DATA_KEY must be 32 bytes written as base64'),
   })
   .superRefine((env, ctx) => {
+    const free = env.AI_GEMINI_FREE_KEYS;
+    if (free.length > 20) ctx.addIssue({ code: 'custom', path: ['AI_GEMINI_FREE_KEYS'], message: 'At most 20 free Gemini keys' });
+    if (new Set(free).size !== free.length) ctx.addIssue({ code: 'custom', path: ['AI_GEMINI_FREE_KEYS'], message: 'The same key is listed twice' });
+    if (env.AI_GEMINI_API_KEY && free.includes(env.AI_GEMINI_API_KEY)) {
+      ctx.addIssue({ code: 'custom', path: ['AI_GEMINI_FREE_KEYS'], message: 'The funded key (AI_GEMINI_API_KEY) must not also be listed as a free key' });
+    }
     const storage = [env.S3_ENDPOINT, env.S3_BUCKET, env.S3_ACCESS_KEY_ID, env.S3_SECRET_ACCESS_KEY, env.STORAGE_PUBLIC_URL];
     const set = storage.filter((v) => v !== '').length;
     if (set > 0 && set < storage.length) {

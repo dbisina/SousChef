@@ -67,6 +67,15 @@ By hand: `cd /opt/souschef && ./deploy.sh <tag>`. See what is live: `cat .curren
 | A key or secret leaked | Replace it in `.env.production`, `./deploy.sh $(cat .current-tag)`. For `JWT_SECRET`, everyone is signed out (expected). Never rotate `HEALTH_DATA_KEY` without re-encrypting the stored data first (there is no tool for that yet). |
 | Database lost | New server, same setup steps, then restore the newest backup (see `restore-test.sh` for the exact commands, but into the real database). Expect to lose up to a day. |
 
+## Gemini key pool
+
+- `AI_GEMINI_API_KEY` is the funded key. `AI_GEMINI_FREE_KEYS` is a comma-separated list of keys without billing.
+- Ordinary requests rotate across the free keys (cost 0, recorded as provider `gemini-free`). A key that is rate limited rests 1 minute, then 2, 4... up to 6 hours; a key Google refuses (wrong or suspended) is left out for a day. The server logs only the last four characters of a key.
+- Private requests (health summary, chat helper, pantry-scan photos), video, and any task in `AI_GEMINI_PAID_ONLY_TASKS` use the funded key only. If there is no funded key, those features say they are resting rather than use a free key or DeepSeek.
+- When every free key is resting the funded key takes ordinary requests too (`AI_GEMINI_SPILL_TO_PAID=false` makes them fall back to DeepSeek instead). The monthly budget counts only funded usage.
+- See what happened: `SELECT provider, count(*), sum("costMicros") FROM "AiUsage" WHERE "createdAt" > now() - interval '7 days' GROUP BY provider;`
+- Free keys vanish if Google changes limits or suspends them. Read Google's Gemini API terms before relying on keys from several accounts.
+
 ## Measuring
 
 `server/scripts/loadtest.mjs` creates test accounts, holds live-chat connections, and sends mixed requests, then prints

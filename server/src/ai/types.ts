@@ -20,6 +20,8 @@ export interface AiRequest {
   json?: boolean;
   maxOutputTokens?: number;
   temperature?: number;
+  /** Personal content (health numbers, private chats, receipts). Only providers allowed to see private data may serve it. */
+  private?: boolean;
 }
 
 export interface AiResult {
@@ -34,6 +36,8 @@ export interface AiResult {
 export interface AiProvider {
   readonly name: string;
   readonly model: string;
+  /** False when the provider cannot take private requests right now (for example no funded key). Default: yes. */
+  readonly allowsPrivate?: boolean;
   /** Can this provider handle the request (images, video)? */
   supports(request: AiRequest): boolean;
   complete(request: AiRequest): Promise<AiResult>;
