@@ -1,6 +1,11 @@
 // Feeds, posts, comments, follows, stories and reports against the SousChef server. The feed screens use these when
 // EXPO_PUBLIC_API_URL is set. Every list comes back in pages: pass `nextCursor` as `cursor` for the next one.
 import type {
+  Challenge as ApiChallenge,
+  Community as ApiCommunity,
+  CommunityEvent as ApiEvent,
+  CommunitySummary,
+  JoinCommunityResponse,
   CreatePostCommentRequest,
   CreatePostRequest,
   CreateReportRequest,
@@ -75,6 +80,17 @@ export async function apiSearchPeople(q: string, limit = 20): Promise<Participan
   if (q.trim().length < 2) return [];
   return (await api().get<{ items: Participant[] }>('/v1/users/search', { query: { q: q.trim(), limit } })).items;
 }
+
+/* ---------------------------------------------------------------- communities */
+
+export const apiMyCommunities = async (): Promise<CommunitySummary[]> => (await api().get<Page<CommunitySummary>>('/v1/me/communities', { query: { limit: 30 } })).items;
+export const apiDiscoverCommunities = async (): Promise<CommunitySummary[]> => (await api().get<Page<CommunitySummary>>('/v1/communities', { query: { limit: 20 } })).items;
+export const apiCommunity = (id: string): Promise<ApiCommunity> => api().get<ApiCommunity>(`/v1/communities/${id}`);
+export const apiCommunityPosts = (id: string, limit = 20): Promise<Page<Post>> => api().get<Page<Post>>(`/v1/communities/${id}/posts`, { query: { limit } });
+export const apiChallenges = async (id: string): Promise<ApiChallenge[]> => (await api().get<{ items: ApiChallenge[] }>(`/v1/communities/${id}/challenges`)).items;
+export const apiEvents = async (id: string): Promise<ApiEvent[]> => (await api().get<{ items: ApiEvent[] }>(`/v1/communities/${id}/events`)).items;
+export const apiJoinCommunity = (id: string): Promise<JoinCommunityResponse> => api().post<JoinCommunityResponse>(`/v1/communities/${id}/join`);
+export const apiLeaveCommunity = (id: string): Promise<void> => api().delete(`/v1/communities/${id}/membership`);
 
 /* ---------------------------------------------------------------- stories and reports */
 

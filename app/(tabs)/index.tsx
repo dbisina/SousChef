@@ -32,6 +32,9 @@ import {
 } from '@/components/feed/HomeFeed';
 import type { MealType } from '@/types/mealplan';
 import { ME_ID } from '@/types/social';
+import * as ImagePicker from 'expo-image-picker';
+import { apiEnabled } from '@/lib/api';
+import { showErrorToast, showSuccessToast } from '@/stores/toastStore';
 
 const todayKey = () => {
   const d = new Date();
@@ -80,6 +83,15 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const go = useCallback((href: string) => router.push(href as Href), [router]);
+
+  // Server mode: "Your plate" shares a photo as a story straight away (gone after 24 hours).
+  const addStory = useCallback(async () => {
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    const uri = !picked.canceled ? picked.assets[0]?.uri : undefined;
+    if (!uri) return;
+    if (await useSocialStore.getState().postStory(uri)) showSuccessToast('Your story is up for 24 hours.');
+    else showErrorToast('We could not post your story. Please try again.');
+  }, []);
 
   // Send first-time users to onboarding.
   useEffect(() => {
@@ -234,7 +246,7 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accent} />}
       >
         <LinkBar onPress={() => go('/import')} />
-        {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={() => go('/post/new')} /> : null}
+        {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
         <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} preview={tonight.preview} onPress={() => go(tonight.href)} />
         {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
         {FEATURES.feed ? <ReelsRow /> : null}

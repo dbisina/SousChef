@@ -3,10 +3,19 @@
 //
 // Two ids need care. The signed-in person is "me" (ME_ID) everywhere in the screens, so their server id is swapped for it
 // on the way in. And the screens show a picture from a "photo reference", which is now allowed to be a real address.
-import type { Participant, Post as ApiPost, PostComment, Story as ApiStory, StoryGroup } from '../shared/index';
-import { apiFeed, apiFollowing, apiStoryTray } from '@/services/socialApi';
+import type { Challenge as ApiChallenge, CommunityEvent as ApiEvent, CommunitySummary, Participant, Post as ApiPost, PostComment, Story as ApiStory, StoryGroup } from '../shared/index';
+import {
+  apiChallenges,
+  apiCommunityPosts,
+  apiDiscoverCommunities,
+  apiEvents,
+  apiFeed,
+  apiFollowing,
+  apiMyCommunities,
+  apiStoryTray,
+} from '@/services/socialApi';
 import type { FeedSnapshot } from '@/services/feedService';
-import { ME_ID, type Author, type Comment, type Post, type Reel, type Story } from '@/types/social';
+import { ME_ID, type Author, type Challenge, type Comment, type Community, type CommunityEvent, type Post, type Reel, type Story } from '@/types/social';
 
 /** The picture shown when someone has no photo. */
 const NO_AVATAR = 'chef';
@@ -81,7 +90,28 @@ export function toStories(groups: StoryGroup[], meId: string): Story[] {
   })));
 }
 
-export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 'reels' | 'stories'> {
+export function toCommunity(c: CommunitySummary): Community {
+  return { id: c.id, name: c.name, photo: c.photoUrl ?? 'family', visibility: c.visibility, memberCount: c.memberCount, memberAvatars: [] };
+}
+
+/** "3 days left", "ends today", "ended". */
+function endsLabel(endsAt: string, now: number): string {
+  const days = Math.ceil((Date.parse(endsAt) - now) / 86_400_000);
+  if (days < 0 || Number.isNaN(days)) return 'Ended';
+  if (days === 0) return 'Ends today';
+  return days === 1 ? '1 day left' : `${days} days left`;
+}
+
+export function toChallenge(c: ApiChallenge, now = Date.now()): Challenge {
+  return { id: c.id, communityId: c.communityId, title: c.title, photo: c.photoUrl ?? 'plating', entries: c.entries, endsLabel: endsLabel(c.endsAt, now) };
+}
+
+export function toEvent(e: ApiEvent): CommunityEvent {
+  return { id: e.id, communityId: e.communityId, title: e.title, date: e.startsAt, detail: e.detail };
+}
+
+export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 'reels' | 'stories' | 'communities' | 'challenges' | 'events'> {
+  joinedCommunityIds: string[];
   likedPostIds: string[];
   savedPostIds: string[];
   likedReelIds: string[];
@@ -91,16 +121,29 @@ export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 're
 
 /** Everything the home feed needs in one go: posts from people you follow and ones picked for you, and the story row. */
 export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
-  const [following, forYou, tray, follows] = await Promise.all([
+  const [following, forYou, tray, follows, mine, discover] = await Promise.all([
     apiFeed('following', { limit: 30 }),
     apiFeed('for-you', { limit: 30 }),
     apiStoryTray(),
     apiFollowing(meId, { limit: 100 }).catch(() => ({ items: [] as Participant[] })),
+    apiMyCommunities().catch(() => [] as CommunitySummary[]),
+    apiDiscoverCommunities().catch(() => [] as CommunitySummary[]),
   ]);
+
+  // Communities: the ones you are in first, then others to discover. For the ones you are in: their posts, challenges and events.
+  const communities = [...mine, ...discover.filter((d) => !mine.some((m) => m.id === d.id))];
+  const inside = mine.slice(0, 8);
+  const details = await Promise.all(
+    inside.map(async (c) => ({
+      posts: await apiCommunityPosts(c.id).then((p) => p.items).catch(() => [] as ApiPost[]),
+      challenges: await apiChallenges(c.id).catch(() => [] as ApiChallenge[]),
+      events: await apiEvents(c.id).catch(() => [] as ApiEvent[]),
+    })),
+  );
 
   const seen = new Set<string>();
   const posts: ApiPost[] = [];
-  for (const p of [...following.items, ...forYou.items]) {
+  for (const p of [...following.items, ...forYou.items, ...details.flatMap((d) => d.posts)]) {
     if (seen.has(p.id)) continue;
     seen.add(p.id);
     posts.push(p);
@@ -118,6 +161,10 @@ export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
     posts: posts.map((p) => toPost(p, meId)),
     reels: videos.map((p) => toReel(p, meId)),
     stories: toStories(tray, meId),
+    communities: communities.map(toCommunity),
+    challenges: details.flatMap((d) => d.challenges.filter((c) => c.active)).map((c) => toChallenge(c)),
+    events: details.flatMap((d) => d.events).map(toEvent),
+    joinedCommunityIds: mine.map((c) => c.id),
     likedPostIds: posts.filter((p) => p.viewer?.liked).map((p) => p.id),
     savedPostIds: posts.filter((p) => p.viewer?.saved).map((p) => p.id),
     likedReelIds: videos.filter((p) => p.viewer?.liked).map((p) => p.id),

@@ -303,3 +303,56 @@ describe('chat', () => {
     expect(chat().messages).toEqual([]);
   });
 });
+
+describe('communities and stories', () => {
+  const comm = (id: string, name: string, over: Record<string, unknown> = {}) => ({ id, name, description: '', photoUrl: 'https://m.test/c.jpg', visibility: 'public', memberCount: 12, createdAt: 'x', ...over });
+  const communityRoutes = (): Route => (m, p) => {
+    if (m === 'GET' && p === '/v1/me/communities') return reply(200, { items: [comm('c1', 'Jollof Club')], nextCursor: null });
+    if (m === 'GET' && p === '/v1/communities') return reply(200, { items: [comm('c1', 'Jollof Club'), comm('c2', 'Bakers', { visibility: 'private', photoUrl: null })], nextCursor: null });
+    if (m === 'GET' && p === '/v1/communities/c1/posts') return reply(200, { items: [post({ id: 'cp1', communityId: 'c1', createdAt: '2026-11-12T10:00:00.000Z' })], nextCursor: null });
+    if (m === 'GET' && p === '/v1/communities/c1/challenges')
+      return reply(200, { items: [{ id: 'ch1', communityId: 'c1', title: 'Best stew', description: '', photoUrl: null, endsAt: new Date(Date.now() + 3 * 86_400_000).toISOString(), entries: 4, active: true }, { id: 'ch0', communityId: 'c1', title: 'Old', description: '', photoUrl: null, endsAt: '2020-01-01T00:00:00.000Z', entries: 1, active: false }] });
+    if (m === 'GET' && p === '/v1/communities/c1/events') return reply(200, { items: [{ id: 'ev1', communityId: 'c1', title: 'Cook-along', detail: 'Zoom', startsAt: '2026-12-01T18:00:00.000Z' }] });
+    return undefined;
+  };
+
+  it('loads communities, which you are in, and their posts, challenges and events', async () => {
+    routes = [feedRoutes(), communityRoutes()];
+    await s.social.useSocialStore.getState().loadFromServer();
+    const st = s.social.useSocialStore.getState();
+    expect(st.communities.map((c) => [c.id, c.name, c.visibility])).toEqual([['c1', 'Jollof Club', 'public'], ['c2', 'Bakers', 'private']]);
+    expect(st.joinedCommunityIds).toEqual(['c1']);
+    expect(st.posts.some((p) => p.id === 'cp1' && p.communityId === 'c1')).toBe(true);
+    expect(st.challenges).toMatchObject([{ id: 'ch1', title: 'Best stew', entries: 4, endsLabel: '3 days left' }]); // the ended one is left out
+    expect(st.events).toMatchObject([{ id: 'ev1', date: '2026-12-01T18:00:00.000Z', detail: 'Zoom' }]);
+  });
+
+  it('joins and leaves on the server, then reloads to show the truth (a private one may only be "pending")', async () => {
+    routes = [feedRoutes(), communityRoutes(), (m, p) => (m === 'POST' && p === '/v1/communities/c2/join' ? reply(200, { status: 'pending' }) : undefined), (m, p) => (m === 'DELETE' && p === '/v1/communities/c1/membership' ? reply(204) : undefined)];
+    await s.social.useSocialStore.getState().loadFromServer();
+    s.social.useSocialStore.getState().toggleJoinCommunity('c2');
+    await settle();
+    expect(calls).toContain('POST /v1/communities/c2/join');
+    expect(s.social.useSocialStore.getState().joinedCommunityIds).not.toContain('c2'); // pending is not joined
+    s.social.useSocialStore.getState().toggleJoinCommunity('c1');
+    await settle();
+    expect(calls).toContain('DELETE /v1/communities/c1/membership');
+  });
+
+  it('shares a photo as a story: uploads it, posts it, and shows it first', async () => {
+    routes = [
+      (m, p) => (m === 'GET' && p === '/story.jpg' ? reply(200) : undefined),
+      (m, p) => (m === 'POST' && p === '/v1/uploads' ? reply(201, { id: 'up9', uploadUrl: 'https://files.test/up9', headers: {}, publicUrl: 'https://m.test/up9.jpg', expiresAt: 'x' }) : undefined),
+      (m, p) => (m === 'PUT' && p === '/up9' ? reply(200) : undefined),
+      (m, p) => (m === 'POST' && p === '/v1/uploads/up9/complete' ? reply(200, { id: 'up9', url: 'https://m.test/up9.jpg', status: 'ready' }) : undefined),
+      (m, p, b) => (m === 'POST' && p === '/v1/stories' && b?.['photoUploadId'] === 'up9' ? reply(201, { id: 'st9', author: ME, photoUrl: 'https://m.test/up9.jpg', recipeId: null, createdAt: '2026-11-15T10:00:00.000Z', expiresAt: 'y', viewCount: 0, seen: null }) : undefined),
+    ];
+    expect(await s.social.useSocialStore.getState().postStory('file:///story.jpg')).toBe(true);
+    expect(s.social.useSocialStore.getState().stories[0]).toMatchObject({ id: 'st9', authorId: 'me', photo: 'https://m.test/up9.jpg' });
+  });
+
+  it('says so when a story cannot be posted', async () => {
+    expect(await s.social.useSocialStore.getState().postStory('file:///story.jpg')).toBe(false);
+    expect(s.social.useSocialStore.getState().stories).toEqual([]);
+  });
+});

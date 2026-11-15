@@ -8,10 +8,13 @@ import { ME_ID } from '@/types/social';
 import { apiEnabled } from '@/lib/api';
 import { currentUserId } from '@/lib/session';
 import { uploadFile } from '@/lib/upload';
-import { fetchServerFeed, toComment, toPost } from '@/services/feedServer';
+import { fetchServerFeed, toComment, toPost, toStories } from '@/services/feedServer';
 import {
   apiAddComment,
   apiCreatePost,
+  apiCreateStory,
+  apiJoinCommunity,
+  apiLeaveCommunity,
   apiSetCommentLiked,
   apiSetFollowing,
   apiSetPostLiked,
@@ -44,6 +47,8 @@ interface SocialState extends FeedSnapshot {
   resetSample: () => void;
   /** Server mode: loads the feed and the story row, and who is liked, saved and followed. */
   loadFromServer: () => Promise<void>;
+  /** Server mode: shares a photo from the phone as a story (it disappears after 24 hours). Resolves false if it could not be posted. */
+  postStory: (photoUri: string) => Promise<boolean>;
   /** Adds people the server told us about (chat members, for example) without touching the rest. */
   mergeAuthors: (authors: Author[]) => void;
 }
@@ -129,7 +134,12 @@ export const useSocialStore = create<SocialState>()(
         }
         set((s) => ({ followingIds: flip(s.followingIds, authorId).next }));
       },
-      toggleJoinCommunity: (id) =>
+      toggleJoinCommunity: (id) => {
+        if (apiEnabled()) {
+          const wantOn = !get().joinedCommunityIds.includes(id);
+          // A private community may only answer "pending" until an admin approves; the reload then shows the truth.
+          (wantOn ? apiJoinCommunity(id).then(() => undefined) : apiLeaveCommunity(id)).then(() => get().loadFromServer(), () => void get().loadFromServer());
+        }
         set((s) => {
           const { next, on } = flip(s.joinedCommunityIds, id);
           return {
@@ -138,7 +148,8 @@ export const useSocialStore = create<SocialState>()(
               c.id === id ? { ...c, memberCount: Math.max(0, c.memberCount + (on ? 1 : -1)) } : c,
             ),
           };
-        }),
+        });
+      },
       markStoryViewed: (id) => {
         if (apiEnabled() && !get().viewedStoryIds.includes(id)) void apiViewStory(id);
         set((s) => (s.viewedStoryIds.includes(id) ? s : { viewedStoryIds: [...s.viewedStoryIds, id] }));
@@ -187,6 +198,19 @@ export const useSocialStore = create<SocialState>()(
         }
         set((s) => ({ posts: [post, ...s.posts] }));
         return post;
+      },
+      postStory: async (photoUri) => {
+        const meId = currentUserId();
+        if (!apiEnabled() || !meId) return false;
+        try {
+          const file = await uploadFile(photoUri, 'story');
+          const story = await apiCreateStory({ photoUploadId: file.id });
+          const [mine] = toStories([{ author: story.author, stories: [story], hasUnseen: false, latestAt: story.createdAt }], meId);
+          if (mine) set((s) => ({ stories: [mine, ...s.stories.filter((x) => x.id !== mine.id)] }));
+          return true;
+        } catch {
+          return false;
+        }
       },
       mergeAuthors: (authors) =>
         set((s) => {
