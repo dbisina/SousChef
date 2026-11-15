@@ -22,6 +22,8 @@ export interface SeedOptions {
   dryRun?: boolean;
   /** Make this existing account staff. */
   adminEmail?: string;
+  /** Give this existing account a Pro plan for 30 days (for trying a test host; no payment involved). */
+  proEmail?: string;
 }
 
 export interface SeedReport {
@@ -33,6 +35,7 @@ export interface SeedReport {
   /** Photos whose address changed in the seed data and were updated on things that already existed. */
   photosRefreshed: number;
   admin: string | null;
+  pro: string | null;
 }
 
 const tally = () => ({ created: 0, existing: 0 });
@@ -44,7 +47,7 @@ const tally = () => ({ created: 0, existing: 0 });
  */
 export async function seedContent(db: Db, options: SeedOptions = {}, say: (line: string) => void = () => undefined): Promise<SeedReport> {
   const dry = options.dryRun === true;
-  const report: SeedReport = { houses: tally(), recipes: tally(), cookbooks: tally(), posts: tally(), puzzles: 'kept', photosRefreshed: 0, admin: null };
+  const report: SeedReport = { houses: tally(), recipes: tally(), cookbooks: tally(), posts: tally(), puzzles: 'kept', photosRefreshed: 0, admin: null, pro: null };
   const house = new HouseService(db);
   const recipes = new RecipeService(db, new EntitlementService(db));
   const cookbooks = new CookbookService(db);
@@ -153,6 +156,20 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
       if (!dry) await db.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
     }
     report.admin = email;
+  }
+
+  // 7. A Pro plan for a test account
+  if (options.proEmail) {
+    const email = options.proEmail.trim();
+    const user = await db.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' }, kind: 'PERSON' }, select: { id: true } });
+    if (!user) throw new Error('No account with that email yet. Register in the app first, then run this again.');
+    say(`${dry ? 'would give' : 'giving'} ${email} a Pro plan for 30 days`);
+    if (!dry) {
+      const now = new Date();
+      const data = { tier: 'pro', status: 'ACTIVE' as const, willRenew: false, expiresAt: new Date(now.getTime() + 30 * 86_400_000), lastEventAt: now };
+      await db.subscription.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
+    }
+    report.pro = email;
   }
   return report;
 }

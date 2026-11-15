@@ -32,6 +32,7 @@ describe('first run', () => {
       puzzles: 'set',
       photosRefreshed: 0,
       admin: null,
+      pro: null,
     });
     expect(await counts()).toEqual({ houses: 3, recipes: 10, cookbooks: 3, posts: HOUSE_POSTS.length, puzzles: PUZZLES.length });
 
@@ -119,6 +120,27 @@ describe('dry run', () => {
     expect(report).toMatchObject({ houses: { created: 3 }, puzzles: 'would-set' });
     expect(lines.some((l) => l.startsWith('would create official account'))).toBe(true);
     expect(await counts()).toEqual({ houses: 0, recipes: 0, cookbooks: 0, posts: 0, puzzles: 0 });
+  });
+});
+
+describe('a Pro plan for a test account', () => {
+  it('gives an existing account 30 days of Pro, and only that account', async () => {
+    const ama = await register(t, { email: 'ama@example.com' });
+    const ben = await register(t, { email: 'ben@example.com' });
+    const report = await seedContent(t.db, { proEmail: 'Ama@example.com' });
+    expect(report.pro).toBe('Ama@example.com');
+    const sub = await t.db.subscription.findUniqueOrThrow({ where: { userId: ama.user.id } });
+    expect(sub).toMatchObject({ tier: 'pro', status: 'ACTIVE' });
+    expect(sub.expiresAt!.getTime()).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+    expect(await t.db.subscription.count({ where: { userId: ben.user.id } })).toBe(0);
+    expect(await seedContent(t.db, { proEmail: 'ama@example.com' })).toMatchObject({ pro: 'ama@example.com' }); // again is fine
+  });
+
+  it('says to register first, and a dry run gives nothing', async () => {
+    await expect(seedContent(t.db, { proEmail: 'nobody@example.com' })).rejects.toThrow(/Register in the app first/);
+    const ama = await register(t, { email: 'ama@example.com' });
+    await seedContent(t.db, { dryRun: true, proEmail: 'ama@example.com' });
+    expect(await t.db.subscription.count({ where: { userId: ama.user.id } })).toBe(0);
   });
 });
 

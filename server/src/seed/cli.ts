@@ -3,6 +3,7 @@
 //   npm run seed                           add anything missing
 //   npm run seed -- --dry-run              say what would be added, change nothing
 //   npm run seed -- --admin me@example.com make an existing account staff (register in the app first)
+//   npm run seed -- --pro me@example.com   give an existing account a Pro plan for 30 days (test hosts only)
 //
 // Uses DATABASE_URL. Safe to run again.
 import { createDb } from '../db';
@@ -13,12 +14,15 @@ async function main() {
   const adminAt = args.indexOf('--admin');
   const adminEmail = adminAt >= 0 ? args[adminAt + 1] : undefined;
   if (adminAt >= 0 && (!adminEmail || adminEmail.startsWith('--'))) throw new Error('--admin needs an email address');
+  const proAt = args.indexOf('--pro');
+  const proEmail = proAt >= 0 ? args[proAt + 1] : undefined;
+  if (proAt >= 0 && (!proEmail || proEmail.startsWith('--'))) throw new Error('--pro needs an email address');
   const url = process.env['DATABASE_URL'];
   if (!url) throw new Error('DATABASE_URL is not set');
 
   const db = createDb(url, 2);
   try {
-    const report = await seedContent(db, { dryRun: args.includes('--dry-run'), ...(adminEmail ? { adminEmail } : {}) }, (line) => process.stdout.write(`${line}\n`));
+    const report = await seedContent(db, { dryRun: args.includes('--dry-run'), ...(adminEmail ? { adminEmail } : {}), ...(proEmail ? { proEmail } : {}) }, (line) => process.stdout.write(`${line}\n`));
     process.stdout.write(`\n${JSON.stringify(report, null, 2)}\n`);
   } finally {
     await db.$disconnect();
