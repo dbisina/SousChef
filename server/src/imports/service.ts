@@ -290,7 +290,7 @@ const platformOf = (key: string): ImportPlatform => {
 };
 
 /** PNG and WebP announce themselves in their first bytes; anything else is treated as JPEG. */
-function sniffImageType(bytes: Buffer): string {
+export function sniffImageType(bytes: Buffer): string {
   if (bytes.subarray(1, 4).toString() === 'PNG') return 'image/png';
   if (bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP') return 'image/webp';
   return 'image/jpeg';

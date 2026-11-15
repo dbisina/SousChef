@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import type { AuthResponse, SocialProvider } from '@shared';
-import { buildApp } from '../src/app';
+import { buildApp, type Built } from '../src/app';
 import type { IdTokenVerifier, VerifiedIdentity } from '../src/auth/idToken';
 import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
@@ -122,6 +122,7 @@ export interface TestApp {
   push: FakePushSender;
   events: CaptureEvents;
   storage: FakeStorage;
+  games: Built['games'];
   app: FastifyInstance;
   db: Db;
   mail: CaptureMailer;
@@ -181,6 +182,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     push,
     events,
     storage,
+    games: built.games,
     app: built.app,
     db: built.db,
     mail,

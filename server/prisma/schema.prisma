@@ -103,6 +103,9 @@ model User {
   imports          Import[]
   dailyDishGames   DailyDishGame[]
   dailyDishStreak  DailyDishStreak?
+  hostedRooms      GameRoom[]
+  gamePlayers      GamePlayer[]
+  gameSubmissions  GameSubmission[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1137,6 +1140,67 @@ model DailyDishGame {
 
   @@id([userId, dateKey])
   @@index([dateKey, status, score(sort: Desc)])
+}
+
+/// A Mystery Kitchen game: a lobby, then a timed cook-off, then results.
+model GameRoom {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  /// 4 digits, unique among rooms still open
+  code        String
+  hostId      String    @db.Uuid
+  /// "solo" or "group"
+  mode        String
+  /// "lobby", "cooking" or "done"
+  phase       String    @default("lobby")
+  difficulty  String    @default("medium")
+  totalSec    Int
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  /// The secret dish, its basket and twist, chosen when the game starts
+  dish        String?
+  basket      String[]
+  twist       String?
+  hints       String[]
+  createdAt   DateTime  @default(now())
+
+  host        User             @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  players     GamePlayer[]
+  submissions GameSubmission[]
+
+  @@index([code, phase])
+  @@index([createdAt])
+}
+
+model GamePlayer {
+  roomId    String   @db.Uuid
+  userId    String   @db.Uuid
+  hintsUsed Int      @default(0)
+  joinedAt  DateTime @default(now())
+
+  room GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId])
+}
+
+model GameSubmission {
+  roomId      String   @db.Uuid
+  userId      String   @db.Uuid
+  photoUrl    String?
+  note        String   @default("")
+  judgeScore  Int
+  score       Int
+  hintsUsed   Int      @default(0)
+  feedback    String   @default("")
+  /// "ai" or "fair_play"
+  judgedBy    String
+  submittedAt DateTime @default(now())
+
+  room GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
 }
 
 model DailyDishStreak {

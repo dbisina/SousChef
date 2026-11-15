@@ -23,6 +23,7 @@ export const errors = {
   unauthorized: (message = 'Sign in to continue') => new AppError(401, 'unauthorized', message),
   forbidden: (message = 'You are not allowed to do that') => new AppError(403, 'forbidden', message),
   notFound: (message = 'Not found') => new AppError(404, 'not_found', message),
+  conflict: (message: string) => new AppError(409, 'conflict', message),
   invalidCredentials: () => new AppError(401, 'invalid_credentials', 'Email or password is not right'),
   emailTaken: () => new AppError(409, 'email_taken', 'An account with this email already exists'),
   handleTaken: () => new AppError(409, 'handle_taken', 'That username is taken'),
