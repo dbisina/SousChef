@@ -28,6 +28,7 @@ import {
 import type { RatingLevel } from '@/components/ui/Chips';
 import { InstructionList, NutritionCard, YouTubePlayer, ActionBar, DetailHero } from '@/components/recipe';
 import { AllergenWarning } from '@/components/recipe/AllergenWarning';
+import { ScaleCard } from '@/components/recipe/ScaleCard';
 import { RecipeComments } from '@/components/recipe/RecipeComments';
 import { MadeThisGallery } from '@/components/recipe/MadeThisGallery';
 import { Paywall } from '@/components/subscription';
@@ -295,6 +296,9 @@ export default function RecipeDetailScreen() {
               );
             })}
           </View>
+
+          {/* Cook for a different number of people (small changes are worked out on the phone) */}
+          <ScaleCard recipeId={recipe.id} servings={recipe.servings} ingredients={recipe.ingredients} instructions={recipe.instructions} signedIn={!!user} />
 
           {/* Substitution / pantry analysis (usage-limited) */}
           {user ? (

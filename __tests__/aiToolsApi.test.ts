@@ -31,6 +31,7 @@ jest.mock('@/services/pantryService', () => ({ getPantryItemNames: async () => [
 import { api, resetApiForTests } from '@/lib/api';
 import { analyzeRecipeWithIngredients, getIngredientSubstitution } from '@/services/aiService';
 import { generateMealPlan } from '@/services/mealPlanAIService';
+import { apiSaveScaleNote, apiScaleNotes, apiScaleRecipe, apiTonight, apiWasteCoach } from '@/services/aiToolsApi';
 import { extractRecipeFromMultiplePhotos, extractRecipeFromPhoto } from '@/services/recipeImportService';
 import { DEFAULT_MEAL_PLAN_PREFERENCES } from '@/types/mealplan';
 import type { Ingredient, Recipe } from '@/types';
@@ -150,5 +151,45 @@ describe('cookbook photos', () => {
     expect(res.success).toBe(false);
     expect(res.error).toBe('No recipe could be read from those photos'); // the server's own words
     expect(bodies.at(-1)).toMatchObject({ uploadIds: ['up2', 'up2'] });
+  });
+});
+
+describe('cooking for a different crowd', () => {
+  const scaled = { recipeId: 'r1', fromServings: 2, servings: 10, factor: 5, source: 'ai', ingredients: [{ name: 'salt', amount: 6, unit: 'tsp' }], instructions: [], tips: ['Use two pans'], timeNote: '', basedOn: 0, note: '' };
+
+  it('asks the server to scale a recipe and passes the units on', async () => {
+    routes = [(m, p) => (m === 'POST' && p === '/v1/recipes/r1/scale' ? reply(200, scaled) : undefined)];
+    const out = await apiScaleRecipe('r1', { servings: 10, units: 'metric' });
+    expect(out.source).toBe('ai');
+    expect(out.tips).toEqual(['Use two pans']);
+    expect(bodies[0]).toEqual({ servings: 10, units: 'metric' });
+  });
+
+  it('shares how a cook scaled it, and lists the notes', async () => {
+    const saved = { id: 'n1', recipeId: 'r1', authorId: 'u1', servings: 10, amounts: [{ name: 'salt', amount: 5, unit: 'tsp' }], createdAt: '2026-11-15T00:00:00.000Z' };
+    routes = [
+      (m, p) => (m === 'PUT' && p === '/v1/recipes/r1/scale-notes' ? reply(200, saved) : undefined),
+      (m, p) => (m === 'GET' && p === '/v1/recipes/r1/scale-notes' ? reply(200, { items: [saved] }) : undefined),
+    ];
+    expect((await apiSaveScaleNote('r1', { servings: 10, amounts: [{ name: 'salt', amount: 5, unit: 'tsp' }], tip: 'Big pan' })).id).toBe('n1');
+    expect(bodies[0]).toEqual({ servings: 10, amounts: [{ name: 'salt', amount: 5, unit: 'tsp' }], tip: 'Big pan' });
+    expect(await apiScaleNotes('r1')).toHaveLength(1);
+  });
+
+  it('passes the server\'s daily-limit refusal through as an error code the screen can read', async () => {
+    routes = [(m, p) => (m === 'POST' && p === '/v1/recipes/r1/scale' ? reply(409, { error: { code: 'limit_reached', message: 'No more today' } }) : undefined)];
+    await expect(apiScaleRecipe('r1', { servings: 10 })).rejects.toMatchObject({ code: 'limit_reached' });
+  });
+});
+
+describe('other AI helpers', () => {
+  it('asks for tonight\'s dinner and the waste coach', async () => {
+    routes = [
+      (m, p) => (m === 'POST' && p === '/v1/ai/tonight' ? reply(200, { recipe: { id: 'r1', title: 'Stew', imageUrl: '', prepTime: 5, cookTime: 20, matchPercent: 80, missing: [], why: 'You have it all' }, aiUsed: true }) : undefined),
+      (m, p) => (m === 'GET' && p === '/v1/ai/waste-coach' ? reply(200, { facts: {}, insights: ['a'], tip: '', aiUsed: false }) : undefined),
+    ];
+    expect((await apiTonight({ maxMinutes: 30 })).recipe.title).toBe('Stew');
+    expect(bodies[0]).toEqual({ maxMinutes: 30 });
+    expect((await apiWasteCoach()).insights).toEqual(['a']);
   });
 });
