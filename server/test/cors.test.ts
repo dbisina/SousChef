@@ -18,7 +18,7 @@ describe('CORS allow-list', () => {
   it('answers a preflight from an allowed origin', async () => {
     const res = await on.app.inject({
       method: 'OPTIONS',
-      url: '/v1/health',
+      url: '/healthz',
       headers: { origin: WEB, 'access-control-request-method': 'POST' },
     });
     expect(res.statusCode).toBe(204);
@@ -28,18 +28,18 @@ describe('CORS allow-list', () => {
   });
 
   it('adds the header to a normal response from an allowed origin', async () => {
-    const res = await on.app.inject({ method: 'GET', url: '/v1/health', headers: { origin: WEB } });
+    const res = await on.app.inject({ method: 'GET', url: '/healthz', headers: { origin: WEB } });
     expect(res.headers['access-control-allow-origin']).toBe(WEB);
     expect(res.headers.vary).toContain('Origin');
   });
 
   it('gives an unlisted origin nothing', async () => {
-    const res = await on.app.inject({ method: 'GET', url: '/v1/health', headers: { origin: 'https://evil.example' } });
+    const res = await on.app.inject({ method: 'GET', url: '/healthz', headers: { origin: 'https://evil.example' } });
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 
   it('is off when CORS_ORIGINS is unset', async () => {
-    const res = await off.app.inject({ method: 'GET', url: '/v1/health', headers: { origin: WEB } });
+    const res = await off.app.inject({ method: 'GET', url: '/healthz', headers: { origin: WEB } });
     expect(res.headers['access-control-allow-origin']).toBeUndefined();
   });
 });

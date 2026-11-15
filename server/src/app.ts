@@ -134,6 +134,8 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     : buildAiRouter(config, db, app.log, options.now);
   const auth = new AuthService({ db, config, mailer, verifier, uploads, ...(options.now ? { now: options.now } : {}) });
 
+  // Before every route: a hook only applies to routes added after it.
+  if (config.CORS_ORIGINS.length > 0) registerCors(app, config.CORS_ORIGINS);
   await app.register(helmet);
   await app.register(rateLimit, {
     global: true,
@@ -180,7 +182,6 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
   adminRoutes(app, new AdminService(db, ai, options.now), auth);
   if (config.ADMIN_DIR) registerAdminSite(app, config.ADMIN_DIR);
-  if (config.CORS_ORIGINS.length > 0) registerCors(app, config.CORS_ORIGINS);
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
