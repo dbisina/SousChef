@@ -58,3 +58,11 @@ CMD ["npm", "run", "start"]
 # ---------------------------------------------------------------- migrate: applies database migrations, then exits (the production compose file runs it before the API)
 FROM build AS migrate
 CMD ["npx", "prisma", "migrate", "deploy"]
+
+# ---------------------------------------------------------------- railway: one image for a test host that cannot run a separate migrate step
+# Last on purpose: Railway builds the last stage when no target is named. Applies migrations, then starts the API.
+# Everything else (compose, CI, production) names its own target, so this stage changes nothing for them.
+FROM build AS railway
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]

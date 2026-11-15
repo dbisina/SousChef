@@ -1,0 +1,10 @@
+# Upload only what the server image needs (server/ and shared/), like .dockerignore.
+/*
+!/server
+!/shared
+server/node_modules
+server/dist
+server/generated
+server/native/target
+server/native/*.node
+server/.env
