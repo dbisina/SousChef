@@ -23,7 +23,7 @@ import {
 } from '@/components/ui';
 import type { PhotoSource } from '@/components/ui';
 import { samplePhoto } from '@/components/play/samplePhoto';
-import { PREVIEW_LABEL } from '@/constants/features';
+import { PREVIEW_LABEL, SERVER_MODE } from '@/constants/features';
 import { FIXED } from '@/stores/themeStore';
 import { puzzleNumberFor } from '@/lib/dailyDish';
 import { playService } from '@/services/playService';
@@ -136,6 +136,9 @@ export default function PlayScreen() {
           </View>
         </UCard>
 
+        {/* Only Mystery Kitchen and the Daily Dish exist on the server; the other titles are placeholders, so they are not shown there. */}
+        {SERVER_MODE ? null : (
+        <>
         <View className="flex-row items-center justify-between">
           <H2>{t('play.moreGames', 'More games')}</H2>
           <LinkText onPress={() => go('/play/mystery/lobby')}>{t('play.allGames', 'All {{n}}', { n: total })}</LinkText>
@@ -157,6 +160,8 @@ export default function PlayScreen() {
             />
           ))}
         </View>
+        </>
+        )}
       </ScrollView>
 
       <Sheet visible={joinOpen} onClose={() => setJoinOpen(false)} title={t('play.joinWithCode', 'Join with code')}>

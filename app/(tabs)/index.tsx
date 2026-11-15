@@ -13,7 +13,7 @@ import { latestGlucose, readingStatus, useHealthStore } from '@/stores/healthSto
 import { useSocialStore } from '@/stores/socialStore';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
-import { FEATURES } from '@/constants/features';
+import { FEATURES, SERVER_MODE } from '@/constants/features';
 import { ListRow, Rows, Screen, SponsoredAdCard, WelcomeModal, useColor, type PhotoSource } from '@/components/ui';
 import { isDesignReview } from '@/lib/designReview';
 import { HomeHeader, LinkBar, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
@@ -248,12 +248,13 @@ export default function HomeScreen() {
       >
         <LinkBar onPress={() => go('/import')} />
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
-        <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} preview={tonight.preview} onPress={() => go(tonight.href)} />
+        {/* Invented example cards only exist off-line; connected to a server there is the real plan, or nothing. */}
+        {!tonight.preview || !SERVER_MODE ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} preview={tonight.preview} onPress={() => go(tonight.href)} /> : null}
         {!isGuest ? <AiTonightCard /> : null}
         {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
         {FEATURES.feed ? <ReelsRow /> : null}
-        <ImportedCard item={imported} onPress={() => go(imported.href)} />
-        <PlanShare shared={!planIsReal} cards={planCards} onUse={() => go('/(tabs)/mealplan')} />
+        {!imported.preview || !SERVER_MODE ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
+        {planIsReal || !SERVER_MODE ? <PlanShare shared={!planIsReal} cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}
         {FEATURES.ordering ? <SponsoredDish /> : null}
         {FEATURES.feed ? <ChallengeCard /> : null}
         {FEATURES.feed && madePost ? <MadeYourRecipe postId={madePost.id} /> : null}

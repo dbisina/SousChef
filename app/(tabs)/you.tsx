@@ -30,7 +30,7 @@ import { useOrderStore } from '@/stores/orderStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useSocialStore } from '@/stores/socialStore';
 import { compactCount } from '@/lib/timeAgo';
-import { FEATURES } from '@/constants/features';
+import { FEATURES, SERVER_MODE } from '@/constants/features';
 import { photoOf, shareText } from '@/components/feed/shared';
 import type { Recipe } from '@/types';
 import { ME_ID } from '@/types/social';
@@ -98,7 +98,7 @@ export default function YouScreen() {
   const go = (href: string) => router.push(href as Href);
   const name = user?.displayName || CURRENT_USER.displayName;
   const handle = user?.email ? user.email.split('@')[0] : CURRENT_USER.handle;
-  const avatar: PhotoSource = user?.photoURL ? { uri: user.photoURL } : (SAMPLE.chef as PhotoSource);
+  const avatar: PhotoSource | undefined = user?.photoURL ? { uri: user.photoURL } : SERVER_MODE ? undefined : (SAMPLE.chef as PhotoSource);
   const recipeCount = Math.max(myRecipes.length, user?.recipeCount ?? 0);
 
   const myPosts = useMemo(() => posts.filter((p) => p.authorId === ME_ID), [posts]);

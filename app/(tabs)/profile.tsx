@@ -1,4 +1,5 @@
 import React from 'react';
+import { SERVER_MODE } from '@/constants/features';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -121,12 +122,14 @@ export default function ProfileScreen() {
     { id: 'terms', icon: 'book', label: t('account.profile.legal', 'Terms and privacy'), route: '/settings/terms' },
   ];
 
-  const chefItems: MenuItem[] = [
+  const allChefItems: MenuItem[] = [
     { id: 'add-recipe', icon: 'plus', label: t('account.profile.addOfficial', 'Add official recipe'), route: '/admin/add-recipe' },
     { id: 'ads', icon: 'bag', label: t('account.profile.manageAds', 'Manage ads'), route: '/admin/manage-ads' },
     { id: 'analytics', icon: 'trend', label: t('account.profile.analytics', 'Recipe analytics'), route: '/settings/analytics' },
     { id: 'seed', icon: 'grid', label: t('account.profile.seed', 'Database seeder'), route: '/admin/seed' },
   ];
+  // The database seeder writes to the old Firebase database; connected to a server it has no use.
+  const chefItems = allChefItems.filter((item) => !(SERVER_MODE && item.id === 'seed'));
 
   const items = isGuest ? guestItems : [...memberItems, ...(isChef ? chefItems : [])];
 

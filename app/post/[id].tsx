@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { Divider, Icon, Muted, PhotoCard, Screen, SheetPanel, UAvatar, UButton, UIconButton, UInput, H2 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { CURRENT_USER } from '@/data/sample/social';
+import { SERVER_MODE } from '@/constants/features';
+import { useAuthStore } from '@/stores/authStore';
 import { useSocialStore } from '@/stores/socialStore';
 import { Action, AuthorRow, photoOf, shareText } from '@/components/feed/shared';
 import { CommentItem } from '@/components/feed/CommentItem';
@@ -28,6 +30,7 @@ interface Item {
 
 /** Post detail. Reel ids are accepted too so a reel's comment button lands here. */
 export default function PostDetailScreen() {
+  const me = useAuthStore((st) => st.user);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -178,7 +181,7 @@ export default function PostDetailScreen() {
             </Pressable>
           ) : null}
           <View className="flex-row items-center" style={{ gap: 10 }}>
-            <UAvatar source={photoOf(CURRENT_USER.avatar)} name={CURRENT_USER.displayName} size={40} />
+            <UAvatar source={me?.photoURL ? { uri: me.photoURL } : SERVER_MODE ? undefined : photoOf(CURRENT_USER.avatar)} name={me?.displayName || CURRENT_USER.displayName} size={40} />
             <View className="flex-1">
               <UInput
                 height={50}
