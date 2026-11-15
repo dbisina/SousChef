@@ -33,6 +33,8 @@ COPY shared /app/shared
 COPY server/tsconfig.json server/tsup.config.ts server/prisma.config.ts server/eslint.config.js server/vitest.config.ts ./
 COPY server/prisma ./prisma
 COPY server/src ./src
+# Starter content, bundled into the seed command (npm run seed).
+COPY server/seed ./seed
 COPY server/test ./test
 RUN npx prisma generate
 RUN npm run build
