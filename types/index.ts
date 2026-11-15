@@ -97,6 +97,9 @@ export type Cuisine =
   | 'mediterranean'
   | 'korean'
   | 'vietnamese'
+  | 'nigerian'
+  | 'west-african'
+  | 'african'
   | 'other';
 
 export interface Ingredient {
