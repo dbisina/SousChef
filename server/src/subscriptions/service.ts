@@ -17,7 +17,9 @@ export interface RevenueCatEvent {
 
 export type WebhookOutcome = 'applied' | 'duplicate' | 'ignored';
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const RANK: Record<SubscriptionTier, number> = { free: 0, premium: 1, pro: 2 };
+
+const UUID =/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 type Stored = 'ACTIVE' | 'CANCELLED' | 'BILLING_ISSUE' | 'EXPIRED';
 /** What each kind of event does to the plan. Events not listed here (TEST, TRANSFER, ...) change nothing. */
@@ -50,25 +52,45 @@ export class EntitlementService {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  /** What this person has right now. Free when they never paid, or when their paid period has run out. */
+  /**
+   * What this person has right now: the better of their subscription and any free time they have earned. Free when they
+   * never paid, or when their paid period has run out and nothing earned is running.
+   */
   async forUser(userId: string): Promise<Entitlements> {
-    const row = await this.db.subscription.findUnique({ where: { userId } });
-    if (!row) return this.free('none');
-    const entitled = row.status !== 'EXPIRED' && (row.expiresAt === null || row.expiresAt > this.now());
-    if (!entitled) return this.free('expired');
-    const tier = row.tier === 'pro' ? 'pro' : 'premium';
-    return {
-      tier,
-      features: TIER_FEATURES[tier],
-      status: row.status.toLowerCase() as SubscriptionStatus,
-      expiresAt: row.expiresAt?.toISOString() ?? null,
-      willRenew: row.willRenew,
-    };
+    const now = this.now();
+    const [row, promos] = await Promise.all([
+      this.db.subscription.findUnique({ where: { userId } }),
+      this.db.promoGrant.findMany({ where: { userId, startsAt: { lte: now }, endsAt: { gt: now } }, orderBy: { endsAt: 'desc' }, take: 1 }),
+    ]);
+    const paid = row && row.status !== 'EXPIRED' && (row.expiresAt === null || row.expiresAt > now) ? row : null;
+    const promo = promos[0] ?? null;
+
+    const paidTier: SubscriptionTier = paid ? (paid.tier === 'pro' ? 'pro' : 'premium') : 'free';
+    const promoTier: SubscriptionTier = promo ? (promo.tier === 'pro' ? 'pro' : 'premium') : 'free';
+    // Earned time wins when it gives a better plan, or the same plan for longer (a plan with no end date is never beaten).
+    const promoWins =
+      promo !== null &&
+      (RANK[promoTier] > RANK[paidTier] || (RANK[promoTier] === RANK[paidTier] && paid !== null && paid.expiresAt !== null && promo.endsAt > paid.expiresAt));
+
+    if (promoWins && promo) {
+      return { tier: promoTier, features: TIER_FEATURES[promoTier], status: 'active', expiresAt: promo.endsAt.toISOString(), willRenew: false, source: 'promo' };
+    }
+    if (paid) {
+      return {
+        tier: paidTier,
+        features: TIER_FEATURES[paidTier],
+        status: paid.status.toLowerCase() as SubscriptionStatus,
+        expiresAt: paid.expiresAt?.toISOString() ?? null,
+        willRenew: paid.willRenew,
+        source: 'paid',
+      };
+    }
+    return this.free(row ? 'expired' : 'none');
   }
 
   private free(status: SubscriptionStatus): Entitlements {
     const tier: SubscriptionTier = 'free';
-    return { tier, features: TIER_FEATURES[tier], status, expiresAt: null, willRenew: false };
+    return { tier, features: TIER_FEATURES[tier], status, expiresAt: null, willRenew: false, source: 'none' };
   }
 
   /**

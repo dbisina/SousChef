@@ -37,6 +37,7 @@ Without Docker you need Node 22, the Rust toolchain, and a PostgreSQL you can po
 | `src/social/stories.ts`, `reports.ts` | stories that disappear after 24 hours (tray, views, sweep), reporting, and the staff moderation queue |
 | `src/communities/` | communities (public or private), joining and approval, roles, a chat room each, posts inside them, challenges and events |
 | `native/feed/` | the "for you" ranker in Rust: engagement (a save counts most), freshness (half-life about 9 hours), a lift for authors you follow or liked, and no author filling the page. `GET /v1/feed/for-you` hands it the last week's posts |
+| `src/invites/` | invite codes and the "10 friends" reward (a month of Pro for you and them, up to three times), and labeled official house accounts with a one-switch kill |
 | `src/recipes/` | recipes: create/edit, filters, search, "cook with what I have", likes, saves, ratings, comments, "I made this", reports |
 | `prisma/schema.prisma` | the database. Every change needs a migration: `npm run db:migrate -- --name what_changed` |
 | `native/` | Rust: `links/` is the logic (plain `cargo test`), `src/` the Node wrapper |

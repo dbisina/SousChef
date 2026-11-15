@@ -119,6 +119,8 @@ describe('seeing a story', () => {
     const story = await postStory(ama);
     for (const who of [kemi, kemi, tunde]) expect((await call(t, 'POST', `/v1/stories/${story.id}/view`, who)).statusCode).toBe(204);
     await call(t, 'POST', `/v1/stories/${story.id}/view`, ama); // your own does not count
+    // Fix the order explicitly: two views a few milliseconds apart must not decide this test by luck.
+    await t.db.storyView.updateMany({ where: { viewerId: kemi.user.id }, data: { viewedAt: new Date(Date.now() - 60_000) } });
 
     const mine = (await call(t, 'GET', `/v1/users/${ama.user.id}/stories`, ama)).json<{ group: StoryGroup }>().group.stories[0];
     expect(mine).toMatchObject({ viewCount: 2, seen: true });

@@ -95,6 +95,10 @@ model User {
   storyViews       StoryView[]
   reports          Report[]
   communityMemberships CommunityMember[]
+  inviteCode       InviteCode?
+  invitesSent      Invite[] @relation("Inviter")
+  invitedBy        Invite?  @relation("Invitee")
+  promoGrants      PromoGrant[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -753,6 +757,8 @@ enum PostStatus {
   PUBLISHED
   /// Taken down by moderation; the author still sees it.
   HIDDEN
+  /// Hidden by the house-content kill switch; coming back when it is switched off.
+  PAUSED
 }
 
 /// Something shared to the feed: a recipe, a "made this" photo, a video, or a meal plan.
@@ -994,4 +1000,47 @@ model CommunityEvent {
   community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
 
   @@index([communityId, startsAt])
+}
+
+/// A person's invite code: one each, handed to friends.
+model InviteCode {
+  userId    String   @id @db.Uuid
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Someone who joined with a code. It counts for the inviter once the invitee does something real.
+model Invite {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  inviterId   String    @db.Uuid
+  /// Each person can be invited once.
+  inviteeId   String    @unique @db.Uuid
+  code        String
+  createdAt   DateTime  @default(now())
+  qualifiedAt DateTime?
+
+  inviter User @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee User @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@index([inviterId, qualifiedAt])
+}
+
+/// Free time on a paid plan, earned rather than bought. The best of this and a real subscription applies.
+model PromoGrant {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  /// "pro"
+  tier      String
+  /// Says what earned it and makes granting idempotent: one grant per person per key.
+  key       String
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId, endsAt])
 }
