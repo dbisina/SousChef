@@ -8,6 +8,8 @@ import { errors } from '../src/errors';
 import type { Db } from '../src/db';
 import type { ChatEvent } from '@shared';
 import type { ChatEvents } from '../src/chat/events';
+import type { HubOptions } from '../src/chat/hub';
+import type { PushMessage, PushSender } from '../src/chat/push';
 import type { Storage } from '../src/storage/storage';
 
 export function testConfig(overrides: Record<string, string> = {}): Config {
@@ -91,7 +93,20 @@ export class CaptureEvents implements ChatEvents {
   }
 }
 
+/** Remembers the notifications that would have been sent. `invalid` lists tokens to report as no longer working. */
+export class FakePushSender implements PushSender {
+  readonly sent: PushMessage[] = [];
+  readonly invalid = new Set<string>();
+  async send(messages: PushMessage[]) {
+    this.sent.push(...messages);
+    return { invalidTokens: messages.map((m) => m.to).filter((to) => this.invalid.has(to)) };
+  }
+}
+
 export interface TestApp {
+  /** Starts listening on a free local port (once) and returns the ws:// address of the live connection. */
+  wsUrl(): Promise<string>;
+  push: FakePushSender;
   events: CaptureEvents;
   storage: FakeStorage;
   app: FastifyInstance;
@@ -105,7 +120,8 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null } = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions> } = {}): Promise<TestApp> {
+  const push = new FakePushSender();
   const storage = new FakeStorage();
   const events = new CaptureEvents();
   const mail = new CaptureMailer();
@@ -117,6 +133,8 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     verifier,
     storage: options.storage === undefined ? storage : options.storage,
     chatEvents: events,
+    pushSender: push,
+    ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
@@ -124,6 +142,8 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
     await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation" CASCADE`;
     events.published.length = 0;
+    push.sent.length = 0;
+    push.invalid.clear();
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
@@ -131,7 +151,13 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     mail.resets.length = 0;
   };
   await reset();
+  let listening: Promise<string> | null = null;
   return {
+    wsUrl: () => {
+      listening ??= built.app.listen({ port: 0, host: '127.0.0.1' }).then((address) => address.replace('http', 'ws') + '/v1/ws');
+      return listening;
+    },
+    push,
     events,
     storage,
     app: built.app,

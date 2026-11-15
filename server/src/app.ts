@@ -14,7 +14,10 @@ import { uploadRoutes } from './uploads/routes';
 import { UploadService } from './uploads/service';
 import { adRoutes } from './ads/routes';
 import { AdService } from './ads/service';
-import type { ChatEvents } from './chat/events';
+import websocket from '@fastify/websocket';
+import { noEvents, type ChatEvents } from './chat/events';
+import { ChatHub, defaultHubOptions, tee, type HubOptions } from './chat/hub';
+import { ExpoPushSender, PushNotifier, type PushSender } from './chat/push';
 import { chatRoutes } from './chat/routes';
 import { ChatService } from './chat/service';
 import { cookbookRoutes } from './cookbooks/routes';
@@ -36,8 +39,12 @@ export interface BuildOptions {
   verifier?: IdTokenVerifier;
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
   storage?: Storage | null;
-  /** Where chat announces new messages to live connections. Leave unset for none. */
+  /** An extra listener for chat events (tests use it to see what was announced). */
   chatEvents?: ChatEvents;
+  /** Live connection timings; tests shorten them. */
+  hub?: Partial<HubOptions>;
+  /** Sends phone notifications. Unset: Expo's service, except under test where there is none. */
+  pushSender?: PushSender | null;
   /** The clock. Tests move it to check expiry. */
   now?: () => Date;
 }
@@ -48,6 +55,7 @@ export interface Built {
   auth: AuthService;
   uploads: UploadService;
   chat: ChatService;
+  hub: ChatHub;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -106,7 +114,14 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const entitlements = new EntitlementService(db, options.now);
   subscriptionRoutes(app, entitlements, auth, config);
   uploadRoutes(app, uploads, auth, config);
-  const chat = new ChatService(db, uploads, options.chatEvents, options.now);
+  // Live chat: a WebSocket gateway plus Expo notifications for people who are not connected.
+  await app.register(websocket, { options: { maxPayload: 16 * 1024 } });
+  const hub = new ChatHub(db, auth, app.log, { ...defaultHubOptions, ...options.hub }, options.now);
+  const chat = new ChatService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now);
+  const pushSender = options.pushSender === undefined ? (config.NODE_ENV === 'test' ? null : new ExpoPushSender(app.log, fetch, config.EXPO_ACCESS_TOKEN || undefined)) : options.pushSender;
+  hub.attach(chat, pushSender ? new PushNotifier(db, pushSender, app.log) : null);
+  hub.start();
+  app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
   recipeRoutes(app, new RecipeService(db, entitlements), auth);
   const pantry = new PantryService(db, options.now);
@@ -117,8 +132,9 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
   app.addHook('onClose', async () => {
+    hub.stop();
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads, chat };
+  return { app, db, auth, uploads, chat, hub };
 }

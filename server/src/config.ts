@@ -58,6 +58,9 @@ const schema = z
       .string()
       .default('')
       .refine((v) => v === '' || v.length >= 16, 'REVENUECAT_WEBHOOK_SECRET must be empty or at least 16 characters'),
+    /** Optional Expo access token, for projects that turned on enhanced push security. Empty is fine. */
+    EXPO_ACCESS_TOKEN: z.string().default(''),
+
     /** File store for uploads (Cloudflare R2 or any S3-compatible bucket). Set all of the S3_* values and STORAGE_PUBLIC_URL, or none. */
     S3_ENDPOINT: z.string().default(''),
     S3_BUCKET: z.string().default(''),
