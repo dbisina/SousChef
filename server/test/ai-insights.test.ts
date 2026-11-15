@@ -320,6 +320,9 @@ describe('chat help', () => {
     const out = (await assist(ama, { conversationId: convo.id, mode: 'summary' })).json<ChatAssistResponse>();
     expect(out.summary).toContain('Saturday');
     expect(t.ai.gemini.calls.at(-1)?.prompt).not.toContain('Bring dessert'); // a deleted message is never sent
+    say({ summary: ['Ben invited you to dinner on Saturday.', 'You offered to bring something.'] }); // a list of lines is fine too
+    const lines = (await assist(ama, { conversationId: convo.id, mode: 'summary' })).json<ChatAssistResponse>();
+    expect(lines.summary).toBe('Ben invited you to dinner on Saturday. You offered to bring something.');
     say({ summary: '' });
     expect((await assist(ama, { conversationId: convo.id, mode: 'summary' })).statusCode).toBe(503);
     expect((await assist(ama, { conversationId: convo.id, mode: 'poem' })).statusCode).toBe(400);
