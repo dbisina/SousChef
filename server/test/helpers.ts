@@ -91,6 +91,9 @@ export class FakeStorage implements Storage {
   publicUrl(key: string) {
     return `https://media.test/${key}`;
   }
+  keyFromPublicUrl(url: string) {
+    return url.startsWith('https://media.test/') ? url.slice('https://media.test/'.length) : null;
+  }
 }
 
 /** Remembers what chat announced, so a test can check who was told what. */

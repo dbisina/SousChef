@@ -112,6 +112,8 @@ model User {
   healthReadings   HealthReading[]
   healthMeals      HealthMeal[]
   chefVerifications ChefVerification[]
+  aiInsights       AiInsight[]
+  scaleNotes       RecipeScaleNote[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -258,6 +260,7 @@ model Recipe {
   cookbooks  CookbookRecipe[]
   posts      Post[]
   stories    Story[]
+  scaleNotes RecipeScaleNote[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -336,6 +339,27 @@ model RecipeMadePost {
 
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
+}
+
+/// How a cook really scaled a recipe to a number of people. The recipe's author or anyone who made it can add one.
+/// These teach the AI: they are shown as examples and their ratios become the "typical" scaling for salt, spice and so on.
+model RecipeScaleNote {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  recipeId    String   @db.Uuid
+  authorId    String   @db.Uuid
+  servings    Int
+  /// {name, amount, unit}[] using the recipe's own ingredient names
+  amounts     Json
+  tip         String   @default("")
+  cookTimeMin Int?
+  panNote     String   @default("")
+  createdAt   DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, authorId, servings])
+  @@index([recipeId, servings])
 }
 
 /// A report. One per person per recipe; enough distinct reports hide the recipe.
@@ -1263,6 +1287,23 @@ model ChefVerification {
 
   @@index([userId, submittedAt(sort: Desc)])
   @@index([status, submittedAt])
+}
+
+/// An AI answer kept so asking again costs nothing: a search sentence, this week's waste coach, today's health summary.
+model AiInsight {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  /// "search", "waste_coach", "health_summary", ...
+  kind      String
+  /// What makes it the same question: a normalised sentence, a week, a day.
+  key       String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, key])
+  @@index([createdAt])
 }
 
 model DailyDishStreak {

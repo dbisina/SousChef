@@ -141,6 +141,13 @@ someone already imported costs nothing (it is cached).
 **Post ideas:** 1. Build-in-public thread: costs and the hard budget stop. 2. Carousel: "What a $10 server can do." 3. Behind the scenes: "We test restores, not just backups."
 **Careful:** costs are targets until we measure on the real server. `built, tested (deploy not run)`.
 
+## 20. Cook for 5 or 50 (scale that learns from real cooks)
+**What:** pick how many people you are cooking for and get the recipe scaled, in your units and oven temperature. Salt, spice, baking powder and liquids are not just multiplied (they do not scale in a straight line), and you get pan size and timing tips. Every answer is labelled: "From cooks who made it", "AI estimate", "Based on other cooks" or "Maths only". Creators and people who cooked a recipe can add how they scaled it for N people, and those notes teach the next answer. Small changes (a few more servings) use plain maths and cost nothing.
+**Hook:** "Doubling a recipe is not just x2. Here is what the salt really does."
+**Post ideas:** 1. Reel: jollof for 4 vs 40, side by side, with the salt and pan differences called out. 2. Carousel: "Why you should never just multiply the spices." 3. Creator call-out: "Cooked this for a crowd? Add your numbers: you are teaching the app." 4. Build-in-public: "Our scaling gets better with every cook who shares" (explain the ratios, no personal data).
+**Show:** the headcount stepper, the source badge changing as more cooks add notes, the "add how you scaled it" step when posting.
+**Careful:** AI estimates are estimates (taste and adjust); quantities written inside the steps are not rewritten; allergy or medical claims are never made. Needs a real model key and real cooks' notes to show its value. `built, tested with fake AI, needs-keys`.
+
 ---
 
 # New AI features (planned, being built; each moves to a full block when shipped)
@@ -152,7 +159,7 @@ someone already imported costs nothing (it is cached).
 | Waste coach | "Your fridge, honestly reviewed." | planned |
 | Leftover rescue | "Half a chicken and sad rice? Three ideas." | planned |
 | Cook-along assistant | "Ask the recipe a question mid-cooking." | planned |
-| Scale and convert | "Serves 4 to serves 9, in your units." | planned |
+| Scale and convert | "Serves 4 to serves 9, in your units." | built (server), see block 20; app screen to do |
 | Plate check | "Friendly feedback on how it looks." | planned |
 | Recipe rewriter | "Make it vegan, or under 500 calories." | planned |
 | Weekly health summary | "Your numbers in plain words (no advice)." | planned |
@@ -175,6 +182,7 @@ someone already imported costs nothing (it is cached).
 - **Build in public:** one honest engineering lesson per week (cost caps, tests, safety choices).
 
 # Build diary (newest first; append one line per shipped change)
+- 2026-11-15: Cook-to-scale for any headcount: Gemini estimates, creators' notes teach it, the app labels where numbers came from.
 - 2026-11-15: AI substitutions, AI meal plans and cookbook-page scanning moved to the server (allergy rules enforced in code). PR #25.
 - 2026-11-15: Chat pictures and voice notes, communities, stories, health consent screen, Google/Apple sign-in through the server. PR #24.
 - 2026-11-15: Background jobs, deploy files, runbook, load-test script. PR #23.

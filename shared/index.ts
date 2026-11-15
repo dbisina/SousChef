@@ -19,6 +19,8 @@ export * from './mysteryKitchen';
 export * from './health';
 export * from './moderation';
 export * from './aiTools';
+export * from './aisles';
+export * from './scale';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';

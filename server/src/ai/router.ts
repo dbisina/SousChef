@@ -76,7 +76,8 @@ export class AiRouter {
     for (const provider of providers) {
       try {
         const result = await provider.complete(request);
-        await this.record(result, request.task, options.userId);
+        // Recorded under the feature's own name when it has a daily allowance, so features that share one AI task are counted apart.
+        await this.record(result, options.dailyLimit?.key ?? request.task, options.userId);
         return result;
       } catch (err) {
         lastError = err;
@@ -129,7 +130,7 @@ export class AiRouter {
     if (used >= perDay) throw errors.limitReached(`You have used today's ${perDay} AI helps. They refresh tomorrow`);
   }
 
-  private async record(result: AiResult, task: AiTask, userId: string | undefined): Promise<void> {
+  private async record(result: AiResult, task: string, userId: string | undefined): Promise<void> {
     const price = this.settings.prices[result.provider] ?? { inPerMillion: 0, outPerMillion: 0 };
     const usd = (result.inputTokens * price.inPerMillion + result.outputTokens * price.outPerMillion) / 1_000_000;
     await this.db.aiUsage.create({

@@ -51,6 +51,10 @@ import type { Requester } from './imports/net';
 import { importRoutes } from './imports/routes';
 import { aiToolsRoutes } from './ai/routes';
 import { AiToolsService } from './ai/tools';
+import { KitchenAiService } from './ai/kitchenAi';
+import { InsightAiService } from './ai/insightsAi';
+import { ScaleAiService } from './ai/scaleAi';
+import { InsightCache } from './ai/insights';
 import { ImportService } from './imports/service';
 import { HouseService } from './invites/house';
 import { inviteRoutes } from './invites/routes';
@@ -168,17 +172,27 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   hub.start();
   app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
-  const moderation = new ModerationService(db, ai, config.BANNED_TERMS.split(',').map((t) => t.trim()).filter(Boolean), options.now);
+  const moderation = new ModerationService(db, ai, config.BANNED_TERMS.split(',').map((t) => t.trim()).filter(Boolean), options.now, storage);
   moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
   importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
-  aiToolsRoutes(app, new AiToolsService(db, ai, entitlements, options.now), auth, config);
+  const insights = new InsightCache(db, options.now);
+  const vitals = new VitalsService(db, HealthCipher.fromBase64(config.HEALTH_DATA_KEY), options.now);
+  aiToolsRoutes(
+    app,
+    new AiToolsService(db, ai, entitlements, options.now),
+    new KitchenAiService(db, ai, entitlements, uploads, storage, insights, options.now),
+    new InsightAiService(db, ai, entitlements, vitals, insights, options.now),
+    new ScaleAiService(db, ai, entitlements, insights, moderation, options.now),
+    auth,
+    config,
+  );
   playRoutes(app, new DailyDishService(db, options.now), auth);
   const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now);
   mysteryKitchenRoutes(app, games, auth);
-  vitalsRoutes(app, new VitalsService(db, HealthCipher.fromBase64(config.HEALTH_DATA_KEY), options.now), auth);
+  vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);
   inviteRoutes(app, invites, new HouseService(db, options.now), auth, config);
   const stories = new StoryService(db, uploads, options.now);

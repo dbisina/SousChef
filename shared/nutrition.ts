@@ -21,19 +21,31 @@ const WEIGHT_UNITS: Record<string, number> = { g: 1, kg: 1000, oz: 28.35, lb: 45
 // Volume is approximated as 1 g per ml, which is rough but close enough for a calorie estimate.
 const VOLUME_UNITS: Record<string, number> = { tsp: 5, tbsp: 15, cup: 240, ml: 1, l: 1000 };
 
+/** How many grams an amount in any unit is, using the entry's own unit when the unit matches it. */
+const gramsIn = (entry: CalorieEntry, amount: number, unit: string): number => {
+  const normalizedUnit = normalizeUnit(unit);
+  if (normalizedUnit === entry.defaultUnit) return amount * entry.gramsPerUnit;
+  const weight = WEIGHT_UNITS[normalizedUnit];
+  if (weight) return amount * weight;
+  const volume = VOLUME_UNITS[normalizedUnit];
+  if (volume) return amount * volume;
+  return amount * entry.gramsPerUnit;
+};
+
+/**
+ * The amount re-expressed in the unit the nutrition table uses for that food, so `calculateNutrition` (which multiplies
+ * by grams per table unit) gets the right size. Unknown foods are returned unchanged.
+ */
+export const amountInTableUnits = (name: string, amount: number, unit: string): number => {
+  const entry = findCalorieEntry(name);
+  if (!entry || entry.gramsPerUnit <= 0) return amount;
+  return gramsIn(entry, amount, unit) / entry.gramsPerUnit;
+};
+
 export const calculateIngredientCalories = (name: string, amount: number, unit: string): number => {
   const entry = findCalorieEntry(name);
   if (!entry) return 0;
-  const normalizedUnit = normalizeUnit(unit);
-  const grams = (): number => {
-    if (normalizedUnit === entry.defaultUnit) return amount * entry.gramsPerUnit;
-    const weight = WEIGHT_UNITS[normalizedUnit];
-    if (weight) return amount * weight;
-    const volume = VOLUME_UNITS[normalizedUnit];
-    if (volume) return amount * volume;
-    return amount * entry.gramsPerUnit;
-  };
-  return Math.round((grams() / 100) * entry.caloriesPer100g);
+  return Math.round((gramsIn(entry, amount, unit) / 100) * entry.caloriesPer100g);
 };
 
 export const calculateNutrition = (
