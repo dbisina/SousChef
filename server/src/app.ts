@@ -42,6 +42,8 @@ import { backgroundJobs } from './jobs';
 import { Maintenance } from './jobs/maintenance';
 import { JobRunner } from './jobs/runner';
 import { ChefVerificationService } from './moderation/chef';
+import { adminRoutes } from './admin/routes';
+import { AdminService } from './admin/service';
 import { moderationRoutes } from './moderation/routes';
 import { ModerationService } from './moderation/service';
 import { HealthCipher } from './vitals/crypto';
@@ -174,6 +176,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   chatRoutes(app, chat, auth);
   const moderation = new ModerationService(db, ai, config.BANNED_TERMS.split(',').map((t) => t.trim()).filter(Boolean), options.now, storage);
   moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
+  adminRoutes(app, new AdminService(db, ai, options.now), auth);
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);

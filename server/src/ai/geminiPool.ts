@@ -103,6 +103,10 @@ export class GeminiPoolProvider implements AiProvider {
     return this.free.map((s) => ({ key: `...${s.last4}`, resting: s.restUntil > now }));
   }
 
+  describe(): { funded: boolean; freeKeys: { key: string; resting: boolean }[] } {
+    return { funded: this.paid !== null, freeKeys: this.status() };
+  }
+
   /* ---- helpers ---- */
 
   private needsPaid(req: AiRequest): boolean {

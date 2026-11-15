@@ -38,6 +38,8 @@ export interface AiProvider {
   readonly model: string;
   /** False when the provider cannot take private requests right now (for example no funded key). Default: yes. */
   readonly allowsPrivate?: boolean;
+  /** Safe-to-show facts about the provider's keys, for the staff dashboard (never a whole key). */
+  describe?(): { funded: boolean; freeKeys: { key: string; resting: boolean }[] };
   /** Can this provider handle the request (images, video)? */
   supports(request: AiRequest): boolean;
   complete(request: AiRequest): Promise<AiResult>;
