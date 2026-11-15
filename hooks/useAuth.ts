@@ -5,6 +5,7 @@ import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/stores/authStore';
 import { isOnboardingComplete } from '@/app/onboarding';
 import { isDesignReview } from '@/lib/designReview';
+import { apiEnabled, onApiSignedOut } from '@/lib/api';
 
 // Hook to handle auth state changes and protected routes
 export const useAuth = () => {
@@ -25,9 +26,18 @@ export const useAuth = () => {
   const router = useRouter();
   const segments = useSegments();
 
+  // With a server address set, accounts live on the SousChef server: bring back the saved sign-in, and go to the
+  // sign-in screen if the server ever ends it.
+  useEffect(() => {
+    if (isDesignReview || !apiEnabled()) return;
+    onApiSignedOut(() => setUser(null));
+    void useAuthStore.getState().restoreSession();
+    return () => onApiSignedOut(null);
+  }, []);
+
   // Listen to Firebase auth state changes
   useEffect(() => {
-    if (isDesignReview) return; // review mode: stay a pre-initialised guest
+    if (isDesignReview || apiEnabled()) return; // review mode: stay a pre-initialised guest
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         // User is signed in, fetch their data from Firestore
