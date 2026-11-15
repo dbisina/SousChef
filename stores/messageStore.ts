@@ -73,7 +73,7 @@ export const useMessageStore = create<MessageState>()(
             if (msg.kind === 'recipe-card') {
               return { clientId, kind: 'recipe-card', ...(msg.recipeId ? { recipeId: msg.recipeId } : {}), title: msg.title, ...(/^https?:/i.test(msg.photo) ? { photoUrl: msg.photo } : {}), meta: msg.meta };
             }
-            const file = await uploadFile(msg.uri as string, 'voice');
+            const file = await uploadFile(msg.uri as string, 'voice', 'audio/mp4');
             return { clientId, kind: 'voice', uploadId: file.id, durationSec: msg.durationSec, waveform: msg.waveform };
           };
           request()

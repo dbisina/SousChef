@@ -11,6 +11,8 @@ import { RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles'
 import { messagesFor, useMessageStore } from '@/stores/messageStore';
 import { useToastStore } from '@/stores/toastStore';
 import { ME_ID, type Message } from '@/types/social';
+import { VoiceRecorder } from '@/lib/voiceNote';
+import { apiEnabled } from '@/lib/api';
 
 const dayKey = (iso: string) => new Date(iso).toDateString();
 
@@ -31,6 +33,26 @@ export default function ChatScreen() {
   const sendMessage = useMessageStore((s) => s.sendMessage);
   const markRead = useMessageStore((s) => s.markRead);
   const [draft, setDraft] = useState('');
+  // Server mode: tap the mic to record a voice note, tap again to send it.
+  const recorder = useRef(new VoiceRecorder()).current;
+  const [recording, setRecording] = useState(false);
+  const toggleRecording = async () => {
+    if (!recording) {
+      const ok = await recorder.start(() => void finishRecording());
+      if (ok) setRecording(true);
+      else showToast(t('chat.micDenied', 'Allow the microphone to record a voice note'), { type: 'info' });
+      return;
+    }
+    await finishRecording();
+  };
+  const finishRecording = async () => {
+    setRecording(false);
+    const note = await recorder.stop();
+    if (note && conversation) {
+      sendMessage(conversation.id, { kind: 'voice', durationSec: note.durationSec, waveform: note.waveform, uri: note.uri });
+      requestAnimationFrame(() => scroller.current?.scrollToEnd({ animated: true }));
+    }
+  };
 
   const thread = useMemo(() => messagesFor(allMessages, id ?? ''), [allMessages, id]);
   const unread = conversation?.unread ?? 0;
@@ -185,7 +207,12 @@ export default function ChatScreen() {
           {draft.trim() ? (
             <UIconButton tone="black" icon="send" label={t('chat.send', 'Send')} onPress={send} />
           ) : (
-            <UIconButton tone="black" icon="mic" label={t('chat.record', 'Record voice note')} onPress={soon} />
+            <UIconButton
+              tone="black"
+              icon={recording ? 'close' : 'mic'}
+              label={recording ? t('chat.stopRecording', 'Stop and send') : t('chat.record', 'Record voice note')}
+              onPress={apiEnabled() ? () => void toggleRecording() : soon}
+            />
           )}
         </View>
       </KeyboardAvoidingView>

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { photoSource } from '@/assets/sample';
 import { BarChart, Icon, Muted, PhotoCard, Tag, Title } from '@/components/ui';
 import type { RecipeCardMessage, VoiceMessage } from '@/types/social';
+import { playVoiceNote } from '@/lib/voiceNote';
 
 export const formatDuration = (sec: number): string => `${Math.floor(sec / 60)}:${`${sec % 60}`.padStart(2, '0')}`;
 
@@ -64,9 +65,16 @@ export function VoiceBubble({ message, side }: { message: VoiceMessage; side: 'm
         borderBottomLeftRadius: me ? 22 : 6,
       }}
     >
-      <View className="items-center justify-center bg-paper" style={{ width: 32, height: 32, borderRadius: 16 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('chat.playVoice', 'Play voice message')}
+        disabled={!message.url}
+        onPress={() => message.url && void playVoiceNote(message.url)}
+        className="items-center justify-center bg-paper"
+        style={{ width: 32, height: 32, borderRadius: 16 }}
+      >
         <Icon name="play" size="sm" color="night" filled />
-      </View>
+      </Pressable>
       <View className="flex-1">
         <BarChart height={26} data={message.waveform.slice(0, 14).map((h) => ({ value: h / 100, tone: me ? 'dim' : 'default' }))} />
       </View>
