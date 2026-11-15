@@ -30,6 +30,7 @@ describe('first run', () => {
       cookbooks: { created: 3, existing: 0 },
       posts: { created: HOUSE_POSTS.length, existing: 0 },
       puzzles: 'set',
+      photosRefreshed: 0,
       admin: null,
     });
     expect(await counts()).toEqual({ houses: 3, recipes: 10, cookbooks: 3, posts: HOUSE_POSTS.length, puzzles: PUZZLES.length });
@@ -87,6 +88,21 @@ describe('running again', () => {
     const again = await seedContent(t.db);
     expect(again.cookbooks).toEqual({ created: 3, existing: 0 });
     expect(again.recipes.created).toBe(0);
+  });
+
+  it('fixes a photo link that has changed in the seed data, on recipes, cookbooks and posts that already exist', async () => {
+    await seedContent(t.db);
+    await t.db.recipe.updateMany({ where: { title: 'Classic Chicken Stir-Fry' }, data: { imageUrl: 'https://example.com/dead.jpg' } });
+    await t.db.cookbook.updateMany({ where: { title: 'Kitchen Classics' }, data: { coverImageUrl: 'https://example.com/dead.jpg' } });
+    await t.db.post.updateMany({ where: { title: 'Stir-fry in 30 minutes' }, data: { photoUrl: 'https://example.com/dead.jpg' } });
+    const dry = await seedContent(t.db, { dryRun: true });
+    expect(dry.photosRefreshed).toBe(3);
+    expect((await t.db.recipe.findFirstOrThrow({ where: { title: 'Classic Chicken Stir-Fry' } })).imageUrl).toBe('https://example.com/dead.jpg'); // a dry run changes nothing
+    const real = await seedContent(t.db);
+    expect(real.photosRefreshed).toBe(3);
+    expect((await t.db.recipe.findFirstOrThrow({ where: { title: 'Classic Chicken Stir-Fry' } })).imageUrl).toMatch(/^https:\/\/images\.unsplash\.com\//);
+    expect((await t.db.post.findFirstOrThrow({ where: { title: 'Stir-fry in 30 minutes' } })).photoUrl).toMatch(/unsplash/);
+    expect((await seedContent(t.db)).photosRefreshed).toBe(0);
   });
 
   it('leaves puzzles that staff have already set alone', async () => {
