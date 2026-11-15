@@ -76,6 +76,17 @@ By hand: `cd /opt/souschef && ./deploy.sh <tag>`. See what is live: `cat .curren
 - See what happened: `SELECT provider, count(*), sum("costMicros") FROM "AiUsage" WHERE "createdAt" > now() - interval '7 days' GROUP BY provider;`
 - Free keys vanish if Google changes limits or suspends them. Read Google's Gemini API terms before relying on keys from several accounts.
 
+## Staff dashboard
+
+`admin/` is a static website (Vite + React) for staff: reports, chef verification, AI spend and key status, ads, official accounts. It is served by Caddy at `https://<API_DOMAIN>/admin/` next to the API, so it needs no extra process and no CORS.
+
+1. Build it: `cd admin && npm ci && npm run build` (output in `admin/dist`).
+2. Copy it to the server: `rsync -a --delete admin/dist/ <user>@<host>:/opt/souschef/admin/`. Caddy picks up new files at once; no restart.
+3. Open `/admin/` and sign in with an account whose role is ADMIN. Anyone else is signed straight back out.
+4. Optional: in Cloudflare, put the path `/admin/*` behind Cloudflare Access (or an IP allow-list) as a second lock.
+
+Development: run the API on port 3000, then `cd admin && npm run dev` (port 5174; `/v1` is forwarded to the API).
+
 ## Measuring
 
 `server/scripts/loadtest.mjs` creates test accounts, holds live-chat connections, and sends mixed requests, then prints

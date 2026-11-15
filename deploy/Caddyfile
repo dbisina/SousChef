@@ -19,11 +19,23 @@
 		Strict-Transport-Security "max-age=31536000"
 	}
 
+	# The staff dashboard (admin/, built with `npm run build`) is plain static files under /admin/. Same address as the
+	# API, so it needs no CORS. Staff sign in with an ADMIN account; nothing here is reachable without one.
+	handle_path /admin/* {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+		header Cache-Control "no-store"
+		header X-Robots-Tag "noindex"
+	}
+
+	handle {
 	reverse_proxy api:3000 {
 		# Keep idle chat sockets open between Cloudflare's 100 s pings.
 		transport http {
 			read_timeout 120s
 		}
+	}
 	}
 }
 
