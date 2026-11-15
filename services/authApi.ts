@@ -19,6 +19,7 @@ export function meToUser(me: Me): User {
     bio: me.bio,
     role,
     isVerifiedChef: me.isVerifiedChef,
+    hasPassword: me.providers.includes('password'),
     createdAt: Timestamp.fromDate(new Date(me.createdAt)),
     // Kept on the server in their own tables; the screens that need them ask for them there.
     savedRecipes: [],
@@ -58,6 +59,20 @@ export async function apiSignUp(email: string, password: string, displayName: st
 
 export async function apiSignIn(email: string, password: string): Promise<User> {
   const res = await api().post<AuthResponse>('/v1/auth/login', { email, password }, { anonymous: true });
+  await api().setTokens(res.tokens);
+  return meToUser(res.user);
+}
+
+/**
+ * Signs in (or up) with the ID token Google or Apple gave the app. A first-time Apple sign-in sends the name only once, so
+ * pass it along. The server checks the token itself; the phone's word is not enough.
+ */
+export async function apiSocialSignIn(provider: 'google' | 'apple', idToken: string, displayName?: string): Promise<User> {
+  const res = await api().post<AuthResponse>(
+    '/v1/auth/social',
+    { provider, idToken, ...(displayName ? { displayName } : {}), acceptedTermsVersion: TERMS_VERSION },
+    { anonymous: true },
+  );
   await api().setTokens(res.tokens);
   return meToUser(res.user);
 }

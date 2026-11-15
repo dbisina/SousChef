@@ -15,6 +15,8 @@ import {
   Timestamp,
 } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
+import { apiEnabled } from '@/lib/api';
+import { apiSocialSignIn, friendlyApiError } from '@/services/authApi';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -40,6 +42,9 @@ export const signInWithGoogle = async (
     if (!idToken) {
       return { success: false, error: 'No ID token received from Google' };
     }
+
+    // With a server address set, the server checks the token and keeps the account (no Firebase involved).
+    if (apiEnabled()) return { success: true, user: await apiSocialSignIn('google', idToken) };
 
     // Create credential from tokens
     const credential = GoogleAuthProvider.credential(idToken, accessToken);
@@ -77,7 +82,7 @@ export const signInWithGoogle = async (
     return { success: true, user: userData };
   } catch (error) {
     console.error('Google sign in error:', error);
-    const message = error instanceof Error ? error.message : 'Google sign in failed';
+    const message = apiEnabled() ? friendlyApiError(error) : error instanceof Error ? error.message : 'Google sign in failed';
     return { success: false, error: message };
   }
 };
@@ -114,6 +119,11 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
 
     if (!identityToken) {
       return { success: false, error: 'No identity token received from Apple' };
+    }
+
+    if (apiEnabled()) {
+      const name = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
+      return { success: true, user: await apiSocialSignIn('apple', identityToken, name || undefined) };
     }
 
     const provider = new OAuthProvider('apple.com');
@@ -174,7 +184,7 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
     }
 
     console.error('Apple sign in error:', error);
-    const message = error instanceof Error ? error.message : 'Apple sign in failed';
+    const message = apiEnabled() ? friendlyApiError(error) : error instanceof Error ? error.message : 'Apple sign in failed';
     return { success: false, error: message };
   }
 };

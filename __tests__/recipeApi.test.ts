@@ -33,7 +33,7 @@ jest.mock('expo-secure-store', () => {
 
 import { api, resetApiForTests, createApiClient } from '@/lib/api';
 import * as recipes from '@/services/recipeService';
-import { toAppRecipe, toCreateRequest } from '@/services/recipeApi';
+import { apiMadePosts, toAppRecipe, toCreateRequest } from '@/services/recipeApi';
 import type { Recipe as ApiRecipe, RecipeSummary } from '../shared/index';
 import type { RecipeFormData } from '@/types';
 
@@ -249,5 +249,17 @@ describe('through the service functions', () => {
     const f = jest.fn(async () => reply(200, { ok: true }));
     const c = createApiClient({ baseUrl: 'https://x.test', fetch: f as unknown as typeof fetch, storage: { load: async () => null, save: async () => undefined } });
     expect(await c.get('/readyz')).toEqual({ ok: true });
+  });
+});
+
+describe('"I made this" photos', () => {
+  const made = { id: 'mp1', recipeId: 'r1', author, imageUrl: 'https://m.test/made.jpg', caption: 'Nailed it', createdAt: '2026-11-02T10:00:00.000Z' };
+
+  it('lists them in the shape the gallery reads', async () => {
+    
+    server.mockResolvedValueOnce(reply(200, { items: [made], nextCursor: null }));
+    const posts = await apiMadePosts('r1');
+    expect(posts[0]).toMatchObject({ id: 'mp1', authorId: 'u1', authorName: 'Ama Okafor', authorPhotoURL: 'https://m.test/ama.jpg', imageURL: 'https://m.test/made.jpg', caption: 'Nailed it' });
+    expect(seen()[0]).toContain('/v1/recipes/r1/made?limit=20');
   });
 });

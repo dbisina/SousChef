@@ -3,6 +3,7 @@ import { Timestamp } from '@/lib/firebase';
 import type {
   CreateRecipeRequest,
   Page,
+  MadePost,
   Recipe as ApiRecipe,
   RecipeMatch,
   RecipeSummary,
@@ -10,7 +11,7 @@ import type {
 } from '../shared/index';
 import { api } from '@/lib/api';
 import { uploadFile } from '@/lib/upload';
-import type { Recipe, RecipeFilters, RecipeFormData } from '@/types';
+import type { Recipe, RecipeFilters, RecipeFormData, RecipeMadePost } from '@/types';
 
 const PAGE = 50;
 /** The app's lists show everything at once; the server pages, so gather a few pages (200 recipes) at most. */
@@ -171,4 +172,31 @@ export async function apiRecipesByIngredients(names: string[]): Promise<{ recipe
   if (names.length === 0) return [];
   const res = await api().post<{ items: RecipeMatch[] }>('/v1/recipes/match', { ingredients: names.slice(0, 100), limit: 50 });
   return res.items.map((m) => ({ recipe: toAppRecipe(m.recipe), matchScore: m.matchPercent }));
+}
+
+/* ---------------------------------------------------------------- "I made this" photos */
+
+export function toAppMadePost(p: MadePost): RecipeMadePost {
+  return {
+    id: p.id,
+    recipeId: p.recipeId,
+    authorId: p.author.id,
+    authorName: p.author.displayName,
+    ...(p.author.photoUrl ? { authorPhotoURL: p.author.photoUrl } : {}),
+    imageURL: p.imageUrl,
+    ...(p.caption ? { caption: p.caption } : {}),
+    likes: 0,
+    createdAt: Timestamp.fromDate(new Date(p.createdAt)),
+  };
+}
+
+export async function apiMadePosts(recipeId: string): Promise<RecipeMadePost[]> {
+  const page = await api().get<Page<MadePost>>(`/v1/recipes/${recipeId}/made`, { query: { limit: 20 } });
+  return page.items.map(toAppMadePost);
+}
+
+/** Uploads the photo from the phone, then adds it to the recipe's "I made this" photos. */
+export async function apiAddMadePost(recipeId: string, photoUri: string): Promise<RecipeMadePost> {
+  const file = await uploadFile(photoUri, 'made_post');
+  return toAppMadePost(await api().post<MadePost>(`/v1/recipes/${recipeId}/made`, { imageUrl: file.url }));
 }

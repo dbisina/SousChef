@@ -5,7 +5,10 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
+import { apiEnabled } from '@/lib/api';
+import { DeleteAccountSheet } from '@/components/settings/DeleteAccountSheet';
 import { uploadImage } from '@/lib/cloudinary';
+import { uploadFile } from '@/lib/upload';
 import {
   CtaBar,
   FONT,
@@ -33,6 +36,7 @@ export default function EditProfileScreen() {
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
+  const [deleteSheet, setDeleteSheet] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const languageName = SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName ?? language;
@@ -48,10 +52,9 @@ export default function EditProfileScreen() {
     if (!result.canceled && result.assets[0]) {
       setIsUploading(true);
       try {
-        const uploadedUrl = await uploadImage(
-          result.assets[0].uri,
-          `souschef/avatars/${user?.id}`
-        );
+        const uploadedUrl = apiEnabled()
+          ? (await uploadFile(result.assets[0].uri, 'avatar')).url
+          : await uploadImage(result.assets[0].uri, `souschef/avatars/${user?.id}`);
         setPhotoURL(uploadedUrl);
       } catch (error) {
         showErrorToast(
@@ -92,6 +95,10 @@ export default function EditProfileScreen() {
   };
 
   const handleDeleteAccount = () => {
+    if (apiEnabled()) {
+      setDeleteSheet(true); // the server asks for the password (or the word DELETE) in a sheet
+      return;
+    }
     Alert.alert(
       t('account.edit.deleteTitle', 'Delete Account'),
       t(
@@ -229,6 +236,7 @@ export default function EditProfileScreen() {
           </Rows>
         </ScrollView>
       </KeyboardAvoidingView>
+      <DeleteAccountSheet visible={deleteSheet} onClose={() => setDeleteSheet(false)} onDeleted={() => router.replace('/auth/login')} />
     </Screen>
   );
 }

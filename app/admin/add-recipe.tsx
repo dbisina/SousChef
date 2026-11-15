@@ -4,6 +4,7 @@ import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
+import { apiEnabled } from '@/lib/api';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -231,7 +232,7 @@ export default function AdminAddRecipeScreen() {
     setIsSubmitting(true);
     try {
       // Upload image to Cloudinary
-      const uploadedImageUrl = await uploadImage(imageUri, 'souschef/recipes/official');
+      const uploadedImageUrl = apiEnabled() ? imageUri : await uploadImage(imageUri, 'souschef/recipes/official');
 
       await createRecipe(
         {

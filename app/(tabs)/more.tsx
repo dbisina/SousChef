@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '@/stores/authStore';
+import { apiEnabled } from '@/lib/api';
+import { DeleteAccountSheet } from '@/components/settings/DeleteAccountSheet';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useThemeColors } from '@/stores/themeStore';
 import { getTierFeatures } from '@/services/subscriptionService';
@@ -43,6 +45,7 @@ export default function MoreScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user, signOut, deleteAccount } = useAuthStore();
+  const [deleteSheet, setDeleteSheet] = useState(false);
   const { subscriptionTier, isSubscribed } = useSubscription();
   const adFree = getTierFeatures(subscriptionTier).adFree;
   const colors = useThemeColors();
@@ -259,6 +262,10 @@ export default function MoreScreen() {
 
           <TouchableOpacity
             onPress={() => {
+              if (apiEnabled()) {
+                setDeleteSheet(true); // the server asks for the password (or the word DELETE) in a sheet
+                return;
+              }
               Alert.alert(
                 t('settings.deleteAccount'),
                 'This will permanently delete your account, recipes, and all data. This action cannot be undone.',
@@ -327,6 +334,7 @@ export default function MoreScreen() {
 
         
       </ScrollView>
+    <DeleteAccountSheet visible={deleteSheet} onClose={() => setDeleteSheet(false)} onDeleted={() => setDeleteSheet(false)} />
     </SafeAreaView>
   );
 }

@@ -59,6 +59,8 @@ export interface User {
   bio?: string;
   role: UserRole;
   isVerifiedChef?: boolean;
+  /** Server mode: does the account have a password (as opposed to only Google or Apple)? */
+  hasPassword?: boolean;
   subscriptionTier?: 'free' | 'premium' | 'pro';
   createdAt: Timestamp;
   savedRecipes?: string[];
