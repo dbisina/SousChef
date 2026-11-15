@@ -196,6 +196,13 @@ export function createApiClient(options: ApiClientOptions) {
     async clear(): Promise<void> {
       await setTokens(null);
     },
+    /** A current access token (refreshed first if it is about to run out), or null when signed out. For the live connection. */
+    async accessToken(): Promise<string | null> {
+      await ensureLoaded();
+      if (!tokens) return null;
+      if (Date.parse(tokens.accessTokenExpiresAt) - now() < REFRESH_MARGIN_MS) return (await refresh())?.accessToken ?? null;
+      return tokens.accessToken;
+    },
     /** The saved refresh token, for telling the server to end this session on sign-out. */
     async refreshToken(): Promise<string | null> {
       await ensureLoaded();

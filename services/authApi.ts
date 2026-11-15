@@ -3,6 +3,7 @@ import { Timestamp } from '@/lib/firebase';
 import type { AuthResponse, Me, UpdateProfileRequest } from '../shared/index';
 import { api, ApiError } from '@/lib/api';
 import type { User, UserRole } from '@/types';
+import { apiUnregisterDevice } from '@/services/devicesApi';
 
 /** The version of the terms and privacy policy the sign-up screen shows. */
 export const TERMS_VERSION = '2026-11-01';
@@ -75,6 +76,7 @@ export async function apiRestoreSession(): Promise<User | null> {
 
 /** Ends this device's session on the server (best effort) and forgets it here. */
 export async function apiSignOut(): Promise<void> {
+  await apiUnregisterDevice(); // before the sign-in goes: the request needs it
   const refreshToken = await api().refreshToken();
   try {
     if (refreshToken) await api().post('/v1/auth/logout', { refreshToken }, { anonymous: true });
