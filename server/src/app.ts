@@ -44,6 +44,7 @@ import { JobRunner } from './jobs/runner';
 import { ChefVerificationService } from './moderation/chef';
 import { adminRoutes } from './admin/routes';
 import { registerAdminSite } from './admin/site';
+import { registerCors } from './cors';
 import { AdminService } from './admin/service';
 import { moderationRoutes } from './moderation/routes';
 import { ModerationService } from './moderation/service';
@@ -179,6 +180,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
   adminRoutes(app, new AdminService(db, ai, options.now), auth);
   if (config.ADMIN_DIR) registerAdminSite(app, config.ADMIN_DIR);
+  if (config.CORS_ORIGINS.length > 0) registerCors(app, config.CORS_ORIGINS);
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);

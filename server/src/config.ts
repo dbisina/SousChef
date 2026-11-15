@@ -40,6 +40,8 @@ const schema = z
     APPLE_CLIENT_IDS: csv,
     /** The Firebase project whose sign-in tokens the server accepts (the app signs in with Firebase, the server trades the token for its own). Empty means off. */
     FIREBASE_PROJECT_ID: z.string().trim().default(''),
+    /** Web pages allowed to call the API from a browser (exact origins, separated by commas), for the app's web build. Empty means none. */
+    CORS_ORIGINS: csv,
     /** Folder holding the built staff dashboard (admin/dist). When set, the API serves it at /admin/. Empty means off. */
     ADMIN_DIR: z.string().trim().default(''),
 
