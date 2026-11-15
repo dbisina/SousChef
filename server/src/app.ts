@@ -38,6 +38,9 @@ import { DailyDishService } from './play/dailyDish';
 import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
+import { ChefVerificationService } from './moderation/chef';
+import { moderationRoutes } from './moderation/routes';
+import { ModerationService } from './moderation/service';
 import { HealthCipher } from './vitals/crypto';
 import { vitalsRoutes } from './vitals/routes';
 import { VitalsService } from './vitals/service';
@@ -88,6 +91,7 @@ export interface Built {
   invites: InviteService;
   ai: AiRouter;
   games: MysteryKitchenService;
+  moderation: ModerationService;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -158,7 +162,9 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   hub.start();
   app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
-  const postService = new PostService(db, uploads, options.now);
+  const moderation = new ModerationService(db, ai, config.BANNED_TERMS.split(',').map((t) => t.trim()).filter(Boolean), options.now);
+  moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
+  const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
   importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
@@ -183,5 +189,5 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads, chat, hub, stories, invites, ai, games };
+  return { app, db, auth, uploads, chat, hub, stories, invites, ai, games, moderation };
 }

@@ -336,6 +336,7 @@ export class AuthService {
 
   /** Creates the next session and the access and refresh tokens that go with it. */
   private async issue(user: User, deviceName?: string, familyId?: string): Promise<AuthResponse> {
+    if (user.suspendedAt) throw errors.forbidden('This account is suspended');
     const now = this.now();
     const refreshToken = newOpaqueToken();
     const session = await this.db.session.create({

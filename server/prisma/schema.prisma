@@ -51,6 +51,9 @@ model User {
   isChef          Boolean   @default(false)
   /// Set when the verified-chef badge is granted (payment plus identity check). Only the server sets this.
   verifiedChefAt  DateTime?
+  /// Set by staff when an account is suspended: no sign-in, no new content. Cleared to lift it.
+  suspendedAt     DateTime?
+  suspendedReason String    @default("")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -108,6 +111,7 @@ model User {
   gameSubmissions  GameSubmission[]
   healthReadings   HealthReading[]
   healthMeals      HealthMeal[]
+  chefVerifications ChefVerification[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -792,6 +796,8 @@ model Post {
   saveCount    Int        @default(0)
   viewCount    Int        @default(0)
   createdAt    DateTime   @default(now())
+  /// When the automatic model check looked at it. Null: still waiting for the check.
+  moderatedAt  DateTime?
 
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   recipe   Recipe?       @relation(fields: [recipeId], references: [id], onDelete: SetNull)
@@ -802,6 +808,7 @@ model Post {
   comments PostComment[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, moderatedAt])
   @@index([authorId, createdAt(sort: Desc)])
   @@index([communityId, createdAt(sort: Desc)])
   @@index([challengeId])
@@ -909,7 +916,9 @@ enum ReportStatus {
 /// Someone reporting a post, comment, person, story or message. One report per person per thing.
 model Report {
   id           String       @id @default(uuid(7)) @db.Uuid
-  reporterId   String       @db.Uuid
+  /// Null for a report raised by the automatic check rather than a person.
+  reporterId   String?      @db.Uuid
+  auto         Boolean      @default(false)
   /// "post", "comment", "user", "story" or "message"
   targetType   String
   targetId     String       @db.Uuid
@@ -923,7 +932,7 @@ model Report {
   resolvedAt   DateTime?
   createdAt    DateTime     @default(now())
 
-  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter User? @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([reporterId, targetType, targetId])
   @@index([status, createdAt(sort: Desc)])
@@ -1235,6 +1244,25 @@ model HealthMeal {
   readings HealthReading[]
 
   @@index([userId, at(sort: Desc)])
+}
+
+/// A request for the verified-chef badge. Staff approve or reject it.
+model ChefVerification {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @db.Uuid
+  /// "pending", "approved", "rejected" or "revoked"
+  status          String    @default("pending")
+  note            String
+  portfolioUrl    String?
+  rejectionReason String?
+  submittedAt     DateTime  @default(now())
+  decidedAt       DateTime?
+  decidedById     String?   @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, submittedAt(sort: Desc)])
+  @@index([status, submittedAt])
 }
 
 model DailyDishStreak {

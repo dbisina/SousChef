@@ -125,6 +125,7 @@ export interface TestApp {
   events: CaptureEvents;
   storage: FakeStorage;
   games: Built['games'];
+  moderation: Built['moderation'];
   app: FastifyInstance;
   db: Db;
   mail: CaptureMailer;
@@ -185,6 +186,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     events,
     storage,
     games: built.games,
+    moderation: built.moderation,
     app: built.app,
     db: built.db,
     mail,
