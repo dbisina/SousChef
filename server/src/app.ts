@@ -11,6 +11,8 @@ import { AppError } from './errors';
 import { healthRoutes } from './health';
 import { kitchenRoutes } from './kitchen/routes';
 import { PantryService, ShoppingService, WantToCookService } from './kitchen/services';
+import { mealPlanRoutes } from './mealplan/routes';
+import { MealPlanService, WasteService } from './mealplan/service';
 import { recipeRoutes } from './recipes/routes';
 import { RecipeService } from './recipes/service';
 
@@ -85,6 +87,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const pantry = new PantryService(db, options.now);
   const shopping = new ShoppingService(db);
   kitchenRoutes(app, { pantry, shopping, wantToCook: new WantToCookService(db, pantry, shopping, options.now) }, auth);
+  mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
   app.addHook('onClose', async () => {
     if (!options.db) await db.$disconnect();

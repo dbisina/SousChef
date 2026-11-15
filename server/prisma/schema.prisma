@@ -71,6 +71,8 @@ model User {
   pantryItems    PantryItem[]
   wantToCook     WantToCookItem[]
   shoppingItems  ShoppingItem[]
+  mealPlans      MealPlan[]
+  wasteEntries   WasteEntry[]
 }
 
 /// A Google or Apple account linked to a user.
@@ -371,4 +373,43 @@ model ShoppingItem {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+/// One week of meals per person, identified by its Monday. The days and the plan's own shopping list are JSON,
+/// matching how the app reads and writes them; the totals in `stats` are recomputed by the server on every save.
+model MealPlan {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  userId       String   @db.Uuid
+  weekStart    DateTime @db.Date
+  /// MealPlanDay[] (see shared/mealplan.ts), always seven.
+  days         Json
+  /// PlanShoppingItem[]
+  shoppingList Json     @default("[]")
+  /// MealPlanStats
+  stats        Json
+  isGenerated  Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+}
+
+/// Food thrown away. Stats are calculated from these rows when asked, never stored, so they cannot drift.
+model WasteEntry {
+  id             String   @id @default(uuid(7)) @db.Uuid
+  userId         String   @db.Uuid
+  itemName       String
+  amount         Float
+  unit           String
+  reason         String
+  estimatedValue Float
+  notes          String   @default("")
+  wastedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, wastedAt(sort: Desc)])
 }
