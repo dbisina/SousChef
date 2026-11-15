@@ -1,7 +1,8 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  // index is the server; resealHealth is the key-rotation command (npm run health:reseal).
+  entry: ['src/index.ts', 'src/resealHealth.ts'],
   format: ['esm'],
   target: 'node22',
   platform: 'node',

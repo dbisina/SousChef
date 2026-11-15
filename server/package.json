@@ -10,6 +10,7 @@
     "dev": "tsx watch --env-file-if-exists=.env src/index.ts",
     "build": "tsup",
     "start": "node --max-old-space-size=384 dist/index.js",
+    "health:reseal": "node dist/resealHealth.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",

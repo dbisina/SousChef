@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseOldKeys } from './vitals/crypto';
 
 const csv = z
   .string()
@@ -112,6 +113,19 @@ const schema = z
       .string()
       .default('')
       .refine((v) => v === '' || Buffer.from(v, 'base64').length === 32, 'HEALTH_DATA_KEY must be 32 bytes written as base64'),
+    /** Which key HEALTH_DATA_KEY is. Raise it when you rotate (the id is stored with each value). */
+    HEALTH_DATA_KEY_ID: z.coerce.number().int().min(1).max(255).default(1),
+    /** Older keys still needed to read old data while it is being rewritten: "1:base64key,2:base64key". */
+    HEALTH_DATA_OLD_KEYS: z
+      .string()
+      .default('')
+      .refine((v) => {
+        try {
+          return [...parseOldKeys(v).values()].every((k) => Buffer.from(k, 'base64').length === 32);
+        } catch {
+          return false;
+        }
+      }, 'HEALTH_DATA_OLD_KEYS must look like "1:base64key,2:base64key", each key 32 bytes as base64'),
   })
   .superRefine((env, ctx) => {
     const storage = [env.S3_ENDPOINT, env.S3_BUCKET, env.S3_ACCESS_KEY_ID, env.S3_SECRET_ACCESS_KEY, env.STORAGE_PUBLIC_URL];

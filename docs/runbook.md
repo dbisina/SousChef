@@ -64,8 +64,17 @@ By hand: `cd /opt/souschef && ./deploy.sh <tag>`. See what is live: `cat .curren
 | Disk nearly full | Old Docker images: `docker image prune -a`. Logs are capped at 50 MB per container. Large tables: look at `pg_total_relation_size`. |
 | AI features say "resting" | Either the monthly budget is spent (raise `AI_MONTHLY_BUDGET_USD` if you accept it) or a provider key is missing or wrong. Imports and the plate judge degrade; moderation waits. |
 | Someone posts something awful | Staff: hide it from the report queue (`/v1/admin/reports`), suspend the account (`POST /v1/admin/users/:id/suspend`). |
-| A key or secret leaked | Replace it in `.env.production`, `./deploy.sh $(cat .current-tag)`. For `JWT_SECRET`, everyone is signed out (expected). Never rotate `HEALTH_DATA_KEY` without re-encrypting the stored data first (there is no tool for that yet). |
+| A key or secret leaked | Replace it in `.env.production`, `./deploy.sh $(cat .current-tag)`. For `JWT_SECRET`, everyone is signed out (expected). For `HEALTH_DATA_KEY` follow "Rotating the health key" below; never just swap it. |
 | Database lost | New server, same setup steps, then restore the newest backup (see `restore-test.sh` for the exact commands, but into the real database). Expect to lose up to a day. |
+
+## Rotating the health key
+
+The first byte of every stored health value says which key sealed it, so old and new keys can live side by side.
+
+1. Make a new key (`openssl rand -base64 32`). In `.env.production` set `HEALTH_DATA_KEY=<new>`, `HEALTH_DATA_KEY_ID=<old id + 1>` (the first key is id 1) and `HEALTH_DATA_OLD_KEYS=<old id>:<old key>`.
+2. `./deploy.sh $(cat .current-tag)`. New readings use the new key; old ones still open.
+3. Run `docker compose ... exec api npm run health:reseal` until it prints `remaining 0`. It can be stopped and run again.
+4. Only then remove the old key from `HEALTH_DATA_OLD_KEYS`. Keep a copy of it for as long as you keep backups taken before the rotation.
 
 ## Measuring
 
@@ -76,6 +85,6 @@ until you have run this on the real server size; do it before the first real use
 ## Known gaps
 
 - Nothing here has been run on a real server, R2 bucket or Cloudflare account yet.
-- No automatic key rotation for `HEALTH_DATA_KEY`.
+- Rotating `HEALTH_DATA_KEY` is a manual, three-step job (below); it has been tested only against the test database.
 - One server means one point of failure: a bad night means minutes to an hour of downtime, and up to a day of data lost in the worst case. Move to a managed database when real money depends on it.
 - Only posts and post comments go through the quick rules, and only posts through the model check. Chat messages and recipe comments are not checked yet (people can still report them).
