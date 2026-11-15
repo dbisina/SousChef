@@ -8,6 +8,7 @@ import { isDesignReview } from '@/lib/designReview';
 import { apiEnabled, onApiSignedOut } from '@/lib/api';
 import { useSocialStore } from '@/stores/socialStore';
 import { useMessageStore } from '@/stores/messageStore';
+import { useHealthStore } from '@/stores/healthStore';
 
 // Hook to handle auth state changes and protected routes
 export const useAuth = () => {
@@ -43,10 +44,12 @@ export const useAuth = () => {
     if (isDesignReview || !apiEnabled()) return;
     if (!signedInId) {
       useMessageStore.getState().stopLive(); // signed out: close the live connection and forget the conversations
+      useHealthStore.getState().clearLocal(); // and nothing of someone's health stays on the phone for the next person
       return;
     }
     void useSocialStore.getState().loadFromServer();
     void useMessageStore.getState().loadFromServer();
+    void useHealthStore.getState().loadFromServer();
   }, [signedInId]);
 
   // Listen to Firebase auth state changes

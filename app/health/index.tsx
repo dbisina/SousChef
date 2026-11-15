@@ -17,9 +17,11 @@ import {
   Tag,
   Thumb,
   TopBar,
+  UButton,
   UCard,
   UIconButton,
 } from '@/components/ui';
+import { apiEnabled } from '@/lib/api';
 import type { BarTone } from '@/components/ui/Indicators';
 import {
   GLUCOSE_CHART_MAX,
@@ -50,6 +52,10 @@ export default function HealthScreen() {
   const { t } = useTranslation();
   const readings = useHealthStore((s) => s.readings);
   const meals = useHealthStore((s) => s.meals);
+  const consent = useHealthStore((s) => s.consent);
+  const grantConsent = useHealthStore((s) => s.grantConsent);
+  const eraseAll = useHealthStore((s) => s.eraseAll);
+  const withdrawConsent = useHealthStore((s) => s.withdrawConsent);
   const [period, setPeriod] = useState<HealthPeriod>('today');
   const now = useMemo(() => new Date(), []);
 
@@ -103,6 +109,18 @@ export default function HealthScreen() {
         }
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+        {apiEnabled() && consent === 'needed' ? (
+          <UCard style={{ gap: 12, padding: 20 }}>
+            <H2>{t('health.consentTitle', 'Keep your health numbers safe')}</H2>
+            <Muted>
+              {t(
+                'health.consentBody',
+                'Your readings and meals are stored encrypted on our server, only you can see them, and you can export or delete them any time. They are numbers only: no advice. Agree to start saving them.',
+              )}
+            </Muted>
+            <UButton label={t('health.consentAgree', 'Agree and continue')} variant="accent" onPress={() => void grantConsent()} />
+          </UCard>
+        ) : null}
         <Segmented<HealthPeriod>
           value={period}
           onChange={setPeriod}
@@ -200,6 +218,12 @@ export default function HealthScreen() {
             })}
           </Rows>
         )}
+        {apiEnabled() && consent === 'granted' ? (
+          <Rows>
+            <ListRow title={t('health.stopSaving', 'Stop saving my health data')} subtitle={t('health.stopSavingSub', 'Hides it here and on the server. Delete it below if you want it gone.')} onPress={() => void withdrawConsent()} />
+            <ListRow title={t('health.deleteAll', 'Delete all my health data')} subtitle={t('health.deleteAllSub', 'Removes every reading and meal. This cannot be undone.')} onPress={() => void eraseAll()} />
+          </Rows>
+        ) : null}
       </ScrollView>
     </Screen>
   );
