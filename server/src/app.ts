@@ -14,6 +14,9 @@ import { uploadRoutes } from './uploads/routes';
 import { UploadService } from './uploads/service';
 import { adRoutes } from './ads/routes';
 import { AdService } from './ads/service';
+import type { ChatEvents } from './chat/events';
+import { chatRoutes } from './chat/routes';
+import { ChatService } from './chat/service';
 import { cookbookRoutes } from './cookbooks/routes';
 import { CookbookService } from './cookbooks/service';
 import { kitchenRoutes } from './kitchen/routes';
@@ -33,6 +36,8 @@ export interface BuildOptions {
   verifier?: IdTokenVerifier;
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
   storage?: Storage | null;
+  /** Where chat announces new messages to live connections. Leave unset for none. */
+  chatEvents?: ChatEvents;
   /** The clock. Tests move it to check expiry. */
   now?: () => Date;
 }
@@ -42,6 +47,7 @@ export interface Built {
   db: Db;
   auth: AuthService;
   uploads: UploadService;
+  chat: ChatService;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -100,6 +106,8 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const entitlements = new EntitlementService(db, options.now);
   subscriptionRoutes(app, entitlements, auth, config);
   uploadRoutes(app, uploads, auth, config);
+  const chat = new ChatService(db, uploads, options.chatEvents, options.now);
+  chatRoutes(app, chat, auth);
   recipeRoutes(app, new RecipeService(db, entitlements), auth);
   const pantry = new PantryService(db, options.now);
   const shopping = new ShoppingService(db);
@@ -112,5 +120,5 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads };
+  return { app, db, auth, uploads, chat };
 }

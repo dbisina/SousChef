@@ -77,6 +77,12 @@ model User {
   cookbookSaves  CookbookSave[]
   subscription   Subscription?
   uploads        Upload[]
+
+  chatMemberships ConversationMember[]
+  messages        Message[]
+  messageReactions MessageReaction[]
+  blocking        Block[] @relation("Blocker")
+  blockedBy       Block[] @relation("Blocked")
 }
 
 /// A Google or Apple account linked to a user.
@@ -614,4 +620,99 @@ model Upload {
 
   @@index([userId, createdAt(sort: Desc)])
   @@index([status, createdAt])
+}
+
+enum ConversationKind {
+  DIRECT
+  GROUP
+  COMMUNITY
+}
+
+/// A chat. Messages in it are numbered 1, 2, 3... with no gaps (`lastSeq` is the latest number handed out), which is
+/// what lets a phone that was offline ask for "everything after 41".
+model Conversation {
+  id            String           @id @default(uuid(7)) @db.Uuid
+  kind          ConversationKind
+  title         String?
+  photoUrl      String?
+  /// For a direct chat: both people's ids, smaller first, so the same pair always finds the same chat.
+  directKey     String?          @unique
+  createdById   String?          @db.Uuid
+  lastSeq       Int              @default(0)
+  lastMessageAt DateTime?
+  createdAt     DateTime         @default(now())
+
+  members  ConversationMember[]
+  messages Message[]
+
+  @@index([lastMessageAt(sort: Desc)])
+}
+
+model ConversationMember {
+  conversationId   String   @db.Uuid
+  userId           String   @db.Uuid
+  /// "member" or "admin"
+  role             String   @default("member")
+  joinedAt         DateTime @default(now())
+  /// Highest message number this person has seen / has had delivered to their phone.
+  lastReadSeq      Int      @default(0)
+  lastDeliveredSeq Int      @default(0)
+  muted            Boolean  @default(false)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  conversationId String    @db.Uuid
+  /// Position in the conversation: 1, 2, 3...
+  seq            Int
+  senderId       String    @db.Uuid
+  /// Chosen by the sender's phone. Sending the same one twice (a retry) stores the message once.
+  clientId       String
+  /// "text", "recipe-card", "voice" or "image"
+  kind           String
+  /// Depends on kind (see shared/chat.ts). Emptied when the message is deleted.
+  body           Json
+  replyToId      String?   @db.Uuid
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime?
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User              @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  reactions    MessageReaction[]
+
+  @@unique([conversationId, seq])
+  @@unique([senderId, clientId])
+  @@index([conversationId, seq(sort: Desc)])
+}
+
+model MessageReaction {
+  messageId String   @db.Uuid
+  userId    String   @db.Uuid
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId, emoji])
+  @@index([messageId])
+}
+
+/// One person has blocked another: no direct chat between them, in either direction.
+model Block {
+  blockerId String   @db.Uuid
+  blockedId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
 }

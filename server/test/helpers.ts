@@ -6,6 +6,8 @@ import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
+import type { ChatEvent } from '@shared';
+import type { ChatEvents } from '../src/chat/events';
 import type { Storage } from '../src/storage/storage';
 
 export function testConfig(overrides: Record<string, string> = {}): Config {
@@ -78,7 +80,19 @@ export class FakeStorage implements Storage {
   }
 }
 
+/** Remembers what chat announced, so a test can check who was told what. */
+export class CaptureEvents implements ChatEvents {
+  readonly published: { userIds: string[]; event: ChatEvent }[] = [];
+  publish(userIds: string[], event: ChatEvent): void {
+    this.published.push({ userIds, event });
+  }
+  ofType<T extends ChatEvent['type']>(type: T) {
+    return this.published.filter((p): p is { userIds: string[]; event: Extract<ChatEvent, { type: T }> } => p.event.type === type);
+  }
+}
+
 export interface TestApp {
+  events: CaptureEvents;
   storage: FakeStorage;
   app: FastifyInstance;
   db: Db;
@@ -93,6 +107,7 @@ export interface TestApp {
 
 export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null } = {}): Promise<TestApp> {
   const storage = new FakeStorage();
+  const events = new CaptureEvents();
   const mail = new CaptureMailer();
   const verifier = new FakeVerifier();
   let offset = 0;
@@ -101,12 +116,14 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     mailer: mail,
     verifier,
     storage: options.storage === undefined ? storage : options.storage,
+    chatEvents: events,
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation" CASCADE`;
+    events.published.length = 0;
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
@@ -115,6 +132,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
   };
   await reset();
   return {
+    events,
     storage,
     app: built.app,
     db: built.db,

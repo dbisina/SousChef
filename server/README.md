@@ -32,6 +32,7 @@ Without Docker you need Node 22, the Rust toolchain, and a PostgreSQL you can po
 | `src/auth/` | sign-up and sign-in, tokens, passwords, Google and Apple, password reset |
 | `src/subscriptions/` | plans from RevenueCat's webhook, `GET /v1/me/entitlements`, and what each plan unlocks |
 | `src/uploads/`, `src/storage/` | photo and voice uploads straight to the file store (R2) with a short-lived link; SigV4 signing written against the spec and checked against the AWS SDK |
+| `src/chat/` | conversations, messages numbered 1, 2, 3 with safe resend, read and delivered ticks, reactions, replies, groups, blocking (live delivery: see the gateway) |
 | `src/recipes/` | recipes: create/edit, filters, search, "cook with what I have", likes, saves, ratings, comments, "I made this", reports |
 | `prisma/schema.prisma` | the database. Every change needs a migration: `npm run db:migrate -- --name what_changed` |
 | `native/` | Rust: `links/` is the logic (plain `cargo test`), `src/` the Node wrapper |
