@@ -16,6 +16,7 @@ import type { Config } from '../config';
 import { isUniqueViolation, type Db } from '../db';
 import { errors } from '../errors';
 import { recipesTouchedBy, recomputeRecipeCounters } from '../recipes/counters';
+import type { UploadService } from '../uploads/service';
 import type { IdTokenVerifier } from './idToken';
 import type { Mailer } from './mailer';
 import { hashPassword, verifyAgainstDummy, verifyPassword } from './password';
@@ -26,6 +27,8 @@ export interface AuthDeps {
   config: Config;
   mailer: Mailer;
   verifier: IdTokenVerifier;
+  /** Removes a deleted account's uploaded files. */
+  uploads?: UploadService;
   now?: () => Date;
 }
 
@@ -55,9 +58,11 @@ export class AuthService {
   private readonly config: Config;
   private readonly mailer: Mailer;
   private readonly verifier: IdTokenVerifier;
+  private readonly uploads: UploadService | undefined;
   private readonly now: () => Date;
 
   constructor(deps: AuthDeps) {
+    this.uploads = deps.uploads;
     this.db = deps.db;
     this.config = deps.config;
     this.mailer = deps.mailer;
@@ -262,9 +267,11 @@ export class AuthService {
     // Remember which recipes this person had touched: their likes, saves, comments and ratings vanish with the account,
     // so those recipes' totals are recounted afterwards.
     const touched = await recipesTouchedBy(this.db, userId);
+    const files = (await this.uploads?.keysFor(userId)) ?? [];
     // Sessions, devices, identities, consents, resets and everything they wrote are removed with the user (onDelete: Cascade).
     await this.db.user.delete({ where: { id: userId } });
     await recomputeRecipeCounters(this.db, touched);
+    await this.uploads?.deleteKeys(files);
   }
 
   async registerDevice(userId: string, input: RegisterDeviceRequest): Promise<void> {

@@ -6,6 +6,7 @@ import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
+import type { Storage } from '../src/storage/storage';
 
 export function testConfig(overrides: Record<string, string> = {}): Config {
   return loadConfig({
@@ -51,7 +52,34 @@ export class FakeVerifier implements IdTokenVerifier {
   }
 }
 
+/** An in-memory file store. A test plays the phone with `put`, which is what uploading to the presigned link does. */
+export class FakeStorage implements Storage {
+  readonly files = new Map<string, { size: number; contentType: string }>();
+  readonly deleted: string[] = [];
+  /** Keys whose deletion should fail, to see that a failure does not stop the rest. */
+  readonly failDelete = new Set<string>();
+
+  put(key: string, size: number, contentType: string): void {
+    this.files.set(key, { size, contentType });
+  }
+  async presignUpload(input: { key: string; contentType: string; expiresSeconds: number }) {
+    return { url: `https://upload.test/${input.key}?expires=${input.expiresSeconds}`, headers: { 'Content-Type': input.contentType } };
+  }
+  async head(key: string) {
+    return this.files.get(key) ?? null;
+  }
+  async delete(key: string) {
+    if (this.failDelete.has(key)) throw new Error('storage unavailable');
+    this.files.delete(key);
+    this.deleted.push(key);
+  }
+  publicUrl(key: string) {
+    return `https://media.test/${key}`;
+  }
+}
+
 export interface TestApp {
+  storage: FakeStorage;
   app: FastifyInstance;
   db: Db;
   mail: CaptureMailer;
@@ -63,7 +91,8 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null } = {}): Promise<TestApp> {
+  const storage = new FakeStorage();
   const mail = new CaptureMailer();
   const verifier = new FakeVerifier();
   let offset = 0;
@@ -71,17 +100,22 @@ export async function makeApp(configOverrides: Record<string, string> = {}): Pro
     config: testConfig(configOverrides),
     mailer: mail,
     verifier,
+    storage: options.storage === undefined ? storage : options.storage,
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
     await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent" CASCADE`;
+    storage.files.clear();
+    storage.deleted.length = 0;
+    storage.failDelete.clear();
     offset = 0;
     mail.resets.length = 0;
   };
   await reset();
   return {
+    storage,
     app: built.app,
     db: built.db,
     mail,

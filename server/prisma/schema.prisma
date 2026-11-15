@@ -76,6 +76,7 @@ model User {
   cookbookLikes  CookbookLike[]
   cookbookSaves  CookbookSave[]
   subscription   Subscription?
+  uploads        Upload[]
 }
 
 /// A Google or Apple account linked to a user.
@@ -586,4 +587,31 @@ model WebhookEvent {
   receivedAt DateTime @default(now())
 
   @@index([receivedAt])
+}
+
+enum UploadStatus {
+  PENDING
+  READY
+  DELETED
+}
+
+/// A file a person sent (or is about to send) straight to the file store. Other content refers to READY uploads.
+model Upload {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  userId       String       @db.Uuid
+  /// Where it lives in the bucket: purpose/userId/id.ext
+  key          String       @unique
+  purpose      String
+  contentType  String
+  /// What the phone said it would send; the real size is checked when the upload is completed.
+  declaredSize Int
+  size         Int?
+  status       UploadStatus @default(PENDING)
+  createdAt    DateTime     @default(now())
+  readyAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
 }

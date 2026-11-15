@@ -31,6 +31,7 @@ Without Docker you need Node 22, the Rust toolchain, and a PostgreSQL you can po
 | `src/config.ts` | reads and checks the environment once at startup |
 | `src/auth/` | sign-up and sign-in, tokens, passwords, Google and Apple, password reset |
 | `src/subscriptions/` | plans from RevenueCat's webhook, `GET /v1/me/entitlements`, and what each plan unlocks |
+| `src/uploads/`, `src/storage/` | photo and voice uploads straight to the file store (R2) with a short-lived link; SigV4 signing written against the spec and checked against the AWS SDK |
 | `src/recipes/` | recipes: create/edit, filters, search, "cook with what I have", likes, saves, ratings, comments, "I made this", reports |
 | `prisma/schema.prisma` | the database. Every change needs a migration: `npm run db:migrate -- --name what_changed` |
 | `native/` | Rust: `links/` is the logic (plain `cargo test`), `src/` the Node wrapper |
@@ -61,6 +62,7 @@ See `.env.example` for every setting. A bad or missing setting stops the server 
   the row, repeating a request changes nothing, and deleting an account recounts the recipes it touched.
 - **Three different people reporting a recipe hide it** until an admin restores it (`PATCH` with `status: published`).
 - **Subscriptions come from RevenueCat's webhook.** Set `REVENUECAT_WEBHOOK_SECRET`, then in the RevenueCat dashboard point a webhook at `/v1/webhooks/revenuecat` with the Authorization header `Bearer <that secret>`. The app must sign in to RevenueCat with the SousChef user id. `GET /v1/me/entitlements` reports the plan; the server enforces it (Pro-only recipes answer `upgrade_required`, paying people get no ads). Without the secret the webhook answers 501.
+- **Uploads.** `POST /v1/uploads` returns a link; the phone PUTs the file to it with the given headers, then calls `/complete`, where the server checks the real size and type before the file counts. Set all of `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `STORAGE_PUBLIC_URL` (an R2 bucket with a public domain), or none; with none, uploads answer 501. Phones need no CORS rule. Unfinished uploads are swept after a day by the job runner (`UploadService.sweepExpired`).
 - **A cancelled plan keeps working until the paid period ends**; a period that has run out counts as free even if the expiry event has not arrived yet.
 
 - **Rate limits and Cloudflare.** `TRUST_PROXY=true` takes the visitor's address from `cf-connecting-ip`. Only turn

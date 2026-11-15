@@ -9,6 +9,9 @@ import type { Config } from './config';
 import { createDb, type Db } from './db';
 import { AppError } from './errors';
 import { healthRoutes } from './health';
+import { storageFromConfig, type Storage } from './storage/storage';
+import { uploadRoutes } from './uploads/routes';
+import { UploadService } from './uploads/service';
 import { adRoutes } from './ads/routes';
 import { AdService } from './ads/service';
 import { cookbookRoutes } from './cookbooks/routes';
@@ -28,6 +31,8 @@ export interface BuildOptions {
   db?: Db;
   mailer?: Mailer;
   verifier?: IdTokenVerifier;
+  /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
+  storage?: Storage | null;
   /** The clock. Tests move it to check expiry. */
   now?: () => Date;
 }
@@ -36,6 +41,7 @@ export interface Built {
   app: FastifyInstance;
   db: Db;
   auth: AuthService;
+  uploads: UploadService;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -57,7 +63,9 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const db = options.db ?? createDb(config.DATABASE_URL, config.DB_POOL_MAX);
   const mailer = options.mailer ?? new LogMailer(app.log, production);
   const verifier = options.verifier ?? new JoseIdTokenVerifier(config.GOOGLE_CLIENT_IDS, config.APPLE_CLIENT_IDS);
-  const auth = new AuthService({ db, config, mailer, verifier, ...(options.now ? { now: options.now } : {}) });
+  const storage = options.storage === undefined ? storageFromConfig(config, options.now) : options.storage;
+  const uploads = new UploadService(db, storage, app.log, options.now);
+  const auth = new AuthService({ db, config, mailer, verifier, uploads, ...(options.now ? { now: options.now } : {}) });
 
   await app.register(helmet);
   await app.register(rateLimit, {
@@ -91,6 +99,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   authRoutes(app, auth, config);
   const entitlements = new EntitlementService(db, options.now);
   subscriptionRoutes(app, entitlements, auth, config);
+  uploadRoutes(app, uploads, auth, config);
   recipeRoutes(app, new RecipeService(db, entitlements), auth);
   const pantry = new PantryService(db, options.now);
   const shopping = new ShoppingService(db);
@@ -103,5 +112,5 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth };
+  return { app, db, auth, uploads };
 }

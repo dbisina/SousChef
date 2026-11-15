@@ -7,6 +7,7 @@ export * from './mealplan';
 export * from './cookbook';
 export * from './ads';
 export * from './tiers';
+export * from './uploads';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';
