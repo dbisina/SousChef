@@ -10,6 +10,7 @@ import type { ChatEvent } from '@shared';
 import type { ChatEvents } from '../src/chat/events';
 import type { HubOptions } from '../src/chat/hub';
 import { makeFakeAi, type FakeAi } from './aiHelpers';
+import { FakeWeb } from './webHelpers';
 import type { PushMessage, PushSender } from '../src/chat/push';
 import type { Storage } from '../src/storage/storage';
 
@@ -60,12 +61,19 @@ export class FakeVerifier implements IdTokenVerifier {
 /** An in-memory file store. A test plays the phone with `put`, which is what uploading to the presigned link does. */
 export class FakeStorage implements Storage {
   readonly files = new Map<string, { size: number; contentType: string }>();
+  /** The bytes of files a test stored with real content (the rest read as zeros of the right size). */
+  readonly bytes = new Map<string, Buffer>();
   readonly deleted: string[] = [];
   /** Keys whose deletion should fail, to see that a failure does not stop the rest. */
   readonly failDelete = new Set<string>();
 
-  put(key: string, size: number, contentType: string): void {
+  put(key: string, size: number, contentType: string, content?: Buffer): void {
     this.files.set(key, { size, contentType });
+    if (content) this.bytes.set(key, content);
+  }
+  async read(key: string) {
+    const file = this.files.get(key);
+    return file ? (this.bytes.get(key) ?? Buffer.alloc(file.size)) : null;
   }
   async presignUpload(input: { key: string; contentType: string; expiresSeconds: number }) {
     return { url: `https://upload.test/${input.key}?expires=${input.expiresSeconds}`, headers: { 'Content-Type': input.contentType } };
@@ -105,6 +113,8 @@ export class FakePushSender implements PushSender {
 }
 
 export interface TestApp {
+  /** The pretend internet the importer reads pages from. */
+  web: FakeWeb;
   /** The stand-in AI services the app was built with. */
   ai: FakeAi;
   /** Starts listening on a free local port (once) and returns the ws:// address of the live connection. */
@@ -126,6 +136,7 @@ export interface TestApp {
 export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions> } = {}): Promise<TestApp> {
   const push = new FakePushSender();
   const ai = makeFakeAi();
+  const web = new FakeWeb();
   const storage = new FakeStorage();
   const events = new CaptureEvents();
   const mail = new CaptureMailer();
@@ -139,17 +150,19 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     chatEvents: events,
     pushSender: push,
     aiProviders: ai.all,
+    importRequester: web.requester,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();
     ai.reset();
+    web.reset();
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
@@ -159,6 +172,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
   await reset();
   let listening: Promise<string> | null = null;
   return {
+    web,
     ai,
     wsUrl: () => {
       listening ??= built.app.listen({ port: 0, host: '127.0.0.1' }).then((address) => address.replace('http', 'ws') + '/v1/ws');

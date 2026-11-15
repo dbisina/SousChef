@@ -58,7 +58,12 @@ export class AiRouter {
 
   /** True when at least one provider can serve this task. */
   available(task: AiTask): boolean {
-    return this.candidates({ task, prompt: '' }).length > 0;
+    return this.canServe({ task, prompt: '' });
+  }
+
+  /** True when a provider is set up that can handle this particular request (for example one with a video link). */
+  canServe(request: AiRequest): boolean {
+    return this.candidates(request).length > 0;
   }
 
   async run(request: AiRequest, options: RunOptions = {}): Promise<AiResult> {

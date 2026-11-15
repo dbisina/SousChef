@@ -34,6 +34,9 @@ import { MealPlanService, WasteService } from './mealplan/service';
 import { recipeRoutes } from './recipes/routes';
 import { FollowService } from './social/follows';
 import { PostService } from './social/posts';
+import type { Requester } from './imports/net';
+import { importRoutes } from './imports/routes';
+import { ImportService } from './imports/service';
 import { HouseService } from './invites/house';
 import { inviteRoutes } from './invites/routes';
 import { InviteService } from './invites/service';
@@ -51,6 +54,8 @@ export interface BuildOptions {
   db?: Db;
   mailer?: Mailer;
   verifier?: IdTokenVerifier;
+  /** How pages are fetched for importing. Tests pass a fake so nothing touches the network. */
+  importRequester?: Requester;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
   aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
@@ -148,6 +153,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const postService = new PostService(db, uploads, options.now);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
+  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
   const invites = new InviteService(db, options.now);
   inviteRoutes(app, invites, new HouseService(db, options.now), auth, config);
   const stories = new StoryService(db, uploads, options.now);

@@ -39,6 +39,7 @@ Without Docker you need Node 22, the Rust toolchain, and a PostgreSQL you can po
 | `native/feed/` | the "for you" ranker in Rust: engagement (a save counts most), freshness (half-life about 9 hours), a lift for authors you follow or liked, and no author filling the page. `GET /v1/feed/for-you` hands it the last week's posts |
 | `src/invites/` | invite codes and the "10 friends" reward (a month of Pro for you and them, up to three times), and labeled official house accounts with a one-switch kill |
 | `src/ai/` | the AI router: Gemini, DeepSeek and Nebius behind one interface, fallback between them, a hard monthly spending limit, per-person daily limits, and a record of every call. No AI key is ever in the app |
+| `src/imports/` | importing a recipe from a link (YouTube, TikTok, Instagram or any recipe page): the page's own recipe data when it has it, otherwise the AI; a shared cache; frames from the phone when the caption has no recipe. Pages are fetched with strict protection against being tricked into reading internal addresses |
 | `src/recipes/` | recipes: create/edit, filters, search, "cook with what I have", likes, saves, ratings, comments, "I made this", reports |
 | `prisma/schema.prisma` | the database. Every change needs a migration: `npm run db:migrate -- --name what_changed` |
 | `native/` | Rust: `links/` is the logic (plain `cargo test`), `src/` the Node wrapper |

@@ -74,6 +74,8 @@ const schema = z
     /** No default: pick the model (for example the safety model) in the Nebius console. */
     AI_NEBIUS_MODEL: z.string().default(''),
     AI_NEBIUS_BASE_URL: z.string().default('https://api.studio.nebius.com/v1'),
+    /** Imports (each can open a web page and call an AI service) allowed per minute per address. */
+    IMPORT_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(20),
     /** All AI calls together stop when this much has been spent in a month (US dollars). */
     AI_MONTHLY_BUDGET_USD: z.coerce.number().min(0).default(5),
     AI_PRICE_GEMINI_IN: z.coerce.number().min(0).default(0.3),

@@ -100,6 +100,7 @@ model User {
   invitedBy        Invite?  @relation("Invitee")
   promoGrants      PromoGrant[]
   aiUsage          AiUsage[]
+  imports          Import[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1065,4 +1066,43 @@ model AiUsage {
 
   @@index([createdAt])
   @@index([userId, task, createdAt])
+}
+
+enum ImportStatus {
+  DONE
+  /// The caption did not hold a recipe; the phone is asked to send frames from the video.
+  NEEDS_FRAMES
+}
+
+/// Recipes already worked out from a link, shared by everyone: the second person to paste the same video costs nothing.
+/// Only recipes derived from public pages are kept here, never anything personal.
+model ImportCache {
+  /// "youtube:<id>", "tiktok:<id>", "instagram:<code>" or "web:<hash of the address>"
+  key        String   @id
+  sourceUrl  String
+  platform   String
+  /// ImportedRecipe (see shared/kitchen.ts)
+  recipe     Json
+  confidence Float
+  hits       Int      @default(0)
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  @@index([lastUsedAt])
+}
+
+/// One person's attempt to import a link, so a "needs frames" import can be finished later.
+model Import {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  userId     String       @db.Uuid
+  url        String
+  key        String
+  status     ImportStatus
+  recipe     Json?
+  confidence Float?
+  createdAt  DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
 }

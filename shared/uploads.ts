@@ -1,7 +1,7 @@
 // Files people upload (photos, voice notes). The phone sends them straight to the file store with a short-lived link
 // from the server; the server never handles the bytes.
 
-export const UPLOAD_PURPOSES = ['recipe_image', 'made_post', 'avatar', 'story', 'chat_image', 'voice', 'post_video'] as const;
+export const UPLOAD_PURPOSES = ['recipe_image', 'made_post', 'avatar', 'story', 'chat_image', 'voice', 'post_video', 'import_frame'] as const;
 export type UploadPurpose = (typeof UPLOAD_PURPOSES)[number];
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
@@ -19,6 +19,8 @@ export const UPLOAD_RULES: Record<UploadPurpose, { maxBytes: number; contentType
   voice: { maxBytes: 1024 * 1024, contentTypes: AUDIO_TYPES },
   // Short clips, compressed on the phone first.
   post_video: { maxBytes: 20 * 1024 * 1024, contentTypes: VIDEO_TYPES },
+  // A frame from a cooking video, shrunk on the phone; read once by the AI and then deleted.
+  import_frame: { maxBytes: 2 * 1024 * 1024, contentTypes: IMAGE_TYPES },
 };
 
 export interface CreateUploadRequest {
