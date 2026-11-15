@@ -23,6 +23,11 @@ import {
 import { extractPlatformContent, PlatformContent } from './platformExtractorService';
 import { downloadYouTubeVideo, isYouTubeDownloadAvailable } from './youtubeDownloadService';
 import { getInfoAsync } from 'expo-file-system/legacy';
+import { apiEnabled } from '@/lib/api';
+import { apiExtractFromUrl } from '@/services/wantToCookApi';
+
+/** Kinds of link the server cannot fetch for us: files and pictures on the phone, and direct media. */
+const LOCAL_ONLY_PLATFORMS = new Set(['image', 'video', 'audio', 'pdf', 'json', 'xml', 'text']);
 
 const MAX_SHARED_VIDEO_BYTES = 20 * 1024 * 1024; // 20 MB limit for inline video analysis
 const isLocalFile = (path: string) => path.startsWith('/') || path.startsWith('file://');
@@ -75,6 +80,17 @@ export const extractRecipeFromURL = async (
   try {
     const platform = detectPlatform(url);
     onProgress?.(`Detected ${platform} link...`);
+
+    // With a server address set, links to pages and videos are read on the server first (it caches, so a link someone
+    // already imported costs nothing). Files on the phone, and videos whose caption has no recipe, still use the on-device reader below.
+    if (apiEnabled() && /^https?:\/\//i.test(url) && !LOCAL_ONLY_PLATFORMS.has(platform)) {
+      try {
+        const fromServer = await apiExtractFromUrl(url, onProgress);
+        if (fromServer) return fromServer;
+      } catch {
+        // The server could not be reached or refused: fall through to the on-device reader.
+      }
+    }
 
     // ──── DIRECT MEDIA / FILE HANDLERS ────
     // Handle direct image URLs or local image files (shared from Photos/Files)
