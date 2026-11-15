@@ -263,6 +263,17 @@ export class ChatService {
     await this.publishToMembers(conversationId, { type: 'message.deleted', conversationId, messageId });
   }
 
+  /** Staff take a reported message down, without being in the conversation. */
+  async removeAsStaff(messageId: string): Promise<boolean> {
+    const row = await this.db.message.findUnique({ where: { id: messageId }, select: { conversationId: true, deletedAt: true } });
+    if (!row) return false;
+    if (!row.deletedAt) {
+      await this.db.message.update({ where: { id: messageId }, data: { deletedAt: this.now(), body: {} } });
+      await this.publishToMembers(row.conversationId, { type: 'message.deleted', conversationId: row.conversationId, messageId });
+    }
+    return true;
+  }
+
   /** Marks everything up to `seq` as seen (and delivered). Tells the other members, so the sender sees the tick. */
   async markRead(userId: string, conversationId: string, seq: number): Promise<void> {
     await this.advance(userId, conversationId, seq, true);

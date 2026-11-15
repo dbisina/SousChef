@@ -29,7 +29,10 @@ import { MealPlanService, WasteService } from './mealplan/service';
 import { recipeRoutes } from './recipes/routes';
 import { FollowService } from './social/follows';
 import { PostService } from './social/posts';
+import { ReportService } from './social/reports';
 import { socialRoutes } from './social/routes';
+import { StoryService } from './social/stories';
+import { storyRoutes } from './social/storyRoutes';
 import { subscriptionRoutes } from './subscriptions/routes';
 import { EntitlementService } from './subscriptions/service';
 import { RecipeService } from './recipes/service';
@@ -59,6 +62,7 @@ export interface Built {
   uploads: UploadService;
   chat: ChatService;
   hub: ChatHub;
+  stories: StoryService;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -127,6 +131,8 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
   socialRoutes(app, new FollowService(db), new PostService(db, uploads, options.now), auth, config);
+  const stories = new StoryService(db, uploads, options.now);
+  storyRoutes(app, stories, new ReportService(db, chat, options.now), auth, config);
   recipeRoutes(app, new RecipeService(db, entitlements), auth);
   const pantry = new PantryService(db, options.now);
   const shopping = new ShoppingService(db);
@@ -140,5 +146,5 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads, chat, hub };
+  return { app, db, auth, uploads, chat, hub, stories };
 }

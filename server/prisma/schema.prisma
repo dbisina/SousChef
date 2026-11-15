@@ -91,6 +91,9 @@ model User {
   postSaves       PostSave[]
   postComments    PostComment[]
   postCommentLikes PostCommentLike[]
+  stories          Story[]
+  storyViews       StoryView[]
+  reports          Report[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -236,6 +239,7 @@ model Recipe {
   wantToCook WantToCookItem[]
   cookbooks  CookbookRecipe[]
   posts      Post[]
+  stories    Story[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -839,4 +843,66 @@ model PostCommentLike {
 
   @@id([userId, commentId])
   @@index([commentId])
+}
+
+/// A photo that disappears after 24 hours.
+model Story {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  authorId  String   @db.Uuid
+  photoUrl  String
+  /// The upload behind the photo, so the file can be removed with the story.
+  uploadId  String?  @db.Uuid
+  recipeId  String?  @db.Uuid
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  author User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  recipe Recipe?     @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  views  StoryView[]
+
+  @@index([authorId, expiresAt])
+  @@index([expiresAt])
+}
+
+model StoryView {
+  storyId  String   @db.Uuid
+  viewerId String   @db.Uuid
+  viewedAt DateTime @default(now())
+
+  story  Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewer User  @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, viewerId])
+  @@index([viewerId])
+}
+
+enum ReportStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
+}
+
+/// Someone reporting a post, comment, person, story or message. One report per person per thing.
+model Report {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  reporterId   String       @db.Uuid
+  /// "post", "comment", "user", "story" or "message"
+  targetType   String
+  targetId     String       @db.Uuid
+  /// "spam", "abuse", "inappropriate", "misinformation" or "other"
+  reason       String
+  details      String       @default("")
+  status       ReportStatus @default(OPEN)
+  /// The staff member who closed it, and what they did ("hidden", "restored", "dismissed").
+  resolvedById String?      @db.Uuid
+  resolution   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime     @default(now())
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
 }
