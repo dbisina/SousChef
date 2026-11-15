@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import {
-  amountInTableUnits,
+import {
   buildDoctorReport,
   calculateIngredientCalories,
   calculateNutrition,
@@ -215,8 +214,7 @@ export class InsightAiService {
 
     // Numbers come from our own tables, not from the AI.
     const full: RecipeIngredient[] = ingredients.map((i) => ({ ...i, calories: calculateIngredientCalories(i.name, i.amount, i.unit) }));
-    // The table counts in its own units (a piece, a cup...), so amounts in grams or ml are converted first.
-    const nutrition = calculateNutrition(full.map((i) => ({ ...i, amount: amountInTableUnits(i.name, i.amount, i.unit) })), recipe.servings);
+    const nutrition = calculateNutrition(full, recipe.servings);
     const diet = dietHolds(goal, ingredients.map((i) => i.name));
     const meets: boolean | null = goal === 'under-500-kcal' ? nutrition.caloriesPerServing <= 500 : goal === 'high-protein' ? nutrition.protein >= 25 : diet;
     const flags = new Set(recipe.dietaryFlags.map(nameKey));

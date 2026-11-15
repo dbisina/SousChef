@@ -76,6 +76,24 @@ By hand: `cd /opt/souschef && ./deploy.sh <tag>`. See what is live: `cat .curren
 - See what happened: `SELECT provider, count(*), sum("costMicros") FROM "AiUsage" WHERE "createdAt" > now() - interval '7 days' GROUP BY provider;`
 - Free keys vanish if Google changes limits or suspends them. Read Google's Gemini API terms before relying on keys from several accounts.
 
+## Starter content (official accounts, recipes, puzzles)
+
+A fresh server is empty. `npm run seed` adds the official SousChef accounts (Kitchen, Baking, Quick Meals), the 10 starter recipes and 3 cookbooks that used to live in Firestore (once each, under those accounts), 9 official posts and 14 Daily Dish puzzles. It only adds what is missing, never changes puzzles staff have set, and is safe to run again.
+
+```bash
+npm run seed -- --dry-run                      # say what would be added
+npm run seed                                   # add it
+npm run seed -- --admin you@example.com        # also make an existing account staff (register in the app first)
+```
+
+On the server: `docker compose ... exec api npm run seed`. On the Railway test host: `railway ssh --service souschef-api -- npm run seed -- --admin you@example.com`.
+
+The recipe and cookbook data is `server/seed/content.json`, exported once from Firestore by `server/scripts/export-firestore.mjs` (read-only; drops authors, users, emails and push tokens). Photos are web links, not uploads.
+
+### Pointing the app at a server
+
+Set `EXPO_PUBLIC_API_URL=https://<your host>` in the app's environment (the local `.env`, or `eas env:create` for EAS builds) and restart Expo with `npx expo start -c`. Without it the app keeps using Firebase.
+
 ## Staff dashboard
 
 `admin/` is a static website (Vite + React) for staff: reports, chef verification, AI spend and key status, ads, official accounts. It is served by Caddy at `https://<API_DOMAIN>/admin/` next to the API, so it needs no extra process and no CORS.
