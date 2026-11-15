@@ -25,6 +25,7 @@ import { downloadYouTubeVideo, isYouTubeDownloadAvailable } from './youtubeDownl
 import { getInfoAsync } from 'expo-file-system/legacy';
 import { apiEnabled } from '@/lib/api';
 import { apiExtractFromUrl } from '@/services/wantToCookApi';
+import { apiScanRecipe } from '@/services/aiToolsApi';
 
 /** Kinds of link the server cannot fetch for us: files and pictures on the phone, and direct media. */
 const LOCAL_ONLY_PLATFORMS = new Set(['image', 'video', 'audio', 'pdf', 'json', 'xml', 'text']);
@@ -624,6 +625,7 @@ export const extractRecipeFromPhoto = async (
   imageUri: string,
   cookbookName?: string
 ): Promise<CookbookScanResponse> => {
+  if (apiEnabled()) return apiScanRecipe([imageUri], cookbookName); // read on the server; no AI key on the phone
   try {
     const imagePart = await createImagePart(imageUri);
 
@@ -706,6 +708,7 @@ export const extractRecipeFromMultiplePhotos = async (
   imageUris: string[],
   cookbookName?: string
 ): Promise<CookbookScanResponse> => {
+  if (apiEnabled()) return apiScanRecipe(imageUris, cookbookName);
   try {
     // Convert all images to parts in parallel
     const imageParts = await Promise.all(
