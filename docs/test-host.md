@@ -16,12 +16,23 @@ A throwaway host for trying the app against the real server. Not production: pro
 | `NODE_ENV`, `TRUST_PROXY`, `RAILWAY_DOCKERFILE_PATH` | Production mode, trust Railway's proxy, which Dockerfile to build |
 | `AI_GEMINI_API_KEY`, `AI_GEMINI_MODEL` | Gemini (photos, scaling, video). `AI_GEMINI_FREE_KEYS` can add free keys (see runbook, "Gemini key pool") |
 | `AI_DEEPSEEK_API_KEY`, `AI_DEEPSEEK_MODEL` | DeepSeek (cheap text work) |
-| `AI_NEBIUS_API_KEY`, `AI_NEBIUS_BASE_URL` | Nebius; stays off until `AI_NEBIUS_MODEL` is set |
+| `AI_NEBIUS_API_KEY`, `AI_NEBIUS_*` | Nebius Token Factory: text model, two vision models (photo jobs until Gemini is funded), optional dedicated endpoint (see "Nebius endpoints") |
 | `AI_MONTHLY_BUDGET_USD` | Hard monthly stop on AI spend (2 on this host) |
 | `FIREBASE_PROJECT_ID` | Turns on Firebase sign-in (`souschef-c23d6`): the app signs in with Firebase and the server trades the token |
 | `TAVILY_API_KEY`, `FIRECRAWL_API_KEY` | Stored for later; the server does not use them yet |
 
 Not set on purpose: the `S3_*` file-store settings (no bucket yet, so photo uploads and pantry/plate/caption photo features do not work here), `GOOGLE_CLIENT_IDS` / `APPLE_CLIENT_IDS` (server-side Google/Apple sign-in), `REVENUECAT_WEBHOOK_SECRET`, `EXPO_ACCESS_TOKEN`.
+
+## Nebius endpoints
+
+- Public (shared) endpoints need no deployment: base URL `https://api.tokenfactory.nebius.com/v1`, the model is the routing key (e.g. `MiniMaxAI/MiniMax-M3.1-Flash`, vision, about $0.15 in / $0.60 out per million tokens). Test only; region may change.
+- Dedicated endpoint (own GPUs): Token Factory > Model endpoints > Deploy dedicated endpoint. Pick model weights, flavor, GPU (H100 eu-north1 or H200 us-central1, 4 or 8 per replica) and min/max replicas; about $0.31 per minute per 4-GPU H100 replica while running, so delete it when not testing. The region cannot change after creation. When ready it gets a `routing_key`.
+- Call it like any OpenAI-compatible model with the same API key: set `AI_NEBIUS_DEDICATED_MODEL=<routing_key>`, `AI_NEBIUS_DEDICATED_BASE_URL=<its region's base URL>` (eu-north1 `https://api.tokenfactory.nebius.com/v1`, eu-west1 `https://api.tokenfactory.eu-west1.nebius.com/v1`, us-central1 `https://api.tokenfactory.us-central1.nebius.com/v1`), and `AI_NEBIUS_DEDICATED_IMAGES=true` if it is a vision model. It is then tried first for the work it is allowed.
+- None is deployed on this host (trial credit is nearly spent).
+
+## Web build and CORS
+
+The app's web build calls the API from another origin: set `CORS_ORIGINS` (comma-separated exact origins, e.g. `http://localhost:8081`). Empty means no CORS. The staff dashboard is served by the API at `/admin/` and needs none.
 
 ## Firebase stays for now
 
