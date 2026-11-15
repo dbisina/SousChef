@@ -142,10 +142,12 @@ interface NoteProps {
   ingredients: Ingredient[];
   initialServings: number;
   onDone: () => void;
+  /** Hand the numbers back instead of sending them now (used while a post is being written). */
+  deferred?: (request: ScaleNoteRequest) => void;
 }
 
 /** Lets a cook tell the app what they really used. Other people's scaling gets better from it. */
-export function ScaleNoteForm({ recipeId, servings, ingredients, initialServings, onDone }: NoteProps) {
+export function ScaleNoteForm({ recipeId, servings, ingredients, initialServings, onDone, deferred }: NoteProps) {
   const { t } = useTranslation();
   const [people, setPeople] = useState(String(initialServings));
   const factor = (Number(people) || servings) / Math.max(1, servings);
@@ -173,16 +175,23 @@ export function ScaleNoteForm({ recipeId, servings, ingredients, initialServings
       setMessage(t('scale.typeSome', 'Type at least one amount you used.'));
       return;
     }
+    const request: ScaleNoteRequest = {
+      servings: n,
+      amounts,
+      ...(tip.trim() ? { tip: tip.trim() } : {}),
+      ...(pan.trim() ? { panNote: pan.trim() } : {}),
+      ...(Number(minutes) > 0 ? { cookTimeMin: Math.round(Number(minutes)) } : {}),
+    };
+    // While writing a post the numbers are kept and sent once the post exists (only then may the server accept them).
+    if (deferred) {
+      deferred(request);
+      setMessage(t('scale.willShare', 'Saved. Your numbers are shared when you post.'));
+      return;
+    }
     setBusy(true);
     setMessage('');
     try {
-      await apiSaveScaleNote(recipeId, {
-        servings: n,
-        amounts,
-        ...(tip.trim() ? { tip: tip.trim() } : {}),
-        ...(pan.trim() ? { panNote: pan.trim() } : {}),
-        ...(Number(minutes) > 0 ? { cookTimeMin: Math.round(Number(minutes)) } : {}),
-      });
+      await apiSaveScaleNote(recipeId, request);
       setMessage(t('scale.thanks', 'Thank you. This helps everyone who cooks it at that size.'));
       setTimeout(onDone, 1200);
     } catch (err) {

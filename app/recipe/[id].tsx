@@ -29,6 +29,7 @@ import type { RatingLevel } from '@/components/ui/Chips';
 import { InstructionList, NutritionCard, YouTubePlayer, ActionBar, DetailHero } from '@/components/recipe';
 import { AllergenWarning } from '@/components/recipe/AllergenWarning';
 import { ScaleCard } from '@/components/recipe/ScaleCard';
+import { CookChatCard, RewriteCard } from '@/components/ai/AiCooking';
 import { RecipeComments } from '@/components/recipe/RecipeComments';
 import { MadeThisGallery } from '@/components/recipe/MadeThisGallery';
 import { Paywall } from '@/components/subscription';
@@ -299,6 +300,9 @@ export default function RecipeDetailScreen() {
 
           {/* Cook for a different number of people (small changes are worked out on the phone) */}
           <ScaleCard recipeId={recipe.id} servings={recipe.servings} ingredients={recipe.ingredients} instructions={recipe.instructions} signedIn={!!user} />
+
+          {user ? <CookChatCard recipeId={recipe.id} /> : null}
+          {user ? <RewriteCard recipe={recipe} /> : null}
 
           {/* Substitution / pantry analysis (usage-limited) */}
           {user ? (

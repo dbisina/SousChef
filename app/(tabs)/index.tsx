@@ -33,6 +33,7 @@ import {
 import type { MealType } from '@/types/mealplan';
 import { ME_ID } from '@/types/social';
 import * as ImagePicker from 'expo-image-picker';
+import { TonightCard as AiTonightCard } from '@/components/ai/AiKitchen';
 import { apiEnabled } from '@/lib/api';
 import { showErrorToast, showSuccessToast } from '@/stores/toastStore';
 
@@ -248,6 +249,7 @@ export default function HomeScreen() {
         <LinkBar onPress={() => go('/import')} />
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
         <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} preview={tonight.preview} onPress={() => go(tonight.href)} />
+        {!isGuest ? <AiTonightCard /> : null}
         {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
         {FEATURES.feed ? <ReelsRow /> : null}
         <ImportedCard item={imported} onPress={() => go(imported.href)} />

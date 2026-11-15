@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { PantryScanCard } from '@/components/ai/AiKitchen';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { usePantry, usePantrySearch, usePantryAlerts } from '@/hooks/usePantry';
@@ -119,6 +120,8 @@ export default function PantryScreen() {
           autoCorrect={false}
           returnKeyType="search"
         />
+
+        <PantryScanCard />
 
         {hasAlerts ? (
           <PhotoCard

@@ -41,6 +41,8 @@ export interface NewPostInput {
   title?: string;
   recipeId?: string;
   communityId?: string;
+  /** Server mode: called once the server has accepted the post (for follow-ups that need the post to exist). */
+  onPublished?: () => void;
 }
 
 /** Feed data source. Swap the local implementation for a backend later. */

@@ -21,6 +21,9 @@ import { useSocialStore } from '@/stores/socialStore';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { photoOf } from '@/components/feed/shared';
 import * as ImagePicker from 'expo-image-picker';
+import type { ScaleNoteRequest } from '../../shared/index';
+import { PostAiHelpers } from '@/components/ai/AiPost';
+import { apiSaveScaleNote } from '@/services/aiToolsApi';
 import { apiEnabled } from '@/lib/api';
 import type { PhotoRef, PostKind } from '@/types/social';
 
@@ -41,6 +44,7 @@ export default function NewPostScreen() {
   const [recipe, setRecipe] = useState<{ id: string; title: string } | null>(null);
   const [communityId, setCommunityId] = useState<string | null>(null);
   const [picker, setPicker] = useState<PickerKind>(null);
+  const [scaleNote, setScaleNote] = useState<ScaleNoteRequest | null>(null);
 
   const saved = useMemo(
     () =>
@@ -70,6 +74,8 @@ export default function NewPostScreen() {
       title: recipe?.title,
       recipeId: recipe?.id,
       communityId: communityId ?? undefined,
+      // The cook's scaling numbers go to the server only once the post exists (the server checks they made the recipe).
+      ...(scaleNote && recipe ? { onPublished: () => { void apiSaveScaleNote(recipe.id, scaleNote).catch(() => undefined); } } : {}),
     });
     router.replace(`/post/${post.id}` as Href);
   };
@@ -148,6 +154,8 @@ export default function NewPostScreen() {
           onChangeText={setCaption}
           multiline
         />
+
+        <PostAiHelpers photo={photo} {...(recipe ? { recipeId: recipe.id } : {})} onCaption={setCaption} onScaleNote={setScaleNote} hasScaleNote={scaleNote !== null} />
 
         <Rows>
           <ListRow

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text as RNText, View } from 'react-native';
+import { HealthSummaryCard } from '@/components/ai/AiInsights';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -109,6 +110,7 @@ export default function HealthScreen() {
         }
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+        {apiEnabled() && consent === 'granted' ? <HealthSummaryCard /> : null}
         {apiEnabled() && consent === 'needed' ? (
           <UCard style={{ gap: 12, padding: 20 }}>
             <H2>{t('health.consentTitle', 'Keep your health numbers safe')}</H2>
