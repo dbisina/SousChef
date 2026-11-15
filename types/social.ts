@@ -95,7 +95,7 @@ export interface Community {
   memberAvatars: PhotoRef[];
 }
 
-export type MessageKind = 'text' | 'recipe-card' | 'voice';
+export type MessageKind = 'text' | 'recipe-card' | 'voice' | 'image';
 
 interface MessageBase {
   id: string;
@@ -124,7 +124,13 @@ export interface VoiceMessage extends MessageBase {
   /** Where the recording is, when it came from the server. */
   url?: string;
 }
-export type Message = TextMessage | RecipeCardMessage | VoiceMessage;
+export interface ImageMessage extends MessageBase {
+  kind: 'image';
+  /** The picture: an address from the server, or a file on this phone while it is still sending. */
+  url: string;
+  caption?: string;
+}
+export type Message = TextMessage | RecipeCardMessage | VoiceMessage | ImageMessage;
 
 export type ConversationKind = 'friend' | 'group' | 'order' | 'community';
 

@@ -73,8 +73,12 @@ export const useMessageStore = create<MessageState>()(
             if (msg.kind === 'recipe-card') {
               return { clientId, kind: 'recipe-card', ...(msg.recipeId ? { recipeId: msg.recipeId } : {}), title: msg.title, ...(/^https?:/i.test(msg.photo) ? { photoUrl: msg.photo } : {}), meta: msg.meta };
             }
+            if (msg.kind === 'image') {
+              const picture = await uploadFile(msg.uri, 'chat_image');
+              return { clientId, kind: 'image', uploadId: picture.id, ...(msg.caption ? { caption: msg.caption } : {}) };
+            }
             const file = await uploadFile(msg.uri as string, 'voice', 'audio/mp4');
-            return { clientId, kind: 'voice', uploadId: file.id, durationSec: msg.durationSec, waveform: msg.waveform };
+            return { clientId, kind: 'voice', uploadId: file.id, durationSec: (msg as { durationSec: number }).durationSec, waveform: (msg as { waveform: number[] }).waveform };
           };
           request()
             .then((body) => apiSendMessage(conversationId, body))

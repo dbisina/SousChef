@@ -356,3 +356,26 @@ describe('communities and stories', () => {
     expect(s.social.useSocialStore.getState().stories).toEqual([]);
   });
 });
+
+describe('chat pictures', () => {
+  it('sends a picture: shows it at once, uploads it, and swaps in the server\'s message', async () => {
+    routes = [
+      (m, p) => (m === 'GET' && p === '/pic.jpg' ? reply(200) : undefined),
+      (m, p) => (m === 'POST' && p === '/v1/uploads' ? reply(201, { id: 'upc', uploadUrl: 'https://files.test/upc', headers: {}, publicUrl: 'https://m.test/upc.jpg', expiresAt: 'x' }) : undefined),
+      (m, p) => (m === 'PUT' && p === '/upc' ? reply(200) : undefined),
+      (m, p) => (m === 'POST' && p === '/v1/uploads/upc/complete' ? reply(200, { id: 'upc', url: 'https://m.test/upc.jpg', status: 'ready' }) : undefined),
+      (m, p, b) => (m === 'POST' && p === '/v1/conversations/c1/messages' && b?.['uploadId'] === 'upc' ? reply(201, msg({ id: 'm20', seq: 20, sender: ME, kind: 'image', url: 'https://m.test/upc.jpg', caption: '', clientId: b?.['clientId'], status: 'sent', text: undefined })) : undefined),
+    ];
+    const local = s.message.useMessageStore.getState().sendMessage('c1', { kind: 'image', uri: 'file:///pic.jpg' });
+    expect(local).toMatchObject({ kind: 'image', url: 'file:///pic.jpg', senderId: 'me' });
+    expect(s.message.useMessageStore.getState().conversations).toEqual([]); // (no conversation loaded in this test)
+    await settle();
+    expect(s.message.useMessageStore.getState().messages).toMatchObject([{ id: 'm20', kind: 'image', url: 'https://m.test/upc.jpg' }]);
+  });
+
+  it('shows a picture from someone else', async () => {
+    routes = [(m, p) => (m === 'GET' && p === '/v1/conversations' ? reply(200, { items: [convo()], nextCursor: null }) : m === 'GET' && p === '/v1/conversations/c1/messages' ? reply(200, { items: [msg({ id: 'm30', kind: 'image', url: 'https://m.test/x.jpg', caption: 'Look!', text: undefined })], hasMore: false }) : undefined)];
+    await s.message.useMessageStore.getState().loadFromServer();
+    expect(s.message.useMessageStore.getState().messages[0]).toMatchObject({ kind: 'image', url: 'https://m.test/x.jpg', caption: 'Look!' });
+  });
+});

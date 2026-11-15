@@ -5,7 +5,7 @@ import { FONT } from '@/components/ui/fonts';
 import { useTranslation } from 'react-i18next';
 import { photoSource } from '@/assets/sample';
 import { BarChart, Icon, Muted, PhotoCard, Tag, Title } from '@/components/ui';
-import type { RecipeCardMessage, VoiceMessage } from '@/types/social';
+import type { ImageMessage, RecipeCardMessage, VoiceMessage } from '@/types/social';
 import { playVoiceNote } from '@/lib/voiceNote';
 
 export const formatDuration = (sec: number): string => `${Math.floor(sec / 60)}:${`${sec % 60}`.padStart(2, '0')}`;
@@ -45,6 +45,23 @@ export function RecipeCardBubble({ message, side, onCook, onAddToPlan }: RecipeP
 }
 
 /** Voice note bubble (Chat.html .bub with play + .vbar). Playback is not wired in the preview. */
+/** A picture sent in chat. */
+export function ImageBubble({ message, side }: { message: ImageMessage; side: 'me' | 'them' }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ alignSelf: side === 'me' ? 'flex-end' : 'flex-start', width: 230, gap: 6 }}>
+      <PhotoCard
+        source={photoSource(message.url)}
+        height={230}
+        radius={22}
+        fade="none"
+        accessibilityLabel={message.caption || t('chat.photo', 'Photo')}
+      />
+      {message.caption ? <Muted small>{message.caption}</Muted> : null}
+    </View>
+  );
+}
+
 export function VoiceBubble({ message, side }: { message: VoiceMessage; side: 'me' | 'them' }) {
   const { t } = useTranslation();
   const me = side === 'me';

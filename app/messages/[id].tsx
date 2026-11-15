@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { Bubble, Icon, Muted, Screen, Title, UIconButton, useTokens } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { ConversationAvatar, authorById } from '@/components/chat/ConversationAvatar';
-import { RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles';
+import { ImageBubble, RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles';
+import * as ImagePicker from 'expo-image-picker';
 import { messagesFor, useMessageStore } from '@/stores/messageStore';
 import { useToastStore } from '@/stores/toastStore';
 import { ME_ID, type Message } from '@/types/social';
@@ -120,7 +121,18 @@ export default function ChatScreen() {
         />
       );
     }
+    if (m.kind === 'image') return <ImageBubble key={m.id} message={m} side={side} />;
     return <VoiceBubble key={m.id} message={m} side={side} />;
+  };
+
+  // Server mode: the + button sends a picture from the library.
+  const attach = async () => {
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+    const uri = !picked.canceled ? picked.assets[0]?.uri : undefined;
+    if (uri && conversation) {
+      sendMessage(conversation.id, { kind: 'image', uri });
+      requestAnimationFrame(() => scroller.current?.scrollToEnd({ animated: true }));
+    }
   };
 
   let lastDay = '';
@@ -189,7 +201,7 @@ export default function ChatScreen() {
           className="flex-row items-center"
           style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 30), gap: 8 }}
         >
-          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={soon} />
+          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={apiEnabled() ? () => void attach() : soon} />
           <View className="flex-1 bg-surface-2 justify-center" style={{ height: 48, borderRadius: 24, paddingHorizontal: 18 }}>
             <TextInput
               accessibilityLabel={t('chat.message', 'Message')}

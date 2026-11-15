@@ -10,6 +10,7 @@ export interface MessageSnapshot {
 export type OutgoingMessage =
   | { kind: 'text'; text: string }
   | { kind: 'recipe-card'; title: string; photo: PhotoRef; meta: string; recipeId?: string }
+  | { kind: 'image'; /** A picture on the phone. */ uri: string; caption?: string }
   | { kind: 'voice'; durationSec: number; waveform: number[]; /** The recording on the phone; needed to send it to the server. */ uri?: string };
 
 export interface MessageService {
@@ -39,11 +40,13 @@ export const localMessageService: MessageService = {
     };
     if (msg.kind === 'text') return { ...base, kind: 'text', text: msg.text.trim() };
     if (msg.kind === 'recipe-card') return { ...base, ...msg };
+    if (msg.kind === 'image') return { ...base, kind: 'image', url: msg.uri, ...(msg.caption ? { caption: msg.caption } : {}) };
     return { ...base, ...msg };
   },
   previewFor(msg) {
     if (msg.kind === 'text') return msg.text;
     if (msg.kind === 'recipe-card') return 'Sent a recipe';
+    if (msg.kind === 'image') return msg.caption ? `Photo · ${msg.caption}` : 'Sent a photo';
     const m = Math.floor(msg.durationSec / 60);
     const s = `${msg.durationSec % 60}`.padStart(2, '0');
     return `Voice message · ${m}:${s}`;

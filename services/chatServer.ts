@@ -38,8 +38,7 @@ export function toMessage(m: ApiMessage, meId: string): Message {
     case 'voice':
       return { ...base, kind: 'voice', durationSec: m.durationSec, waveform: m.waveform, url: m.url };
     case 'image':
-      // The screens have no picture bubble yet: show it as a line of text, with the caption.
-      return { ...base, kind: 'text', text: m.caption ? `📷 ${m.caption}` : '📷 Photo' };
+      return { ...base, kind: 'image', url: m.url, ...(m.caption ? { caption: m.caption } : {}) };
   }
 }
 
