@@ -99,6 +99,12 @@ const schema = z
      * (`openssl rand -base64 32`). Empty turns health tracking off. Losing the key makes the stored readings unreadable, so
      * keep a copy somewhere safe and apart from the database backups.
      */
+    /** Background jobs (clearing out expired data, finishing games, checking new posts). Safe on several servers: a lock stops double runs. */
+    JOBS_ENABLED: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((v) => v === 'true'),
+
     /** Words that cannot be posted, separated by commas. Whole words only, any capitals. Empty: none beyond the spam rules. */
     BANNED_TERMS: z.string().default(''),
 

@@ -38,6 +38,9 @@ import { DailyDishService } from './play/dailyDish';
 import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
+import { backgroundJobs } from './jobs';
+import { Maintenance } from './jobs/maintenance';
+import { JobRunner } from './jobs/runner';
 import { ChefVerificationService } from './moderation/chef';
 import { moderationRoutes } from './moderation/routes';
 import { ModerationService } from './moderation/service';
@@ -92,6 +95,7 @@ export interface Built {
   ai: AiRouter;
   games: MysteryKitchenService;
   moderation: ModerationService;
+  jobs: JobRunner;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -184,10 +188,14 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   adRoutes(app, new AdService(db, options.now), auth, config, entitlements);
   mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
+  // Background work. Built here, started by the entry point (tests run jobs by hand so they stay predictable).
+  const jobs = new JobRunner(db, backgroundJobs({ uploads, stories, invites, games, moderation, maintenance: new Maintenance(db, options.now), ai }), app.log, options.now);
+
   app.addHook('onClose', async () => {
+    await jobs.stop();
     hub.stop();
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads, chat, hub, stories, invites, ai, games, moderation };
+  return { app, db, auth, uploads, chat, hub, stories, invites, ai, games, moderation, jobs };
 }

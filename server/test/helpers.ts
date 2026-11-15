@@ -126,6 +126,7 @@ export interface TestApp {
   storage: FakeStorage;
   games: Built['games'];
   moderation: Built['moderation'];
+  jobs: Built['jobs'];
   app: FastifyInstance;
   db: Db;
   mail: CaptureMailer;
@@ -187,6 +188,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     storage,
     games: built.games,
     moderation: built.moderation,
+    jobs: built.jobs,
     app: built.app,
     db: built.db,
     mail,

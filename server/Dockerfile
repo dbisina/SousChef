@@ -54,3 +54,7 @@ USER node
 EXPOSE 3000
 # The memory cap lives in the start script (--max-old-space-size).
 CMD ["npm", "run", "start"]
+
+# ---------------------------------------------------------------- migrate: applies database migrations, then exits (the production compose file runs it before the API)
+FROM build AS migrate
+CMD ["npx", "prisma", "migrate", "deploy"]

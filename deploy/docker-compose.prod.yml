@@ -1,0 +1,106 @@
+# Production on one 8 GB server:  PostgreSQL, the API, and Caddy (TLS, with Cloudflare in front).
+#
+#   cd /opt/souschef && ./deploy.sh <image tag>
+#
+# Nothing here publishes the database. Only Caddy listens on the public ports, and the firewall script lets only
+# Cloudflare reach them. Memory budget: database 1.5 GB, API 768 MB, Caddy 128 MB, leaving the rest for the system and cache.
+name: souschef
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: souschef
+      # Use letters and digits only (openssl rand -hex 24), so it can sit inside DATABASE_URL without escaping.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: souschef
+    command: >
+      postgres
+      -c shared_buffers=512MB
+      -c effective_cache_size=2GB
+      -c work_mem=8MB
+      -c maintenance_work_mem=128MB
+      -c max_connections=60
+      -c wal_compression=on
+      -c checkpoint_timeout=15min
+      -c max_wal_size=2GB
+      -c random_page_cost=1.1
+      -c log_min_duration_statement=500
+      -c idle_in_transaction_session_timeout=60000
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    shm_size: 256mb
+    mem_limit: 1536m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U souschef -d souschef"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    logging: &logs
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  # Applies new migrations and exits. The API only starts after it succeeds.
+  migrate:
+    image: ${IMAGE:-ghcr.io/dbisina/souschef-server}-migrate:${TAG:?set TAG}
+    restart: "no"
+    environment:
+      DATABASE_URL: postgresql://souschef:${POSTGRES_PASSWORD}@db:5432/souschef
+    depends_on:
+      db:
+        condition: service_healthy
+    logging: *logs
+
+  api:
+    image: ${IMAGE:-ghcr.io/dbisina/souschef-server}:${TAG:?set TAG}
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://souschef:${POSTGRES_PASSWORD}@db:5432/souschef
+      # Caddy and Cloudflare sit in front, so the real address of a visitor arrives in a header.
+      TRUST_PROXY: "true"
+      HOST: 0.0.0.0
+      PORT: "3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    mem_limit: 768m
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 20s
+    logging: *logs
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?set API_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # The Cloudflare Origin certificate and key (origin.pem, origin.key). Not in git.
+      - ./certs:/certs:ro
+      - caddydata:/data
+    depends_on:
+      api:
+        condition: service_healthy
+    mem_limit: 128m
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    security_opt: ["no-new-privileges:true"]
+    logging: *logs
+
+volumes:
+  dbdata:
+  caddydata:
