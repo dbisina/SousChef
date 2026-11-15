@@ -9,6 +9,8 @@ import type { Config } from './config';
 import { createDb, type Db } from './db';
 import { AppError } from './errors';
 import { healthRoutes } from './health';
+import { adRoutes } from './ads/routes';
+import { AdService } from './ads/service';
 import { cookbookRoutes } from './cookbooks/routes';
 import { CookbookService } from './cookbooks/service';
 import { kitchenRoutes } from './kitchen/routes';
@@ -90,6 +92,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const shopping = new ShoppingService(db);
   kitchenRoutes(app, { pantry, shopping, wantToCook: new WantToCookService(db, pantry, shopping, options.now) }, auth);
   cookbookRoutes(app, new CookbookService(db), auth);
+  adRoutes(app, new AdService(db, options.now), auth, config);
   mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
   app.addHook('onClose', async () => {

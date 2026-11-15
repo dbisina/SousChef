@@ -476,3 +476,77 @@ model CookbookSave {
   @@index([userId, createdAt(sort: Desc)])
   @@index([cookbookId])
 }
+
+enum AdStatus {
+  ACTIVE
+  PAUSED
+  PENDING_REVIEW
+}
+
+/// A sponsored ad. "Expired" is not stored: it is when the end date has passed.
+/// Spend is not stored either: it is impressions x CPM, so it can never disagree with the counts.
+model Ad {
+  id                String   @id @default(uuid(7)) @db.Uuid
+  advertiserName    String
+  advertiserLogoUrl String?
+  title             String
+  subtitle          String
+  imageUrl          String
+  ctaText           String
+  ctaUrl            String
+  placements        String[]
+  format            String
+  status            AdStatus @default(ACTIVE)
+  startsAt          DateTime
+  endsAt            DateTime
+  /// Whole cents. 0 = no cap.
+  budgetCents       Int      @default(0)
+  /// Cents per thousand impressions.
+  cpmCents          Int      @default(0)
+  impressions       Int      @default(0)
+  clicks            Int      @default(0)
+  accentColor       String?
+  darkMode          Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  days AdDay[]
+
+  @@index([status, startsAt(sort: Desc)])
+}
+
+/// Per-day counts, so a campaign can be charted without a row for every view.
+model AdDay {
+  adId        String @db.Uuid
+  day         DateTime @db.Date
+  impressions Int    @default(0)
+  clicks      Int    @default(0)
+
+  ad Ad @relation(fields: [adId], references: [id], onDelete: Cascade)
+
+  @@id([adId, day])
+}
+
+enum AdInquiryStatus {
+  NEW
+  CONTACTED
+  ACTIVE
+  DECLINED
+}
+
+/// A business asking to advertise (from the public form).
+model AdInquiry {
+  id          String          @id @default(uuid(7)) @db.Uuid
+  name        String
+  email       String
+  company     String
+  website     String?
+  budget      String
+  placements  String[]
+  startDate   DateTime?       @db.Date
+  message     String
+  status      AdInquiryStatus @default(NEW)
+  submittedAt DateTime        @default(now())
+
+  @@index([status, submittedAt(sort: Desc)])
+}
