@@ -16,7 +16,7 @@ import {
 } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
 import { apiEnabled } from '@/lib/api';
-import { apiSocialSignIn, friendlyApiError } from '@/services/authApi';
+import { apiSocialSignIn, authViaFirebase, firebaseSocialSignIn, friendlyApiError } from '@/services/authApi';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -44,7 +44,11 @@ export const signInWithGoogle = async (
     }
 
     // With a server address set, the server checks the token and keeps the account (no Firebase involved).
-    if (apiEnabled()) return { success: true, user: await apiSocialSignIn('google', idToken) };
+    if (apiEnabled()) {
+      // Firebase accounts: sign in with Firebase, then trade the token. Otherwise the server checks Google's token itself.
+      if (authViaFirebase()) return { success: true, user: await firebaseSocialSignIn(GoogleAuthProvider.credential(idToken, accessToken)) };
+      return { success: true, user: await apiSocialSignIn('google', idToken) };
+    }
 
     // Create credential from tokens
     const credential = GoogleAuthProvider.credential(idToken, accessToken);
@@ -123,6 +127,10 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
 
     if (apiEnabled()) {
       const name = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
+      if (authViaFirebase()) {
+        const credential = new OAuthProvider('apple.com').credential({ idToken: identityToken, rawNonce });
+        return { success: true, user: await firebaseSocialSignIn(credential, name || undefined) };
+      }
       return { success: true, user: await apiSocialSignIn('apple', identityToken, name || undefined) };
     }
 

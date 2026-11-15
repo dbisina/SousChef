@@ -20,7 +20,7 @@ export interface Me extends PublicProfile {
   emailVerified: boolean;
   role: UserRole;
   /** Which ways of signing in are attached to this account. */
-  providers: ('password' | 'google' | 'apple')[];
+  providers: ('password' | 'google' | 'apple' | 'firebase')[];
   createdAt: string;
 }
 
@@ -65,7 +65,8 @@ export interface LogoutRequest {
   refreshToken: string;
 }
 
-export type SocialProvider = 'google' | 'apple';
+/** `firebase` is a Firebase Authentication ID token (the app signs in with Firebase, the server trades it for its own tokens). */
+export type SocialProvider = 'google' | 'apple' | 'firebase';
 
 export interface SocialLoginRequest {
   provider: SocialProvider;

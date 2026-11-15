@@ -1,5 +1,6 @@
 // Sign-in and account calls against the SousChef server. Used by the auth store when EXPO_PUBLIC_API_URL is set.
-import { Timestamp } from '@/lib/firebase';
+import { Timestamp, auth, createUserWithEmailAndPassword, deleteUser, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword, signOut as firebaseSignOut, updateProfile } from '@/lib/firebase';
+import { getFriendlyAuthError } from '@/lib/utils';
 import type { AuthResponse, Me, UpdateProfileRequest } from '../shared/index';
 import { api, ApiError } from '@/lib/api';
 import type { User, UserRole } from '@/types';
@@ -29,8 +30,35 @@ export function meToUser(me: Me): User {
   };
 }
 
+/**
+ * With EXPO_PUBLIC_AUTH_VIA=firebase, people keep signing in with Firebase (existing accounts, Google, Apple) and the
+ * server trades the Firebase ID token for its own tokens. Everything after that is the server's. Unset: the server's own
+ * accounts, as before.
+ */
+export const authViaFirebase = (): boolean => process.env.EXPO_PUBLIC_AUTH_VIA === 'firebase';
+
+/** Trades a Firebase ID token for the server's tokens; the server checks the token itself. */
+async function exchangeFirebaseToken(idToken: string, displayName?: string): Promise<User> {
+  const res = await api().post<AuthResponse>(
+    '/v1/auth/social',
+    { provider: 'firebase', idToken, ...(displayName ? { displayName } : {}), acceptedTermsVersion: TERMS_VERSION },
+    { anonymous: true },
+  );
+  await api().setTokens(res.tokens);
+  return meToUser(res.user);
+}
+
+/** Signs in with a Firebase credential (Google, Apple), then trades the token. */
+export async function firebaseSocialSignIn(credential: Parameters<typeof signInWithCredential>[1], displayName?: string): Promise<User> {
+  const result = await signInWithCredential(auth, credential);
+  return exchangeFirebaseToken(await result.user.getIdToken(), displayName);
+}
+
 /** A sentence a person can read, from whatever went wrong. */
 export function friendlyApiError(error: unknown): string {
+  // Firebase's own errors ("auth/wrong-password") have their own friendly wording.
+  const code = (error as { code?: unknown } | null)?.code;
+  if (typeof code === 'string' && code.startsWith('auth/')) return getFriendlyAuthError(error);
   if (!(error instanceof ApiError)) return error instanceof Error ? error.message : 'Something went wrong';
   switch (error.code) {
     case 'invalid_credentials':
@@ -52,12 +80,22 @@ export function friendlyApiError(error: unknown): string {
 }
 
 export async function apiSignUp(email: string, password: string, displayName: string): Promise<User> {
+  if (authViaFirebase()) {
+    const created = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(created.user, { displayName });
+    // Ask for a fresh token so it carries the name that was just saved.
+    return exchangeFirebaseToken(await created.user.getIdToken(true), displayName);
+  }
   const res = await api().post<AuthResponse>('/v1/auth/register', { email, password, displayName, acceptedTermsVersion: TERMS_VERSION }, { anonymous: true });
   await api().setTokens(res.tokens);
   return meToUser(res.user);
 }
 
 export async function apiSignIn(email: string, password: string): Promise<User> {
+  if (authViaFirebase()) {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    return exchangeFirebaseToken(await result.user.getIdToken());
+  }
   const res = await api().post<AuthResponse>('/v1/auth/login', { email, password }, { anonymous: true });
   await api().setTokens(res.tokens);
   return meToUser(res.user);
@@ -99,10 +137,12 @@ export async function apiSignOut(): Promise<void> {
     // Signing out must always work on the phone, even offline; the session expires on the server by itself.
   } finally {
     await api().clear();
+    if (authViaFirebase()) await firebaseSignOut(auth).catch(() => undefined); // end the Firebase sign-in too
   }
 }
 
 export async function apiRequestPasswordReset(email: string): Promise<void> {
+  if (authViaFirebase()) return sendPasswordResetEmail(auth, email);
   await api().post('/v1/auth/forgot-password', { email }, { anonymous: true });
 }
 
@@ -119,4 +159,6 @@ export async function apiUpdateProfile(updates: Partial<User>): Promise<User> {
 export async function apiDeleteAccount(password?: string): Promise<void> {
   await api().request('DELETE', '/v1/me', { body: password ? { password } : { confirm: 'DELETE' } });
   await api().clear();
+  // The Firebase account goes too (it can refuse if the sign-in is old; the server account is already gone).
+  if (authViaFirebase() && auth.currentUser) await deleteUser(auth.currentUser).catch(() => undefined);
 }
