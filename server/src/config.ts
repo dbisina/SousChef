@@ -61,6 +61,28 @@ const schema = z
     /** Optional Expo access token, for projects that turned on enhanced push security. Empty is fine. */
     EXPO_ACCESS_TOKEN: z.string().default(''),
 
+    /**
+     * AI services. A service whose key is empty is off. Model names and prices change often, so they are settings, and the
+     * prices only feed the spending estimate (check them against each provider's price list).
+     */
+    AI_GEMINI_API_KEY: z.string().default(''),
+    AI_GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+    AI_DEEPSEEK_API_KEY: z.string().default(''),
+    AI_DEEPSEEK_MODEL: z.string().default('deepseek-chat'),
+    AI_DEEPSEEK_BASE_URL: z.string().default('https://api.deepseek.com'),
+    AI_NEBIUS_API_KEY: z.string().default(''),
+    /** No default: pick the model (for example the safety model) in the Nebius console. */
+    AI_NEBIUS_MODEL: z.string().default(''),
+    AI_NEBIUS_BASE_URL: z.string().default('https://api.studio.nebius.com/v1'),
+    /** All AI calls together stop when this much has been spent in a month (US dollars). */
+    AI_MONTHLY_BUDGET_USD: z.coerce.number().min(0).default(5),
+    AI_PRICE_GEMINI_IN: z.coerce.number().min(0).default(0.3),
+    AI_PRICE_GEMINI_OUT: z.coerce.number().min(0).default(2.5),
+    AI_PRICE_DEEPSEEK_IN: z.coerce.number().min(0).default(0.28),
+    AI_PRICE_DEEPSEEK_OUT: z.coerce.number().min(0).default(0.42),
+    AI_PRICE_NEBIUS_IN: z.coerce.number().min(0).default(0.2),
+    AI_PRICE_NEBIUS_OUT: z.coerce.number().min(0).default(0.6),
+
     /** File store for uploads (Cloudflare R2 or any S3-compatible bucket). Set all of the S3_* values and STORAGE_PUBLIC_URL, or none. */
     S3_ENDPOINT: z.string().default(''),
     S3_BUCKET: z.string().default(''),

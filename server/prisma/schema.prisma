@@ -99,6 +99,7 @@ model User {
   invitesSent      Invite[] @relation("Inviter")
   invitedBy        Invite?  @relation("Invitee")
   promoGrants      PromoGrant[]
+  aiUsage          AiUsage[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1043,4 +1044,25 @@ model PromoGrant {
 
   @@unique([userId, key])
   @@index([userId, endsAt])
+}
+
+/// One call to an AI model: who asked, what for, which model, how many tokens and what it is estimated to have cost.
+/// The monthly budget and the per-person daily limits are worked out from these rows.
+model AiUsage {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  userId       String?  @db.Uuid
+  /// What the call was for: "import", "judge", "moderate", ...
+  task         String
+  provider     String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  /// Estimated cost in millionths of a US dollar, from the configured price per million tokens.
+  costMicros   Int
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId, task, createdAt])
 }

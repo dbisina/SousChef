@@ -9,6 +9,7 @@ import type { Db } from '../src/db';
 import type { ChatEvent } from '@shared';
 import type { ChatEvents } from '../src/chat/events';
 import type { HubOptions } from '../src/chat/hub';
+import { makeFakeAi, type FakeAi } from './aiHelpers';
 import type { PushMessage, PushSender } from '../src/chat/push';
 import type { Storage } from '../src/storage/storage';
 
@@ -104,6 +105,8 @@ export class FakePushSender implements PushSender {
 }
 
 export interface TestApp {
+  /** The stand-in AI services the app was built with. */
+  ai: FakeAi;
   /** Starts listening on a free local port (once) and returns the ws:// address of the live connection. */
   wsUrl(): Promise<string>;
   push: FakePushSender;
@@ -122,6 +125,7 @@ export interface TestApp {
 
 export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions> } = {}): Promise<TestApp> {
   const push = new FakePushSender();
+  const ai = makeFakeAi();
   const storage = new FakeStorage();
   const events = new CaptureEvents();
   const mail = new CaptureMailer();
@@ -134,16 +138,18 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     storage: options.storage === undefined ? storage : options.storage,
     chatEvents: events,
     pushSender: push,
+    aiProviders: ai.all,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();
+    ai.reset();
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
@@ -153,6 +159,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
   await reset();
   let listening: Promise<string> | null = null;
   return {
+    ai,
     wsUrl: () => {
       listening ??= built.app.listen({ port: 0, host: '127.0.0.1' }).then((address) => address.replace('http', 'ws') + '/v1/ws');
       return listening;

@@ -32,6 +32,7 @@ export const errors = {
   providerNotConfigured: () => new AppError(501, 'provider_not_configured', 'This way of signing in is not available'),
   upgradeRequired: (requiredTier: string) =>
     new AppError(403, 'upgrade_required', 'This needs a paid plan', { requiredTier }),
+  aiUnavailable: (message = 'This feature is resting for now. Try again later') => new AppError(503, 'ai_unavailable', message),
   limitReached: (message: string) => new AppError(409, 'limit_reached', message),
   providerRejected: () => new AppError(401, 'provider_rejected', 'That sign-in could not be verified'),
 };

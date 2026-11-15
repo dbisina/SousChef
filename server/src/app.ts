@@ -12,6 +12,9 @@ import { healthRoutes } from './health';
 import { storageFromConfig, type Storage } from './storage/storage';
 import { uploadRoutes } from './uploads/routes';
 import { UploadService } from './uploads/service';
+import { buildAiRouter, routerSettings } from './ai/factory';
+import { AiRouter } from './ai/router';
+import type { AiProvider } from './ai/types';
 import { adRoutes } from './ads/routes';
 import { AdService } from './ads/service';
 import websocket from '@fastify/websocket';
@@ -48,6 +51,8 @@ export interface BuildOptions {
   db?: Db;
   mailer?: Mailer;
   verifier?: IdTokenVerifier;
+  /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
+  aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
   storage?: Storage | null;
   /** An extra listener for chat events (tests use it to see what was announced). */
@@ -69,6 +74,7 @@ export interface Built {
   hub: ChatHub;
   stories: StoryService;
   invites: InviteService;
+  ai: AiRouter;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -92,6 +98,9 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const verifier = options.verifier ?? new JoseIdTokenVerifier(config.GOOGLE_CLIENT_IDS, config.APPLE_CLIENT_IDS);
   const storage = options.storage === undefined ? storageFromConfig(config, options.now) : options.storage;
   const uploads = new UploadService(db, storage, app.log, options.now);
+  const ai = options.aiProviders
+    ? new AiRouter(db, routerSettings(config, options.aiProviders), app.log, options.now)
+    : buildAiRouter(config, db, app.log, options.now);
   const auth = new AuthService({ db, config, mailer, verifier, uploads, ...(options.now ? { now: options.now } : {}) });
 
   await app.register(helmet);
@@ -156,5 +165,5 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads, chat, hub, stories, invites };
+  return { app, db, auth, uploads, chat, hub, stories, invites, ai };
 }
