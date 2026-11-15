@@ -1,10 +1,11 @@
 // Files people upload (photos, voice notes). The phone sends them straight to the file store with a short-lived link
 // from the server; the server never handles the bytes.
 
-export const UPLOAD_PURPOSES = ['recipe_image', 'made_post', 'avatar', 'story', 'chat_image', 'voice'] as const;
+export const UPLOAD_PURPOSES = ['recipe_image', 'made_post', 'avatar', 'story', 'chat_image', 'voice', 'post_video'] as const;
 export type UploadPurpose = (typeof UPLOAD_PURPOSES)[number];
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
+const VIDEO_TYPES = ['video/mp4', 'video/quicktime'] as const;
 const AUDIO_TYPES = ['audio/mp4', 'audio/aac', 'audio/mpeg', 'audio/ogg', 'audio/webm'] as const;
 
 /** What each kind of upload may be. The phone compresses first; these are the ceilings. */
@@ -16,6 +17,8 @@ export const UPLOAD_RULES: Record<UploadPurpose, { maxBytes: number; contentType
   chat_image: { maxBytes: 5 * 1024 * 1024, contentTypes: IMAGE_TYPES },
   // About 180 KB a minute, so a few minutes fit comfortably.
   voice: { maxBytes: 1024 * 1024, contentTypes: AUDIO_TYPES },
+  // Short clips, compressed on the phone first.
+  post_video: { maxBytes: 20 * 1024 * 1024, contentTypes: VIDEO_TYPES },
 };
 
 export interface CreateUploadRequest {

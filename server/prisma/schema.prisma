@@ -83,6 +83,18 @@ model User {
   messageReactions MessageReaction[]
   blocking        Block[] @relation("Blocker")
   blockedBy       Block[] @relation("Blocked")
+
+  followers       Follow[] @relation("Following")
+  following       Follow[] @relation("Follower")
+  posts           Post[]
+  postLikes       PostLike[]
+  postSaves       PostSave[]
+  postComments    PostComment[]
+  postCommentLikes PostCommentLike[]
+
+  // Finding people by the start or part of a name or handle.
+  @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
+  @@index([displayName(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_displayName_trgm_idx")
 }
 
 /// A Google or Apple account linked to a user.
@@ -223,6 +235,7 @@ model Recipe {
   flags    RecipeFlag[]
   wantToCook WantToCookItem[]
   cookbooks  CookbookRecipe[]
+  posts      Post[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -715,4 +728,115 @@ model Block {
 
   @@id([blockerId, blockedId])
   @@index([blockedId])
+}
+
+/// One person follows another.
+model Follow {
+  followerId  String   @db.Uuid
+  followingId String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId, createdAt(sort: Desc)])
+  @@index([followerId, createdAt(sort: Desc)])
+}
+
+enum PostStatus {
+  PUBLISHED
+  /// Taken down by moderation; the author still sees it.
+  HIDDEN
+}
+
+/// Something shared to the feed: a recipe, a "made this" photo, a video, or a meal plan.
+model Post {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  authorId     String     @db.Uuid
+  /// "recipe", "made-this", "video" or "plan"
+  kind         String
+  title        String
+  caption      String     @default("")
+  /// A short line such as "35 min · Easy".
+  meta         String?
+  photoUrl     String
+  videoUrl     String?
+  recipeId     String?    @db.Uuid
+  status       PostStatus @default(PUBLISHED)
+  likeCount    Int        @default(0)
+  commentCount Int        @default(0)
+  saveCount    Int        @default(0)
+  viewCount    Int        @default(0)
+  createdAt    DateTime   @default(now())
+
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  recipe   Recipe?       @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  likes    PostLike[]
+  saves    PostSave[]
+  comments PostComment[]
+
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([authorId, createdAt(sort: Desc)])
+}
+
+model PostLike {
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+}
+
+model PostSave {
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([postId])
+}
+
+/// A comment on a post. Replies point at a top-level comment (one level deep). A comment can be a voice note.
+model PostComment {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  postId           String    @db.Uuid
+  authorId         String    @db.Uuid
+  parentId         String?   @db.Uuid
+  text             String    @default("")
+  voiceUrl         String?
+  voiceDurationSec Int?
+  likeCount        Int       @default(0)
+  replyCount       Int       @default(0)
+  createdAt        DateTime  @default(now())
+  deletedAt        DateTime?
+
+  post    Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  PostComment?      @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies PostComment[]     @relation("Replies")
+  likes   PostCommentLike[]
+
+  @@index([postId, parentId, createdAt(sort: Desc)])
+  @@index([parentId, createdAt])
+}
+
+model PostCommentLike {
+  userId    String   @db.Uuid
+  commentId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment PostComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, commentId])
+  @@index([commentId])
 }

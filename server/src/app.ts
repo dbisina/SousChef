@@ -27,6 +27,9 @@ import { PantryService, ShoppingService, WantToCookService } from './kitchen/ser
 import { mealPlanRoutes } from './mealplan/routes';
 import { MealPlanService, WasteService } from './mealplan/service';
 import { recipeRoutes } from './recipes/routes';
+import { FollowService } from './social/follows';
+import { PostService } from './social/posts';
+import { socialRoutes } from './social/routes';
 import { subscriptionRoutes } from './subscriptions/routes';
 import { EntitlementService } from './subscriptions/service';
 import { RecipeService } from './recipes/service';
@@ -123,6 +126,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   hub.start();
   app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
+  socialRoutes(app, new FollowService(db), new PostService(db, uploads, options.now), auth, config);
   recipeRoutes(app, new RecipeService(db, entitlements), auth);
   const pantry = new PantryService(db, options.now);
   const shopping = new ShoppingService(db);

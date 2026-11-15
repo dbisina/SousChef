@@ -24,6 +24,8 @@ const EXTENSIONS: Record<string, string> = {
   'audio/mpeg': 'mp3',
   'audio/ogg': 'ogg',
   'audio/webm': 'webm',
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
 };
 
 export class UploadService {
