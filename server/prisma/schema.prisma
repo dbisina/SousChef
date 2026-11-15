@@ -106,6 +106,8 @@ model User {
   hostedRooms      GameRoom[]
   gamePlayers      GamePlayer[]
   gameSubmissions  GameSubmission[]
+  healthReadings   HealthReading[]
+  healthMeals      HealthMeal[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1201,6 +1203,38 @@ model GameSubmission {
   user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([roomId, userId])
+}
+
+/// A health reading. What it measured stays readable (so lists can be filtered by time); the numbers are encrypted.
+model HealthReading {
+  id      String   @id @db.Uuid
+  userId  String   @db.Uuid
+  /// "glucose", "bp" or "cholesterol"
+  kind    String
+  at      DateTime
+  source  String   @default("manual")
+  mealId  String?  @db.Uuid
+  /// AES-256-GCM of the numbers, bound to this user and row (see vitals/crypto.ts)
+  payload Bytes
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meal HealthMeal? @relation(fields: [mealId], references: [id], onDelete: SetNull)
+
+  @@index([userId, at(sort: Desc)])
+  @@index([mealId])
+}
+
+/// A meal someone logged against their readings. Title, carbs and grouping are encrypted.
+model HealthMeal {
+  id      String   @id @db.Uuid
+  userId  String   @db.Uuid
+  at      DateTime
+  payload Bytes
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readings HealthReading[]
+
+  @@index([userId, at(sort: Desc)])
 }
 
 model DailyDishStreak {

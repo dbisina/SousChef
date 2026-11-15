@@ -16,6 +16,7 @@ export * from './imports';
 export * from './dailyDish';
 export * from './play';
 export * from './mysteryKitchen';
+export * from './health';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';

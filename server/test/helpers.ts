@@ -23,6 +23,8 @@ export function testConfig(overrides: Record<string, string> = {}): Config {
     // Tests make many requests from one address; the limiter has its own tests with a small limit.
     RATE_LIMIT_MAX: '100000',
     AUTH_RATE_LIMIT_MAX: '100000',
+    // A fixed key made only for tests.
+    HEALTH_DATA_KEY: Buffer.alloc(32, 7).toString('base64'),
     ...overrides,
   });
 }

@@ -93,6 +93,16 @@ const schema = z
     S3_REGION: z.string().default('auto'),
     /** The public address of the bucket, e.g. https://media.souschef.app (no trailing slash). */
     STORAGE_PUBLIC_URL: z.string().default(''),
+
+    /**
+     * The key that encrypts health readings and meals at rest: 32 random bytes written as base64
+     * (`openssl rand -base64 32`). Empty turns health tracking off. Losing the key makes the stored readings unreadable, so
+     * keep a copy somewhere safe and apart from the database backups.
+     */
+    HEALTH_DATA_KEY: z
+      .string()
+      .default('')
+      .refine((v) => v === '' || Buffer.from(v, 'base64').length === 32, 'HEALTH_DATA_KEY must be 32 bytes written as base64'),
   })
   .superRefine((env, ctx) => {
     const storage = [env.S3_ENDPOINT, env.S3_BUCKET, env.S3_ACCESS_KEY_ID, env.S3_SECRET_ACCESS_KEY, env.STORAGE_PUBLIC_URL];
