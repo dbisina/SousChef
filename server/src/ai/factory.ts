@@ -15,6 +15,7 @@ export const DEFAULT_ROUTES: Record<AiTask, string[]> = {
   substitute: ['deepseek', 'gemini', 'nebius'],
   moderate: ['nebius', 'deepseek', 'gemini'],
   judge_plate: ['gemini'],
+  meal_plan: ['deepseek', 'gemini', 'nebius'],
 };
 
 /** The services whose keys are set. A service without a key is simply not there. */

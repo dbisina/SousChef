@@ -129,6 +129,42 @@ export class ImportService {
     }
   }
 
+  /**
+   * Reads a recipe from photos of a cookbook page (or a screenshot): one to eight pictures of the same recipe. Nothing is
+   * cached or kept; the pictures are deleted afterwards.
+   */
+  async scanPhotos(userId: string, uploadIds: string[], bookName?: string): Promise<ImportedRecipe> {
+    if (!this.storage) throw errors.aiUnavailable('This feature is not set up on this server');
+    if (uploadIds.length === 0 || uploadIds.length > MAX_FRAMES) throw errors.validation({ uploadIds: `Send between 1 and ${MAX_FRAMES} photos` });
+    try {
+      const images: { base64: string; mimeType: string }[] = [];
+      let total = 0;
+      for (const id of uploadIds) {
+        const key = await this.uploads.keyFor(userId, id, 'import_frame');
+        const bytes = key ? await this.storage.read(key) : null;
+        if (!bytes) throw errors.validation({ uploadIds: 'Finish uploading each photo first' });
+        total += bytes.byteLength;
+        if (total > MAX_FRAME_BYTES_TOTAL) throw errors.validation({ uploadIds: 'The photos are too large together' });
+        images.push({ base64: bytes.toString('base64'), mimeType: sniffImageType(bytes) });
+      }
+      const request: AiRequest = {
+        task: 'extract_recipe_from_frames',
+        system: SYSTEM,
+        prompt: `These are photos of a printed recipe${bookName ? ` from the cookbook "${bookName.slice(0, 80)}"` : ''}. Read the recipe exactly as printed: the title, the ingredients with amounts, and the steps. If the pages show different recipes, read the first one.`,
+        images,
+        json: true,
+        maxOutputTokens: 2500,
+        temperature: 0.1,
+      };
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: IMPORT_DAILY_LIMIT[await this.tier(userId)] } });
+      const recipe = toImported(parsed, { sourceUrl: `scan:${(bookName ?? 'photo').slice(0, 80)}`, platform: 'website', fallbackConfidence: 0.5 });
+      if (!recipe) throw errors.validation({ uploadIds: 'No recipe could be read from those photos' });
+      return recipe;
+    } finally {
+      for (const id of uploadIds) await this.uploads.discardById(id);
+    }
+  }
+
   async get(userId: string, id: string): Promise<ImportResult> {
     const row = await this.db.import.findFirst({ where: { id, userId } });
     if (!row) throw errors.notFound('Import not found');

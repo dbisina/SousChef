@@ -49,6 +49,8 @@ import { vitalsRoutes } from './vitals/routes';
 import { VitalsService } from './vitals/service';
 import type { Requester } from './imports/net';
 import { importRoutes } from './imports/routes';
+import { aiToolsRoutes } from './ai/routes';
+import { AiToolsService } from './ai/tools';
 import { ImportService } from './imports/service';
 import { HouseService } from './invites/house';
 import { inviteRoutes } from './invites/routes';
@@ -172,6 +174,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
   importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
+  aiToolsRoutes(app, new AiToolsService(db, ai, entitlements, options.now), auth, config);
   playRoutes(app, new DailyDishService(db, options.now), auth);
   const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now);
   mysteryKitchenRoutes(app, games, auth);

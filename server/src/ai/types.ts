@@ -1,5 +1,5 @@
 /** What the AI is being asked to do. Each task has its own route (which models, in what order). */
-export const AI_TASKS = ['extract_recipe', 'extract_recipe_from_frames', 'substitute', 'moderate', 'judge_plate'] as const;
+export const AI_TASKS = ['extract_recipe', 'extract_recipe_from_frames', 'substitute', 'moderate', 'judge_plate', 'meal_plan'] as const;
 export type AiTask = (typeof AI_TASKS)[number];
 
 export interface AiImage {
