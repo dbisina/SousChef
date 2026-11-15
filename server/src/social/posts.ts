@@ -13,6 +13,7 @@ import type { Db } from '../db';
 import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
 import type { UploadService } from '../uploads/service';
+import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank } from './forYou';
 
 const MAX_POSTS_PER_DAY = 20;
 const DAY_MS = 86_400_000;
@@ -122,6 +123,74 @@ export class PostService {
       limit,
       cursor,
     );
+  }
+
+  /**
+   * "For you": the last week's public posts, ordered by the Rust ranker (engagement, freshness, who you follow or have
+   * liked, and no author filling the page). Works signed out too, with no personal lift. The cursor remembers the moment
+   * the candidates were fixed at, so new posts arriving do not shuffle pages already seen.
+   */
+  async forYou(viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
+    const state = cursor ? decodeCursor(cursor) : null;
+    if (cursor && !state) throw errors.validation({ cursor: 'Not a valid cursor' });
+    const asOf = state ? new Date(state.asOf) : this.now();
+    const offset = state?.offset ?? 0;
+
+    const where: Prisma.PostWhereInput = {
+      status: 'PUBLISHED',
+      createdAt: { gte: new Date(asOf.getTime() - FOR_YOU_WINDOW_MS), lte: asOf },
+      ...(viewer ? notBlocked(viewer.userId) : {}),
+    };
+    const rows = await this.db.post.findMany({
+      where: viewer?.role === 'admin' ? where : { AND: [where, this.communityGate(viewer?.userId ?? null)] },
+      include: withAuthor,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: FOR_YOU_CANDIDATES,
+    });
+    if (rows.length === 0) return { items: [], nextCursor: null };
+
+    const authors = [...new Set(rows.map((r) => r.authorId))];
+    const [followed, engaged] = viewer
+      ? await Promise.all([
+          this.db.follow.findMany({ where: { followerId: viewer.userId, followingId: { in: authors } }, select: { followingId: true } }),
+          this.db.post.findMany({
+            where: {
+              authorId: { in: authors },
+              OR: [
+                { likes: { some: { userId: viewer.userId, createdAt: { gte: new Date(asOf.getTime() - 30 * 24 * 3_600_000) } } } },
+                { saves: { some: { userId: viewer.userId, createdAt: { gte: new Date(asOf.getTime() - 30 * 24 * 3_600_000) } } } },
+              ],
+            },
+            select: { authorId: true },
+            distinct: ['authorId'],
+          }),
+        ])
+      : [[], []];
+    const followedIds = new Set(followed.map((f) => f.followingId));
+    const engagedIds = new Set(engaged.map((p) => p.authorId));
+    const affinity = (authorId: string): number =>
+      viewer && authorId === viewer.userId ? AFFINITY.self : followedIds.has(authorId) ? AFFINITY.followed : engagedIds.has(authorId) ? AFFINITY.engaged : AFFINITY.stranger;
+
+    const ranked = rank(
+      rows.map((r) => ({
+        id: r.id,
+        authorId: r.authorId,
+        ageHours: (asOf.getTime() - r.createdAt.getTime()) / 3_600_000,
+        likes: r.likeCount,
+        comments: r.commentCount,
+        saves: r.saveCount,
+        views: r.viewCount,
+        authorAffinity: affinity(r.authorId),
+        hasRecipe: r.recipeId !== null,
+      })),
+      offset + limit,
+    );
+    const pageIds = ranked.slice(offset, offset + limit);
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    const items = await this.decorate(pageIds.map((id) => byId.get(id) as PostRow), viewer?.userId ?? null);
+    // More to show when the candidates run past this page.
+    const more = rows.length > offset + limit && ranked.length === offset + limit;
+    return { items, nextCursor: more ? encodeCursor({ asOf: asOf.toISOString(), offset: offset + limit }) : null };
   }
 
   /** Everyone's recent public posts. */

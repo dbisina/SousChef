@@ -79,6 +79,12 @@ export function socialRoutes(app: FastifyInstance, follows: FollowService, posts
     return posts.followingFeed(viewer, n, cursor);
   });
 
+  /** Ranked for the viewer; works signed out. */
+  app.get('/v1/feed/for-you', async (request) => {
+    const { limit: n, cursor } = parse(pageQuery, request.query);
+    return posts.forYou(await optionalViewer(request), n, cursor);
+  });
+
   app.get('/v1/feed/discover', async (request) => {
     const { limit: n, cursor } = parse(pageQuery, request.query);
     return posts.discoverFeed(await optionalViewer(request), n, cursor);
