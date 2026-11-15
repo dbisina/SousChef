@@ -22,6 +22,7 @@ import {
 import { toAuthor } from '@/services/feedServer';
 import { toConversation, toMessage } from '@/services/chatServer';
 import { useSocialStore } from '@/stores/socialStore';
+import { usePlayStore } from '@/stores/playStore';
 import { ME_ID } from '@/types/social';
 
 /* Server mode bookkeeping that is not part of what the screens read. */
@@ -246,6 +247,11 @@ function handleEvent(event: ChatEvent, set: SetFn, get: GetFn): void {
     }
     case 'conversation.updated':
       void get().loadFromServer();
+      return;
+    case 'game.updated':
+      // A Mystery Kitchen room changed (or closed): the game store asks the server how it stands.
+      if (event.phase === 'closed') usePlayStore.setState({ round: null });
+      else void usePlayStore.getState().refreshRound(event.code);
       return;
     default:
       return; // reactions and game updates are not shown in the chat screens

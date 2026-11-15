@@ -1,9 +1,9 @@
-import { SAMPLE } from '@/assets/sample';
+import { SAMPLE, photoSource } from '@/assets/sample';
 import type { PhotoSource } from '@/components/ui';
-import type { SampleName as PhotoRef } from '@/assets/sample';
+import type { PhotoLike as PhotoRef } from '@/assets/sample';
 
-/** Bundled sample photo for a PhotoRef key. */
-export const samplePhoto = (ref: PhotoRef): PhotoSource => SAMPLE[ref] as PhotoSource;
+/** The photo for a reference: a bundled sample, or a picture from the server. */
+export const samplePhoto = (ref: PhotoRef): PhotoSource => photoSource(ref) as PhotoSource;
 
 /** Mystery photo shown (blurred) for a Daily Dish answer. */
 export function dailyDishPhoto(answer: string): PhotoSource {

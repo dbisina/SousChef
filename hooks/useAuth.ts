@@ -9,6 +9,7 @@ import { apiEnabled, onApiSignedOut } from '@/lib/api';
 import { useSocialStore } from '@/stores/socialStore';
 import { useMessageStore } from '@/stores/messageStore';
 import { useHealthStore } from '@/stores/healthStore';
+import { usePlayStore } from '@/stores/playStore';
 
 // Hook to handle auth state changes and protected routes
 export const useAuth = () => {
@@ -45,11 +46,13 @@ export const useAuth = () => {
     if (!signedInId) {
       useMessageStore.getState().stopLive(); // signed out: close the live connection and forget the conversations
       useHealthStore.getState().clearLocal(); // and nothing of someone's health stays on the phone for the next person
+      usePlayStore.setState({ daily: null, serverDaily: null, round: null, playError: null });
       return;
     }
     void useSocialStore.getState().loadFromServer();
     void useMessageStore.getState().loadFromServer();
     void useHealthStore.getState().loadFromServer();
+    void usePlayStore.getState().loadDaily();
   }, [signedInId]);
 
   // Listen to Firebase auth state changes

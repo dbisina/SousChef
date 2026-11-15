@@ -29,6 +29,7 @@ export default function MysteryLobbyScreen() {
   const hostRound = usePlayStore((s) => s.hostRound);
   const startRound = usePlayStore((s) => s.startRound);
   const leaveRound = usePlayStore((s) => s.leaveRound);
+  const playError = usePlayStore((s) => s.playError);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -85,6 +86,7 @@ export default function MysteryLobbyScreen() {
       }
     >
       <TopBar variant="compact" title={t('play.mk.title', 'Mystery Kitchen')} onBack={close} />
+      {playError ? <Muted>{playError}</Muted> : null}
 
       <RoomCodeCard
         code={round.roomCode}
