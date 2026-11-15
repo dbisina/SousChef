@@ -24,6 +24,7 @@ enum AccountKind {
 enum AuthProvider {
   GOOGLE
   APPLE
+  FIREBASE
 }
 
 enum ConsentKind {

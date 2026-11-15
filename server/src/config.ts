@@ -38,6 +38,8 @@ const schema = z
     GOOGLE_CLIENT_IDS: csv,
     /** For Apple this is the app's bundle id. */
     APPLE_CLIENT_IDS: csv,
+    /** The Firebase project whose sign-in tokens the server accepts (the app signs in with Firebase, the server trades the token for its own). Empty means off. */
+    FIREBASE_PROJECT_ID: z.string().trim().default(''),
 
     /** Where the password reset email sends the person. The token is added as ?token=... */
     APP_RESET_URL: z.string().default('souschef://reset-password'),

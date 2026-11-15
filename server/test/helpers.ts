@@ -47,7 +47,7 @@ export class FakeVerifier implements IdTokenVerifier {
   configured = true;
   private readonly tokens = new Map<string, VerifiedIdentity>();
 
-  allow(token: string, identity: Partial<VerifiedIdentity> & { providerUserId: string; provider: 'GOOGLE' | 'APPLE' }): void {
+  allow(token: string, identity: Partial<VerifiedIdentity> & { providerUserId: string; provider: 'GOOGLE' | 'APPLE' | 'FIREBASE' }): void {
     this.tokens.set(token, { email: null, emailVerified: false, name: null, ...identity });
   }
   isConfigured(_provider: SocialProvider): boolean {

@@ -124,7 +124,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
 
   const db = options.db ?? createDb(config.DATABASE_URL, config.DB_POOL_MAX);
   const mailer = options.mailer ?? new LogMailer(app.log, production);
-  const verifier = options.verifier ?? new JoseIdTokenVerifier(config.GOOGLE_CLIENT_IDS, config.APPLE_CLIENT_IDS);
+  const verifier = options.verifier ?? new JoseIdTokenVerifier(config.GOOGLE_CLIENT_IDS, config.APPLE_CLIENT_IDS, config.FIREBASE_PROJECT_ID);
   const storage = options.storage === undefined ? storageFromConfig(config, options.now) : options.storage;
   const uploads = new UploadService(db, storage, app.log, options.now);
   const ai = options.aiProviders
