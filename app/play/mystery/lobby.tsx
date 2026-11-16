@@ -52,7 +52,7 @@ export default function MysteryLobbyScreen() {
 
   const me = round.players.find((p) => p.isYou);
   const isHost = !!me?.isHost;
-  const ready = canStart(round);
+  const ready = round.mode === 'solo' ? round.players.length >= 1 : canStart(round);
   const close = () => {
     leaveRound();
     router.back();

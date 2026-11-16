@@ -245,7 +245,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const updated = await viaApi(set, () => apiUpdateProfile(updates));
       // Only what the server owns; lists the server does not send yet (saved recipes and the like) stay as they are.
       set({
-        user: { ...user, displayName: updated.displayName, bio: updated.bio, photoURL: updated.photoURL, role: updated.role, isVerifiedChef: updated.isVerifiedChef },
+        user: { ...user, displayName: updated.displayName, bio: updated.bio, photoURL: updated.photoURL, bannerURL: updated.bannerURL, role: updated.role, isVerifiedChef: updated.isVerifiedChef },
         isLoading: false,
       });
       return;

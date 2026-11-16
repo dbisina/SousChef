@@ -37,6 +37,7 @@ const me = (over: Partial<Me> = {}): Me => ({
   id: '0190f0f0-0000-7000-8000-000000000001',
   handle: 'ama',
   displayName: 'Ama Okafor',
+  bannerUrl: null,
   bio: 'Cook',
   photoUrl: null,
   isChef: false,

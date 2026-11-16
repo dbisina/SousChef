@@ -11,6 +11,9 @@ jest.mock('@/lib/firebase', () => {
 });
 jest.mock('expo-secure-store', () => ({ getItemAsync: async () => null, setItemAsync: async () => undefined, deleteItemAsync: async () => undefined }));
 const mockPlatformExtract = jest.fn();
+const mockAskFrames = jest.fn();
+jest.mock('@/lib/importFrames', () => ({ askForFrames: (...a: unknown[]) => mockAskFrames(...a) }));
+jest.mock('@/lib/upload', () => ({ uploadFile: async (uri: string) => ({ id: `up-${uri}`, url: uri }) }));
 jest.mock('@/lib/gemini', () => ({ textModel: {}, visionModel: {}, createImagePart: jest.fn(), extractRecipeFromVideo: jest.fn(), extractRecipeFromText: jest.fn(), extractRecipeFromContentBundle: jest.fn(), extractRecipeWithThinking: jest.fn(), downloadVideoToTemp: jest.fn(), cleanupTempFile: jest.fn() }));
 jest.mock('@/services/platformExtractorService', () => ({ extractPlatformContent: (...a: unknown[]) => mockPlatformExtract(...a) }));
 jest.mock('@/services/youtubeDownloadService', () => ({ downloadYouTubeVideo: jest.fn(), isYouTubeDownloadAvailable: () => false }));
@@ -176,10 +179,22 @@ describe('link import', () => {
     expect(mockPlatformExtract).toHaveBeenCalledTimes(2);
   });
 
+  it('asks for screenshots when the caption has no recipe, sends them, and uses what the server reads from them', async () => {
+    mockAskFrames.mockResolvedValueOnce(['file:///a.jpg', 'file:///b.jpg']);
+    server
+      .mockResolvedValueOnce(reply(201, { id: 'imp3', status: 'needs_frames', platform: 'tiktok', recipe: null, cached: false, message: 'Send frames' }))
+      .mockResolvedValueOnce(reply(200, { id: 'imp3', status: 'done', platform: 'tiktok', recipe: imported, cached: false, message: null }));
+    const res = await extractRecipeFromURL('https://www.tiktok.com/@a/video/2');
+    expect(res).toMatchObject({ success: true });
+    expect(res.recipe?.title).toBe('Egusi');
+    expect(sent(1)).toMatchObject({ method: 'POST', path: '/v1/imports/imp3/frames', body: { uploadIds: ['up-file:///a.jpg', 'up-file:///b.jpg'] } });
+    expect(mockPlatformExtract).not.toHaveBeenCalled();
+  });
+
   it('keeps files on the phone and direct media off the server', async () => {
     mockPlatformExtract.mockRejectedValue(new Error('x'));
     await extractRecipeFromURL('https://site.test/photo.jpg').catch(() => undefined);
     await extractRecipeFromURL('file:///photo.jpg').catch(() => undefined);
-    expect(server.mock.calls.filter(([u]) => String(u).includes('/v1/imports'))).toHaveLength(0);
+    expect(server.mock.calls.filter(([u]) => String(u).endsWith('/v1/imports'))).toHaveLength(0);
   });
 });

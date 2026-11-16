@@ -2,7 +2,6 @@ import React from 'react';
 import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import {
   Icon,
   Muted,
@@ -76,7 +75,6 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({ stats }) => {
   return (
     <View style={{ gap: 16 }}>
       <PhotoCard
-        source={SAMPLE.spinach}
         height={200}
         topLeft={<Tag large tone="glassDark" label={t('planWaste.thisMonth', 'This month')} />}
       >

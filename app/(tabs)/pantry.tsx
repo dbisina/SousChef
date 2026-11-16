@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, View } from 'react-native';
+import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { PantryScanCard } from '@/components/ai/AiKitchen';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -23,7 +24,6 @@ import {
   UInput,
   useColor,
 } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
 
 export default function PantryScreen() {
   const router = useRouter();
@@ -125,7 +125,6 @@ export default function PantryScreen() {
 
         {hasAlerts ? (
           <PhotoCard
-            source={SAMPLE.spinach}
             height={168}
             accessibilityLabel={t('pantryUi.findRecipes', 'Find recipes')}
             onPress={() => router.push('/(tabs)/browse')}

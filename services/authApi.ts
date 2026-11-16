@@ -17,6 +17,7 @@ export function meToUser(me: Me): User {
     email: me.email ?? '',
     displayName: me.displayName,
     ...(me.photoUrl ? { photoURL: me.photoUrl } : {}),
+    ...(me.bannerUrl ? { bannerURL: me.bannerUrl } : {}),
     bio: me.bio,
     role,
     isVerifiedChef: me.isVerifiedChef,
@@ -151,6 +152,7 @@ export async function apiUpdateProfile(updates: Partial<User>): Promise<User> {
     ...(updates.displayName !== undefined ? { displayName: updates.displayName } : {}),
     ...(updates.bio !== undefined ? { bio: updates.bio } : {}),
     ...(updates.photoURL !== undefined ? { photoUrl: updates.photoURL || null } : {}),
+    ...(updates.bannerURL !== undefined ? { bannerUrl: updates.bannerURL || null } : {}),
   };
   return meToUser(await api().patch<Me>('/v1/me', body));
 }

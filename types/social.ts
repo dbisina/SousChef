@@ -1,7 +1,5 @@
-import type { PhotoLike } from '@/assets/sample';
-
-/** Photo reference: a key of SAMPLE in assets/sample/index.ts, or the address of a real photo from the server. */
-export type PhotoRef = PhotoLike;
+/** Photo reference: the address of a real photo from the server. */
+export type PhotoRef = string;
 
 export interface Author {
   id: string;
