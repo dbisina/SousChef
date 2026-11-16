@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, View } from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, View } from 'react-native';
+import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { PantryScanCard } from '@/components/ai/AiKitchen';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';

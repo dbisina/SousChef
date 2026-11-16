@@ -1,5 +1,6 @@
 import React, { memo, useMemo, useCallback, useState } from 'react';
-import { View, Text as RNText, Platform, Alert, Modal, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text as RNText, Platform, Alert, Modal, ScrollView } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';

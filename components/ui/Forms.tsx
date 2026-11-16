@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text as RNText, TextInput, View, type TextInputProps } from 'react-native';
+import { Platform, Text as RNText, TextInput, View, type TextInputProps } from 'react-native';
 import { Pressable } from './Pressable';
 import { Icon } from './Icon';
 import { FONT } from './fonts';
@@ -17,7 +17,18 @@ interface UInputProps extends Omit<TextInputProps, 'style'> {
   height?: number;
 }
 
-/** .inp: 56px pill input (search bars, chat composer). `label` is the accessible name. */
+/**
+ * What keeps text from being clipped in a field. A fixed height with a fixed line height cuts descenders and half-hides the
+ * placeholder on Android (extra font padding) and on iOS (a line taller than the box), so: the box has a minimum height and
+ * the text brings its own vertical padding; Android drops its extra font padding; nothing sets a line height on the input.
+ */
+const textMetrics = {
+  fontSize: 15,
+  paddingVertical: Platform.OS === 'ios' ? 13 : 9,
+  ...(Platform.OS === 'android' ? { includeFontPadding: false, textAlignVertical: 'center' as const } : null),
+};
+
+/** .inp: pill input (search bars, chat composer), 56px at least. `label` is the accessible name. */
 export function UInput({ icon, right, label, height = 56, ...rest }: UInputProps) {
   const t = useTokens();
   return (
@@ -26,7 +37,7 @@ export function UInput({ icon, right, label, height = 56, ...rest }: UInputProps
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: t['surface-2'],
-        height,
+        minHeight: height,
         borderRadius: height / 2,
         paddingStart: 20,
         paddingRight: 6,
@@ -39,7 +50,7 @@ export function UInput({ icon, right, label, height = 56, ...rest }: UInputProps
         placeholderTextColor={FIXED.placeholder}
         selectionColor={t.accent}
         {...rest}
-        style={{ flex: 1, color: t.ink, fontFamily: FONT.sans, fontSize: 15, height: '100%', minWidth: 0 }}
+        style={{ flex: 1, color: t.ink, fontFamily: FONT.sans, ...textMetrics, minWidth: 0 }}
       />
       {right ? <View style={{ justifyContent: 'center' }}>{right}</View> : null}
     </View>
@@ -53,7 +64,7 @@ interface FieldProps extends Omit<TextInputProps, 'style'> {
   trailing?: React.ReactNode;
 }
 
-/** .fld: label above a 54px rounded field (80px for multiline). */
+/** .fld: label above a rounded field, 54px at least (a multiline one 96px at least, and it grows with what is typed). */
 export function Field({ label, error, multiline, trailing, ...rest }: FieldProps) {
   const t = useTokens();
   return (
@@ -71,14 +82,14 @@ export function Field({ label, error, multiline, trailing, ...rest }: FieldProps
           style={{
             backgroundColor: t['surface-2'],
             color: t.ink,
-            height: multiline ? 80 : 54,
+            minHeight: multiline ? 96 : 54,
+            ...(multiline ? { maxHeight: 220 } : null),
             borderRadius: 18,
             paddingStart: 18,
             paddingEnd: trailing ? 54 : 18,
-            paddingVertical: multiline ? 15 : 0,
             fontFamily: FONT.sans,
-            fontSize: 15,
-            textAlignVertical: multiline ? 'top' : 'center',
+            ...textMetrics,
+            ...(multiline ? { paddingTop: 14, paddingBottom: 14, textAlignVertical: 'top' as const } : null),
           }}
         />
         {trailing ? (
