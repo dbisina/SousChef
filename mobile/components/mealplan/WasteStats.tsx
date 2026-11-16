@@ -13,7 +13,9 @@ import {
   UAvatar,
   UCard,
   FONT,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 import {
   WasteStats as WasteStatsType,
   FoodWasteEntry,
@@ -75,6 +77,8 @@ export const WasteStatsCard: React.FC<WasteStatsProps> = ({ stats }) => {
   return (
     <View style={{ gap: 16 }}>
       <PhotoCard
+        source={PHOTOS.greens as PhotoSource}
+        fade="both"
         height={200}
         topLeft={<Tag large tone="glassDark" label={t('planWaste.thisMonth', 'This month')} />}
       >

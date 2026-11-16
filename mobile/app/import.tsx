@@ -26,7 +26,9 @@ import {
   UButton,
   UIconButton,
   UInput,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 // Friendly label for detected source types (carried over from the old URL import modal).
 const SOURCE_LABELS: Record<string, string> = {
@@ -239,6 +241,8 @@ export default function ImportScreen() {
           showsVerticalScrollIndicator={false}
         >
           <PhotoCard
+            source={PHOTOS.plating as PhotoSource}
+            fade="both"
             height={220}
             title={previewTitle}
             subtitle={previewSubtitle}

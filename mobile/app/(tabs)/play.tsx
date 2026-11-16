@@ -19,12 +19,27 @@ import {
   UButton,
   UCard,
   UInput,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS, type PhotoName } from '@/assets/photos';
+
 import { apiSoloGames } from '@/services/soloApi';
 import type { SoloGameInfo } from '@shared/index';
 import { FIXED } from '@/stores/themeStore';
 import { puzzleNumberFor } from '@/lib/dailyDish';
 import { selectDailyStreak, usePlayStore } from '@/stores/playStore';
+
+// The app's own picture for each solo game card.
+const GAME_PHOTO: Record<string, PhotoName> = {
+  trivia: 'salad',
+  myth: 'eggs',
+  cuisine: 'ramen',
+  odd: 'tomatoes',
+  technique: 'salmon',
+  pairing: 'avocado',
+  sorter: 'pancakes',
+  match: 'veg',
+};
 
 export default function PlayScreen() {
   const router = useRouter();
@@ -66,6 +81,7 @@ export default function PlayScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <PhotoCard
+          source={PHOTOS.gnocchi as PhotoSource}
           height={290}
           fade="both"
           topLeft={
@@ -140,6 +156,8 @@ export default function PlayScreen() {
             {solo.map((g) => (
               <PhotoCard
                 key={g.id}
+                source={(PHOTOS[GAME_PHOTO[g.id] ?? "plating"]) as PhotoSource}
+                fade="both"
                 height={150}
                 radius={24}
                 width="47.5%"

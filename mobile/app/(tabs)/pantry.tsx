@@ -23,7 +23,9 @@ import {
   UIconButton,
   UInput,
   useColor,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 export default function PantryScreen() {
   const router = useRouter();
@@ -125,6 +127,8 @@ export default function PantryScreen() {
 
         {hasAlerts ? (
           <PhotoCard
+            source={PHOTOS.veg as PhotoSource}
+            fade="both"
             height={168}
             accessibilityLabel={t('pantryUi.findRecipes', 'Find recipes')}
             onPress={() => router.push('/(tabs)/browse')}

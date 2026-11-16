@@ -1,6 +1,7 @@
 import { View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
-import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim } from '@/components/ui';
+import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim, type PhotoSource } from '@/components/ui';
+import { PHOTOS, type PhotoName } from '@/assets/photos';
 import type { IconName } from '@/components/ui';
 
 interface Tile {
@@ -15,11 +16,11 @@ interface Row {
   href: Href;
 }
 
-const TILES: Tile[] = [
-  { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href },
-  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href },
-  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href },
-  { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href },
+const TILES: (Tile & { photo: PhotoName })[] = [
+  { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href, photo: 'tacos' },
+  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'burger' },
+  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href, photo: 'pizza' },
+  { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href, photo: 'cookbook' },
 ];
 
 const ROWS: Row[] = [
@@ -47,6 +48,8 @@ export default function CreateScreen() {
         {TILES.map((t) => (
           <PhotoCard
             key={t.title}
+            source={PHOTOS[t.photo] as PhotoSource}
+            fade="both"
             height={170}
             radius={26}
             width="48%"
