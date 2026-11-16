@@ -19,7 +19,7 @@ import {
   UInput,
   useTokens,
 } from '@/components/ui';
-import { Backdrop } from '@/components/ui/Backdrop';
+import { GAME_ART } from '@/assets/games';
 import { MAX_CLUES, MAX_GUESSES, clueSlots, isCorrect } from '@/lib/dailyDish';
 import {
   selectDailyPuzzle,
@@ -112,7 +112,7 @@ export default function DailyDishScreen() {
       />
 
       <View className="bg-surface-3 overflow-hidden" style={{ height: 240, borderRadius: 30 }}>
-        {!playing && serverDaily?.photoUrl ? <Image source={{ uri: serverDaily.photoUrl }} contentFit="cover" transition={200} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} /> : <Backdrop />}
+        {!playing && serverDaily?.photoUrl ? <Image source={{ uri: serverDaily.photoUrl }} contentFit="cover" transition={200} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} /> : <Image source={GAME_ART.daily_dish} contentFit="cover" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />}
         <View className="items-center justify-center" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, gap: 10 }}>
           <Icon name={playing ? 'help' : daily.status === 'solved' ? 'check' : 'close'} size="lg" />
           {playing ? (

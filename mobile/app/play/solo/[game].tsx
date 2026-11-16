@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
+import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Body, CtaBar, H2, Muted, Screen, Tag, Title, TopBar, UButton, UCard } from '@/components/ui';
+import { Body, CtaBar, FONT, H2, Muted, Screen, Tag, Title, TopBar, UButton, UCard } from '@/components/ui';
 import { ApiError } from '@/lib/api';
 import { questionPhoto } from '@/lib/gamePhotos';
 import { apiSoloAnswer, apiSoloStart } from '@/services/soloApi';
@@ -23,6 +24,21 @@ const NAMES: Record<SoloGameId, string> = {
 const isGame = (g: unknown): g is SoloGameId => typeof g === 'string' && (SOLO_GAMES as readonly string[]).includes(g);
 
 /** One screen for the three solo games: the server's round in, the player's answers out, the server's marks back. */
+/** An answer to pick. Long answers wrap onto as many lines as they need instead of being cut off with "...". */
+function AnswerOption({ label, selected = false, onPress }: { label: string; selected?: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{ minHeight: 60, borderRadius: 28, paddingHorizontal: 22, paddingVertical: 14, justifyContent: 'center', backgroundColor: selected ? '#F97316' : '#F4F4F4' }}
+    >
+      <Text style={{ fontFamily: FONT.sansMedium, fontSize: 16, lineHeight: 22, textAlign: 'center', color: selected ? '#1C1C1C' : '#0B0B0B' }}>{label}</Text>
+    </Pressable>
+  );
+}
+
 export default function SoloGameScreen() {
   const router = useRouter();
   const { t } = useTranslation();
@@ -195,7 +211,7 @@ export default function SoloGameScreen() {
           />
           <H2>{item.prompt}</H2>
           {item.options?.map((option, i) => (
-            <UButton key={`${index}-${option}`} variant={picks[index] === i ? 'accent' : 'primary'} label={option} onPress={() => setPick(i)} />
+            <AnswerOption key={`${index}-${option}`} label={option} selected={picks[index] === i} onPress={() => setPick(i)} />
           ))}
           {item.steps ? (
             <View style={{ gap: 10 }}>
@@ -206,7 +222,7 @@ export default function SoloGameScreen() {
                 </UCard>
               ))}
               {item.steps.map((step, s) =>
-                tapped.includes(s) ? null : <UButton key={`s${s}`} variant="primary" label={step} onPress={() => tapStep(s)} />,
+                tapped.includes(s) ? null : <AnswerOption key={`s${s}`} label={step} onPress={() => tapStep(s)} />,
               )}
               {tapped.length > 0 ? <UButton size="sm" label={t('play.solo.reset', 'Start this one again')} onPress={() => setPick([])} /> : null}
             </View>

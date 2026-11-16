@@ -1,8 +1,8 @@
 import { View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
-import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim, type PhotoSource } from '@/components/ui';
+import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim, type IconName, type PhotoSource } from '@/components/ui';
 import { PHOTOS, type PhotoName } from '@/assets/photos';
-import type { IconName } from '@/components/ui';
+import { GAME_ART, type GameArtName } from '@/assets/games';
 
 interface Tile {
   title: string;
@@ -16,10 +16,10 @@ interface Row {
   href: Href;
 }
 
-const TILES: (Tile & { photo: PhotoName })[] = [
+const TILES: (Tile & { photo: PhotoName; art?: GameArtName })[] = [
   { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href, photo: 'tacos' },
   { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'burger' },
-  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href, photo: 'pizza' },
+  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href, photo: 'pizza', art: 'mystery_kitchen' },
   { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href, photo: 'cookbook' },
 ];
 
@@ -48,7 +48,7 @@ export default function CreateScreen() {
         {TILES.map((t) => (
           <PhotoCard
             key={t.title}
-            source={PHOTOS[t.photo] as PhotoSource}
+            source={(t.art ? GAME_ART[t.art] : PHOTOS[t.photo]) as PhotoSource}
             fade="both"
             height={170}
             radius={26}
