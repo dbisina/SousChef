@@ -39,6 +39,7 @@ import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
 import { SoloGameService } from './play/solo';
+import { GamePoolService } from './play/pool';
 import { ytDlpSource, type VideoTextSource } from './imports/videoText';
 import { soloRoutes } from './play/soloRoutes';
 import { backgroundJobs } from './jobs';
@@ -203,9 +204,10 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     config,
   );
   playRoutes(app, new DailyDishService(db, options.now), auth);
-  const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now);
+  const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test');
+  const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now, undefined, pool);
   mysteryKitchenRoutes(app, games, auth);
-  soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now), auth);
+  soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now, undefined, pool), auth);
   vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);
   inviteRoutes(app, invites, new HouseService(db, options.now), auth, config);
@@ -220,7 +222,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
   // Background work. Built here, started by the entry point (tests run jobs by hand so they stay predictable).
-  const jobs = new JobRunner(db, backgroundJobs({ uploads, stories, invites, games, moderation, maintenance: new Maintenance(db, options.now), ai }), app.log, options.now);
+  const jobs = new JobRunner(db, backgroundJobs({ uploads, stories, invites, games, moderation, maintenance: new Maintenance(db, options.now), ai, pool }), app.log, options.now);
 
   app.addHook('onClose', async () => {
     await jobs.stop();

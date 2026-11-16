@@ -1,7 +1,8 @@
-// Solo games: Kitchen Trivia, Step Sorter and Ingredient Match. The server builds each round, keeps the answers inside a
+// Solo games: Kitchen Trivia, Myth or Fact, Name That Cuisine, Odd One Out, Technique Match, Flavour Pairing (questions written
+// by a model into a pool, so they do not repeat), and Step Sorter and Ingredient Match (built from the real recipes). The server builds each round, keeps the answers inside a
 // signed token, and scores what the phone sends back, so nobody can read the answers out of the app.
 
-export const SOLO_GAMES = ['trivia', 'sorter', 'match'] as const;
+export const SOLO_GAMES = ['trivia', 'myth', 'cuisine', 'odd', 'technique', 'pairing', 'sorter', 'match'] as const;
 export type SoloGameId = (typeof SOLO_GAMES)[number];
 
 export interface SoloGameInfo {

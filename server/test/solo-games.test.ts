@@ -30,12 +30,12 @@ const start = async (who: Who, game: string) => call(t, 'POST', `/v1/play/solo/$
 const answer = (who: Who, game: string, token: string, answers: unknown[]) => call(t, 'POST', `/v1/play/solo/${game}/answer`, who, { token, answers });
 
 describe('solo games', () => {
-  it('lists the three games with no scores yet', async () => {
+  it('lists the games with no scores yet', async () => {
     const me = await register(t);
     const res = await call(t, 'GET', '/v1/play/solo', me);
     expect(res.statusCode).toBe(200);
     const items = res.json<{ items: SoloGameInfo[] }>().items;
-    expect(items.map((g) => g.id)).toEqual(['trivia', 'sorter', 'match']);
+    expect(items.map((g) => g.id)).toEqual(['trivia', 'myth', 'cuisine', 'odd', 'technique', 'pairing', 'sorter', 'match']);
     expect(items.every((g) => g.best === null && g.plays === 0)).toBe(true);
   });
 
