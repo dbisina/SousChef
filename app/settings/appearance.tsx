@@ -5,7 +5,6 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore, type ThemeOption } from '@/stores/themeStore';
-import { SAMPLE } from '@/assets/sample';
 import { FONT, Icon, Muted, Rows, Screen, Segmented, ToneBlock, TopBar, USwitch } from '@/components/ui';
 
 function ThemePreview({
@@ -33,7 +32,7 @@ function ThemePreview({
         style={{ height: 190, borderRadius: 26, overflow: 'hidden', padding: 12, gap: 8 }}
       >
         <View className="bg-ink" style={{ height: 10, width: '55%', borderRadius: 5 }} />
-        <Image source={SAMPLE.salad} style={{ height: 100, width: '100%', borderRadius: 16 }} contentFit="cover" accessible={false} />
+        <View className="bg-track" style={{ height: 100, width: '100%', borderRadius: 16 }} />
         <View className="bg-track" style={{ height: 8, borderRadius: 4 }} />
         <View className="bg-track" style={{ height: 8, width: '70%', borderRadius: 4 }} />
       </ToneBlock>
