@@ -51,7 +51,7 @@ export function toRound(view: MkRoomView, meId: string, now: number): MysteryKit
       description: '',
       photo: view.dishPhotoUrl ?? '',
       steps: view.steps,
-      ingredients: (view.basket ?? []).map((label) => ({ label })),
+      ingredients: (view.basket ?? []).map((label) => ({ label, ...(view.ingredientPhotos?.[label] ? { photo: view.ingredientPhotos[label] } : {}) })),
       hints: [...view.hints, ...Array.from({ length: view.hintsLeft }, () => '')],
     },
     ...(view.twist ? { twist: { title: 'Twist', text: view.twist } } : {}),

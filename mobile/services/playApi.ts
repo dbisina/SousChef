@@ -5,6 +5,7 @@ import type {
   DailyDishView,
   DailyLeaderboardEntry,
   MkRoomView,
+  StepImageResponse,
   SubmitPlateRequest,
 } from '@shared/index';
 import { api } from '@/lib/api';
@@ -36,3 +37,7 @@ export const apiBuyHint = (code: string): Promise<MkRoomView> => api().post<MkRo
 /** Hands in the plate photo (a finished upload, see lib/upload.ts). The judge's score arrives in the room view. */
 export const apiSubmitPlate = (code: string, request: SubmitPlateRequest): Promise<MkRoomView> =>
   api().post<MkRoomView>(`/v1/play/rooms/${code}/plate`, request, { timeoutMs: 60_000 });
+
+/** A picture of one cooking step (paid plans only; 403 `upgrade_required` otherwise, 503 when pictures are resting). */
+export const apiStepImage = (code: string, index: number): Promise<StepImageResponse> =>
+  api().get<StepImageResponse>(`/v1/play/rooms/${code}/steps/${index}/image`, { timeoutMs: 80_000 });
