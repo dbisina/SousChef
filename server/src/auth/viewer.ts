@@ -17,6 +17,13 @@ export function viewerResolvers(auth: AuthService) {
       if (!claims) throw errors.unauthorized();
       return { userId: claims.userId, role: claims.role };
     },
+    /** The signed-in person if they are staff; a 401 if nobody is signed in, a 403 if they are not staff. */
+    async requireAdmin(request: FastifyRequest): Promise<Viewer> {
+      const claims = await auth.authenticate(request.headers.authorization);
+      if (!claims) throw errors.unauthorized();
+      if (claims.role !== 'admin') throw errors.forbidden();
+      return { userId: claims.userId, role: claims.role };
+    },
     /** For pages anyone can open: a valid sign-in adds personal details, anything else is treated as signed out. */
     async optionalViewer(request: FastifyRequest): Promise<Viewer | null> {
       const claims = await auth.authenticate(request.headers.authorization);

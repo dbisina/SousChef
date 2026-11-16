@@ -34,6 +34,27 @@ import {
 } from '@/services/recipeImportService';
 import { ThinkingPhase } from '@/lib/gemini';
 import { generateId } from '@/lib/firebase';
+import { apiEnabled } from '@/lib/api';
+import {
+  apiAddShopping,
+  apiAddWantToCook,
+  apiCheckShopping,
+  apiClearShopping,
+  apiListWantToCook,
+  apiRemoveShopping,
+  apiRemoveWantToCook,
+  apiShoppingList,
+  apiUpdateWantToCook,
+} from '@/services/wantToCookApi';
+
+/** Server mode: put the shopping list back the way the server has it (after an action there failed). */
+async function reloadShoppingList(set: (s: { shoppingList: QuickShoppingItem[] }) => void): Promise<void> {
+  try {
+    set({ shoppingList: await apiShoppingList() });
+  } catch {
+    // Offline: the list on the phone stays as it is.
+  }
+}
 
 /** Recursively strip `undefined` values from an object (Firestore rejects them).
  *  Preserves Firestore Timestamps and other class instances. */
@@ -229,6 +250,11 @@ export const useWantToCookStore = create<WantToCookState>()(
 
       // Add recipe to Want to Cook
       addToWantToCook: async (userId, recipe, isImported) => {
+        if (apiEnabled()) {
+          const created = await apiAddWantToCook(recipe, isImported);
+          set((state) => ({ items: [created, ...state.items.filter((i) => i.id !== created.id)] }));
+          return created;
+        }
         const item: WantToCookItem = {
           id: generateId(),
           ownerId: userId,
@@ -261,7 +287,8 @@ export const useWantToCookStore = create<WantToCookState>()(
         if (!item) return;
 
         try {
-          await deleteDoc(doc(db, 'users', item.ownerId, 'wantToCook', itemId));
+          if (apiEnabled()) await apiRemoveWantToCook(itemId);
+          else await deleteDoc(doc(db, 'users', item.ownerId, 'wantToCook', itemId));
         } catch (error) {
           console.error('Error deleting from Firestore:', error);
         }
@@ -282,6 +309,12 @@ export const useWantToCookStore = create<WantToCookState>()(
         }
 
         try {
+          if (apiEnabled()) {
+            const saved = await apiUpdateWantToCook(itemId, status);
+            // The server stamps "cooked at" itself and keeps the pantry numbers fresh.
+            set((state) => ({ items: state.items.map((i) => (i.id === itemId ? saved : i)) }));
+            return;
+          }
           await updateDoc(doc(db, 'users', item.ownerId, 'wantToCook', itemId), updates);
         } catch (error) {
           console.error('Error updating Firestore:', error);
@@ -304,6 +337,11 @@ export const useWantToCookStore = create<WantToCookState>()(
         set({ isLoading: true, error: null });
 
         try {
+          if (apiEnabled()) {
+            const [items, shoppingList] = await Promise.all([apiListWantToCook(), apiShoppingList()]);
+            set({ items, shoppingList, isLoading: false });
+            return;
+          }
           const q = query(
             collection(db, 'users', userId, 'wantToCook'),
             orderBy('savedAt', 'desc')
@@ -342,6 +380,25 @@ export const useWantToCookStore = create<WantToCookState>()(
 
       // Shopping list actions
       addToShoppingList: (items) => {
+        if (apiEnabled()) {
+          // Show the lines at once, then swap in the server's copies (which have the server's ids).
+          const placeholders: QuickShoppingItem[] = items.map((item) => ({
+            id: `pending-${generateId()}`,
+            name: item.name,
+            amount: item.amount,
+            unit: item.unit,
+            checked: false,
+            ...(item.recipeId ? { recipeId: item.recipeId } : {}),
+            ...(item.recipeName ? { recipeName: item.recipeName } : {}),
+            addedAt: Timestamp.now(),
+          }));
+          set((state) => ({ shoppingList: [...state.shoppingList, ...placeholders] }));
+          const pending = new Set(placeholders.map((p) => p.id));
+          apiAddShopping(items)
+            .then((saved) => set((state) => ({ shoppingList: [...state.shoppingList.filter((i) => !pending.has(i.id)), ...saved] })))
+            .catch(() => void reloadShoppingList(set));
+          return;
+        }
         const newItems: QuickShoppingItem[] = items.map((item) => ({
           id: generateId(),
           name: item.name,
@@ -359,12 +416,17 @@ export const useWantToCookStore = create<WantToCookState>()(
       },
 
       removeFromShoppingList: (itemId) => {
+        if (apiEnabled() && !itemId.startsWith('pending-')) apiRemoveShopping(itemId).catch(() => void reloadShoppingList(set));
         set((state) => ({
           shoppingList: state.shoppingList.filter((i) => i.id !== itemId),
         }));
       },
 
       toggleShoppingItem: (itemId) => {
+        if (apiEnabled() && !itemId.startsWith('pending-')) {
+          const current = get().shoppingList.find((i) => i.id === itemId);
+          if (current) apiCheckShopping(itemId, !current.checked).catch(() => void reloadShoppingList(set));
+        }
         set((state) => ({
           shoppingList: state.shoppingList.map((i) =>
             i.id === itemId ? { ...i, checked: !i.checked } : i
@@ -373,10 +435,12 @@ export const useWantToCookStore = create<WantToCookState>()(
       },
 
       clearShoppingList: () => {
+        if (apiEnabled()) apiClearShopping(false).catch(() => void reloadShoppingList(set));
         set({ shoppingList: [] });
       },
 
       clearCheckedItems: () => {
+        if (apiEnabled()) apiClearShopping(true).catch(() => void reloadShoppingList(set));
         set((state) => ({
           shoppingList: state.shoppingList.filter((i) => !i.checked),
         }));
