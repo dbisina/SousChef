@@ -38,11 +38,31 @@ import { DailyDishService } from './play/dailyDish';
 import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
+import { SoloGameService } from './play/solo';
+import { GamePoolService } from './play/pool';
+import { ytDlpSource, type VideoTextSource } from './imports/videoText';
+import { soloRoutes } from './play/soloRoutes';
+import { backgroundJobs } from './jobs';
+import { Maintenance } from './jobs/maintenance';
+import { JobRunner } from './jobs/runner';
+import { ChefVerificationService } from './moderation/chef';
+import { adminRoutes } from './admin/routes';
+import { registerAdminSite } from './admin/site';
+import { registerCors } from './cors';
+import { AdminService } from './admin/service';
+import { moderationRoutes } from './moderation/routes';
+import { ModerationService } from './moderation/service';
 import { HealthCipher } from './vitals/crypto';
 import { vitalsRoutes } from './vitals/routes';
 import { VitalsService } from './vitals/service';
 import type { Requester } from './imports/net';
 import { importRoutes } from './imports/routes';
+import { aiToolsRoutes } from './ai/routes';
+import { AiToolsService } from './ai/tools';
+import { KitchenAiService } from './ai/kitchenAi';
+import { InsightAiService } from './ai/insightsAi';
+import { ScaleAiService } from './ai/scaleAi';
+import { InsightCache } from './ai/insights';
 import { ImportService } from './imports/service';
 import { HouseService } from './invites/house';
 import { inviteRoutes } from './invites/routes';
@@ -63,6 +83,8 @@ export interface BuildOptions {
   verifier?: IdTokenVerifier;
   /** How pages are fetched for importing. Tests pass a fake so nothing touches the network. */
   importRequester?: Requester;
+  /** Reads a video's caption and subtitles. Tests pass a fake; leave unset to use yt-dlp when YT_DLP_PATH is set. */
+  videoText?: VideoTextSource | null;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
   aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
@@ -88,6 +110,8 @@ export interface Built {
   invites: InviteService;
   ai: AiRouter;
   games: MysteryKitchenService;
+  moderation: ModerationService;
+  jobs: JobRunner;
 }
 
 export async function buildApp(options: BuildOptions): Promise<Built> {
@@ -108,7 +132,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
 
   const db = options.db ?? createDb(config.DATABASE_URL, config.DB_POOL_MAX);
   const mailer = options.mailer ?? new LogMailer(app.log, production);
-  const verifier = options.verifier ?? new JoseIdTokenVerifier(config.GOOGLE_CLIENT_IDS, config.APPLE_CLIENT_IDS);
+  const verifier = options.verifier ?? new JoseIdTokenVerifier(config.GOOGLE_CLIENT_IDS, config.APPLE_CLIENT_IDS, config.FIREBASE_PROJECT_ID);
   const storage = options.storage === undefined ? storageFromConfig(config, options.now) : options.storage;
   const uploads = new UploadService(db, storage, app.log, options.now);
   const ai = options.aiProviders
@@ -116,6 +140,8 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     : buildAiRouter(config, db, app.log, options.now);
   const auth = new AuthService({ db, config, mailer, verifier, uploads, ...(options.now ? { now: options.now } : {}) });
 
+  // Before every route: a hook only applies to routes added after it.
+  if (config.CORS_ORIGINS.length > 0) registerCors(app, config.CORS_ORIGINS);
   await app.register(helmet);
   await app.register(rateLimit, {
     global: true,
@@ -158,14 +184,31 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   hub.start();
   app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
-  const postService = new PostService(db, uploads, options.now);
+  const moderation = new ModerationService(db, ai, config.BANNED_TERMS.split(',').map((t) => t.trim()).filter(Boolean), options.now, storage);
+  moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
+  adminRoutes(app, new AdminService(db, ai, options.now), auth);
+  if (config.ADMIN_DIR) registerAdminSite(app, config.ADMIN_DIR);
+  const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
-  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
+  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText), auth, config);
+  const insights = new InsightCache(db, options.now);
+  const vitals = new VitalsService(db, HealthCipher.fromKeys(config.HEALTH_DATA_KEY, config.HEALTH_DATA_KEY_ID, config.HEALTH_DATA_OLD_KEYS), options.now);
+  aiToolsRoutes(
+    app,
+    new AiToolsService(db, ai, entitlements, options.now),
+    new KitchenAiService(db, ai, entitlements, uploads, storage, insights, options.now),
+    new InsightAiService(db, ai, entitlements, vitals, insights, options.now),
+    new ScaleAiService(db, ai, entitlements, insights, moderation, options.now),
+    auth,
+    config,
+  );
   playRoutes(app, new DailyDishService(db, options.now), auth);
-  const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now);
+  const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test');
+  const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now, undefined, pool);
   mysteryKitchenRoutes(app, games, auth);
-  vitalsRoutes(app, new VitalsService(db, HealthCipher.fromBase64(config.HEALTH_DATA_KEY), options.now), auth);
+  soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now, undefined, pool), auth);
+  vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);
   inviteRoutes(app, invites, new HouseService(db, options.now), auth, config);
   const stories = new StoryService(db, uploads, options.now);
@@ -178,10 +221,14 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   adRoutes(app, new AdService(db, options.now), auth, config, entitlements);
   mealPlanRoutes(app, new MealPlanService(db, options.now), new WasteService(db, options.now), auth);
 
+  // Background work. Built here, started by the entry point (tests run jobs by hand so they stay predictable).
+  const jobs = new JobRunner(db, backgroundJobs({ uploads, stories, invites, games, moderation, maintenance: new Maintenance(db, options.now), ai, pool }), app.log, options.now);
+
   app.addHook('onClose', async () => {
+    await jobs.stop();
     hub.stop();
     if (!options.db) await db.$disconnect();
   });
 
-  return { app, db, auth, uploads, chat, hub, stories, invites, ai, games };
+  return { app, db, auth, uploads, chat, hub, stories, invites, ai, games, moderation, jobs };
 }

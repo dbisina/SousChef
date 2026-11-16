@@ -56,9 +56,13 @@ export interface User {
   email: string;
   displayName: string;
   photoURL?: string;
+  /** The wide picture across the top of the profile. */
+  bannerURL?: string;
   bio?: string;
   role: UserRole;
   isVerifiedChef?: boolean;
+  /** Server mode: does the account have a password (as opposed to only Google or Apple)? */
+  hasPassword?: boolean;
   subscriptionTier?: 'free' | 'premium' | 'pro';
   createdAt: Timestamp;
   savedRecipes?: string[];
@@ -97,6 +101,9 @@ export type Cuisine =
   | 'mediterranean'
   | 'korean'
   | 'vietnamese'
+  | 'nigerian'
+  | 'west-african'
+  | 'african'
   | 'other';
 
 export interface Ingredient {

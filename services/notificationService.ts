@@ -3,6 +3,8 @@ import * as Device from 'expo-device';
 import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db, doc, setDoc, updateDoc, Timestamp } from '@/lib/firebase';
+import { apiEnabled } from '@/lib/api';
+import { apiRegisterDevice } from '@/services/devicesApi';
 
 const PUSH_TOKEN_KEY = '@souschef_push_token';
 const NOTIFICATIONS_KEY = '@souschef_notifications';
@@ -118,6 +120,15 @@ const savePushTokenToFirestore = async (
     userId: string,
     token: string
 ): Promise<void> => {
+    if (apiEnabled()) {
+        // With a server address set, the server keeps push tokens (and sends the notifications).
+        try {
+            await apiRegisterDevice(token);
+        } catch (e) {
+            console.error('Error saving push token:', e);
+        }
+        return;
+    }
     try {
         await updateDoc(doc(db, 'users', userId), {
             pushToken: token,
