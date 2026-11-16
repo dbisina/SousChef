@@ -68,7 +68,7 @@ async function main() {
       const made = await generateContent(
         { db, ai: buildAiRouter(config, db, log), storage: storageFromConfig(config), say: (line) => process.stdout.write(`${line}\n`) },
         dishes,
-        { ...(Number.isFinite(limitArg) && limitArg > 0 ? { limit: limitArg } : {}), dryRun: args.includes('--dry-run') },
+        { ...(Number.isFinite(limitArg) && limitArg > 0 ? { limit: limitArg } : {}), dryRun: args.includes('--dry-run'), pauseMs: 2500 },
       );
       process.stdout.write(`\n${JSON.stringify(made, null, 2)}\n`);
     }

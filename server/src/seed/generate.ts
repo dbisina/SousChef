@@ -72,11 +72,16 @@ interface Photo {
 const stripTags = (s: string) => s.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
 
 /** The lead picture of the dish's Wikipedia article, if its licence allows reuse. Null if not. */
-export async function findWikipediaPhoto(wiki: string, fetchImpl: typeof fetch = fetch): Promise<Photo | null> {
+export async function findWikipediaPhoto(wiki: string, fetchImpl: typeof fetch = fetch, waitScale?: number): Promise<Photo | null> {
   const get = async (url: string) => {
-    const res = await fetchImpl(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
-    if (!res.ok) throw new Error(`${res.status}`);
-    return res;
+    // Wikimedia answers 429 when asked too fast: wait as long as it says (or a little longer each time) and try again.
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetchImpl(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
+      if (res.ok) return res;
+      if (res.status !== 429 || attempt >= 4) throw new Error(`${res.status}`);
+      const asked = Number(res.headers.get('retry-after'));
+      await new Promise((r) => setTimeout(r, (Number.isFinite(asked) && asked > 0 ? Math.min(asked, 30) : 4 * (attempt + 1)) * 1000 * (waitScale ?? 1)));
+    }
   };
   const page = (await (await get(`https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1&prop=pageimages&piprop=thumbnail|name&pithumbsize=1000&titles=${encodeURIComponent(wiki)}`)).json()) as {
     query?: { pages?: Record<string, { pageimage?: string; thumbnail?: { source: string; width: number } }> };
@@ -153,7 +158,7 @@ async function store(storage: Storage, key: string, photo: Photo, fetchImpl: typ
  * never dies). A dish with no verified photo is skipped, never faked. Then a cookbook per official account, and a post for
  * every recipe from the account that owns it. Safe to run again: dishes already there are left alone.
  */
-export async function generateContent(deps: GenerateDeps, dishes: DishDef[], options: { limit?: number; dryRun?: boolean } = {}): Promise<GenerateReport> {
+export async function generateContent(deps: GenerateDeps, dishes: DishDef[], options: { limit?: number; dryRun?: boolean; pauseMs?: number } = {}): Promise<GenerateReport> {
   const { db, ai, storage } = deps;
   const fetchImpl = deps.fetchImpl ?? fetch;
   const say = deps.say ?? (() => undefined);
@@ -188,6 +193,7 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
       say(`would generate ${dish.title}`);
       continue;
     }
+    if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
     try {
       const photo = await findWikipediaPhoto(dish.wiki, fetchImpl);
       if (!photo) {

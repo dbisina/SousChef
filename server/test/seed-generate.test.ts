@@ -77,6 +77,16 @@ describe('finding a real photo', () => {
     expect(pd?.credit).toBeNull();
   });
 
+  it('waits and tries again when Wikimedia says to slow down', async () => {
+    let limited = 2;
+    const inner = wikipedia({ licence: 'CC0' });
+    const flaky = (async (input: string | URL | Request, init?: RequestInit) => {
+      if (limited-- > 0) return new Response(null, { status: 429, headers: { 'retry-after': '1' } });
+      return inner(input, init);
+    }) as typeof fetch;
+    expect((await findWikipediaPhoto('Dish', flaky, 0))?.credit).toBeNull();
+  });
+
   it('refuses a restrictive licence, a small picture and a file that is not a photo', async () => {
     expect(await findWikipediaPhoto('Dish', wikipedia({ licence: 'CC BY-NC 4.0' }))).toBeNull();
     expect(await findWikipediaPhoto('Dish', wikipedia({ licence: 'Fair use' }))).toBeNull();
