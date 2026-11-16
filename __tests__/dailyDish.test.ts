@@ -9,9 +9,12 @@ import {
   submitGuess,
   updateStreak,
 } from '@/lib/dailyDish';
-import { DAILY_PUZZLES } from '@/data/sample/play';
 
-const puzzle = DAILY_PUZZLES[0]; // Ramen
+const puzzle = {
+  answer: 'Ramen',
+  aliases: ['spicy egg ramen', 'egg ramen'],
+  clues: ['Wheat noodles', 'Soft egg', 'Spring onion', 'Chilli oil', 'Pork belly', 'Nori'],
+};
 
 describe('Daily Dish', () => {
   it('numbers puzzles from the epoch (13 Nov 2026 is #312)', () => {

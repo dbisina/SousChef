@@ -1,13 +1,13 @@
-/** Feature flags for the SousChef 2.0 areas that run on local sample data. */
+/** Connected to a SousChef server (EXPO_PUBLIC_API_URL). The app shows real data or an empty state, never invented content. */
+export const SERVER_MODE = Boolean(process.env.EXPO_PUBLIC_API_URL);
+
+/** Feature switches. Everything the app offers has a server behind it, so they are all on. */
 export const FEATURES = {
   feed: true,
   messages: true,
-  ordering: true,
   play: true,
   health: true,
 } as const;
 
 export type FeatureArea = keyof typeof FEATURES;
 
-/** Small tag screens show where data is local sample content. */
-export const PREVIEW_LABEL = 'Preview';

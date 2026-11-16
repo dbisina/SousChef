@@ -12,6 +12,8 @@ import { Recipe, PantryItem, Ingredient } from '@/types';
 import { generateId } from '@/lib/firebase';
 import { useLanguageStore } from '@/stores/languageStore';
 import { SUPPORTED_LANGUAGES } from '@/lib/i18n';
+import { apiEnabled } from '@/lib/api';
+import { apiGenerateMealPlan } from '@/services/aiToolsApi';
 
 // AI prompt for meal plan optimization
 const MEAL_PLAN_PROMPT = `You are a meal planning expert focused on reducing food waste and maximizing ingredient efficiency.
@@ -118,6 +120,15 @@ export const generateMealPlan = async (
   expiringItems: PantryItem[],
   startDate: string
 ): Promise<MealPlanAIResponse> => {
+  // With the server on, it chooses from its own recipes, enforces allergies, and builds the shopping list.
+  if (apiEnabled()) {
+    try {
+      return await apiGenerateMealPlan(preferences, startDate);
+    } catch (error) {
+      if ((error as { code?: string }).code === 'upgrade_required') throw error; // the screen shows the upgrade prompt
+      throw new Error('Failed to generate meal plan. Please try again.');
+    }
+  }
   // Generate the list of dates based on start date and number of days
   const weekDates = generateDateList(startDate, preferences.daysToGenerate);
   // Format expiring items for the prompt

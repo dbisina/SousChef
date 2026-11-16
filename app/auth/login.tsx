@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Image, Text as RNText, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Image, Text as RNText, ScrollView, Platform } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useForm, Controller } from 'react-hook-form';
@@ -11,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton } from '@/components/ui';
 import { FIXED, useThemeStore } from '@/stores/themeStore';
-import { SAMPLE } from '@/assets/sample';
 import {
   signInWithGoogle,
   signInWithApple,
@@ -133,7 +133,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <PhotoCard
-            source={SAMPLE.salmon}
             height={300}
             radius={0}
             style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}

@@ -22,6 +22,20 @@ import {
 import { deleteImage as deleteFirebaseImage } from '@/lib/firebase';
 import { Recipe, RecipeFormData, Ingredient, RecipeFilters } from '@/types';
 import { calculateNutrition, calculateIngredientCalories } from '@/lib/utils';
+import { apiEnabled } from '@/lib/api';
+import {
+  apiCreateRecipe,
+  apiDeleteRecipe,
+  apiGetPopularRecipes,
+  apiGetRecipe,
+  apiGetRecipes,
+  apiGetRecipesByUser,
+  apiRecipesByIngredients,
+  apiSearchRecipes,
+  apiUpdateRecipe,
+} from '@/services/recipeApi';
+
+// With EXPO_PUBLIC_API_URL set, every function below goes to the SousChef server instead of Firestore and Cloudinary.
 
 const RECIPES_COLLECTION = 'recipes';
 
@@ -33,6 +47,7 @@ export const createRecipe = async (
   authorName: string,
   isOfficial: boolean = false
 ): Promise<string> => {
+  if (apiEnabled()) return apiCreateRecipe(data, imageUri, isOfficial);
   const recipeId = generateId();
 
   // Upload image to Cloudinary
@@ -77,6 +92,7 @@ export const createRecipe = async (
 
 // Get a single recipe by ID
 export const getRecipeById = async (id: string): Promise<Recipe | null> => {
+  if (apiEnabled()) return apiGetRecipe(id);
   const docSnap = await getDoc(doc(db, RECIPES_COLLECTION, id));
   if (docSnap.exists()) {
     return { id: docSnap.id, ...docSnap.data() } as Recipe;
@@ -86,6 +102,7 @@ export const getRecipeById = async (id: string): Promise<Recipe | null> => {
 
 // Get all recipes with optional filters
 export const getRecipes = async (filters?: RecipeFilters): Promise<Recipe[]> => {
+  if (apiEnabled()) return apiGetRecipes(filters);
   let q = query(collection(db, RECIPES_COLLECTION), orderBy('createdAt', 'desc'));
 
   if (filters) {
@@ -114,6 +131,7 @@ export const getRecipes = async (filters?: RecipeFilters): Promise<Recipe[]> => 
 
 // Get recipes by user
 export const getRecipesByUser = async (userId: string): Promise<Recipe[]> => {
+  if (apiEnabled()) return apiGetRecipesByUser(userId);
   const q = query(
     collection(db, RECIPES_COLLECTION),
     where('authorId', '==', userId),
@@ -126,6 +144,7 @@ export const getRecipesByUser = async (userId: string): Promise<Recipe[]> => {
 
 // Get official/chef recipes
 export const getOfficialRecipes = async (): Promise<Recipe[]> => {
+  if (apiEnabled()) return apiGetRecipes({ isOfficial: true });
   const q = query(
     collection(db, RECIPES_COLLECTION),
     where('isOfficial', '==', true),
@@ -138,6 +157,7 @@ export const getOfficialRecipes = async (): Promise<Recipe[]> => {
 
 // Get popular recipes (by likes)
 export const getPopularRecipes = async (count: number = 10): Promise<Recipe[]> => {
+  if (apiEnabled()) return apiGetPopularRecipes(count);
   const q = query(
     collection(db, RECIPES_COLLECTION),
     orderBy('likes', 'desc'),
@@ -154,6 +174,7 @@ export const updateRecipe = async (
   data: Partial<RecipeFormData>,
   newImageUri?: string
 ): Promise<void> => {
+  if (apiEnabled()) return apiUpdateRecipe(id, data, newImageUri);
   const updateData: Partial<Recipe> = { ...data } as Partial<Recipe>;
 
   // If there's a new image, upload it to Cloudinary
@@ -181,6 +202,7 @@ export const updateRecipe = async (
 
 // Delete a recipe
 export const deleteRecipe = async (id: string): Promise<void> => {
+  if (apiEnabled()) return apiDeleteRecipe(id); // the server removes the recipe's photo with it
   // Get the recipe to delete its image
   const recipe = await getRecipeById(id);
   if (recipe?.imageURL) {
@@ -197,6 +219,7 @@ export const deleteRecipe = async (id: string): Promise<void> => {
 
 // Search recipes by text
 export const searchRecipes = async (searchQuery: string): Promise<Recipe[]> => {
+  if (apiEnabled()) return apiSearchRecipes(searchQuery);
   // Firestore doesn't support full-text search natively
   // For production, use Algolia, Elasticsearch, or Firebase Extensions
   // This is a simple client-side filter
@@ -216,6 +239,7 @@ export const searchRecipes = async (searchQuery: string): Promise<Recipe[]> => {
 export const getRecipesByIngredients = async (
   ingredientNames: string[]
 ): Promise<{ recipe: Recipe; matchScore: number }[]> => {
+  if (apiEnabled()) return apiRecipesByIngredients(ingredientNames);
   const allRecipes = await getRecipes();
   const normalizedIngredients = ingredientNames.map((i) => i.toLowerCase());
 

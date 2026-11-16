@@ -171,6 +171,23 @@ someone already imported costs nothing (it is cached).
 | Chat reply helper and summaries | "Catch up on a 200-message chat in 5 lines." | planned |
 | Smarter moderation (images) | "Safer feed, quietly." | planned |
 | Search that understands you | "Light, chicken, under 30 minutes, no oven." | planned |
+| Pantry by photo (fridge or receipt) | "Photograph your receipt. Your pantry fills itself." | built (server + app), needs device check |
+| What can I cook tonight? | "One tap, one dinner, and why." | built (server + app), needs device check |
+| Waste coach | "Your fridge, honestly reviewed." | built (server + app), needs device check |
+| Leftover rescue | "Half a chicken and sad rice? Three ideas." | built (server + app), needs device check |
+| Cook-along assistant | "Ask the recipe a question mid-cooking." | built (server + app), needs device check |
+| Scale and convert | "Serves 4 to serves 9, in your units." | built (server), see block 20; app screen to do |
+| Plate check | "Friendly feedback on how it looks." | built (server + app), needs device check |
+| Recipe rewriter | "Make it vegan, or under 500 calories." | built (server + app), needs device check |
+| Weekly health summary | "Your numbers in plain words (no advice)." | built (server + app), needs device check |
+| Meal-to-glucose insight | "Which dinners kept you steadier." | built (server + app), needs device check |
+| Budget-aware plans | "Plan the week under your budget." | built (server + app), needs device check |
+| Shopping by aisle | "Your list in the order of the shop." | built (server + app), needs device check |
+| Family mode | "One plan, everyone's diet." | built (server + app), needs device check |
+| Caption helper | "Great photo, no words? Done." | built (server + app), needs device check |
+| Chat reply helper and summaries | "Catch up on a 200-message chat in 5 lines." | built (server + app), needs device check |
+| Smarter moderation (images) | "Safer feed, quietly." | built (server + app), needs device check |
+| Search that understands you | "Light, chicken, under 30 minutes, no oven." | built (server + app), needs device check |
 
 ---
 
@@ -184,6 +201,7 @@ someone already imported costs nothing (it is cached).
 # Build diary (newest first; append one line per shipped change)
 - 2026-11-15: Existing accounts keep working: sign in with Firebase as before and the server takes it from there (no password resets, no new accounts to make).
 - 2026-11-15: Starter content for a fresh server: official SousChef accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
+- 2026-11-15: App screens for every AI helper: tonight card, pantry photo scan, waste coach, health summary, cook-along chat, recipe rewriter, plate check, caption helper, smart search, shop-order list, chat reply/summary, scaling notes while posting.
 - 2026-11-15: Cook-to-scale for any headcount: Gemini estimates, creators' notes teach it, the app labels where numbers came from.
 - 2026-11-15: AI substitutions, AI meal plans and cookbook-page scanning moved to the server (allergy rules enforced in code). PR #25.
 - 2026-11-15: Chat pictures and voice notes, communities, stories, health consent screen, Google/Apple sign-in through the server. PR #24.
