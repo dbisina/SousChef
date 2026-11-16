@@ -123,13 +123,16 @@ export function believableNutrition(n: { calories: number; protein: number; carb
 }
 
 /** Asks a model that can see whether the picture really shows the dish (a lead image can be a map, a diagram or a person). */
-export async function photoShows(ai: AiRouter, title: string, photo: Photo): Promise<boolean> {
+export async function photoShows(ai: AiRouter, title: string, photo: Photo, mode: 'dish' | 'subject' = 'dish'): Promise<boolean> {
   try {
     const v = await ai.runJson(
       {
         task: 'judge_plate',
         system: 'You check food photos. Answer only with JSON.',
-        prompt: `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? Return {"match": true|false, "reason": "..."}.`,
+        prompt:
+          mode === 'dish'
+            ? `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? Return {"match": true|false, "reason": "..."}.`
+            : `Is this a clear, good photo of "${title}" (a food, ingredient, dish, drink, kitchen tool or cooking technique)? It must really show that subject, in focus, with no text overlays, logos, maps, diagrams or people's faces as the main subject. Return {"match": true|false, "reason": "..."}.`,
         images: [{ base64: photo.bytes.toString('base64'), mimeType: photo.mime }],
         json: true,
         maxOutputTokens: 120,
@@ -348,4 +351,51 @@ export async function backfillPuzzlePhotos(
     if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
   }
   return added;
+}
+
+/**
+ * Photos from a Wikimedia Commons search (free licences only, wide enough to use), best first. For questions about an
+ * ingredient or technique whose Wikipedia article has no usable lead picture. Returns up to `max` candidates.
+ */
+export async function findCommonsPhotos(query: string, fetchImpl: typeof fetch = fetch, max = 3): Promise<Photo[]> {
+  const get = async (url: string) => {
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetchImpl(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
+      if (res.ok) return res;
+      if (res.status !== 429 || attempt >= 3) throw new Error(`${res.status}`);
+      await new Promise((r) => setTimeout(r, 4000 * (attempt + 1)));
+    }
+  };
+  const search = (await (
+    await get(
+      `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(`${query} filetype:bitmap`)}&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=1000`,
+    )
+  ).json()) as {
+    query?: { pages?: Record<string, { index?: number; imageinfo?: { thumburl?: string; width?: number; mime?: string; extmetadata?: Record<string, { value?: string }> }[]; title?: string }> };
+  };
+  const pages = Object.values(search.query?.pages ?? {}).sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+  const out: Photo[] = [];
+  for (const page of pages) {
+    const info = page.imageinfo?.[0];
+    const licence = info?.extmetadata?.['LicenseShortName']?.value ?? '';
+    if (!info?.thumburl || !FREE_LICENSE.test(licence) || !/^image\/(jpeg|png)$/.test(info.mime ?? '') || (info.width ?? 0) < 700) continue;
+    // Skip files whose name says they are not a photograph of the thing.
+    if (/\b(map|diagram|logo|icon|flag|svg|chart|graph|drawing|illustration|painting|label|packag)/i.test(page.title ?? '')) continue;
+    try {
+      const img = await get(info.thumburl);
+      const bytes = Buffer.from(await img.arrayBuffer());
+      if (bytes.byteLength < 20_000 || bytes.byteLength > 3_500_000) continue;
+      const author = stripTags(info.extmetadata?.['Artist']?.value ?? '') || 'Wikimedia Commons contributor';
+      out.push({
+        bytes,
+        mime: info.thumburl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg',
+        credit: NEEDS_CREDIT.test(licence) ? `Photo: ${author.slice(0, 80)} (${licence}), Wikimedia Commons` : null,
+        source: `https://commons.wikimedia.org/wiki/${encodeURIComponent((page.title ?? '').replace(/ /g, '_'))}`,
+      });
+    } catch {
+      // try the next candidate
+    }
+    if (out.length >= max) break;
+  }
+  return out;
 }

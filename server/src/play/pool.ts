@@ -4,7 +4,7 @@ import type { AiRouter } from '../ai/router';
 import type { Db } from '../db';
 import { errors } from '../errors';
 import type { MkDifficulty } from '@shared';
-import { findWikipediaPhoto, photoShows, store } from '../seed/generate';
+import { findCommonsPhotos, findWikipediaPhoto, photoShows, store } from '../seed/generate';
 import type { Storage } from '../storage/storage';
 import { TRIVIA } from './trivia';
 import type { MkDish } from './dishes';
@@ -26,7 +26,7 @@ const SPEC: Record<PoolGame, { wrong: number; brief: string }> = {
 
 const SYSTEM = (game: PoolGame, count: number) => `You write questions for a cooking game. ${SPEC[game].brief}
 Write ${count} different questions. Rules: every fact must be true and checkable; exactly one answer is right; wrong answers are plausible but clearly wrong to a cook; no trick wording; no offensive content; short ("prompt" under 200 characters, answers under 60); "note" is one sentence on why the answer is right.
-"photo" is the exact title of an English Wikipedia article about the dish, ingredient or technique the question is ABOUT, so a real photo can be shown with it (for example "Ratatouille"); it must never be the answer itself or reveal it; use "" when no single food article fits.
+"photo" is the exact title of an English Wikipedia article about the dish, ingredient or technique the question is ABOUT, so a real photo can be shown with it (for example "Ratatouille"); it must never be the answer itself or reveal it; ALWAYS give one: when there is no exact article, choose the closest food subject, such as the main ingredient or dish named in the question.
 Return only JSON: {"items": [{"prompt": string, "correct": string, "wrong": [${Array.from({ length: SPEC[game].wrong }, () => 'string').join(', ')}], "note": string, "photo": string}]}`;
 
 const itemSchema = (wrong: number) =>
@@ -83,13 +83,26 @@ export class GamePoolService {
     const photos = this.photos;
     if (photos?.storage) {
       const fetchImpl = photos.fetchImpl ?? fetch;
+      // The article's own lead picture first; if it has none (or it is not a good picture of the subject), a few free pictures
+      // from a Commons search. Each candidate is checked by a vision model before it is kept.
+      const keep = async (photo: Parameters<typeof store>[2]): Promise<string> => store(photos.storage as Storage, `game/${createHash('sha1').update(key).digest('hex').slice(0, 20)}.jpg`, photo, fetchImpl);
       try {
-        const photo = await findWikipediaPhoto(title, fetchImpl);
-        if (photo && (await photoShows(this.ai, title, photo))) {
-          url = await store(photos.storage, `game/${createHash('sha1').update(key).digest('hex').slice(0, 20)}.jpg`, photo, fetchImpl);
-        }
+        const lead = await findWikipediaPhoto(title, fetchImpl).catch(() => null);
+        if (lead && (await photoShows(this.ai, title, lead, 'subject'))) url = await keep(lead);
       } catch {
-        url = null; // no photo is fine: the question shows without one
+        url = null;
+      }
+      if (!url) {
+        try {
+          for (const candidate of await findCommonsPhotos(title, fetchImpl)) {
+            if (await photoShows(this.ai, title, candidate, 'subject')) {
+              url = await keep(candidate);
+              break;
+            }
+          }
+        } catch {
+          url = null; // no photo is fine: the question shows the app's own picture instead
+        }
       }
       if (photos.pauseMs) await new Promise((r) => setTimeout(r, photos.pauseMs));
     }
@@ -263,8 +276,10 @@ Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"ha
    * Gives questions that have no picture one: the model names the Wikipedia article each question is about, and a real photo
    * from it is stored. Each question is only tried once. Returns how many got a photo.
    */
-  async backfillPhotos(limit = 30): Promise<number> {
+  async backfillPhotos(limit = 30, options: { retry?: boolean } = {}): Promise<number> {
     if (!this.photos?.storage) return 0;
+    // With `retry`, questions that were looked at before without finding a picture are looked at again (the search got better).
+    if (options.retry) await this.db.gamePoolItem.updateMany({ where: { imageUrl: null, photoTried: true, game: { in: [...POOL_GAMES] } }, data: { photoTried: false } });
     const todo = await this.db.gamePoolItem.findMany({ where: { photoTried: false, imageUrl: null, game: { in: [...POOL_GAMES] } }, take: limit, orderBy: { createdAt: 'asc' } });
     if (todo.length === 0) return 0;
     let titles: Record<string, string> = {};
@@ -274,7 +289,7 @@ Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"ha
         const raw = await this.ai.runJson(
           {
             task: 'game_content',
-            system: 'For each numbered cooking question, give the exact title of an English Wikipedia article about the dish, ingredient or technique the question is ABOUT, so a real photo can be shown with it. Never the answer itself. Use "" when no single food article fits. Return only JSON: {"photos": {"1": "Title", "2": ""}}',
+            system: 'For each numbered cooking question, give the exact title of an English Wikipedia article about the dish, ingredient or technique the question is ABOUT, so a real photo can be shown with it. Never the answer itself. ALWAYS give one: when there is no exact article, choose the closest food subject (the main ingredient or dish named in the question). Return only JSON: {"photos": {"1": "Title", "2": ""}}',
             prompt: needAsk.map((t, i) => `${i + 1}. ${t.prompt} (answer: ${t.correct})`).join('\n'),
             json: true,
             maxOutputTokens: 1500,

@@ -7,7 +7,8 @@
 //   npm run seed -- --reset-generated      delete the recipes (and their posts) that --generate wrote, to write them again
 //   npm run seed -- --puzzles N            write Daily Dish puzzles until there are N (and stock the generated games)
 //   npm run seed -- --puzzle-photos [N]    give Daily Dish puzzles a real photo of the answer, N at a time (default 20)
-//   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch)
+//   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch;
+//                                          add --retry to look again at questions that found none before)
 //   npm run seed -- --generate [N]         write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
 // Uses DATABASE_URL. Safe to run again.
@@ -72,7 +73,7 @@ async function main() {
       const pool = new GamePoolService(db, buildAiRouter(config, db, log), undefined, undefined, false, { storage: storageFromConfig(config), pauseMs: 2500 });
       const total = await db.gamePoolItem.count({ where: { photoTried: false, imageUrl: null } });
       process.stdout.write(`${total} questions still to look at\n`);
-      process.stdout.write(`photos added: ${await pool.backfillPhotos(batch)}\n`);
+      process.stdout.write(`photos added: ${await pool.backfillPhotos(batch, { retry: args.includes('--retry') })}\n`);
     }
     if (args.includes('--reset-generated')) {
       const titles = (dishList as DishDef[]).map((d) => d.title);
