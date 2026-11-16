@@ -182,6 +182,7 @@ someone already imported costs nothing (it is cached).
 - **Build in public:** one honest engineering lesson per week (cost caps, tests, safety choices).
 
 # Build diary (newest first; append one line per shipped change)
+- 2026-11-15: Existing accounts keep working: sign in with Firebase as before and the server takes it from there (no password resets, no new accounts to make).
 - 2026-11-15: Starter content for a fresh server: official SousChef accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
 - 2026-11-15: Cook-to-scale for any headcount: Gemini estimates, creators' notes teach it, the app labels where numbers came from.
 - 2026-11-15: AI substitutions, AI meal plans and cookbook-page scanning moved to the server (allergy rules enforced in code). PR #25.

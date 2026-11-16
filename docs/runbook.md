@@ -94,6 +94,17 @@ The recipe and cookbook data is `server/seed/content.json`, exported once from F
 
 Set `EXPO_PUBLIC_API_URL=https://<your host>` in the app's environment (the local `.env`, or `eas env:create` for EAS builds) and restart Expo with `npx expo start -c`. Without it the app keeps using Firebase.
 
+## Signing in with Firebase (the bridge)
+
+The app can keep Firebase Authentication (existing accounts, email and password, Google, Apple) while its data lives on this server. The app signs in with Firebase, then sends the Firebase ID token to `POST /v1/auth/social` (`provider: "firebase"`); the server checks it against Firebase's published keys and returns its own tokens. From then on the session is the server's (refresh, logout, every API call).
+
+- Server: set `FIREBASE_PROJECT_ID` (for this app `souschef-c23d6`). Empty means off. Restart.
+- App: set `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_AUTH_VIA=firebase`.
+- First sign-in makes the server account (the app sends the terms version). The same Firebase uid always finds the same account. If the Firebase email is verified and a server account already has it, they are linked. An unverified Firebase email that another account already has is refused (`email_taken`), never linked.
+- Staff: Firebase roles do not carry over. After someone has signed in once, `npm run seed -- --admin <email>` makes them staff.
+- A Firebase account you disable or delete keeps its server session until that session expires (60 days). To cut someone off now, suspend them in the staff dashboard or delete their server account.
+- Later, Firebase can be dropped: switch the app back to server sign-in and migrate password hashes (not built).
+
 ## Staff dashboard
 
 `admin/` is a static website (Vite + React) for staff: reports, chef verification, AI spend and key status, ads, official accounts. It is served by Caddy at `https://<API_DOMAIN>/admin/` next to the API, so it needs no extra process and no CORS.
