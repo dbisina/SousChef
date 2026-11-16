@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AiRouter } from '../src/ai/router';
 import { routerSettings } from '../src/ai/factory';
-import { findWikipediaPhoto, generateContent, type DishDef } from '../src/seed/generate';
+import { believableNutrition, findWikipediaPhoto, generateContent, type DishDef } from '../src/seed/generate';
 import { seedContent } from '../src/seed/run';
 import { FakeAiProvider } from './aiHelpers';
 import { FakeStorage, makeApp, testConfig, type TestApp } from './helpers';
@@ -33,6 +33,7 @@ const recipeJson = (title: string) =>
     tags: ['easy'],
     dietaryFlags: ['vegan'],
     allergens: [],
+    nutritionPerServing: { calories: 420, protein: 15, carbs: 55, fat: 14, fiber: 6 },
     postTitle: `Make ${title} tonight`,
     postCaption: 'Take your time with the onions. They carry the flavour of the whole dish.',
   });
@@ -84,6 +85,16 @@ describe('finding a real photo', () => {
   });
 });
 
+describe('checking the nutrition a model gives', () => {
+  it('accepts a believable estimate and refuses nonsense', () => {
+    expect(believableNutrition({ calories: 420, protein: 15, carbs: 55, fat: 14, fiber: 6 }, 4)).toEqual({ caloriesPerServing: 420, totalCalories: 1680, protein: 15, carbs: 55, fat: 14, fiber: 6 });
+    expect(believableNutrition({ calories: 6, protein: 1, carbs: 1, fat: 0, fiber: 0 }, 4)).toBeNull(); // too small for a meal
+    expect(believableNutrition({ calories: 4000, protein: 100, carbs: 400, fat: 200, fiber: 0 }, 1)).toBeNull(); // too large
+    expect(believableNutrition({ calories: 500, protein: 5, carbs: 5, fat: 5, fiber: 0 }, 2)).toBeNull(); // macros do not add up
+    expect(believableNutrition({ calories: Number.NaN, protein: 5, carbs: 5, fat: 5, fiber: 0 }, 2)).toBeNull();
+  });
+});
+
 describe('generating real content', () => {
   it('writes a recipe per dish with a verified photo on our own store, a post each, and a cookbook; skips what it cannot verify', async () => {
     await seedContent(t.db);
@@ -97,6 +108,7 @@ describe('generating real content', () => {
     expect(recipe.imageUrl).toBe('https://media.test/seed/onion-stew.jpg');
     expect(recipe.isOfficial).toBe(true);
     expect(recipe.ingredientNames).toContain('garlic');
+    expect(recipe.caloriesPerServing).toBe(420);
     expect(await t.db.post.count({ where: { title: 'Make Onion Stew tonight' } })).toBe(1);
   });
 

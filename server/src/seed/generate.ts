@@ -52,13 +52,14 @@ const aiSchema = z.object({
   tags: z.array(z.string().max(30)).max(8).optional().catch(undefined),
   dietaryFlags: z.array(z.string().max(30)).max(6).optional().catch(undefined),
   allergens: z.array(z.string().max(30)).max(8).optional().catch(undefined),
+  nutritionPerServing: z.object({ calories: z.coerce.number(), protein: z.coerce.number(), carbs: z.coerce.number(), fat: z.coerce.number(), fiber: z.coerce.number().default(0) }),
   postTitle: z.string().min(3).max(70),
   postCaption: z.string().min(20).max(300),
 });
 
 const SYSTEM = `You are a professional recipe developer writing for a cooking app. Write one accurate, tested-quality recipe for the dish you are given.
 Rules: real, sensible quantities for the stated servings; metric or common kitchen units (g, ml, tbsp, tsp, cup, piece, clove, pinch); every step names the heat, the time or the sign that it is done; no invented health claims; nothing unsafe.
-Return only JSON: {"description": one or two inviting sentences, "servings": number, "prepTime": minutes, "cookTime": minutes, "difficulty": "easy"|"medium"|"hard", "ingredients": [{"name": string, "amount": number, "unit": string}], "instructions": [string], "tags": [string], "dietaryFlags": subset of ["vegetarian","vegan","gluten-free","dairy-free","nut-free"], "allergens": subset of ["gluten","dairy","eggs","nuts","peanuts","soy","fish","shellfish","sesame"], "postTitle": a short friendly headline, "postCaption": two sentences of practical advice for cooking it well}.`;
+Return only JSON: {"description": one or two inviting sentences, "servings": number, "prepTime": minutes, "cookTime": minutes, "difficulty": "easy"|"medium"|"hard", "ingredients": [{"name": string, "amount": number, "unit": string}], "instructions": [string], "tags": [string], "dietaryFlags": subset of ["vegetarian","vegan","gluten-free","dairy-free","nut-free"], "allergens": subset of ["gluten","dairy","eggs","nuts","peanuts","soy","fish","shellfish","sesame"], "nutritionPerServing": {"calories": kcal, "protein": g, "carbs": g, "fat": g, "fiber": g} for ONE serving, worked out from your ingredient amounts, "postTitle": a short friendly headline, "postCaption": two sentences of practical advice for cooking it well}.`;
 
 interface Photo {
   bytes: Buffer;
@@ -101,6 +102,20 @@ export async function findWikipediaPhoto(wiki: string, fetchImpl: typeof fetch =
 }
 
 const verdict = z.object({ match: z.boolean(), reason: z.string().optional() });
+
+/**
+ * The model's own nutrition estimate, accepted only when it is believable: a plausible meal size, and macros that add up to
+ * the calories (4 kcal a gram of protein or carbohydrate, 9 of fat) within a quarter. Null otherwise.
+ */
+export function believableNutrition(n: { calories: number; protein: number; carbs: number; fat: number; fiber: number }, servings: number) {
+  const values = [n.calories, n.protein, n.carbs, n.fat, n.fiber];
+  if (values.some((v) => !Number.isFinite(v) || v < 0)) return null;
+  if (n.calories < 60 || n.calories > 1500) return null;
+  const fromMacros = n.protein * 4 + n.carbs * 4 + n.fat * 9;
+  if (Math.abs(fromMacros - n.calories) > n.calories * 0.25) return null;
+  const r = (v: number) => Math.round(v * 10) / 10;
+  return { caloriesPerServing: Math.round(n.calories), totalCalories: Math.round(n.calories * servings), protein: r(n.protein), carbs: r(n.carbs), fat: r(n.fat), fiber: r(n.fiber) };
+}
 
 /** Asks a model that can see whether the picture really shows the dish (a lead image can be a map, a diagram or a person). */
 export async function photoShows(ai: AiRouter, title: string, photo: Photo): Promise<boolean> {
@@ -187,6 +202,11 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
         { task: 'extract_recipe', system: SYSTEM, prompt: `Dish: ${dish.title}\nCuisine: ${dish.cuisine}\nMeal: ${dish.category}`, json: true, maxOutputTokens: 2500, temperature: 0.3 },
         aiSchema,
       );
+      const nutrition = believableNutrition(draft.nutritionPerServing, draft.servings);
+      if (!nutrition) {
+        report.skipped.push({ title: dish.title, reason: 'the nutrition estimate was not believable' });
+        continue;
+      }
       const imageUrl = await store(storage, `seed/${slug(dish.title)}.${photo.mime === 'image/png' ? 'png' : 'jpg'}`, photo, fetchImpl);
       const input: CreateRecipeRequest = {
         title: dish.title,
@@ -206,6 +226,8 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
         isOfficial: true,
       };
       const row = await recipes.create({ userId: authorId, role: 'admin' }, input);
+      // The server's own calorie table does not know every ingredient, so the checked estimate is what is stored.
+      await db.recipe.update({ where: { id: row.id }, data: { nutrition, caloriesPerServing: nutrition.caloriesPerServing } });
       await house.post(authorId, {
         kind: 'recipe',
         title: draft.postTitle,
