@@ -48,8 +48,12 @@ export const calculateIngredientCalories = (name: string, amount: number, unit: 
   return Math.round((gramsIn(entry, amount, unit) / 100) * entry.caloriesPer100g);
 };
 
+/**
+ * With a `unit`, the amount is read in that unit (300 g of chicken is 300 g, not 300 of the table's own unit, an ounce).
+ * Without one, the amount is taken to be in the table's unit, as it always was.
+ */
 export const calculateNutrition = (
-  ingredients: Pick<RecipeIngredient, 'name' | 'amount' | 'calories'>[],
+  ingredients: (Pick<RecipeIngredient, 'name' | 'amount' | 'calories'> & { unit?: string })[],
   servings: number,
 ): NutritionInfo => {
   let calories = 0;
@@ -60,7 +64,8 @@ export const calculateNutrition = (
   for (const ingredient of ingredients) {
     const entry = findCalorieEntry(ingredient.name);
     if (entry) {
-      const factor = (ingredient.amount * entry.gramsPerUnit) / 100;
+      const amount = ingredient.unit ? amountInTableUnits(ingredient.name, ingredient.amount, ingredient.unit) : ingredient.amount;
+      const factor = (amount * entry.gramsPerUnit) / 100;
       calories += factor * entry.caloriesPer100g;
       protein += factor * entry.protein;
       carbs += factor * entry.carbs;

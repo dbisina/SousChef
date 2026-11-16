@@ -107,6 +107,19 @@ export class AiRouter {
     throw errors.aiUnavailable('The AI gave an answer that could not be used');
   }
 
+  /** The providers that are set up and what the staff dashboard may know about them (no secrets). */
+  providerStatus(): { name: string; model: string; details?: { funded: boolean; freeKeys: { key: string; resting: boolean }[] } }[] {
+    return this.settings.providers.map((p) => ({ name: p.name, model: p.model, ...(p.describe ? { details: p.describe() } : {}) }));
+  }
+
+  get monthlyBudgetUsd(): number {
+    return this.settings.monthlyBudgetUsd;
+  }
+
+  get privateProviders(): string[] {
+    return this.settings.privateProviders ?? ['gemini'];
+  }
+
   /** What has been spent this month, in US dollars (an estimate from token counts and configured prices). */
   async spentThisMonth(): Promise<number> {
     const row = await this.db.aiUsage.aggregate({ where: { createdAt: { gte: startOfMonth(this.now()) } }, _sum: { costMicros: true } });
