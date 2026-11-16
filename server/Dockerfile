@@ -63,6 +63,9 @@ COPY --from=build /app/server/dist ./dist
 COPY --from=build /app/server/prisma ./prisma
 COPY --from=admin /app/admin/dist ./admin-dist
 ENV ADMIN_DIR=/app/server/admin-dist
+# yt-dlp (one self-contained file): reads video captions and subtitles for link imports. It never downloads the video.
+ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
+ENV YT_DLP_PATH=/usr/local/bin/yt-dlp
 USER node
 EXPOSE 3000
 # The memory cap lives in the start script (--max-old-space-size).
@@ -79,5 +82,7 @@ FROM build AS railway
 ENV NODE_ENV=production
 COPY --from=admin /app/admin/dist ./admin-dist
 ENV ADMIN_DIR=/app/server/admin-dist
+ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
+ENV YT_DLP_PATH=/usr/local/bin/yt-dlp
 EXPOSE 3000
 CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
