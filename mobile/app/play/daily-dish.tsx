@@ -97,6 +97,14 @@ export default function DailyDishScreen() {
 
       <View className="bg-surface-3 overflow-hidden" style={{ height: 240, borderRadius: 30 }}>
         <Backdrop />
+        <View className="items-center justify-center" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, gap: 10 }}>
+          <Icon name={playing ? 'help' : daily.status === 'solved' ? 'check' : 'close'} size="lg" />
+          {playing ? (
+            <RNText className="text-ink text-center" style={{ fontFamily: FONT.sansMedium, fontSize: 14, paddingHorizontal: 32, lineHeight: 20 }}>
+              {t('play.daily.prompt', 'Guess the dish from its ingredients. Each wrong guess unlocks another.')}
+            </RNText>
+          ) : null}
+        </View>
         <View style={{ position: 'absolute', top: 14, left: 14 }}>
           <Tag
             tone="glassDark"
@@ -143,9 +151,7 @@ export default function DailyDishScreen() {
                   borderColor: tk.line,
                 }}
               >
-                <RNText className="text-subtle" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
-                  ?
-                </RNText>
+                <Icon name="lock" size="sm" />
               </View>
             ),
           )}

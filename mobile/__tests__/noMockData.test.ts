@@ -30,11 +30,12 @@ describe('no sample content in the app', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('ships no photograph in the app bundle (pictures come from the server or the phone)', () => {
+  it('ships only the app\'s own photography (assets/photos: ingredients and dishes), no people or accounts', () => {
     const assets = walk(path.join(ROOT, 'assets'))
       .filter((f) => /\.(jpe?g)$/i.test(f))
       .map(rel)
-      .filter((f) => !/(^|\/)(icon|adaptive-icon|splash-icon)\.jpg$/.test(f)); // the app's own icon and splash picture
+      .filter((f) => !/(^|\/)(icon|adaptive-icon|splash-icon)\.jpg$/.test(f)) // the app's own icon and splash picture
+      .filter((f) => !/^assets\/photos\//.test(f)); // fixed food photography for Meal Plan, Pantry, Shopping, covers
     expect(assets).toEqual([]);
   });
 

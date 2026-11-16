@@ -24,6 +24,8 @@ import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { db, doc, getDoc } from '@/lib/firebase';
 import { isDesignReview } from '@/lib/designReview';
+import { apiEnabled } from '@/lib/api';
+import { apiProfile, apiSetFollowing } from '@/services/socialApi';
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
@@ -51,6 +53,7 @@ export default function UserProfileScreen() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
 
   const isOwnProfile = currentUser?.id === id;
 
@@ -68,11 +71,27 @@ export default function UserProfileScreen() {
     }
     setIsLoading(true);
     try {
-      const userDoc = await getDoc(doc(db, 'users', id));
-      if (userDoc.exists()) {
-        const userData = { id: userDoc.id, ...userDoc.data() } as User;
-        setProfileUser(userData);
-        setIsFollowing(currentUser?.following?.includes(id) || false);
+      if (apiEnabled()) {
+        // The server is the source of truth: the profile, the follower count and whether you follow them.
+        const p = await apiProfile(id);
+        setProfileUser({
+          id: p.id,
+          displayName: p.displayName,
+          photoURL: p.photoUrl ?? undefined,
+          bio: p.bio,
+          isVerifiedChef: p.isVerifiedChef,
+          handle: p.handle,
+        } as unknown as User);
+        setFollowerCount(p.followerCount);
+        setIsFollowing(p.viewer?.following ?? false);
+      } else {
+        const userDoc = await getDoc(doc(db, 'users', id));
+        if (userDoc.exists()) {
+          const userData = { id: userDoc.id, ...userDoc.data() } as User;
+          setProfileUser(userData);
+          setFollowerCount(userData.followers?.length ?? 0);
+          setIsFollowing(currentUser?.following?.includes(id) || false);
+        }
       }
       const userRecipes = await fetchUserRecipes(id);
       setRecipes(userRecipes.filter((r) => r.status !== 'flagged'));
@@ -83,7 +102,7 @@ export default function UserProfileScreen() {
     }
     // fetchUserRecipes is a stable zustand action; currentUser.following drives the follow state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, currentUser?.following]);
+  }, [id]);
 
   useEffect(() => {
     loadProfile();
@@ -91,12 +110,22 @@ export default function UserProfileScreen() {
 
   const handleFollowToggle = async () => {
     if (!currentUser || !id || isOwnProfile) return;
-    if (isFollowing) {
-      await unfollowUser(currentUser.id, id);
-      setIsFollowing(false);
-    } else {
-      await followUser(currentUser.id, id);
-      setIsFollowing(true);
+    const next = !isFollowing;
+    setIsFollowing(next); // optimistic; the server's answer below replaces it
+    setFollowerCount((n) => Math.max(0, n + (next ? 1 : -1)));
+    try {
+      if (apiEnabled()) {
+        const r = await apiSetFollowing(id, next);
+        setIsFollowing(r.following);
+        setFollowerCount(r.followerCount);
+      } else if (next) {
+        await followUser(currentUser.id, id);
+      } else {
+        await unfollowUser(currentUser.id, id);
+      }
+    } catch {
+      setIsFollowing(!next);
+      setFollowerCount((n) => Math.max(0, n + (next ? -1 : 1)));
     }
   };
 
@@ -116,7 +145,6 @@ export default function UserProfileScreen() {
     );
   }
 
-  const followerCount = profileUser.followers?.length || 0;
   const topInset = Math.max(insets.top, 20) + 14;
   const tile = Math.floor((width - 40 - 12) / 2);
 

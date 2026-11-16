@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Share, Text as RNText, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -37,6 +37,16 @@ export default function MysteryLobbyScreen() {
   }, [round, hostRound]);
 
   const phase = round?.phase;
+  // A solo game has no one to wait for: start as soon as the room exists.
+  const soloReady = round?.mode === 'solo' && !!round.roomCode && phase === 'lobby';
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (soloReady && !autoStarted.current) {
+      autoStarted.current = true;
+      startRound();
+    }
+  }, [soloReady, startRound]);
+
   useEffect(() => {
     if (phase === 'cooking') router.replace('/play/mystery/round');
     else if (phase === 'reveal') router.replace('/play/mystery/reveal');

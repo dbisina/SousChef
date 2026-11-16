@@ -15,7 +15,7 @@ import { getTierFeatures } from '@/services/subscriptionService';
 import { FEATURES } from '@/constants/features';
 import { ListRow, Rows, Screen, SponsoredAdCard, WelcomeModal, useColor, type PhotoSource } from '@/components/ui';
 import { isDesignReview } from '@/lib/designReview';
-import { HomeHeader, LinkBar, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
+import { HomeHeader, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
 import {
   ChallengeCard,
   FriendPost,
@@ -206,6 +206,7 @@ export default function HomeScreen() {
         onSearch={() => go('/(tabs)/browse')}
         onNotifications={() => go('/settings/notifications')}
         onMessages={() => go('/messages')}
+        onAdd={() => go('/import')}
       />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, gap: 22, paddingBottom: 130 }}
@@ -213,12 +214,11 @@ export default function HomeScreen() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accent} />}
       >
-        <LinkBar onPress={() => go('/import')} />
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
         {tonight ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} onPress={() => go(tonight.href)} /> : null}
-        {!isGuest ? <AiTonightCard /> : null}
         {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
         {FEATURES.feed ? <ReelsRow /> : null}
+        {!isGuest ? <AiTonightCard /> : null}
         {imported ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
         {planIsReal ? <PlanShare cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}
         {FEATURES.feed ? <ChallengeCard /> : null}

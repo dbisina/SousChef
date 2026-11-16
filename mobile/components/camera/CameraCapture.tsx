@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, Modal } from 'react-native';
+import { View, Text } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
@@ -69,12 +69,13 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     setFacing((current) => (current === 'back' ? 'front' : 'back'));
   };
 
-  if (!permission) {
+  // An in-screen overlay, not a native Modal: a Modal opened over an expo-router modal can swallow the close tap.
+  if (!permission || !visible) {
     return null;
   }
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, elevation: 100 }}>
       <ToneScope tone="dark">
         {/* Header - always shows the close button */}
         <View
@@ -161,6 +162,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
           </View>
         )}
       </ToneScope>
-    </Modal>
+    </View>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { SERVER_MODE } from '@/constants/features';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, Text, View } from 'react-native';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -222,6 +223,26 @@ export default function ProfileScreen() {
           ) : null}
 
           <Rows>{items.map(renderRow)}</Rows>
+        <Rows>
+          <ListRow
+            icon="warning"
+            title={t('account.profile.reportBug', 'Report a bug')}
+            subtitle={t('account.profile.reportBugSub', 'Tell us what went wrong')}
+            onPress={() =>
+              void Linking.openURL(
+                `mailto:support@souschef.app?subject=${encodeURIComponent('SousChef bug report')}&body=${encodeURIComponent(
+                  `What happened:\n\nWhat I expected:\n\nSteps to reproduce:\n\n---\nApp ${Constants.expoConfig?.version ?? ''} · ${Platform.OS} ${Platform.Version}`,
+                )}`,
+              )
+            }
+          />
+          <ListRow
+            icon="mail"
+            title={t('account.profile.contactDev', 'Contact the developer')}
+            subtitle={t('account.profile.contactDevSub', 'Building your own app? Get in touch')}
+            onPress={() => void Linking.openURL(`mailto:developers@souschef.app?subject=${encodeURIComponent('SousChef developer enquiry')}`)}
+          />
+        </Rows>
 
           {/* Banner ad hidden for ad-free tiers */}
           {!adFree ? <AdMobBanner /> : null}

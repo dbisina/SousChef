@@ -15,10 +15,11 @@ interface HomeHeaderProps {
   onSearch: () => void;
   onNotifications: () => void;
   onMessages: () => void;
+  onAdd: () => void;
 }
 
-/** .top: logo + wordmark on the left, search / notifications / messages on the right. */
-export function HomeHeader({ unread, onSearch, onNotifications, onMessages }: HomeHeaderProps) {
+/** .top: a plus (paste a recipe or video link) on the left, the wordmark in the middle, search / notifications / messages on the right. */
+export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAdd }: HomeHeaderProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   return (
@@ -26,13 +27,9 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages }: Ho
       className="flex-row items-center justify-between"
       style={{ paddingTop: Math.max(insets.top, 20) + 14, paddingBottom: 10, paddingHorizontal: 20, gap: 12 }}
     >
-      <View className="flex-row items-center" style={{ gap: 10 }}>
-        <Image
-          source={require('../../assets/icon.png')}
-          style={{ width: 36, height: 36, borderRadius: 11 }}
-          accessible={false}
-        />
-        <RNText className="text-ink" accessibilityRole="header" style={{ fontFamily: FONT.display, fontSize: 22, letterSpacing: -0.44 }}>
+      <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
+      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 10, height: 46, alignItems: 'center', justifyContent: 'center' }}>
+        <RNText className="text-ink" accessibilityRole="header" style={{ fontFamily: FONT.display, fontSize: 19, lineHeight: 24, letterSpacing: -0.38 }}>
           SousChef
         </RNText>
       </View>

@@ -109,6 +109,11 @@ export default function CookingModeScreen() {
     min?: string;
   }>();
   const router = useRouter();
+  // The cooking screen is a full-screen modal: dismiss it instead of stacking the tabs on top of it.
+  const goHome = () => {
+    if (router.canDismiss()) router.dismissAll();
+    router.replace('/(tabs)');
+  };
   const { t } = useTranslation();
   const { height: windowHeight } = useWindowDimensions();
   const spinner = useColor('muted');
@@ -882,7 +887,7 @@ export default function CookingModeScreen() {
               icon="close"
               label={t('cooking.close', 'Close')}
               tone="glassDark"
-              onPress={() => router.push('/(tabs)')}
+              onPress={goHome}
             />
           </View>
 
@@ -913,7 +918,7 @@ export default function CookingModeScreen() {
               icon="camera"
               onPress={() => setShowCamera(true)}
             />
-            <UButton label={t('cooking.backHome', 'Back to Home')} variant="ghost" onPress={() => router.push('/(tabs)')} />
+            <UButton label={t('cooking.backHome', 'Back to Home')} variant="ghost" onPress={goHome} />
           </ActionBar>
         </>
       )}
