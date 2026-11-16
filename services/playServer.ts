@@ -30,6 +30,7 @@ export function toRound(view: MkRoomView, meId: string, now: number): MysteryKit
   const totalHints = view.hints.length + view.hintsLeft;
   return {
     roomCode: view.code,
+    mode: view.mode,
     phase: PHASE[view.phase],
     players: view.players.map((p) => ({
       id: p.user.id,

@@ -39,6 +39,8 @@ import { Paywall } from '@/components/subscription';
 import { VoiceOverlay, TimerDisplay } from '@/components/voice';
 import { formatInstructionForSpeech } from '@/services/voiceService';
 import { useGeminiLive } from '@/hooks/useGeminiLive';
+import { useCookAssistant } from '@/hooks/useCookAssistant';
+import { apiEnabled } from '@/lib/api';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { isDesignReview } from '@/lib/designReview';
 
@@ -204,12 +206,13 @@ export default function CookingModeScreen() {
   const [paywallFeature, setPaywallFeature] = useState<'Portion Analysis' | 'Voice Hands-Free'>('Portion Analysis');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [servings, setServings] = useState(4);
-  const [useLiveAI, setUseLiveAI] = useState(false);
+  // Connected to the server the voice assistant is on by default (it needs no key on the phone).
+  const [useLiveAI, setUseLiveAI] = useState(apiEnabled());
   const [cookedMinutes, setCookedMinutes] = useState(isDesignReview && minParam ? parseInt(minParam, 10) || 0 : 0);
   const startedAt = useRef<number | null>(null);
 
-  // Gemini Live API — real-time voice conversation
-  const geminiLive = useGeminiLive({
+  // Voice conversation: the server-backed assistant when connected to the server, Gemini Live (key on the phone) otherwise.
+  const geminiLiveHook = useGeminiLive({
     recipe: recipe || undefined,
     currentStep,
     onTimerRequested: (minutes, label) => {
@@ -219,6 +222,17 @@ export default function CookingModeScreen() {
     onPreviousStep: handlePrevStepFromAI,
     onServingsChanged: (s) => setServings(s),
   });
+  const cookAssistant = useCookAssistant({
+    recipe: recipe || undefined,
+    currentStep,
+    onTimerRequested: (minutes, label) => {
+      createTimer(label, minutes);
+    },
+    onNextStep: handleNextStepFromAI,
+    onPreviousStep: handlePrevStepFromAI,
+    onServingsChanged: (s) => setServings(s),
+  });
+  const geminiLive = apiEnabled() ? cookAssistant : geminiLiveHook;
 
   function handleNextStepFromAI() {
     if (recipe && currentStep < recipe.instructions.length - 1) {
@@ -602,11 +616,11 @@ export default function CookingModeScreen() {
                 <View className="flex-row items-center" style={{ gap: 12 }}>
                   <View className="flex-1" style={{ gap: 2 }}>
                     <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
-                      {t('cooking.geminiLive', 'Gemini Live AI')}
+                      {apiEnabled() ? t('cooking.voiceAssistant', 'Voice assistant') : t('cooking.geminiLive', 'Gemini Live AI')}
                     </Text>
-                    <Muted small>{t('cooking.geminiLiveDesc', 'Real-time voice conversation while cooking')}</Muted>
+                    <Muted small>{apiEnabled() ? t('cooking.voiceAssistantDesc', 'Say next, repeat, set a timer, or ask a question while you cook') : t('cooking.geminiLiveDesc', 'Real-time voice conversation while cooking')}</Muted>
                   </View>
-                  <USwitch value={useLiveAI} onValueChange={setUseLiveAI} label={t('cooking.geminiLive', 'Gemini Live AI')} />
+                  <USwitch value={useLiveAI} onValueChange={setUseLiveAI} label={apiEnabled() ? t('cooking.voiceAssistant', 'Voice assistant') : t('cooking.geminiLive', 'Gemini Live AI')} />
                 </View>
               </UCard>
             </View>

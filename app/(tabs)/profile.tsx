@@ -128,8 +128,10 @@ export default function ProfileScreen() {
     { id: 'analytics', icon: 'trend', label: t('account.profile.analytics', 'Recipe analytics'), route: '/settings/analytics' },
     { id: 'seed', icon: 'grid', label: t('account.profile.seed', 'Database seeder'), route: '/admin/seed' },
   ];
-  // The database seeder writes to the old Firebase database; connected to a server it has no use.
-  const chefItems = allChefItems.filter((item) => !(SERVER_MODE && item.id === 'seed'));
+  // These three write to the old Firebase database (one official chef, ads, seeding). Connected to a server, recipes are added
+  // from the normal create flow and ads are run from the staff dashboard.
+  const legacy = new Set(['add-recipe', 'ads', 'seed']);
+  const chefItems = allChefItems.filter((item) => !(SERVER_MODE && legacy.has(item.id)));
 
   const items = isGuest ? guestItems : [...memberItems, ...(isChef ? chefItems : [])];
 

@@ -25,6 +25,7 @@ import { downloadYouTubeVideo, isYouTubeDownloadAvailable } from './youtubeDownl
 import { getInfoAsync } from 'expo-file-system/legacy';
 import { apiEnabled } from '@/lib/api';
 import { apiExtractFromUrl } from '@/services/wantToCookApi';
+import { askForFrames } from '@/lib/importFrames';
 import { apiScanRecipe } from '@/services/aiToolsApi';
 
 /** Kinds of link the server cannot fetch for us: files and pictures on the phone, and direct media. */
@@ -86,7 +87,7 @@ export const extractRecipeFromURL = async (
     // already imported costs nothing). Files on the phone, and videos whose caption has no recipe, still use the on-device reader below.
     if (apiEnabled() && /^https?:\/\//i.test(url) && !LOCAL_ONLY_PLATFORMS.has(platform)) {
       try {
-        const fromServer = await apiExtractFromUrl(url, onProgress);
+        const fromServer = await apiExtractFromUrl(url, onProgress, askForFrames);
         if (fromServer) return fromServer;
       } catch {
         // The server could not be reached or refused: fall through to the on-device reader.

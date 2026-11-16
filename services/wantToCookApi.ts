@@ -11,6 +11,7 @@ import type {
   WantToCookItem as ApiItem,
 } from '../shared/index';
 import { api } from '@/lib/api';
+import { uploadFile } from '@/lib/upload';
 import type { Ingredient, Recipe } from '@/types';
 import type { ImportedRecipe, QuickShoppingItem, URLExtractionResponse, WantToCookItem, WantToCookStatus } from '@/types/wantToCook';
 
@@ -148,9 +149,23 @@ export async function apiClearShopping(checkedOnly: boolean): Promise<void> {
  * Reads a recipe from a link on the server (caption, page data, then AI). Null when the server cannot read it from the
  * link alone (a video whose caption has no recipe), so the caller can fall back to the on-device reader.
  */
-export async function apiExtractFromUrl(url: string, onProgress?: (message: string) => void): Promise<URLExtractionResponse | null> {
+export async function apiExtractFromUrl(
+  url: string,
+  onProgress?: (message: string) => void,
+  /** Asks the person for screenshots of the video (addresses on the phone) when its caption holds no recipe. */
+  askFrames?: () => Promise<string[] | null>,
+): Promise<URLExtractionResponse | null> {
   onProgress?.('Reading the link...');
-  const result = await api().post<ImportResult>('/v1/imports', { url }, { timeoutMs: 60_000 });
+  let result = await api().post<ImportResult>('/v1/imports', { url }, { timeoutMs: 60_000 });
+  if (result.status === 'needs_frames' && askFrames) {
+    const uris = await askFrames();
+    if (uris && uris.length > 0) {
+      onProgress?.('Reading the screenshots...');
+      const uploadIds: string[] = [];
+      for (const uri of uris) uploadIds.push((await uploadFile(uri, 'import_frame')).id);
+      result = await api().post<ImportResult>(`/v1/imports/${result.id}/frames`, { uploadIds }, { timeoutMs: 90_000 });
+    }
+  }
   if (result.status !== 'done' || !result.recipe) return null;
   return { success: true, recipe: importedFromApi(result.recipe, result.id), confidence: result.recipe.extractionConfidence };
 }

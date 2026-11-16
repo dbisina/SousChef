@@ -1,6 +1,7 @@
 import React, { createContext, useContext } from 'react';
 import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useRouter, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ToneScope } from './tone';
 import { useThemeStore } from '@/stores/themeStore';
@@ -54,12 +55,28 @@ export function Screen({ tone = 'auto', scroll, bottomSpace = 0, bare, footer, c
   );
 }
 
+/** The four tabs in the bar; everything else is reached by tapping something, so it gets a back button. */
+const ROOT_TABS = new Set(['index', 'kitchen', 'play', 'you']);
+
+/** Back on every pushed screen without each screen asking for it. Null on the tab roots. */
+function useAutoBack(disabled: boolean): (() => void) | null {
+  const router = useRouter();
+  const segments = useSegments() as string[];
+  if (disabled) return null;
+  const [group, screen] = segments;
+  const root = segments.length === 0 || (group === '(tabs)' && (screen === undefined || ROOT_TABS.has(screen)));
+  if (root) return null;
+  return () => (router.canGoBack() ? router.back() : router.replace('/(tabs)'));
+}
+
 interface TopBarProps {
   /** Large two-tone headline on the left (variant="large") or centered title (variant="compact"). */
   title?: React.ReactNode;
   /** Grey tail appended to the large title. */
   titleDim?: React.ReactNode;
   variant?: 'large' | 'compact';
+  /** Leave the automatic back button off (a screen that must not be left with it, such as a first-run step). */
+  noBack?: boolean;
   /** Shows a back button in compact mode. */
   onBack?: () => void;
   backLabel?: string;
@@ -68,13 +85,15 @@ interface TopBarProps {
 }
 
 /** .top: 58px top padding (safe area aware), 20px sides, 14px bottom. */
-export function TopBar({ title, titleDim, variant = 'large', onBack, backLabel = 'Back', right, left }: TopBarProps) {
+export function TopBar({ title, titleDim, variant = 'large', onBack, noBack, backLabel = 'Back', right, left }: TopBarProps) {
+  const autoBack = useAutoBack(noBack === true || onBack !== undefined || left !== undefined);
   const insets = useSafeAreaInsets();
   const paddingTop = Math.max(insets.top, 20) + 14;
   const padded = useContext(PaddedBody);
   // .top sits outside .body: undo the body's 20px side padding and the 18px gap that follows it.
   const bleed = padded ? { marginHorizontal: -20, marginBottom: -18 } : null;
-  const side = left ?? (onBack ? <UIconButton icon="back" label={backLabel} onPress={onBack} /> : null);
+  const goBack = onBack ?? autoBack;
+  const side = left ?? (goBack ? <UIconButton icon="back" label={backLabel} onPress={goBack} /> : null);
 
   if (variant === 'compact') {
     return (

@@ -54,6 +54,8 @@ export interface MKSubmission {
 
 export interface MysteryKitchenRound {
   roomCode: string;
+  /** Server games: a solo game starts with just you; a group game needs at least two players. */
+  mode?: 'solo' | 'group';
   phase: MKPhase;
   players: MKPlayer[];
   pantryMode: MKPantryMode;

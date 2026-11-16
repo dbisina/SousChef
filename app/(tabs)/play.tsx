@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
@@ -24,10 +24,14 @@ import {
 import type { PhotoSource } from '@/components/ui';
 import { samplePhoto } from '@/components/play/samplePhoto';
 import { PREVIEW_LABEL, SERVER_MODE } from '@/constants/features';
+import { apiSoloGames } from '@/services/soloApi';
+import type { SoloGameInfo } from '../../shared/index';
 import { FIXED } from '@/stores/themeStore';
 import { puzzleNumberFor } from '@/lib/dailyDish';
 import { playService } from '@/services/playService';
 import { selectDailyStreak, usePlayStore } from '@/stores/playStore';
+
+const SOLO_PHOTO = { trivia: 'tomatoes', sorter: 'garlic', match: 'bowl' } as const;
 
 export default function PlayScreen() {
   const router = useRouter();
@@ -39,10 +43,15 @@ export default function PlayScreen() {
   const { games, total } = playService.getGames();
   const [joinOpen, setJoinOpen] = useState(false);
   const [code, setCode] = useState('');
+  const [solo, setSolo] = useState<SoloGameInfo[]>([]);
+  useEffect(() => {
+    if (!SERVER_MODE) return;
+    apiSoloGames().then(setSolo).catch(() => setSolo([]));
+  }, []);
 
   const go = (href: string) => router.push(href as Href);
-  const host = () => {
-    hostRound();
+  const host = (mode: 'solo' | 'group' = 'group') => {
+    hostRound(mode);
     go('/play/mystery/lobby');
   };
   const join = () => {
@@ -61,10 +70,12 @@ export default function PlayScreen() {
       <TopBar
         title={t('play.title', 'Play')}
         right={
-          <View className="flex-row items-center" style={{ gap: 8 }}>
-            <Tag tone="o" label={PREVIEW_LABEL} />
-            <Tag tone="o" large icon="trophy" label={t('play.rank', 'Rank {{n}} · {{title}}', { n: 7, title: 'Sous' })} />
-          </View>
+          SERVER_MODE ? undefined : (
+            <View className="flex-row items-center" style={{ gap: 8 }}>
+              <Tag tone="o" label={PREVIEW_LABEL} />
+              <Tag tone="o" large icon="trophy" label={t('play.rank', 'Rank {{n}} · {{title}}', { n: 7, title: 'Sous' })} />
+            </View>
+          )
         }
       />
       <ScrollView
@@ -95,12 +106,12 @@ export default function PlayScreen() {
             <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.captionSub }}>
               {t('play.mkTagline', feature.tagline)}
             </RNText>
-            <View className="flex-row" style={{ gap: 8, marginTop: 6 }}>
+            <View className="flex-row" style={{ gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
               <UButton
                 variant="accent"
                 size="sm"
                 label={t('play.host', 'Host a game')}
-                onPress={host}
+                onPress={() => host('group')}
               />
               <Pressable
                 accessibilityRole="button"
@@ -113,6 +124,13 @@ export default function PlayScreen() {
                   </RNText>
                 </Glass>
               </Pressable>
+              {SERVER_MODE ? (
+                <Pressable accessibilityRole="button" accessibilityLabel={t('play.solo', 'Play solo')} onPress={() => host('solo')}>
+                  <Glass style={{ height: 44, borderRadius: 22, paddingHorizontal: 18, justifyContent: 'center' }}>
+                    <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.night }}>{t('play.solo', 'Play solo')}</RNText>
+                  </Glass>
+                </Pressable>
+              ) : null}
             </View>
           </View>
         </PhotoCard>
@@ -136,8 +154,29 @@ export default function PlayScreen() {
           </View>
         </UCard>
 
-        {/* Only Mystery Kitchen and the Daily Dish exist on the server; the other titles are placeholders, so they are not shown there. */}
-        {SERVER_MODE ? null : (
+        {/* On the server: Mystery Kitchen and Daily Dish above, and the three solo games here. */}
+        {SERVER_MODE ? (
+          <>
+            <H2>{t('play.moreGames', 'More games')}</H2>
+            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+              {solo.map((g) => (
+                <PhotoCard
+                  key={g.id}
+                  source={samplePhoto(SOLO_PHOTO[g.id])}
+                  height={150}
+                  radius={24}
+                  width="47.5%"
+                  style={{ flexGrow: 1 }}
+                  title={g.name}
+                  titleSize={15}
+                  subtitle={g.best === null ? g.tagline : t('play.bestScore', 'Best {{n}}', { n: g.best })}
+                  captionInset={14}
+                  onPress={() => go(`/play/solo/${g.id}`)}
+                />
+              ))}
+            </View>
+          </>
+        ) : (
         <>
         <View className="flex-row items-center justify-between">
           <H2>{t('play.moreGames', 'More games')}</H2>
@@ -156,7 +195,7 @@ export default function PlayScreen() {
               titleSize={15}
               subtitle={g.tagline}
               captionInset={14}
-              onPress={host}
+              onPress={() => host()}
             />
           ))}
         </View>

@@ -16,6 +16,7 @@ export * from './imports';
 export * from './dailyDish';
 export * from './play';
 export * from './mysteryKitchen';
+export * from './solo';
 export * from './health';
 export * from './moderation';
 export * from './aiTools';

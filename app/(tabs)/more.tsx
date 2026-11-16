@@ -322,8 +322,8 @@ export default function MoreScreen() {
                 { id: 'analytics', icon: 'bar-chart' as const, label: 'Analytics', route: '/settings/analytics', color: '#3B82F6' },
                 { id: 'ads', icon: 'megaphone' as const, label: 'Manage Ads', route: '/admin/manage-ads', color: '#F59E0B' },
               ]
-                // The database seeder writes to the old Firebase database; connected to a server it has no use.
-                .filter((item) => !(SERVER_MODE && item.id === 'seed'))
+                // These write to the old Firebase database; connected to a server recipes come from the normal create flow and ads from the staff dashboard.
+                .filter((item) => !(SERVER_MODE && ['seed', 'add-recipe', 'ads'].includes(item.id)))
                 .map((item, idx, arr) => (
                 <View key={item.id}>
                   {renderMenuItem(item as MenuItem)}
