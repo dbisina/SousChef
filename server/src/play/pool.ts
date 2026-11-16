@@ -1,0 +1,149 @@
+import { createHash } from 'node:crypto';
+import { z } from 'zod';
+import type { AiRouter } from '../ai/router';
+import type { Db } from '../db';
+import { errors } from '../errors';
+import { TRIVIA } from './trivia';
+
+/** The games whose questions are written by a model and kept in a pool, so they do not repeat. */
+export const POOL_GAMES = ['trivia', 'myth', 'cuisine', 'odd', 'technique', 'pairing'] as const;
+export type PoolGame = (typeof POOL_GAMES)[number];
+export const isPoolGame = (g: string): g is PoolGame => (POOL_GAMES as readonly string[]).includes(g);
+
+/** What each game asks the model for. `wrong` is how many wrong answers go with the right one. */
+const SPEC: Record<PoolGame, { wrong: number; brief: string }> = {
+  trivia: { wrong: 3, brief: 'Multiple-choice trivia about cooking: ingredients, kitchen science, techniques, kitchens and food culture around the world. Mix easy and hard.' },
+  myth: { wrong: 1, brief: 'Kitchen beliefs to judge. "prompt" is a statement people commonly believe about cooking or food (for example that searing seals in juices). "correct" is "Fact" if the statement is true, or "Myth" if it is false; "wrong" is the other word. "note" explains the truth in one sentence.' },
+  cuisine: { wrong: 3, brief: 'Name that cuisine. "prompt" describes a dish by its look, ingredients and how it is eaten WITHOUT naming the dish or the country ("Which cuisine does this come from? A ..."). "correct" is its cuisine or country; "wrong" are three other cuisines or countries that are plausible.' },
+  odd: { wrong: 3, brief: 'Spot the odd ingredient. "prompt" names a dish or kind of dish ("Which of these does NOT belong in a classic ...?"). "correct" is the one ingredient that does not belong; "wrong" are three ingredients that do.' },
+  technique: { wrong: 3, brief: 'Cooking technique match. "prompt" is a plain description of a technique ("Cooking food gently in a little fat in a covered pan to soften it without browning"). "correct" is its name; "wrong" are three other techniques.' },
+  pairing: { wrong: 3, brief: 'Flavour pairing. "prompt" names an ingredient ("Which goes best with fresh basil?"). "correct" is a classic partner; "wrong" are three poor matches that are still foods.' },
+};
+
+const SYSTEM = (game: PoolGame, count: number) => `You write questions for a cooking game. ${SPEC[game].brief}
+Write ${count} different questions. Rules: every fact must be true and checkable; exactly one answer is right; wrong answers are plausible but clearly wrong to a cook; no trick wording; no offensive content; short ("prompt" under 200 characters, answers under 60); "note" is one sentence on why the answer is right.
+Return only JSON: {"items": [{"prompt": string, "correct": string, "wrong": [${Array.from({ length: SPEC[game].wrong }, () => 'string').join(', ')}], "note": string}]}`;
+
+const itemSchema = (wrong: number) =>
+  z.object({
+    prompt: z.string().trim().min(10).max(240),
+    correct: z.string().trim().min(1).max(80),
+    wrong: z.array(z.string().trim().min(1).max(80)).length(wrong),
+    note: z.string().trim().max(240).default(''),
+  });
+
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+export const itemHash = (game: string, prompt: string, correct: string) => createHash('sha1').update(`${game}|${norm(prompt)}|${norm(correct)}`).digest('hex');
+
+export interface PoolItem {
+  id: string;
+  prompt: string;
+  correct: string;
+  wrong: string[];
+  note: string;
+}
+
+const shuffle = <T>(list: readonly T[], random: () => number): T[] => {
+  const out = [...list];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.min(i, Math.floor(random() * (i + 1)));
+    [out[i], out[j]] = [out[j] as T, out[i] as T];
+  }
+  return out;
+};
+
+/**
+ * The question pool behind the generated games. A model writes batches (checked, de-duplicated, stored); a round draws
+ * questions the player has not had yet, so the same ones do not come round again until the pool has run out.
+ */
+export class GamePoolService {
+  constructor(
+    private readonly db: Db,
+    private readonly ai: AiRouter,
+    private readonly now: () => Date = () => new Date(),
+    private readonly random: () => number = Math.random,
+    /** Top the pool up in the background when a player is running low. Off in tests. */
+    private readonly autoRefill = true,
+  ) {}
+
+  /** Adds a batch of new questions. Returns how many were kept. */
+  async refill(game: PoolGame, count = 25): Promise<number> {
+    const spec = SPEC[game];
+    const raw = await this.ai.runJson(
+      { task: 'game_content', system: SYSTEM(game, count), prompt: `Write ${count} new questions. Vary the topics; avoid the most obvious ones.`, json: true, maxOutputTokens: 4000, temperature: 0.9 },
+      z.object({ items: z.array(z.unknown()).min(1) }),
+    );
+    const schema = itemSchema(spec.wrong);
+    const rows: { game: string; prompt: string; correct: string; wrong: string[]; note: string; hash: string; source: string }[] = [];
+    const seen = new Set<string>();
+    for (const candidate of raw.items) {
+      const parsed = schema.safeParse(candidate);
+      if (!parsed.success) continue;
+      const { prompt, correct, wrong, note } = parsed.data;
+      const answers = [correct, ...wrong].map(norm);
+      if (new Set(answers).size !== answers.length) continue; // an answer repeated, or the right one also listed as wrong
+      if (game === 'myth' && !['Fact', 'Myth'].includes(correct)) continue;
+      const hash = itemHash(game, prompt, correct);
+      if (seen.has(hash)) continue;
+      seen.add(hash);
+      rows.push({ game, prompt, correct, wrong, note, hash, source: 'ai' });
+    }
+    if (rows.length === 0) throw errors.aiUnavailable('The question writer gave nothing usable');
+    const made = await this.db.gamePoolItem.createMany({ data: rows.map((r) => ({ ...r, createdAt: this.now() })), skipDuplicates: true });
+    return made.count;
+  }
+
+  /** The hand-written trivia the pool starts with, so the first games never wait for the AI. */
+  private async seedTrivia(): Promise<void> {
+    await this.db.gamePoolItem.createMany({
+      data: TRIVIA.map((q) => ({ game: 'trivia', prompt: q.q, correct: q.options[0], wrong: q.options.slice(1), note: q.note, hash: itemHash('trivia', q.q, q.options[0]), source: 'seed', createdAt: this.now() })),
+      skipDuplicates: true,
+    });
+  }
+
+  /** `count` questions for a round: ones this player has not had first, then the longest ago. They are marked as had. */
+  async draw(userId: string, game: PoolGame, count: number): Promise<PoolItem[]> {
+    if (game === 'trivia' && (await this.db.gamePoolItem.count({ where: { game } })) === 0) await this.seedTrivia();
+    const had = await this.db.gamePoolSeen.findMany({ where: { userId, item: { game } }, select: { itemId: true, at: true }, orderBy: { at: 'asc' } });
+    let fresh = await this.db.gamePoolItem.findMany({ where: { game, id: { notIn: had.map((h) => h.itemId) } }, take: 300 });
+
+    if (fresh.length < count) {
+      // Not enough new ones: ask the writer for more now, so the round is new. If it cannot, fall back to old ones.
+      try {
+        await this.refill(game);
+        fresh = await this.db.gamePoolItem.findMany({ where: { game, id: { notIn: had.map((h) => h.itemId) } }, take: 300 });
+      } catch {
+        // the fallback below covers it
+      }
+    }
+    let picked = shuffle(fresh, this.random).slice(0, count);
+    if (picked.length < count) {
+      const oldest = had.map((h) => h.itemId).slice(0, count - picked.length);
+      const again = oldest.length ? await this.db.gamePoolItem.findMany({ where: { id: { in: oldest } } }) : [];
+      picked = [...picked, ...shuffle(again, this.random)];
+    }
+    if (picked.length === 0) throw errors.conflict('This game is getting new questions. Try again in a minute');
+
+    const now = this.now();
+    await this.db.$transaction(
+      picked.map((p) => this.db.gamePoolSeen.upsert({ where: { userId_itemId: { userId, itemId: p.id } }, create: { userId, itemId: p.id, at: now }, update: { at: now } })),
+    );
+    if (this.autoRefill && fresh.length - picked.length < 40) void this.refill(game).catch(() => undefined);
+    return picked.map((p) => ({ id: p.id, prompt: p.prompt, correct: p.correct, wrong: p.wrong, note: p.note }));
+  }
+
+  /** Keeps every generated game stocked (the background job). */
+  async topUp(minimum = 80): Promise<Record<string, number>> {
+    const out: Record<string, number> = {};
+    for (const game of POOL_GAMES) {
+      const have = await this.db.gamePoolItem.count({ where: { game } });
+      if (have >= minimum) continue;
+      try {
+        out[game] = await this.refill(game);
+      } catch {
+        out[game] = 0;
+      }
+    }
+    return out;
+  }
+}

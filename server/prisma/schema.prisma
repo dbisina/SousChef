@@ -108,6 +108,7 @@ model User {
   dailyDishGames   DailyDishGame[]
   dailyDishStreak  DailyDishStreak?
   soloScores       SoloGameScore[]
+  poolSeen         GamePoolSeen[]
   hostedRooms      GameRoom[]
   gamePlayers      GamePlayer[]
   gameSubmissions  GameSubmission[]
@@ -1331,4 +1332,35 @@ model SoloGameScore {
 
   @@id([userId, game])
   @@index([game, best(sort: Desc)])
+}
+
+/// A question for one of the generated games, written by a model (or by hand, for the first trivia) and checked.
+model GamePoolItem {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  game      String
+  prompt    String
+  correct   String
+  wrong     String[]
+  note      String   @default("")
+  /// Stops the same question being stored twice.
+  hash      String   @unique
+  source    String   @default("ai")
+  createdAt DateTime @default(now())
+
+  seen GamePoolSeen[]
+
+  @@index([game, createdAt])
+}
+
+/// Which questions a player has already had, so a new round gives new ones first.
+model GamePoolSeen {
+  userId String   @db.Uuid
+  itemId String   @db.Uuid
+  at     DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item GamePoolItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([userId, itemId])
+  @@index([userId, at])
 }

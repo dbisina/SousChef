@@ -19,6 +19,8 @@ export const DEFAULT_ROUTES: Record<AiTask, string[]> = {
   meal_plan: ['deepseek', 'gemini', 'nebius'],
   // Scaling needs real cooking knowledge (salt, spice, pans, time), so the stronger model goes first.
   scale_recipe: ['gemini', 'deepseek', 'nebius'],
+  // Game questions are cheap text work; cost is a few thousand tokens a batch.
+  game_content: ['deepseek', 'nebius', 'gemini'],
 };
 
 /**

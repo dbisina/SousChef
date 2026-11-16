@@ -13,6 +13,7 @@ import {
 import type { Db } from '../db';
 import { errors } from '../errors';
 import { TRIVIA } from './trivia';
+import { isPoolGame, type GamePoolService, type PoolGame } from './pool';
 
 const TOKEN_MINUTES = 30;
 const TRIVIA_COUNT = 10;
@@ -22,6 +23,11 @@ const MIN_STEPS = 4;
 const MAX_STEPS = 8;
 
 const INFO: Record<SoloGameId, Omit<SoloGameInfo, 'best' | 'plays'>> = {
+  myth: { id: 'myth', name: 'Myth or Fact', tagline: 'Kitchen beliefs: true or not?', how: 'Decide whether each claim is a fact or a myth.' },
+  cuisine: { id: 'cuisine', name: 'Name That Cuisine', tagline: 'Where does this dish come from?', how: 'Read the description and pick the cuisine.' },
+  odd: { id: 'odd', name: 'Odd One Out', tagline: 'Which ingredient does not belong?', how: 'Spot the ingredient that does not fit the dish.' },
+  technique: { id: 'technique', name: 'Technique Match', tagline: 'Name the cooking technique', how: 'Match each description to the technique.' },
+  pairing: { id: 'pairing', name: 'Flavour Pairing', tagline: 'What goes best with it?', how: 'Pick the classic partner for each ingredient.' },
   trivia: { id: 'trivia', name: 'Kitchen Trivia', tagline: 'Ten questions on food and technique', how: 'Pick the right answer for each question.' },
   sorter: { id: 'sorter', name: 'Step Sorter', tagline: 'Put real recipe steps back in order', how: 'Tap the steps in the order you would cook them.' },
   match: { id: 'match', name: 'Ingredient Match', tagline: 'Which ingredient is missing?', how: 'Each recipe lost one ingredient. Pick the one that belongs.' },
@@ -55,6 +61,8 @@ export class SoloGameService {
     private readonly secret: string,
     private readonly now: () => Date = () => new Date(),
     private readonly random: () => number = Math.random,
+    /** Where generated questions come from. Without it only the hand-written trivia is available. */
+    private readonly pool: GamePoolService | null = null,
   ) {}
 
   gameId(raw: string): SoloGameId {
@@ -71,7 +79,7 @@ export class SoloGameService {
   }
 
   async start(userId: string, game: SoloGameId): Promise<SoloRound> {
-    const built = game === 'trivia' ? this.trivia() : game === 'sorter' ? await this.sorter() : await this.match();
+    const built = isPoolGame(game) ? await this.fromPool(userId, game) : game === 'sorter' ? await this.sorter() : await this.match();
     const token = this.sign({ g: game, u: userId, exp: this.now().getTime() + TOKEN_MINUTES * 60_000, keys: built.keys });
     return { game, token, items: built.items };
   }
@@ -132,7 +140,23 @@ export class SoloGameService {
 
   /* ---------------------------------------------------------------- building rounds */
 
-  private trivia(): { items: SoloItem[]; keys: Key[] } {
+  /** Pick-one games from the question pool: new questions first, so rounds do not repeat. */
+  private async fromPool(userId: string, game: PoolGame): Promise<{ items: SoloItem[]; keys: Key[] }> {
+    if (!this.pool) {
+      if (game !== 'trivia') throw errors.conflict('This game is not ready yet');
+      return this.staticTrivia();
+    }
+    const keys: Key[] = [];
+    const items: SoloItem[] = [];
+    for (const q of await this.pool.draw(userId, game, TRIVIA_COUNT)) {
+      const options = game === 'myth' ? [...[q.correct, ...q.wrong]].sort() : shuffle([q.correct, ...q.wrong], this.random);
+      items.push({ id: q.id, prompt: q.prompt, options });
+      keys.push({ id: q.id, kind: 'pick', answer: q.correct, options, ...(q.note ? { note: q.note } : {}) });
+    }
+    return { items, keys };
+  }
+
+  private staticTrivia(): { items: SoloItem[]; keys: Key[] } {
     const keys: Key[] = [];
     const items: SoloItem[] = [];
     for (const q of sample(TRIVIA, TRIVIA_COUNT, this.random)) {
