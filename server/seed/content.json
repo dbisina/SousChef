@@ -115,7 +115,7 @@
     {
       "title": "Grilled Salmon with Asparagus",
       "description": "Fresh salmon fillets grilled to perfection with lemon butter asparagus.",
-      "imageUrl": "https://images.unsplash.com/photo-1467003909585-2f8a7270028d?auto=format&fit=crop&w=1000&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=800&q=80",
       "category": "dinner",
       "cuisine": "mediterranean",
       "difficulty": "medium",
@@ -153,7 +153,7 @@
     {
       "title": "Classic Chicken Stir-Fry",
       "description": "A vibrant and healthy stir-fry loaded with colorful vegetables and tender chicken breast.",
-      "imageUrl": "https://images.unsplash.com/photo-1603133872878-684f10821fcc?auto=format&fit=crop&w=1000&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=800&q=80",
       "category": "dinner",
       "cuisine": "chinese",
       "difficulty": "medium",
@@ -191,7 +191,7 @@
     {
       "title": "Avocado Toast with Poached Egg",
       "description": "A classic breakfast favorite featuring creamy avocado, a perfectly poached egg, and a sprinkle of chili flakes on artisan sourdough bread.",
-      "imageUrl": "https://images.unsplash.com/photo-1525351484163-7529414395d8?auto=format&fit=crop&w=1000&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?auto=format&fit=crop&w=800&q=80",
       "category": "breakfast",
       "cuisine": "american",
       "difficulty": "easy",
@@ -402,7 +402,7 @@
     {
       "title": "Kitchen Classics",
       "description": "Essential recipes for the aspiring home chef.",
-      "coverImageUrl": "https://images.unsplash.com/photo-1556910103-1c02745a30bf?auto=format&fit=crop&w=1000&q=80",
+      "coverImageUrl": "https://images.unsplash.com/photo-1507048331197-7d4ac70811cf?auto=format&fit=crop&w=800&q=80",
       "category": "Masterclass",
       "recipes": [
         "Classic Chicken Stir-Fry",

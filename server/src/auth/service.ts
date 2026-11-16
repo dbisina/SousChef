@@ -249,6 +249,7 @@ export class AuthService {
           ...(input.handle !== undefined ? { handle: input.handle } : {}),
           ...(input.bio !== undefined ? { bio: input.bio.trim() } : {}),
           ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
+          ...(input.bannerUrl !== undefined ? { bannerUrl: input.bannerUrl } : {}),
           ...(input.isChef !== undefined ? { isChef: input.isChef } : {}),
         },
       });
@@ -376,6 +377,7 @@ export class AuthService {
       displayName: user.displayName,
       bio: user.bio,
       photoUrl: user.photoUrl,
+      bannerUrl: user.bannerUrl,
       isChef: user.isChef,
       isVerifiedChef: user.verifiedChefAt !== null,
       kind: user.kind === 'HOUSE' ? 'house' : 'person',

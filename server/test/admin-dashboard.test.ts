@@ -79,7 +79,7 @@ describe('AI keys', () => {
     const admin = await makeAdmin(t);
     const report = (await call(t, 'GET', '/v1/admin/ai/keys', admin)).json<AiKeysReport>();
     expect(report.providers.map((p) => p.name).sort()).toEqual(['deepseek', 'gemini', 'nebius']);
-    expect(report.privateProviders).toEqual(['gemini']);
+    expect(report.privateProviders).toEqual(['gemini', 'nebius', 'nebius-vision', 'nebius-vision-2', 'nebius-dedicated']);
   });
 
   it('shows which free keys are resting by their last four characters only', async () => {
