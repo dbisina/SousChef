@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { RecipeMadePost } from '@/types';
 import { uploadImage } from '@/lib/cloudinary';
+import { apiEnabled } from '@/lib/api';
+import { apiAddMadePost, apiMadePosts } from '@/services/recipeApi';
 import { db, collection, doc, setDoc, getDocs, query, orderBy, limit, Timestamp } from '@/lib/firebase';
 import { generateId } from '@/lib/firebase';
 import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
@@ -31,6 +33,10 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
 
   const fetchPosts = async () => {
     try {
+      if (apiEnabled()) {
+        setPosts(await apiMadePosts(recipeId));
+        return;
+      }
       const postsRef = collection(db, 'recipes', recipeId, 'made-posts');
       const q = query(postsRef, orderBy('createdAt', 'desc'), limit(20));
       const snapshot = await getDocs(q);
@@ -55,6 +61,13 @@ export function MadeThisGallery({ recipeId }: MadeThisGalleryProps) {
       if (result.canceled || !result.assets?.length) return;
 
       setIsUploading(true);
+
+      if (apiEnabled()) {
+        const created = await apiAddMadePost(recipeId, result.assets[0].uri);
+        setPosts((prev) => [created, ...prev]);
+        showSuccessToast('Your photo has been posted!');
+        return;
+      }
 
       const imageURL = await uploadImage(result.assets[0].uri, `souschef/made-posts/${recipeId}`);
 

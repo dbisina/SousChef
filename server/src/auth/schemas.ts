@@ -44,7 +44,7 @@ export const refreshSchema = z.object({ refreshToken: token }) satisfies z.ZodTy
 export const logoutSchema = z.object({ refreshToken: token }) satisfies z.ZodType<LogoutRequest>;
 
 export const socialSchema = z.object({
-  provider: z.enum(['google', 'apple']),
+  provider: z.enum(['google', 'apple', 'firebase']),
   idToken: z.string().min(20).max(4000),
   displayName: displayName.optional(),
   device: device.optional(),
@@ -59,6 +59,7 @@ export const updateProfileSchema = z.object({
   handle: handleSchema.optional(),
   bio: z.string().trim().max(280).optional(),
   photoUrl: z.url({ protocol: /^https$/ }).max(500).nullable().optional(),
+  bannerUrl: z.url({ protocol: /^https$/ }).max(500).nullable().optional(),
   isChef: z.boolean().optional(),
 }) satisfies z.ZodType<UpdateProfileRequest>;
 

@@ -50,7 +50,7 @@ describe('entitlements', () => {
     const ama = await register(t);
     expect((await call(t, 'GET', '/v1/me/entitlements')).statusCode).toBe(401);
     const free = await plan(ama);
-    expect(free).toEqual({ tier: 'free', features: TIER_FEATURES.free, status: 'none', expiresAt: null, willRenew: false });
+    expect(free).toEqual({ tier: 'free', features: TIER_FEATURES.free, status: 'none', expiresAt: null, willRenew: false, source: 'none' });
   });
 });
 

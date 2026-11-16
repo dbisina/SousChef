@@ -6,6 +6,8 @@ import {
 } from '@/lib/gemini';
 import { AISubstitutionResult, Ingredient, PortionAnalysis, Recipe } from '@/types';
 import { getPantryItemNames } from './pantryService';
+import { apiEnabled } from '@/lib/api';
+import { apiAnalyzeRecipe, apiSubstitutions } from '@/services/aiToolsApi';
 
 // Analyze what can be made with available ingredients
 export const analyzeRecipeWithPantry = async (
@@ -14,6 +16,7 @@ export const analyzeRecipeWithPantry = async (
 ): Promise<AISubstitutionResult> => {
   // Get user's pantry items
   const pantryItems = await getPantryItemNames(userId);
+  if (apiEnabled()) return apiAnalyzeRecipe(recipe.ingredients, pantryItems, recipe.title);
 
   // Analyze with AI
   return analyzeIngredientSubstitutions(recipe.ingredients, pantryItems);
@@ -24,6 +27,7 @@ export const analyzeRecipeWithIngredients = async (
   recipe: Recipe,
   availableIngredients: string[]
 ): Promise<AISubstitutionResult> => {
+  if (apiEnabled()) return apiAnalyzeRecipe(recipe.ingredients, availableIngredients, recipe.title);
   return analyzeIngredientSubstitutions(recipe.ingredients, availableIngredients);
 };
 
@@ -100,6 +104,10 @@ export const getIngredientSubstitution = async (
   ingredientName: string,
   availableIngredients: string[]
 ): Promise<AISubstitutionResult> => {
+  if (apiEnabled()) {
+    const substitutions = await apiSubstitutions(ingredientName, { pantry: availableIngredients });
+    return { canMake: substitutions.length > 0, confidenceScore: substitutions.length > 0 ? 0.7 : 0, missingIngredients: [ingredientName], availableIngredients: [], substitutions, tips: [] };
+  }
   const mockIngredient: Ingredient = {
     name: ingredientName,
     amount: 1,
