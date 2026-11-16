@@ -68,7 +68,7 @@ export function AvatarStack({ people, size = 30, max = 5 }: AvatarStackProps) {
 }
 
 interface StoryRingProps {
-  source: PhotoSource;
+  source?: PhotoSource | null;
   name: string;
   seen?: boolean;
   /** Show the orange + badge (own story). */
@@ -91,7 +91,7 @@ export function StoryRing({ source, name, seen, add, onPress }: StoryRingProps) 
         style={{ width: 68, height: 68, borderRadius: 34, padding: 3, alignItems: 'center', justifyContent: 'center' }}
       >
         <View style={{ width: 62, height: 62, borderRadius: 31, overflow: 'hidden', borderWidth: 3, borderColor: tk.ground }}>
-          <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
+          {source ? <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} /> : <UAvatar name={name} size={56} />}
         </View>
         {add ? (
           <View

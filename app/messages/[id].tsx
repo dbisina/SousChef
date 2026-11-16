@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text as RNText, TextInput, View } from 'react-native';
+import { Platform, ScrollView, Text as RNText, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,15 +8,20 @@ import { useTranslation } from 'react-i18next';
 import { Bubble, Icon, Muted, Screen, Title, UIconButton, useTokens } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { ConversationAvatar, authorById } from '@/components/chat/ConversationAvatar';
-import { RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles';
+import { ImageBubble, RecipeCardBubble, VoiceBubble } from '@/components/chat/MessageBubbles';
+import * as ImagePicker from 'expo-image-picker';
 import { messagesFor, useMessageStore } from '@/stores/messageStore';
 import { useToastStore } from '@/stores/toastStore';
 import { ME_ID, type Message } from '@/types/social';
+import { VoiceRecorder } from '@/lib/voiceNote';
+import { apiEnabled } from '@/lib/api';
 
 const dayKey = (iso: string) => new Date(iso).toDateString();
 
 const clock = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+import { ChatAssistBar } from '@/components/ai/AiChat';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,6 +37,26 @@ export default function ChatScreen() {
   const sendMessage = useMessageStore((s) => s.sendMessage);
   const markRead = useMessageStore((s) => s.markRead);
   const [draft, setDraft] = useState('');
+  // Server mode: tap the mic to record a voice note, tap again to send it.
+  const recorder = useRef(new VoiceRecorder()).current;
+  const [recording, setRecording] = useState(false);
+  const toggleRecording = async () => {
+    if (!recording) {
+      const ok = await recorder.start(() => void finishRecording());
+      if (ok) setRecording(true);
+      else showToast(t('chat.micDenied', 'Allow the microphone to record a voice note'), { type: 'info' });
+      return;
+    }
+    await finishRecording();
+  };
+  const finishRecording = async () => {
+    setRecording(false);
+    const note = await recorder.stop();
+    if (note && conversation) {
+      sendMessage(conversation.id, { kind: 'voice', durationSec: note.durationSec, waveform: note.waveform, uri: note.uri });
+      requestAnimationFrame(() => scroller.current?.scrollToEnd({ animated: true }));
+    }
+  };
 
   const thread = useMemo(() => messagesFor(allMessages, id ?? ''), [allMessages, id]);
   const unread = conversation?.unread ?? 0;
@@ -98,7 +124,18 @@ export default function ChatScreen() {
         />
       );
     }
+    if (m.kind === 'image') return <ImageBubble key={m.id} message={m} side={side} />;
     return <VoiceBubble key={m.id} message={m} side={side} />;
+  };
+
+  // Server mode: the + button sends a picture from the library.
+  const attach = async () => {
+    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+    const uri = !picked.canceled ? picked.assets[0]?.uri : undefined;
+    if (uri && conversation) {
+      sendMessage(conversation.id, { kind: 'image', uri });
+      requestAnimationFrame(() => scroller.current?.scrollToEnd({ animated: true }));
+    }
   };
 
   let lastDay = '';
@@ -163,11 +200,13 @@ export default function ChatScreen() {
           {items.length ? items : <Muted center>{t('chat.noMessages', 'No messages yet. Say hello.')}</Muted>}
         </ScrollView>
 
+        {conversation.kind !== 'order' && items.length > 0 ? <ChatAssistBar conversationId={conversation.id} onPickReply={setDraft} /> : null}
+
         <View
           className="flex-row items-center"
           style={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 30), gap: 8 }}
         >
-          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={soon} />
+          <UIconButton icon="plus" label={t('chat.attach', 'Attach')} onPress={apiEnabled() ? () => void attach() : soon} />
           <View className="flex-1 bg-surface-2 justify-center" style={{ height: 48, borderRadius: 24, paddingHorizontal: 18 }}>
             <TextInput
               accessibilityLabel={t('chat.message', 'Message')}
@@ -185,7 +224,12 @@ export default function ChatScreen() {
           {draft.trim() ? (
             <UIconButton tone="black" icon="send" label={t('chat.send', 'Send')} onPress={send} />
           ) : (
-            <UIconButton tone="black" icon="mic" label={t('chat.record', 'Record voice note')} onPress={soon} />
+            <UIconButton
+              tone="black"
+              icon={recording ? 'close' : 'mic'}
+              label={recording ? t('chat.stopRecording', 'Stop and send') : t('chat.record', 'Record voice note')}
+              onPress={apiEnabled() ? () => void toggleRecording() : soon}
+            />
           )}
         </View>
       </KeyboardAvoidingView>

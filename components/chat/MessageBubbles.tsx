@@ -3,9 +3,10 @@ import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { FONT } from '@/components/ui/fonts';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
+import { photoSource } from '@/lib/photo';
 import { BarChart, Icon, Muted, PhotoCard, Tag, Title } from '@/components/ui';
-import type { RecipeCardMessage, VoiceMessage } from '@/types/social';
+import type { ImageMessage, RecipeCardMessage, VoiceMessage } from '@/types/social';
+import { playVoiceNote } from '@/lib/voiceNote';
 
 export const formatDuration = (sec: number): string => `${Math.floor(sec / 60)}:${`${sec % 60}`.padStart(2, '0')}`;
 
@@ -25,7 +26,7 @@ export function RecipeCardBubble({ message, side, onCook, onAddToPlan }: RecipeP
       style={{ padding: 8, borderRadius: 24, width: 250, alignSelf: side === 'me' ? 'flex-end' : 'flex-start' }}
     >
       <Pressable accessibilityRole="button" accessibilityLabel={message.title} onPress={onCook}>
-        <PhotoCard source={SAMPLE[message.photo]} height={130} radius={18} fade="none" />
+        <PhotoCard source={photoSource(message.photo)} height={130} radius={18} fade="none" />
         <View style={{ paddingTop: 10, paddingHorizontal: 6, paddingBottom: 4, gap: 2 }}>
           <Title numberOfLines={2}>{message.title}</Title>
           <Muted small>{message.meta}</Muted>
@@ -44,6 +45,23 @@ export function RecipeCardBubble({ message, side, onCook, onAddToPlan }: RecipeP
 }
 
 /** Voice note bubble (Chat.html .bub with play + .vbar). Playback is not wired in the preview. */
+/** A picture sent in chat. */
+export function ImageBubble({ message, side }: { message: ImageMessage; side: 'me' | 'them' }) {
+  const { t } = useTranslation();
+  return (
+    <View style={{ alignSelf: side === 'me' ? 'flex-end' : 'flex-start', width: 230, gap: 6 }}>
+      <PhotoCard
+        source={photoSource(message.url)}
+        height={230}
+        radius={22}
+        fade="none"
+        accessibilityLabel={message.caption || t('chat.photo', 'Photo')}
+      />
+      {message.caption ? <Muted small>{message.caption}</Muted> : null}
+    </View>
+  );
+}
+
 export function VoiceBubble({ message, side }: { message: VoiceMessage; side: 'me' | 'them' }) {
   const { t } = useTranslation();
   const me = side === 'me';
@@ -64,9 +82,16 @@ export function VoiceBubble({ message, side }: { message: VoiceMessage; side: 'm
         borderBottomLeftRadius: me ? 22 : 6,
       }}
     >
-      <View className="items-center justify-center bg-paper" style={{ width: 32, height: 32, borderRadius: 16 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('chat.playVoice', 'Play voice message')}
+        disabled={!message.url}
+        onPress={() => message.url && void playVoiceNote(message.url)}
+        className="items-center justify-center bg-paper"
+        style={{ width: 32, height: 32, borderRadius: 16 }}
+      >
         <Icon name="play" size="sm" color="night" filled />
-      </View>
+      </Pressable>
       <View className="flex-1">
         <BarChart height={26} data={message.waveform.slice(0, 14).map((h) => ({ value: h / 100, tone: me ? 'dim' : 'default' }))} />
       </View>

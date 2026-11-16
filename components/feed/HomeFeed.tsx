@@ -19,25 +19,14 @@ import {
 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
-import { PREVIEW_LABEL } from '@/constants/features';
-
-/** The design shows no "Preview" tags; flip to true to label sample content again. */
-const SHOW_PREVIEW = false;
-import { RESTAURANTS, MENU } from '@/data/sample/restaurants';
-import { SAMPLE } from '@/assets/sample';
+import { usePlayStore, selectDailyStreak } from '@/stores/playStore';
+import { puzzleNumberFor } from '@/lib/dailyDish';
 import { selectAuthor, selectIsFollowing, selectIsPostLiked, selectIsPostSaved, useSocialStore } from '@/stores/socialStore';
 import { compactCount, timeAgo } from '@/lib/timeAgo';
 import type { PhotoRef } from '@/types/social';
 import { Action, AuthorRow, BarText, DarkBar, photoOf, shareText } from './shared';
 
 const go = (router: ReturnType<typeof useRouter>, href: string) => router.push(href as Href);
-
-const pounds = (pence: number) => `£${(pence / 100).toFixed(pence % 100 === 0 ? 0 : 2)}`;
-
-/** Extra step photos for the sample carousel (the data layer holds one photo per post). */
-const CAROUSEL_EXTRAS: Record<string, PhotoRef[]> = {
-  'post-katsu': ['chicken', 'garlic', 'bowl'],
-};
 
 /* ------------------------------------------------------------------ friend recipe post */
 
@@ -55,10 +44,9 @@ export function FriendPost({ postId }: { postId: string }) {
   const toggleSave = useSocialStore((s) => s.toggleSavePost);
   const toggleFollow = useSocialStore((s) => s.toggleFollow);
   const [page, setPage] = useState(0);
-  const restaurant = RESTAURANTS[0];
 
   if (!post || !author) return null;
-  const photos: PhotoRef[] = [post.photo, ...(CAROUSEL_EXTRAS[post.id] ?? [])];
+  const photos: PhotoRef[] = [post.photo];
   const w = width - 40;
   const kindLabel = post.kind === 'recipe' ? t('home.kindRecipe', 'Recipe') : post.kind === 'plan' ? t('home.kindPlan', 'Plan') : t('home.kindPost', 'Post');
   const open = () => go(router, `/post/${post.id}`);
@@ -109,7 +97,6 @@ export function FriendPost({ postId }: { postId: string }) {
         <View pointerEvents="none" className="flex-row justify-between" style={{ position: 'absolute', top: 14, left: 14, right: 14 }}>
           <View className="flex-row items-center" style={{ gap: 8 }}>
             {post.meta ? <Tag tone="glassDark" large icon="clock" label={post.meta} /> : null}
-            {SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : null}
           </View>
           {photos.length > 1 ? <Tag tone="glassDark" large label={`${page + 1}/${photos.length}`} /> : null}
         </View>
@@ -135,13 +122,6 @@ export function FriendPost({ postId }: { postId: string }) {
           onPress={() => go(router, post.recipeId ? `/recipe/${post.recipeId}` : `/post/${post.id}`)}
         />
         <UButton size="sm" variant="ghost" label={t('home.addToPlan', 'Add to plan')} onPress={() => go(router, '/(tabs)/mealplan')} />
-        <UButton
-          size="sm"
-          variant="ghost"
-          icon="pin"
-          label={t('home.order', 'Order')}
-          onPress={() => go(router, `/restaurant/${restaurant.id}`)}
-        />
       </View>
     </View>
   );
@@ -160,7 +140,6 @@ export function ReelsRow() {
       <View className="flex-row items-center justify-between" style={{ height: 24 }}>
         <View className="flex-row items-center" style={{ gap: 8 }}>
           <H2>{t('home.reels', 'Reels')}</H2>
-          {SHOW_PREVIEW ? <Tag label={PREVIEW_LABEL} /> : null}
         </View>
         <Pressable accessibilityRole="link" accessibilityLabel={t('home.seeAllReels', 'See all reels')} onPress={() => go(router, '/reels')} hitSlop={10}>
           <LinkText>{t('home.seeAll', 'See all')}</LinkText>
@@ -205,8 +184,7 @@ export interface ImportedCardData {
   title: string;
   platform: string;
   minutes?: number;
-  photo: PhotoSource;
-  preview?: boolean;
+  photo?: PhotoSource | null;
 }
 
 export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPress: () => void }) {
@@ -228,7 +206,6 @@ export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPres
           <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12, flexShrink: 1 }}>
             {t('home.importedBy', 'Imported by you · {{source}}', { source: item.platform })}
           </RNText>
-          {SHOW_PREVIEW && item.preview ? <Tag label={PREVIEW_LABEL} /> : null}
         </View>
         <RNText className="text-ink" numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20, letterSpacing: -0.15 }}>
           {item.title}
@@ -250,36 +227,21 @@ export interface PlanCardData {
   key: string;
   day: string;
   title: string;
-  photo: PhotoSource;
+  photo?: PhotoSource | null;
 }
 
 interface PlanShareProps {
-  /** Sample plan from a friend (true) or the user's own plan (false). */
-  shared: boolean;
   cards: PlanCardData[];
   onUse: () => void;
 }
 
-export function PlanShare({ shared, cards, onUse }: PlanShareProps) {
+export function PlanShare({ cards, onUse }: PlanShareProps) {
   const { t } = useTranslation();
-  const router = useRouter();
-  const tolu = useSocialStore(selectAuthor('tolu'));
   return (
     <View style={{ gap: 12 }}>
-      {shared && tolu ? (
-        <AuthorRow
-          photo={tolu.avatar}
-          name={t('home.sharedPlan', '{{handle}} shared a meal plan', { handle: tolu.handle })}
-          sub={t('home.sharedPlanMeta', '5 days · high protein · 1.2k uses')}
-          size={44}
-          onPress={() => go(router, `/user/${tolu.id}`)}
-          right={SHOW_PREVIEW ? <Tag label={PREVIEW_LABEL} /> : undefined}
-        />
-      ) : (
-        <View className="flex-row items-center justify-between">
-          <H2>{t('home.yourPlan', 'Your plan this week')}</H2>
-        </View>
-      )}
+      <View className="flex-row items-center justify-between">
+        <H2>{t('home.yourPlan', 'Your plan this week')}</H2>
+      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -299,76 +261,10 @@ export function PlanShare({ shared, cards, onUse }: PlanShareProps) {
       </ScrollView>
       <UButton
         variant="ghost"
-        label={shared ? t('home.usePlan', 'Use this plan') : t('home.openPlan', 'Open plan')}
+        label={t('home.openPlan', 'Open plan')}
         onPress={onUse}
         style={{ height: 50, borderRadius: 25 }}
       />
-    </View>
-  );
-}
-
-/* ------------------------------------------------------------------ sponsored restaurant dish */
-
-export function SponsoredDish() {
-  const { t } = useTranslation();
-  const router = useRouter();
-  const restaurant = RESTAURANTS[0];
-  const dish = MENU.find((m) => m.restaurantId === restaurant?.id);
-  if (!restaurant || !dish) return null;
-  const toRestaurant = () => go(router, `/restaurant/${restaurant.id}`);
-  const sub = restaurant.freeDeliveryOverPence
-    ? t('home.dishSub', '{{price}} · free delivery over {{min}}', { price: pounds(dish.pricePence), min: pounds(restaurant.freeDeliveryOverPence) })
-    : pounds(dish.pricePence);
-  return (
-    <View style={{ gap: 12 }}>
-      <View className="flex-row items-center justify-between" style={{ gap: 10 }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={restaurant.name}
-          onPress={toRestaurant}
-          className="flex-row items-center flex-1"
-          style={{ gap: 10, minHeight: 44 }}
-        >
-          <View className="items-center justify-center bg-night" style={{ width: 38, height: 38, borderRadius: 19 }}>
-            <Icon name="store" size="sm" color="paper" />
-          </View>
-          <View style={{ flexShrink: 1, minWidth: 0 }}>
-            <View className="flex-row items-center" style={{ gap: 6 }}>
-              <RNText className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 15, letterSpacing: -0.15, flexShrink: 1 }}>
-                {restaurant.name}
-              </RNText>
-              <Tag label={t('home.nearYou', 'Near you')} />
-            </View>
-            <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-              {t('home.restaurantMeta', '{{km}} km · {{min}} min delivery · ★ {{rating}}', {
-                km: restaurant.distanceKm,
-                min: restaurant.etaMin[0],
-                rating: restaurant.rating,
-              })}
-            </RNText>
-          </View>
-        </Pressable>
-        {restaurant.sponsored ? (
-          <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-            {t('home.sponsored', 'Sponsored')}
-          </RNText>
-        ) : null}
-      </View>
-      <PhotoCard
-        source={photoOf(dish.photo)}
-        height={300}
-        radius={28}
-        fade="both"
-        topLeft={<Tag tone="glassDark" large label={t('home.hygiene', 'Hygiene {{n}}', { n: restaurant.hygiene })} />}
-        topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
-        onPress={toRestaurant}
-        accessibilityLabel={dish.name}
-      >
-        <DarkBar>
-          <BarText title={dish.name} sub={sub} />
-          <UButton size="sm" variant="accent" label={t('home.order', 'Order')} onPress={toRestaurant} />
-        </DarkBar>
-      </PhotoCard>
     </View>
   );
 }
@@ -387,7 +283,6 @@ export function ChallengeCard() {
       height={250}
       fade="both"
       topLeft={<Tag tone="glassDark" large icon="people" label={community.name} />}
-      topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
       onPress={() => go(router, `/community/${community.id}`)}
       accessibilityLabel={`${community.name}: ${challenge.title}`}
     >
@@ -437,8 +332,7 @@ export function MadeYourRecipe({ postId }: { postId: string }) {
           fade="none"
           onPress={open}
           accessibilityLabel={t('home.madePhoto', "{{name}}'s {{dish}}", { name: author.displayName, dish: post.title })}
-          topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
-        />
+            />
         <View className="flex-row items-center" style={{ gap: 14 }}>
           <Action icon="heart" label={t('home.like', 'Like')} active={liked} count={post.likes} onPress={() => toggleLike(post.id)} />
           <Action icon="chat" label={t('home.reply', 'Reply')} count={t('home.reply', 'Reply')} onPress={open} />
@@ -448,33 +342,27 @@ export function MadeYourRecipe({ postId }: { postId: string }) {
   );
 }
 
-/* ------------------------------------------------------------------ Mystery Kitchen result */
+/* ------------------------------------------------------------------ today's Daily Dish */
 
 export function MysteryCard() {
   const { t } = useTranslation();
   const router = useRouter();
-  const label = t('home.mysteryWon', 'Dayo won with 86 pts');
+  const puzzleNumber = usePlayStore((s) => s.daily?.puzzleNumber ?? puzzleNumberFor(new Date()));
+  const streak = usePlayStore((s) => selectDailyStreak(s));
+  const label = t('home.dailyDish', "Today's Daily Dish #{{n}}", { n: puzzleNumber });
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => go(router, '/play/mystery/reveal')}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={() => go(router, '/play/daily-dish')}>
       <UCard tone="black" style={{ borderRadius: 30, padding: 16, gap: 14 }}>
-        <PhotoCard
-          source={SAMPLE.friends}
-          height={170}
-          radius={22}
-          fade="none"
-          topLeft={<Tag tone="glassDark" large icon="gamepad" label={t('home.mysteryTag', 'Mystery Kitchen · last night')} />}
-          topRight={SHOW_PREVIEW ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
-        />
         <View className="flex-row items-center justify-between" style={{ gap: 10 }}>
           <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
             <RNText className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.display, fontSize: 17, letterSpacing: -0.17 }}>
               {label}
             </RNText>
             <RNText className="text-muted" numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
-              {t('home.mysterySecret', 'The secret dish was chicken katsu')}
+              {streak > 0 ? t('home.dailyStreak', 'Guess the dish from the clues · {{n}}-day streak', { n: streak }) : t('home.dailySub', 'Guess the dish from the clues')}
             </RNText>
           </View>
-          <Tag large label={t('home.watchReveal', 'Watch reveal')} />
+          <Tag large icon="gamepad" label={t('home.playNow', 'Play')} />
         </View>
       </UCard>
     </Pressable>
@@ -486,7 +374,7 @@ export function MysteryCard() {
 export function GlucoseReminder({ latestLine, onPress }: { latestLine?: string; onPress: () => void }) {
   const { t } = useTranslation();
   const tokens = useTokens();
-  const title = t('home.glucoseTitle', '2-hour check for your rice bowl lunch');
+  const title = t('home.glucoseTitle', 'Log a glucose reading');
   return (
     <Pressable
       accessibilityRole="button"

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Modal, Platform, ScrollView, View } from 'react-native';
+import { Alert, Modal, Platform, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import { WasteCoachCard } from '@/components/ai/AiInsights';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useWasteTracking } from '@/hooks/useMealPlan';
@@ -153,6 +155,7 @@ export default function WasteTrackingScreen() {
         showsVerticalScrollIndicator={false}
       >
         <WasteStatsCard stats={wasteStats} />
+        {wasteLog.length > 0 ? <WasteCoachCard /> : null}
 
         <View className="flex-row items-center justify-between">
           <H2>{t('planWaste.recent', 'Recent')}</H2>

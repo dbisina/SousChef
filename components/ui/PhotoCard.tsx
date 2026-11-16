@@ -6,12 +6,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
 import { FONT } from './fonts';
 import { Glass } from './Glass';
+import { Backdrop } from './Backdrop';
 import { ToneBlock } from './tone';
 
 export type PhotoSource = ImageSource | number;
 
 interface PhotoCardProps {
-  source: PhotoSource;
+  /** The picture; without one the card shows the brand backdrop. */
+  source?: PhotoSource | null;
   height?: number;
   width?: DimensionValue;
   /** 30 default (.pc), 26 for small grid tiles. */
@@ -77,14 +79,18 @@ export function PhotoCard({
   const frame: ViewStyle = { height, width, borderRadius: radius, overflow: 'hidden', backgroundColor: TOKEN_HEX.dark['surface-3'] };
   const body = (
     <ToneBlock tone="dark" style={[frame, inner, onPress ? { width: '100%' } : null]}>
-      <Image
-        source={source}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        contentPosition={focus}
-        transition={150}
-        accessible={false}
-      />
+      {source ? (
+        <Image
+          source={source}
+          style={StyleSheet.absoluteFill}
+          contentFit="cover"
+          contentPosition={focus}
+          transition={150}
+          accessible={false}
+        />
+      ) : (
+        <Backdrop />
+      )}
       {fade !== 'none' && (
         <LinearGradient
           pointerEvents="none"

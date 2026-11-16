@@ -20,7 +20,6 @@ import {
 import type { BarTone } from '@/components/ui/Indicators';
 import { ValueTile } from '@/components/health/ValueTile';
 import { GLUCOSE_CHART_MAX } from '@/components/health/format';
-import { PREVIEW_LABEL } from '@/constants/features';
 import { RANGE_DAYS, average, isGlucose } from '@/lib/health';
 import { useAuthStore } from '@/stores/authStore';
 import { doctorReport, useHealthStore } from '@/stores/healthStore';
@@ -41,7 +40,6 @@ export default function DoctorReportScreen() {
   const now = useMemo(() => new Date(), []);
 
   const report = useMemo(() => doctorReport({ readings, meals }, range, now), [readings, meals, range, now]);
-  const hasSample = useMemo(() => readings.some((r) => r.source === 'sample'), [readings]);
 
   const bars = useMemo(() => {
     const span = (RANGE_DAYS[range] * DAY_MS) / BARS;
@@ -98,7 +96,6 @@ export default function DoctorReportScreen() {
         variant="compact"
         title={t('health.report.title', 'Doctor report')}
         onBack={() => router.back()}
-        right={hasSample ? <Tag tone="o" label={PREVIEW_LABEL} /> : undefined}
       />
 
       <Segmented<ReportRange>
