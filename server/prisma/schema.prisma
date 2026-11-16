@@ -1377,3 +1377,26 @@ model GamePoolSeen {
   @@id([userId, itemId])
   @@index([userId, at])
 }
+
+/// A real photo of an ingredient (kept on our own file store), so Mystery Kitchen can show what to get.
+model IngredientPhoto {
+  name    String   @id
+  url     String?
+  triedAt DateTime @default(now())
+}
+
+/// A picture of a cooking step made by an image model, shared by every game that has the same step.
+model StepImage {
+  hash      String   @id
+  url       String
+  createdAt DateTime @default(now())
+}
+
+/// How many step pictures a person has had made today (a cap, because each one costs money).
+model StepImageUse {
+  userId String @db.Uuid
+  day    String
+  count  Int    @default(0)
+
+  @@id([userId, day])
+}

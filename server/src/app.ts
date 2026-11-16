@@ -38,6 +38,8 @@ import { DailyDishService } from './play/dailyDish';
 import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
+import { StepImageService } from './play/stepImages';
+import { geminiImageGenerator, type ImageGenerator } from './ai/imageGen';
 import { SoloGameService } from './play/solo';
 import { GamePoolService } from './play/pool';
 import { ytDlpSource, type VideoTextSource } from './imports/videoText';
@@ -91,6 +93,10 @@ export interface BuildOptions {
   videoFrames?: VideoFrameSource | null;
   /** Web search for imports by description (default: Tavily then Brave when their keys are set). Tests pass a stub or null. */
   webSearch?: WebSearch | null;
+  /** Makes step pictures (default: Gemini's image model when the paid key is set). Tests pass a stub or null. */
+  imageGenerator?: ImageGenerator | null;
+  /** Used to upload step pictures to the file store (tests pass a stub). */
+  stepImageFetch?: typeof fetch;
   /** Downloads and reads a video the phone resolved (default: on when YT_DLP_PATH is set; needs ffmpeg). Tests pass a stub or null. */
   phoneVideo?: { download: (url: string, cookie?: string) => Promise<Buffer>; frames: (bytes: Buffer) => Promise<VideoFrame[]> } | null;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
@@ -214,7 +220,12 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   playRoutes(app, new DailyDishService(db, options.now), auth);
   const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test', config.NODE_ENV === 'test' ? null : { storage, pauseMs: 2500 });
   const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now, undefined, pool);
-  mysteryKitchenRoutes(app, games, auth);
+  mysteryKitchenRoutes(
+    app,
+    games,
+    auth,
+    new StepImageService(db, storage, options.imageGenerator === undefined ? (config.AI_GEMINI_API_KEY ? geminiImageGenerator(config.AI_GEMINI_API_KEY, config.AI_IMAGE_MODEL) : null) : options.imageGenerator, entitlements, options.now, config.STEP_IMAGE_DAILY_CAP, options.stepImageFetch),
+  );
   soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now, undefined, pool), auth);
   vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);

@@ -102,6 +102,10 @@ const schema = z
     /** Web search for "I want to cook X" (Tavily first, then Brave; empty = off, the model writes the recipe instead). */
     TAVILY_API_KEY: z.string().default(''),
     BRAVE_SEARCH_API_KEY: z.string().default(''),
+    /** Image model for Mystery Kitchen step pictures (paid plans only; uses the paid Gemini key). */
+    AI_IMAGE_MODEL: z.string().default('gemini-2.5-flash-image'),
+    /** Step pictures one person may have made per day (each costs money; ones already made for the same step are free to reuse). */
+    STEP_IMAGE_DAILY_CAP: z.coerce.number().int().min(0).max(500).default(30),
     YT_DLP_PATH: z.string().default(''),
     /** Path of a cookies file (Netscape format) from a logged-in account; lets yt-dlp read Instagram. Empty = anonymous. */
     YT_DLP_COOKIES_PATH: z.string().default(''),

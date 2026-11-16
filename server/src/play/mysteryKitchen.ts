@@ -107,7 +107,8 @@ export class MysteryKitchenService {
     if (!room || !room.players.some((p) => p.userId === userId)) throw errors.notFound('There is no game with that code');
     const settled = await this.settle(room);
     if (!settled) throw errors.notFound('There is no game with that code');
-    return this.render(userId, settled);
+    const photos = this.pool && settled.phase !== 'lobby' ? await this.pool.ingredientPhotos(settled.basket).catch(() => ({})) : {};
+    return this.render(userId, settled, photos);
   }
 
   async leave(userId: string, code: string): Promise<{ left: true }> {
@@ -148,7 +149,9 @@ export class MysteryKitchenService {
     });
     const after = await this.load(room.id);
     this.announce(after, 'cooking');
-    return this.render(userId, after);
+    // Real photos of the basket ingredients are found in the background; the next view of the game carries them.
+    if (this.pool) void this.pool.warmIngredientPhotos(after.basket).catch(() => undefined);
+    return this.render(userId, after, this.pool ? await this.pool.ingredientPhotos(after.basket).catch(() => ({})) : {});
   }
 
   /** Buys the next hint. Each costs points at the end. */
@@ -336,7 +339,7 @@ export class MysteryKitchenService {
     );
   }
 
-  private render(viewerId: string, room: RoomRow): MkRoomView {
+  private render(viewerId: string, room: RoomRow, ingredientPhotos: Record<string, string> = {}): MkRoomView {
     const me = room.players.find((p) => p.userId === viewerId);
     const phase = room.phase as MkPhase;
     const done = phase === 'done';
@@ -369,6 +372,7 @@ export class MysteryKitchenService {
       twist: phase === 'lobby' ? null : room.twist,
       hints: room.hints.slice(0, hintsUsed),
       steps: phase === 'lobby' ? [] : room.steps,
+      ingredientPhotos: phase === 'lobby' ? {} : ingredientPhotos,
       hintsLeft: phase === 'cooking' ? Math.max(0, Math.min(MAX_HINTS, room.hints.length) - hintsUsed) : 0,
       submitted: submitted.has(viewerId),
       canStart: room.hostId === viewerId && phase === 'lobby' && canStart(room.mode as MkMode, room.players.length),

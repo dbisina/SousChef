@@ -110,6 +110,28 @@ export class GamePoolService {
     return url;
   }
 
+  /** The photos already found for these ingredients (name -> address); ingredients with none are left out. */
+  async ingredientPhotos(names: string[]): Promise<Record<string, string>> {
+    const keys = [...new Set(names.map((n) => n.trim().toLowerCase()))];
+    const rows = await this.db.ingredientPhoto.findMany({ where: { name: { in: keys }, url: { not: null } } });
+    const byKey = new Map(rows.map((r) => [r.name, r.url as string]));
+    return Object.fromEntries(names.flatMap((n) => (byKey.has(n.trim().toLowerCase()) ? [[n, byKey.get(n.trim().toLowerCase()) as string]] : [])));
+  }
+
+  /** Finds (in the background, a couple at a time) a real photo for each ingredient that has not been looked for yet. */
+  async warmIngredientPhotos(names: string[]): Promise<void> {
+    if (!this.photos?.storage) return;
+    const keys = [...new Set(names.map((n) => n.trim().toLowerCase()))];
+    const known = new Set((await this.db.ingredientPhoto.findMany({ where: { name: { in: keys } }, select: { name: true } })).map((r) => r.name));
+    const todo = keys.filter((k) => !known.has(k));
+    const cache = new Map<string, string | null>();
+    const work = async (name: string) => {
+      const url = await this.photoFor(name, cache);
+      await this.db.ingredientPhoto.upsert({ where: { name }, create: { name, url }, update: { url, triedAt: this.now() } });
+    };
+    for (let i = 0; i < todo.length; i += 2) await Promise.all(todo.slice(i, i + 2).map((n) => work(n).catch(() => undefined)));
+  }
+
   /** Adds a batch of new questions. Returns how many were kept. */
   async refill(game: PoolGame, count = 25): Promise<number> {
     const spec = SPEC[game];
