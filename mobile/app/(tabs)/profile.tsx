@@ -17,6 +17,7 @@ import {
   PhotoCard,
   Rows,
   Screen,
+  SectionLabel,
   Tag,
   UButton,
   UCard,
@@ -222,8 +223,24 @@ export default function ProfileScreen() {
             </UCard>
           ) : null}
 
-          <Rows>{items.map(renderRow)}</Rows>
-        <Rows>
+          {(
+            [
+              { key: 'account', label: t('account.profile.groupAccount', 'Account'), ids: ['subscription', 'dietary', 'weight', 'analytics'] },
+              { key: 'app', label: t('account.profile.groupApp', 'App'), ids: ['notifications', 'voice', 'appearance'] },
+            ] as const
+          ).map((group) => {
+            const rows = items.filter((i) => (group.ids as readonly string[]).includes(i.id));
+            return rows.length > 0 ? (
+              <View key={group.key} style={{ gap: 8 }}>
+                <SectionLabel>{group.label}</SectionLabel>
+                <Rows>{rows.map(renderRow)}</Rows>
+              </View>
+            ) : null;
+          })}
+          <View style={{ gap: 8 }}>
+          <SectionLabel>{t('account.profile.groupSupport', 'Help and about')}</SectionLabel>
+          <Rows>
+          {items.filter((i) => ['help', 'advertise', 'terms'].includes(i.id)).map(renderRow)}
           <ListRow
             icon="warning"
             title={t('account.profile.reportBug', 'Report a bug')}
@@ -242,7 +259,8 @@ export default function ProfileScreen() {
             subtitle={t('account.profile.contactDevSub', 'Building your own app? Get in touch')}
             onPress={() => void Linking.openURL(`mailto:developers@souschef.app?subject=${encodeURIComponent('SousChef developer enquiry')}`)}
           />
-        </Rows>
+          </Rows>
+          </View>
 
           {/* Banner ad hidden for ad-free tiers */}
           {!adFree ? <AdMobBanner /> : null}

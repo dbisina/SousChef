@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, Text as RNText, View, useWindowDimensions, type ViewToken } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
+import { leaveModalTo } from '@/lib/nav';
 import { useTranslation } from 'react-i18next';
 import { Glass, Muted, Screen, TopBar, UIconButton } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
@@ -47,7 +48,7 @@ export default function ReelsScreen() {
         height={height}
         active={item.id === current}
         onComments={() => router.push(`/post/${item.id}` as Href)}
-        onCook={() => router.push('/(tabs)/browse' as Href)}
+        onCook={() => leaveModalTo(router, '/(tabs)/browse' as Href)}
       />
     ),
     [height, current, router],

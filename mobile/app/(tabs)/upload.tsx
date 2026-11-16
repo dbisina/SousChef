@@ -220,7 +220,7 @@ export default function UploadScreen() {
       );
 
       showSuccessToast('Wonderful! Your recipe is now in your cookbook.', 'Great Work!');
-      router.push('/(tabs)');
+      router.replace('/(tabs)');
     } catch (error) {
       showErrorToast("Oops! We hit a snag uploading your recipe. Let's try once more?", 'Upload Problem');
     } finally {
