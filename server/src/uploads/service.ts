@@ -123,6 +123,12 @@ export class UploadService {
     }
   }
 
+  /** Where a finished upload of the right purpose lives in the file store, for features that read the file themselves. */
+  async keyFor(userId: string, id: string, purpose: UploadPurpose): Promise<string | null> {
+    const row = await this.db.upload.findFirst({ where: { id, userId, status: 'READY', purpose }, select: { key: true } });
+    return row?.key ?? null;
+  }
+
   /** The files of an account that is about to be deleted. */
   async keysFor(userId: string): Promise<string[]> {
     const rows = await this.db.upload.findMany({ where: { userId, status: { not: 'DELETED' } }, select: { key: true } });

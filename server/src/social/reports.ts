@@ -89,7 +89,8 @@ export class ReportService {
     const snapshots = await this.snapshots(pairs.map((r) => ({ type: r.targetType as ReportTarget, id: r.targetId })));
     return rows.map((r) => ({
       id: r.id,
-      reporter: toAuthor(r.reporter),
+      reporter: r.reporter ? toAuthor(r.reporter) : null,
+      auto: r.auto,
       targetType: r.targetType as ReportTarget,
       targetId: r.targetId,
       reason: r.reason as ReportReason,

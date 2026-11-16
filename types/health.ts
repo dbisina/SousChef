@@ -1,7 +1,7 @@
 import type { NutritionRatings } from './order';
 
 export type GlucoseTiming = 'fasting' | 'before-meal' | '1h-after' | '2h-after' | 'bedtime';
-export type ReadingSource = 'manual' | 'apple-health' | 'sample';
+export type ReadingSource = 'manual' | 'apple-health';
 
 interface ReadingBase {
   id: string;
@@ -43,7 +43,6 @@ export interface MealLog {
   variant?: string;
   ratings?: NutritionRatings;
   fromOrderId?: string;
-  sample?: boolean;
 }
 
 export type GlucoseStatus = 'low' | 'in-range' | 'high';

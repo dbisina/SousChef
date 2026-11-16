@@ -82,7 +82,9 @@ export type ChatEvent =
   | { type: 'receipt'; conversationId: string; userId: string; delivered?: number; read?: number }
   | { type: 'reaction'; conversationId: string; messageId: string; userId: string; emoji: string; active: boolean; count: number }
   /** Members or the title changed, or you were added or removed: fetch the conversation again. */
-  | { type: 'conversation.updated'; conversationId: string };
+  | { type: 'conversation.updated'; conversationId: string }
+  /** A Mystery Kitchen room changed (someone joined, it started, a plate came in, it finished): fetch the room again. */
+  | { type: 'game.updated'; code: string; phase: 'lobby' | 'cooking' | 'done' | 'closed' };
 
 /* ---------------------------------------------------------------- conversations */
 

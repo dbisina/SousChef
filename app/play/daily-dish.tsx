@@ -19,7 +19,7 @@ import {
   UInput,
   useTokens,
 } from '@/components/ui';
-import { dailyDishPhoto } from '@/components/play/samplePhoto';
+import { Backdrop } from '@/components/ui/Backdrop';
 import { MAX_CLUES, MAX_GUESSES, clueSlots, isCorrect } from '@/lib/dailyDish';
 import {
   selectDailyPuzzle,
@@ -96,13 +96,7 @@ export default function DailyDishScreen() {
       />
 
       <View className="bg-surface-3 overflow-hidden" style={{ height: 240, borderRadius: 30 }}>
-        <Image
-          source={dailyDishPhoto(puzzle.answer)}
-          blurRadius={playing ? 14 : 0}
-          contentFit="cover"
-          accessibilityLabel={playing ? t('play.daily.blurred', 'Today’s mystery dish, blurred') : puzzle.answer}
-          style={{ flex: 1, transform: [{ scale: playing ? 1.15 : 1 }] }}
-        />
+        <Backdrop />
         <View style={{ position: 'absolute', top: 14, left: 14 }}>
           <Tag
             tone="glassDark"
