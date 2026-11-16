@@ -6,6 +6,7 @@
 //   npm run seed -- --pro me@example.com   give an existing account a Pro plan for 30 days (test hosts only)
 //   npm run seed -- --reset-generated      delete the recipes (and their posts) that --generate wrote, to write them again
 //   npm run seed -- --puzzles N            write Daily Dish puzzles until there are N (and stock the generated games)
+//   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch)
 //   npm run seed -- --generate [N]         write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
 // Uses DATABASE_URL. Safe to run again.
@@ -50,6 +51,17 @@ async function main() {
           process.stdout.write(`${game}: ${err instanceof Error ? err.message : String(err)}\n`);
         }
       }
+    }
+    const photosAt = args.indexOf('--photos');
+    if (photosAt >= 0) {
+      // Real photos for game questions that have none: N at a time (default 30), until the batch is done.
+      const batch = Number(args[photosAt + 1]) || 30;
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      const pool = new GamePoolService(db, buildAiRouter(config, db, log), undefined, undefined, false, { storage: storageFromConfig(config), pauseMs: 2500 });
+      const total = await db.gamePoolItem.count({ where: { photoTried: false, imageUrl: null } });
+      process.stdout.write(`${total} questions still to look at\n`);
+      process.stdout.write(`photos added: ${await pool.backfillPhotos(batch)}\n`);
     }
     if (args.includes('--reset-generated')) {
       const titles = (dishList as DishDef[]).map((d) => d.title);
