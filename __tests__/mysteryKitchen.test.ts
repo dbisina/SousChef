@@ -9,7 +9,6 @@ import {
   secondsLeft,
   timeBonus,
 } from '@/lib/mysteryKitchen';
-import { playService } from '@/services/playService';
 
 describe('Mystery Kitchen scoring', () => {
   it('each hint costs 10 points', () => {
@@ -54,11 +53,9 @@ describe('Mystery Kitchen scoring', () => {
     expect(secondsLeft({ startedAt: 1000, totalSec: 100 }, 11_000)).toBe(90);
     expect(secondsLeft({ startedAt: undefined, totalSec: 100 }, 11_000)).toBe(100);
   });
-  it('lobby needs two joined players; judge applies the hint penalty', () => {
-    const round = playService.createRound(() => 0.5);
-    expect(canStart(round)).toBe(true);
-    const judged = playService.judge({ ...round, submissions: [] });
-    const ama = judged.find((s) => s.playerId === 'p-ama')!;
-    expect(ama.score).toBe(ama.judgeScore - 10);
+  it('a group lobby needs two joined players', () => {
+    const player = (id: string) => ({ id, name: id, avatar: '', status: 'joined' as const });
+    expect(canStart({ players: [player('a')] })).toBe(false);
+    expect(canStart({ players: [player('a'), player('b')] })).toBe(true);
   });
 });

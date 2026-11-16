@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { SERVER_MODE } from '@/constants/features';
 import {
   View,
   Text,
@@ -13,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '@/stores/authStore';
+import { apiEnabled } from '@/lib/api';
+import { DeleteAccountSheet } from '@/components/settings/DeleteAccountSheet';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useThemeColors } from '@/stores/themeStore';
 import { getTierFeatures } from '@/services/subscriptionService';
@@ -43,6 +46,7 @@ export default function MoreScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user, signOut, deleteAccount } = useAuthStore();
+  const [deleteSheet, setDeleteSheet] = useState(false);
   const { subscriptionTier, isSubscribed } = useSubscription();
   const adFree = getTierFeatures(subscriptionTier).adFree;
   const colors = useThemeColors();
@@ -259,6 +263,10 @@ export default function MoreScreen() {
 
           <TouchableOpacity
             onPress={() => {
+              if (apiEnabled()) {
+                setDeleteSheet(true); // the server asks for the password (or the word DELETE) in a sheet
+                return;
+              }
               Alert.alert(
                 t('settings.deleteAccount'),
                 'This will permanently delete your account, recipes, and all data. This action cannot be undone.',
@@ -299,34 +307,10 @@ export default function MoreScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Admin section: only for admin users */}
-        {user?.role === 'admin' && (
-          <>
-            <View className="px-5 mb-2">
-              <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-2 ml-1">
-                Admin
-              </Text>
-            </View>
-            <View className="mx-5 bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden mb-5" style={styles.card}>
-              {[
-                { id: 'add-recipe', icon: 'add-circle' as const, label: 'Add Recipe', route: '/admin/add-recipe', color: '#10B981' },
-                { id: 'seed', icon: 'server' as const, label: 'Seed Database', route: '/admin/seed', color: '#6366F1' },
-                { id: 'analytics', icon: 'bar-chart' as const, label: 'Analytics', route: '/settings/analytics', color: '#3B82F6' },
-                { id: 'ads', icon: 'megaphone' as const, label: 'Manage Ads', route: '/admin/manage-ads', color: '#F59E0B' },
-              ].map((item, idx, arr) => (
-                <View key={item.id}>
-                  {renderMenuItem(item as MenuItem)}
-                  {idx < arr.length - 1 && (
-                    <View className="h-px bg-neutral-100 dark:bg-neutral-700 ml-14 mr-4" />
-                  )}
-                </View>
-              ))}
-            </View>
-          </>
-        )}
 
         
       </ScrollView>
+    <DeleteAccountSheet visible={deleteSheet} onClose={() => setDeleteSheet(false)} onDeleted={() => setDeleteSheet(false)} />
     </SafeAreaView>
   );
 }

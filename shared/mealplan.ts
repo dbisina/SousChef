@@ -25,6 +25,8 @@ export interface PlannedMeal {
   recipeName: string;
   servings: number;
   imageUrl?: string;
+  /** Family plans: the names of the people this meal suits. */
+  suitableFor?: string[];
 }
 
 export interface MealPlanDay {

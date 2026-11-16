@@ -6,7 +6,7 @@ import type { PhotoSource } from '@/components/ui';
 export interface PodiumEntry {
   id: string;
   name: string;
-  avatar: PhotoSource;
+  avatar: PhotoSource | null;
   score: number;
   rank: number;
 }

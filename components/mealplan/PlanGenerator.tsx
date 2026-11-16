@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Modal, ScrollView, Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import {
-  AvatarStack,
+  Icon,
   Chip,
   CtaBar,
   LinkText,
@@ -109,14 +108,9 @@ export const PlanGenerator: React.FC<PlanGeneratorProps> = ({
         >
           {expiringItemsCount > 0 ? (
             <View className="flex-row items-center" style={{ gap: 12 }}>
-              <AvatarStack
-                size={44}
-                people={[
-                  { name: 'Spinach', source: SAMPLE.spinach },
-                  { name: 'Chicken', source: SAMPLE.chicken },
-                  { name: 'Eggs', source: SAMPLE.eggs },
-                ]}
-              />
+              <View className="items-center justify-center bg-accent" style={{ width: 44, height: 44, borderRadius: 22 }}>
+                  <Icon name="leaf" color="accent-ink" />
+                </View>
               <View className="flex-1">
                 <Title>{t('planGen.expiring', '{{n}} items expiring', { n: expiringItemsCount })}</Title>
                 <Muted small>{t('planGen.expiringHint', "They'll be used first")}</Muted>

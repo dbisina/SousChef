@@ -177,6 +177,33 @@ export class VitalsService {
     return { readings: readings.count, meals: meals.count };
   }
 
+  /**
+   * Key rotation: rewrites stored readings and meals that were sealed with an older key so they use the current one.
+   * Safe to run again and again (rows already on the current key are skipped), and works in small batches. When it
+   * reports `remaining: 0` the older key can be taken out of `HEALTH_DATA_OLD_KEYS`.
+   */
+  async reseal(batch = 500): Promise<{ resealed: number; remaining: number }> {
+    const cipher = this.needCipher();
+    let resealed = 0;
+    const current = cipher.currentId;
+    const idsOld = async (table: 'HealthReading' | 'HealthMeal'): Promise<string[]> =>
+      (await this.db.$queryRawUnsafe<{ id: string }[]>(`SELECT id::text AS id FROM "${table}" WHERE get_byte(payload, 0) <> $1 ORDER BY id LIMIT $2`, current, batch)).map((r) => r.id);
+
+    const readingIds = await idsOld('HealthReading');
+    for (const row of await this.db.healthReading.findMany({ where: { id: { in: readingIds } }, select: { id: true, userId: true, payload: true } })) {
+      await this.db.healthReading.update({ where: { id: row.id }, data: { payload: Uint8Array.from(cipher.reseal(row.payload, label(row.userId, row.id))) } });
+      resealed++;
+    }
+    const mealIds = await idsOld('HealthMeal');
+    for (const row of await this.db.healthMeal.findMany({ where: { id: { in: mealIds } }, select: { id: true, userId: true, payload: true } })) {
+      await this.db.healthMeal.update({ where: { id: row.id }, data: { payload: Uint8Array.from(cipher.reseal(row.payload, label(row.userId, row.id))) } });
+      resealed++;
+    }
+    const left = async (table: 'HealthReading' | 'HealthMeal') =>
+      Number((await this.db.$queryRawUnsafe<{ n: bigint }[]>(`SELECT count(*) AS n FROM "${table}" WHERE get_byte(payload, 0) <> $1`, current))[0]?.n ?? 0);
+    return { resealed, remaining: (await left('HealthReading')) + (await left('HealthMeal')) };
+  }
+
   /* ------------------------------------------------------------------ helpers */
 
   private needCipher(): HealthCipher {

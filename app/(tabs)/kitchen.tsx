@@ -2,7 +2,6 @@ import React, { useEffect, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import { usePantry } from '@/hooks/usePantry';
 import { useAuthStore } from '@/stores/authStore';
 import { useMealPlanStore } from '@/stores/mealPlanStore';
@@ -73,7 +72,6 @@ export default function KitchenScreen() {
         showsVerticalScrollIndicator={false}
       >
         <PhotoCard
-          source={SAMPLE.toast}
           height={170}
           title={t('kitchen.mealPlan', 'Meal plan')}
           subtitle={planSubtitle}
@@ -83,7 +81,6 @@ export default function KitchenScreen() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           <PhotoCard
-            source={SAMPLE.spinach}
             height={160}
             radius={26}
             width="48%"
@@ -100,7 +97,6 @@ export default function KitchenScreen() {
             onPress={() => go('/(tabs)/pantry')}
           />
           <PhotoCard
-            source={SAMPLE.grocery}
             height={160}
             radius={26}
             width="48%"
@@ -112,7 +108,6 @@ export default function KitchenScreen() {
             onPress={() => go('/(tabs)/shopping')}
           />
           <PhotoCard
-            source={SAMPLE.penne}
             height={160}
             radius={26}
             width="48%"
@@ -124,7 +119,6 @@ export default function KitchenScreen() {
             onPress={() => go('/want-to-cook')}
           />
           <PhotoCard
-            source={SAMPLE.cookbook}
             height={160}
             radius={26}
             width="48%"

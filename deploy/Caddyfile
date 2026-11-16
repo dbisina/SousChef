@@ -1,0 +1,45 @@
+# Caddy terminates TLS with the Cloudflare Origin certificate (Cloudflare SSL mode: Full strict) and passes requests,
+# including the live-chat WebSocket at /v1/ws, to the API.
+{
+	# Cloudflare provides the certificate trust, so Caddy must not try to fetch its own.
+	auto_https off
+}
+
+{$API_DOMAIN}:443 {
+	tls /certs/origin.pem /certs/origin.key
+	encode zstd gzip
+
+	# The API accepts at most 256 KB of JSON; files go straight to R2. A little room above that.
+	request_body {
+		max_size 1MB
+	}
+
+	header {
+		-Server
+		Strict-Transport-Security "max-age=31536000"
+	}
+
+	# The staff dashboard (admin/, built with `npm run build`) is plain static files under /admin/. Same address as the
+	# API, so it needs no CORS. Staff sign in with an ADMIN account; nothing here is reachable without one.
+	handle_path /admin/* {
+		root * /srv/admin
+		try_files {path} /index.html
+		file_server
+		header Cache-Control "no-store"
+		header X-Robots-Tag "noindex"
+	}
+
+	handle {
+	reverse_proxy api:3000 {
+		# Keep idle chat sockets open between Cloudflare's 100 s pings.
+		transport http {
+			read_timeout 120s
+		}
+	}
+	}
+}
+
+# Plain HTTP only redirects (Cloudflare normally does this before it reaches us).
+:80 {
+	redir https://{$API_DOMAIN}{uri} permanent
+}
