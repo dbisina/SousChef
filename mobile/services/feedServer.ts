@@ -125,7 +125,7 @@ export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
     apiFeed('following', { limit: 30 }),
     apiFeed('for-you', { limit: 30 }),
     apiStoryTray(),
-    apiFollowing(meId, { limit: 100 }).catch(() => ({ items: [] as Participant[] })),
+    apiFollowing(meId, { limit: 50 }).catch(() => ({ items: [] as Participant[] })),
     apiMyCommunities().catch(() => [] as CommunitySummary[]),
     apiDiscoverCommunities().catch(() => [] as CommunitySummary[]),
   ]);

@@ -5,6 +5,7 @@ import { api, ApiError, resetApiForTests } from '@/lib/api';
 import * as health from '@/services/healthApi';
 import * as play from '@/services/playApi';
 import * as social from '@/services/socialApi';
+import { fetchServerFeed } from '@/services/feedServer';
 
 const reply = (status: number, body?: unknown) => ({ ok: status < 300, status, json: async () => body ?? null }) as Response;
 const tokens = { accessToken: 'a1', accessTokenExpiresAt: new Date(Date.now() + 900_000).toISOString(), refreshToken: 'r1' };
@@ -32,6 +33,18 @@ describe('social', () => {
     await social.apiFeed('following', { limit: 5, cursor: 'c1' });
     expect(sent(0)).toMatchObject({ path: '/v1/feed/for-you', search: '?limit=20' });
     expect(sent(1)).toMatchObject({ path: '/v1/feed/following', search: '?limit=5&cursor=c1' });
+  });
+
+  it('asks the server for the people you follow in pages the server accepts (it refuses more than 50)', async () => {
+    server.mockImplementation(async (url: string) => {
+      const u = new URL(String(url));
+      if (u.pathname.startsWith('/v1/users/') && u.pathname.endsWith('/following') && Number(u.searchParams.get('limit')) > 50) return reply(400, { error: { code: 'validation_error', message: 'Too big' } });
+      if (u.pathname.startsWith('/v1/users/') && u.pathname.endsWith('/following')) return reply(200, { items: [{ id: 'u9', handle: 'chef', displayName: 'Chef', photoUrl: null, isChef: false, isVerifiedChef: false, kind: 'person' }], nextCursor: null });
+      if (u.pathname === '/v1/stories') return reply(200, { groups: [] });
+      return reply(200, { items: [], nextCursor: null });
+    });
+    const feed = await fetchServerFeed('me1');
+    expect(feed.followingIds).toEqual(['u9']);
   });
 
   it('likes, saves and comments', async () => {
