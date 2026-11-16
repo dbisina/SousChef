@@ -56,6 +56,8 @@ export interface User {
   email: string;
   displayName: string;
   photoURL?: string;
+  /** The wide picture across the top of the profile. */
+  bannerURL?: string;
   bio?: string;
   role: UserRole;
   isVerifiedChef?: boolean;
