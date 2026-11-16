@@ -1,5 +1,5 @@
 [workspace]
-members = ["links"]
+members = ["links", "feed"]
 resolver = "2"
 
 [package]
@@ -17,6 +17,7 @@ crate-type = ["cdylib"]
 napi = { version = "3.16", default-features = false, features = ["napi9"] }
 napi-derive = "3.7"
 souschef-links = { path = "links" }
+souschef-feed = { path = "feed" }
 
 [build-dependencies]
 napi-build = "2.6"

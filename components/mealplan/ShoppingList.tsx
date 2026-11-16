@@ -12,6 +12,7 @@ import {
   UAvatar,
   FONT,
 } from '@/components/ui';
+import { AISLE_LABEL, sortByAisle } from '../../shared/index';
 import { ShoppingListItem } from '@/types/mealplan';
 import { foodPhoto } from './foodPhoto';
 
@@ -24,6 +25,8 @@ interface ShoppingListProps {
   bottomSpace?: number;
   /** Rendered under the last row (e.g. a clear-checked link). */
   footer?: React.ReactNode;
+  /** Group the list in the order a shop is walked (fruit and veg first, tins and drinks last). */
+  byAisle?: boolean;
 }
 
 export const ShoppingList: React.FC<ShoppingListProps> = ({
@@ -33,14 +36,22 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
   showPantryIndicator = true,
   bottomSpace = 120,
   footer,
+  byAisle = false,
 }) => {
   const { t } = useTranslation();
 
   const sections = React.useMemo(() => {
-    // PlanShopping.html is one flat list with no category headings.
-    const result: SectionListData<ShoppingListItem>[] = [{ title: '', data: items }];
+    // PlanShopping.html is one flat list with no category headings; the aisle view adds them.
+    if (!byAisle) return [{ title: '', data: items }] as SectionListData<ShoppingListItem>[];
+    const result: SectionListData<ShoppingListItem>[] = [];
+    for (const item of sortByAisle(items)) {
+      const title = AISLE_LABEL[item.category as keyof typeof AISLE_LABEL] ?? 'Other';
+      const last = result[result.length - 1];
+      if (last && last.title === title) (last.data as ShoppingListItem[]).push(item);
+      else result.push({ title, data: [item] });
+    }
     return result;
-  }, [items]);
+  }, [items, byAisle]);
 
   if (items.length === 0) {
     return (
@@ -67,6 +78,7 @@ export const ShoppingList: React.FC<ShoppingListProps> = ({
         />
       )}
       ItemSeparatorComponent={Divider}
+      renderSectionHeader={({ section }) => (section.title ? <Muted small style={{ paddingTop: 14, paddingBottom: 4 }}>{section.title}</Muted> : null)}
       ListFooterComponent={footer ? <View>{footer}</View> : null}
       stickySectionHeadersEnabled={false}
       showsVerticalScrollIndicator={false}

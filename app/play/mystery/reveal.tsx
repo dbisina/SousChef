@@ -35,7 +35,7 @@ export default function MysteryRevealScreen() {
         return {
           id: s.playerId,
           name: p?.name ?? s.playerId,
-          avatar: samplePhoto(p?.avatar ?? 'chef'),
+          avatar: samplePhoto(p?.avatar),
           score: s.score,
           rank: i + 1,
         };

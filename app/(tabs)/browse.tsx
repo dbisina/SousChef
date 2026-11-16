@@ -2,8 +2,8 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { ActivityIndicator, Alert, FlatList, RefreshControl, View, useWindowDimensions } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import { useRecipes, useRecipeSearch } from '@/hooks/useRecipes';
+import { SmartSearchButton } from '@/components/ai/AiSearch';
 import { useCookbooks } from '@/hooks/useCookbooks';
 import { useMealPlanStore } from '@/stores/mealPlanStore';
 import { Recipe, Cookbook, RecipeCategory } from '@/types';
@@ -39,7 +39,7 @@ const CATEGORY_CHIPS: Array<{ id: RecipeCategory; key: string; label: string }> 
   { id: 'dinner', key: 'dinner', label: 'Dinner' },
 ];
 
-const photoFor = (url?: string): PhotoSource => (url ? { uri: url } : SAMPLE.plating);
+const photoFor = (url?: string): PhotoSource | null => (url ? { uri: url } : null);
 
 export default function BrowseScreen() {
   const router = useRouter();
@@ -338,6 +338,16 @@ export default function BrowseScreen() {
             ) : undefined
           }
         />
+        {activeTab === 'recipes' ? (
+          <SmartSearchButton
+            text={searchText}
+            filters={filters}
+            onApply={(next, q) => {
+              applyFilters(next);
+              handleSearchChange(q);
+            }}
+          />
+        ) : null}
       </View>
       <ChipRow>
         <Chip
