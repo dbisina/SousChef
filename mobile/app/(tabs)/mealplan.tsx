@@ -24,12 +24,15 @@ import {
   Icon,
   LinkText,
   Muted,
+  PhotoCard,
   Screen,
   Tag,
   TopBar,
   UButton,
   UIconButton,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 import { Paywall } from '@/components/subscription';
 import { getWeekStartDate } from '@/services/mealPlanService';
 import { MealPlanPreferences, MealType } from '@/types/mealplan';
@@ -210,9 +213,7 @@ export default function MealPlanScreen() {
       <Screen bare>
         <TopBar title={t('plan.title', 'Meal Plan')} />
         <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 32, gap: 16 }}>
-          <View className="items-center justify-center bg-surface-2" style={{ width: 80, height: 80, borderRadius: 40 }}>
-            <Icon name="clock" size="lg" />
-          </View>
+          <PhotoCard source={PHOTOS.powerbowl as PhotoSource} fade="both" height={190} radius={28} style={{ alignSelf: 'stretch' }} accessibilityLabel={t('plan.title', 'Meal Plan')} />
           <H2 center>{t('plan.gateTitle', 'Meal Planning')}</H2>
           <Muted center>
             {t(

@@ -7,7 +7,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useMealPlanStore } from '@/stores/mealPlanStore';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { useCookbookLibraryStore } from '@/stores/cookbookLibraryStore';
-import { Chip, PhotoCard, Screen, Tag, TopBar, UIconButton } from '@/components/ui';
+import { Chip, PhotoCard, Screen, Tag, TopBar, UIconButton, type PhotoSource } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 const todayKey = () => {
   const d = new Date();
@@ -72,6 +73,8 @@ export default function KitchenScreen() {
         showsVerticalScrollIndicator={false}
       >
         <PhotoCard
+          source={PHOTOS.powerbowl as PhotoSource}
+          fade="both"
           height={170}
           title={t('kitchen.mealPlan', 'Meal plan')}
           subtitle={planSubtitle}
@@ -81,6 +84,8 @@ export default function KitchenScreen() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           <PhotoCard
+            source={PHOTOS.veg as PhotoSource}
+            fade="both"
             height={160}
             radius={26}
             width="48%"
@@ -97,6 +102,8 @@ export default function KitchenScreen() {
             onPress={() => go('/(tabs)/pantry')}
           />
           <PhotoCard
+            source={PHOTOS.grocery as PhotoSource}
+            fade="both"
             height={160}
             radius={26}
             width="48%"
@@ -108,6 +115,8 @@ export default function KitchenScreen() {
             onPress={() => go('/(tabs)/shopping')}
           />
           <PhotoCard
+            source={PHOTOS.pasta as PhotoSource}
+            fade="both"
             height={160}
             radius={26}
             width="48%"
@@ -119,6 +128,8 @@ export default function KitchenScreen() {
             onPress={() => go('/want-to-cook')}
           />
           <PhotoCard
+            source={PHOTOS.cookbook as PhotoSource}
+            fade="both"
             height={160}
             radius={26}
             width="48%"

@@ -29,7 +29,9 @@ import {
   UButton,
   UIconButton,
   useTone,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 interface ShoppingListViewProps {
   compact?: boolean;
@@ -408,7 +410,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ compact = fa
 
   return (
     <View style={{ gap: 14 }}>
-      <PhotoCard height={150}>
+      <PhotoCard source={PHOTOS.grocery as PhotoSource} fade="both" height={150}>
         <View style={{ position: 'absolute', left: 18, right: 18, bottom: 16, gap: 10, zIndex: 1 }}>
           <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
             <RNText

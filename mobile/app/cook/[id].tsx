@@ -616,34 +616,32 @@ export default function CookingModeScreen() {
                 </UCard>
               ) : null}
 
-              {/* Live AI toggle */}
-              <UCard>
-                <View className="flex-row items-center" style={{ gap: 12 }}>
-                  <View className="flex-1" style={{ gap: 2 }}>
-                    <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
-                      {apiEnabled() ? t('cooking.voiceAssistant', 'Voice assistant') : t('cooking.geminiLive', 'Gemini Live AI')}
-                    </Text>
-                    <Muted small>{apiEnabled() ? t('cooking.voiceAssistantDesc', 'Say next, repeat, set a timer, or ask a question while you cook') : t('cooking.geminiLiveDesc', 'Real-time voice conversation while cooking')}</Muted>
-                  </View>
-                  <USwitch value={useLiveAI} onValueChange={setUseLiveAI} label={apiEnabled() ? t('cooking.voiceAssistant', 'Voice assistant') : t('cooking.geminiLive', 'Gemini Live AI')} />
-                </View>
-              </UCard>
             </View>
           </ScrollView>
 
           <ActionBar>
-            <UButton
-              label={useLiveAI ? t('cooking.startWithAI', 'Start Cooking with AI') : t('cooking.startCooking', 'Start Cooking')}
-              variant="accent"
-              icon="play"
-              onPress={() => {
-                handleStartCooking();
-                if (useLiveAI) {
+            {/* Plain step-by-step cooking is always available; the voice assistant is an extra, never the only way in. */}
+            <View style={{ flex: 1, gap: 10 }}>
+              <UButton
+                label={t('cooking.startCooking', 'Start cooking')}
+                variant="accent"
+                icon="play"
+                onPress={() => {
+                  setUseLiveAI(false);
+                  handleStartCooking();
+                }}
+              />
+              <UButton
+                label={t('cooking.startWithVoice', 'Start with voice assistant')}
+                variant="ghost"
+                icon="mic"
+                onPress={() => {
+                  setUseLiveAI(true);
+                  handleStartCooking();
                   geminiLive.connect();
-                }
-              }}
-              style={{ flex: 1 }}
-            />
+                }}
+              />
+            </View>
           </ActionBar>
         </>
       )}
