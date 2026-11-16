@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Modal, Platform, ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
 import { useForm, Controller } from 'react-hook-form';

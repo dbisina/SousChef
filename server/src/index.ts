@@ -3,7 +3,7 @@ import { loadConfig } from './config';
 
 async function main() {
   const config = loadConfig();
-  const { app } = await buildApp({ config });
+  const { app, jobs } = await buildApp({ config });
 
   // Stop cleanly when the platform asks: finish requests in flight, close database connections, then exit.
   let stopping = false;
@@ -23,6 +23,8 @@ async function main() {
   process.on('SIGINT', () => void stop('SIGINT'));
 
   await app.listen({ host: config.HOST, port: config.PORT });
+  // Background work starts once the server is taking requests. Turn it off with JOBS_ENABLED=false (for example on a second server).
+  if (config.JOBS_ENABLED) jobs.start();
 }
 
 main().catch((err) => {

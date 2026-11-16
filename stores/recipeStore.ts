@@ -21,6 +21,23 @@ import {
 } from '@/lib/firebase';
 import { Recipe, RecipeFilters, RecipeFormData, Ingredient, RecipeComment, RecipeRating } from '@/types';
 import { calculateNutrition, calculateIngredientCalories } from '@/lib/utils';
+import { apiEnabled } from '@/lib/api';
+import {
+  apiAddRecipeComment,
+  apiCreateRecipe,
+  apiDeleteRecipe,
+  apiFlagRecipe,
+  apiGetRecipe,
+  apiGetRecipes,
+  apiGetRecipesByUser,
+  apiRateRecipe,
+  apiRecipeComments,
+  apiSearchRecipes,
+  apiSetRecipeLiked,
+  apiSetRecipeSaved,
+  apiUpdateRecipe,
+} from '@/services/recipeApi';
+import { apiSetFollowing } from '@/services/socialApi';
 
 // ── Allergen detection from ingredient names ──
 const ALLERGEN_KEYWORDS: Record<string, string[]> = {
@@ -123,6 +140,17 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
     set({ isLoading: true, error: null });
 
+    if (apiEnabled()) {
+      // The server filters and sorts; the app lists show up to 200 recipes at once, so there is no next page.
+      try {
+        const list = await apiGetRecipes(filters);
+        set({ recipes: list, lastDoc: null, hasMore: false, isLoading: false });
+      } catch (error: unknown) {
+        set({ error: error instanceof Error ? error.message : 'Failed to fetch recipes', isLoading: false });
+      }
+      return;
+    }
+
     try {
       const recipesRef = collection(db, 'recipes');
       const constraints: Parameters<typeof query>[1][] = [];
@@ -201,6 +229,16 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   fetchRecipeById: async (id) => {
     set({ isLoading: true, error: null });
+    if (apiEnabled()) {
+      try {
+        const recipe = await apiGetRecipe(id);
+        set({ currentRecipe: recipe, isLoading: false });
+        return recipe;
+      } catch (error: unknown) {
+        set({ error: error instanceof Error ? error.message : 'Failed to fetch recipe', isLoading: false });
+        return null;
+      }
+    }
     try {
       const recipeDoc = await getDoc(doc(db, 'recipes', id));
       if (recipeDoc.exists()) {
@@ -218,6 +256,7 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
   },
 
   fetchUserRecipes: async (userId) => {
+    if (apiEnabled()) return apiGetRecipesByUser(userId).catch(() => []);
     try {
       const q = query(
         collection(db, 'recipes'),
@@ -234,6 +273,16 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   createRecipe: async (data, imageURL, authorId, authorName, isOfficial = false) => {
     set({ isLoading: true, error: null });
+    if (apiEnabled()) {
+      try {
+        const id = await apiCreateRecipe(data, imageURL, isOfficial);
+        set({ isLoading: false });
+        return id;
+      } catch (error: unknown) {
+        set({ error: error instanceof Error ? error.message : 'Failed to create recipe', isLoading: false });
+        throw error;
+      }
+    }
     try {
       // Calculate calories for each ingredient
       const ingredientsWithCalories: Ingredient[] = data.ingredients.map((ing) => ({
@@ -278,7 +327,8 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
   updateRecipe: async (id, data) => {
     set({ isLoading: true, error: null });
     try {
-      await updateDoc(doc(db, 'recipes', id), data);
+      if (apiEnabled()) await apiUpdateRecipe(id, data as Partial<RecipeFormData>);
+      else await updateDoc(doc(db, 'recipes', id), data);
 
       // Update local state
       set((state) => ({
@@ -296,7 +346,8 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
   deleteRecipe: async (id) => {
     set({ isLoading: true, error: null });
     try {
-      await deleteDoc(doc(db, 'recipes', id));
+      if (apiEnabled()) await apiDeleteRecipe(id);
+      else await deleteDoc(doc(db, 'recipes', id));
 
       set((state) => ({
         recipes: state.recipes.filter((r) => r.id !== id),
@@ -312,9 +363,11 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   likeRecipe: async (recipeId, userId) => {
     try {
-      await updateDoc(doc(db, 'recipes', recipeId), {
-        likes: increment(1),
-      });
+      if (apiEnabled()) await apiSetRecipeLiked(recipeId, true);
+      else
+        await updateDoc(doc(db, 'recipes', recipeId), {
+          likes: increment(1),
+        });
 
       set((state) => ({
         recipes: state.recipes.map((r) =>
@@ -332,9 +385,11 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   unlikeRecipe: async (recipeId, userId) => {
     try {
-      await updateDoc(doc(db, 'recipes', recipeId), {
-        likes: increment(-1),
-      });
+      if (apiEnabled()) await apiSetRecipeLiked(recipeId, false);
+      else
+        await updateDoc(doc(db, 'recipes', recipeId), {
+          likes: increment(-1),
+        });
 
       set((state) => ({
         recipes: state.recipes.map((r) =>
@@ -352,9 +407,11 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   saveRecipe: async (recipeId, userId) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        savedRecipes: arrayUnion(recipeId),
-      });
+      if (apiEnabled()) await apiSetRecipeSaved(recipeId, true);
+      else
+        await updateDoc(doc(db, 'users', userId), {
+          savedRecipes: arrayUnion(recipeId),
+        });
       // Update local auth store
       const { useAuthStore } = await import('./authStore');
       const authState = useAuthStore.getState();
@@ -371,9 +428,11 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   unsaveRecipe: async (recipeId, userId) => {
     try {
-      await updateDoc(doc(db, 'users', userId), {
-        savedRecipes: arrayRemove(recipeId),
-      });
+      if (apiEnabled()) await apiSetRecipeSaved(recipeId, false);
+      else
+        await updateDoc(doc(db, 'users', userId), {
+          savedRecipes: arrayRemove(recipeId),
+        });
       // Update local auth store
       const { useAuthStore } = await import('./authStore');
       const authState = useAuthStore.getState();
@@ -387,6 +446,7 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
   },
 
   searchRecipes: async (searchQuery) => {
+    if (apiEnabled()) return apiSearchRecipes(searchQuery).catch(() => []);
     try {
       // For now, do client-side filtering
       // In production, you'd want to use Algolia or similar for full-text search
@@ -415,6 +475,10 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   fetchFeedRecipes: async (followingIds) => {
     if (!followingIds.length) return [];
+    if (apiEnabled()) {
+      const all = await apiGetRecipes().catch(() => [] as Recipe[]);
+      return all.filter((r) => followingIds.includes(r.authorId));
+    }
     try {
       // Firestore 'in' queries support max 30 items
       const chunks = [];
@@ -448,6 +512,11 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   flagRecipe: async (recipeId, reason) => {
     try {
+      if (apiEnabled()) {
+        // A report goes to staff; the recipe stays visible until they act on it.
+        await apiFlagRecipe(recipeId, reason);
+        return;
+      }
       await updateDoc(doc(db, 'recipes', recipeId), {
         status: 'flagged',
         flagReason: reason,
@@ -465,6 +534,14 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   addComment: async (recipeId, comment) => {
     try {
+      if (apiEnabled()) {
+        await apiAddRecipeComment(recipeId, comment.text);
+        set((state) => ({
+          recipes: state.recipes.map((r) => (r.id === recipeId ? { ...r, commentCount: (r.commentCount || 0) + 1 } : r)),
+          currentRecipe: state.currentRecipe?.id === recipeId ? { ...state.currentRecipe, commentCount: (state.currentRecipe.commentCount || 0) + 1 } : state.currentRecipe,
+        }));
+        return;
+      }
       const commentRef = doc(collection(db, 'recipes', recipeId, 'comments'));
       const commentData: RecipeComment = {
         ...comment,
@@ -492,6 +569,7 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
   },
 
   fetchComments: async (recipeId) => {
+    if (apiEnabled()) return apiRecipeComments(recipeId).catch(() => []);
     try {
       const q = query(
         collection(db, 'recipes', recipeId, 'comments'),
@@ -508,6 +586,13 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   rateRecipe: async (recipeId, userId, rating, review) => {
     try {
+      if (apiEnabled()) {
+        const res = await apiRateRecipe(recipeId, rating, review);
+        set((state) => ({
+          currentRecipe: state.currentRecipe?.id === recipeId ? { ...state.currentRecipe, ...(res.rating !== null ? { rating: res.rating } : {}), ratingCount: res.ratingCount } : state.currentRecipe,
+        }));
+        return;
+      }
       const ratingRef = doc(db, 'recipes', recipeId, 'ratings', userId);
       const ratingData: RecipeRating = {
         id: ratingRef.id,
@@ -544,6 +629,10 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   followUser: async (currentUserId, targetUserId) => {
     try {
+      if (apiEnabled()) {
+        await apiSetFollowing(targetUserId, true);
+        return;
+      }
       // Add to current user's following
       await updateDoc(doc(db, 'users', currentUserId), {
         following: arrayUnion(targetUserId),
@@ -559,6 +648,10 @@ export const useRecipeStore = create<RecipeState>((set, get) => ({
 
   unfollowUser: async (currentUserId, targetUserId) => {
     try {
+      if (apiEnabled()) {
+        await apiSetFollowing(targetUserId, false);
+        return;
+      }
       await updateDoc(doc(db, 'users', currentUserId), {
         following: arrayRemove(targetUserId),
       });
