@@ -13,6 +13,7 @@
 import { CookbookSuggestion, CookbookRecipe, CookbookRecipeContent } from '@/types/cookbookLibrary';
 import { PantryItem } from '@/types';
 import { textModel } from '@/lib/gemini';
+import { matchPantry } from '../shared/pantryMatch';
 
 interface CookbookInfo {
     title: string;
@@ -110,121 +111,49 @@ export async function searchRecipeImage(
 }
 
 /**
- * Ask Gemini to suggest recipes from the user's cookbook collection
- * that they could make with their current pantry items.
+ * Which recipes in the cookbooks the person owns could they cook from the pantry?
+ *
+ * Worked out here, not by an AI: each recipe on file is compared with the pantry by its key ingredients (the same
+ * matching the rest of the app uses). That means no AI key on the phone, no cost, no waiting, and it can only ever
+ * name recipes that are really on file for that cookbook. Recipes with no key ingredients on file cannot be judged
+ * and are left out.
  */
 export async function suggestRecipesFromCookbooks(
     cookbooks: CookbookInfo[],
     pantryItems: PantryItem[]
 ): Promise<CookbookSuggestion[]> {
-    const model = textModel;
-
-    // Build a detailed cookbook list that includes the actual recipes we have on file
-    const cookbookList = cookbooks
-        .map((c) => {
-            const header = `- "${c.title}"${c.author ? ` by ${c.author}` : ''}`;
-            if (!c.recipes || c.recipes.length === 0) return header;
-            const recipeLines = c.recipes.map((r) => {
-                const ingredients = r.keyIngredients?.length
-                    ? ` (key ingredients: ${r.keyIngredients.join(', ')})`
-                    : '';
-                return `    • ${r.name}${ingredients}`;
+    const pantryNames = pantryItems.map((item) => item.name);
+    const scored: CookbookSuggestion[] = [];
+    for (const book of cookbooks) {
+        for (const recipe of book.recipes || []) {
+            const key = (recipe.keyIngredients || []).filter((i) => i.trim().length > 0);
+            if (key.length === 0) continue;
+            const match = matchPantry(key.map((name) => ({ name })), pantryNames);
+            if (match.matching.length === 0) continue; // nothing in common is not a suggestion
+            scored.push({
+                cookbookTitle: book.title,
+                recipeName: recipe.name,
+                confidence: Math.round(match.matchPercent) / 100,
+                reason: match.canMake
+                    ? 'You have every key ingredient.'
+                    : `You have ${match.matching.length} of ${match.matching.length + match.missing.length} key ingredients.`,
+                matchingIngredients: match.matching,
+                missingIngredients: match.missing,
             });
-            return `${header}\n  Recipes:\n${recipeLines.join('\n')}`;
-        })
-        .join('\n\n');
-
-    const pantryList = pantryItems
-        .map((item) => `- ${item.name} (${item.amount} ${item.unit})`)
-        .join('\n');
-
-    // Build a flat set of valid recipe names for post-filtering
-    const validRecipeNames = new Set<string>();
-    for (const c of cookbooks) {
-        for (const r of c.recipes || []) {
-            validRecipeNames.add(r.name.toLowerCase());
         }
     }
+    // Best match first; fewer missing ingredients break ties, then the name keeps the order steady.
+    const top = scored
+        .sort((a, b) => b.confidence - a.confidence || a.missingIngredients.length - b.missingIngredients.length || a.recipeName.localeCompare(b.recipeName))
+        .slice(0, 5);
 
-    const prompt = `You are a culinary expert. The user owns these cookbooks and we already know the exact recipes in each one.
-
-COOKBOOKS AND THEIR RECIPES:
-${cookbookList}
-
-PANTRY / FRIDGE ITEMS:
-${pantryList}
-
-From the recipes listed above, pick 3-5 that the user could make (or mostly make) with their available pantry items.
-
-CRITICAL RULES:
-- You MUST ONLY suggest recipes that appear in the lists above. Do NOT invent or guess recipe names.
-- Use the EXACT recipe name as written above — do not paraphrase or rename.
-- The "cookbookTitle" must match the cookbook the recipe is listed under.
-
-For each suggestion, provide:
-- cookbookTitle: the exact cookbook title from above
-- recipeName: the exact recipe name from the list above
-- confidence: 0-1 score for ingredient match quality
-- reason: brief explanation of why this recipe works
-- matchingIngredients: which pantry items they'd use
-- missingIngredients: key ingredients they're missing (if any)
-
-Return your response as a JSON array:
-[
-  {
-    "cookbookTitle": "Book Title",
-    "recipeName": "Exact Recipe Name From List",
-    "confidence": 0.85,
-    "reason": "Brief explanation",
-    "matchingIngredients": ["chicken", "broccoli"],
-    "missingIngredients": ["soy sauce"]
-  }
-]
-
-Return ONLY the JSON array, no markdown or other text.`;
-
-    try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-
-        // Clean up response
-        const cleaned = text
-            .replace(/```json\n?/g, '')
-            .replace(/```\n?/g, '')
-            .trim();
-
-        const raw: any[] = JSON.parse(cleaned);
-
-        // Normalize, validate, and enforce that recipes actually exist in our data
-        const suggestions: CookbookSuggestion[] = raw
-            .filter((s) => s.cookbookTitle && s.recipeName && typeof s.confidence === 'number')
-            .filter((s) => validRecipeNames.has(s.recipeName.toLowerCase()))
-            .map((s) => ({
-                cookbookTitle: s.cookbookTitle,
-                recipeName: s.recipeName,
-                confidence: s.confidence,
-                reason: s.reason || '',
-                matchingIngredients: Array.isArray(s.matchingIngredients) ? s.matchingIngredients : [],
-                missingIngredients: Array.isArray(s.missingIngredients) ? s.missingIngredients : [],
-            }));
-
-        const sorted = suggestions
-            .sort((a, b) => b.confidence - a.confidence)
-            .slice(0, 5);
-
-        // Fetch food images for all suggestions in parallel
-        const withImages = await Promise.all(
-            sorted.map(async (s) => {
-                const imageURL = await searchRecipeImage(s.recipeName);
-                return { ...s, imageURL: imageURL || undefined };
-            })
-        );
-
-        return withImages;
-    } catch (error) {
-        console.error('[CookbookLibraryService] Error getting suggestions:', error);
-        return [];
-    }
+    // Food photos are a nice-to-have; a failure to find one never hides a suggestion.
+    return Promise.all(
+        top.map(async (s) => {
+            const imageURL = await searchRecipeImage(s.recipeName).catch(() => null);
+            return { ...s, imageURL: imageURL || undefined };
+        })
+    );
 }
 
 /**

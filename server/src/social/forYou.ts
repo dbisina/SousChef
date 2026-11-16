@@ -1,4 +1,4 @@
-import { rankFeed, type FeedCandidate } from '@souschef/native';
+import { rankFeed, type FeedCandidate } from '../native';
 
 export type { FeedCandidate };
 
