@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text as RNText, TextInput, View } from 'react-native';
+import { Platform, ScrollView, Text as RNText, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +20,8 @@ const dayKey = (iso: string) => new Date(iso).toDateString();
 
 const clock = (iso: string) =>
   new Date(iso).toLocaleTimeString('en-GB', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+import { ChatAssistBar } from '@/components/ai/AiChat';
 
 export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -196,6 +199,8 @@ export default function ChatScreen() {
         >
           {items.length ? items : <Muted center>{t('chat.noMessages', 'No messages yet. Say hello.')}</Muted>}
         </ScrollView>
+
+        {conversation.kind !== 'order' && items.length > 0 ? <ChatAssistBar conversationId={conversation.id} onPickReply={setDraft} /> : null}
 
         <View
           className="flex-row items-center"

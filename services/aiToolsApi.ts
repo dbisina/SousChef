@@ -1,10 +1,31 @@
 // The server's AI helpers: ingredient substitutions, a planned week of meals, and reading a recipe from cookbook photos.
 // Used by aiService, mealPlanAIService and recipeImportService when EXPO_PUBLIC_API_URL is set (so no AI key lives on the phone).
 import type {
+  CaptionResponse,
+  ChatAssistRequest,
+  ChatAssistResponse,
+  CookChatRequest,
+  CookChatResponse,
   GeneratedMealPlan,
   GenerateMealPlanRequest,
+  HealthSummaryResponse,
+  LeftoversRequest,
+  LeftoversResponse,
+  PantryScanRequest,
+  PantryScanResponse,
+  PlateCheckResponse,
+  RewriteRecipeRequest,
+  RewriteRecipeResponse,
+  ScaleNote,
+  ScaleNoteRequest,
+  ScaleRecipeRequest,
+  ScaleRecipeResponse,
   ScanRecipeResponse,
+  SearchIntentResponse,
   SubstituteResponse,
+  TonightRequest,
+  TonightResponse,
+  WasteCoachResponse,
 } from '../shared/index';
 import { api } from '@/lib/api';
 import { uploadFile } from '@/lib/upload';
@@ -92,4 +113,43 @@ export async function apiScanRecipe(imageUris: string[], bookName?: string): Pro
     const message = err instanceof Error ? err.message : 'Could not read that recipe';
     return { success: false, error: message, confidence: 0 };
   }
+}
+
+/* ---------------------------------------------------------------- cooking for more or fewer people */
+
+/** The recipe for a different number of people. The answer says where its numbers came from (`source`). */
+export const apiScaleRecipe = (recipeId: string, body: ScaleRecipeRequest): Promise<ScaleRecipeResponse> =>
+  api().post<ScaleRecipeResponse>(`/v1/recipes/${recipeId}/scale`, body, { timeoutMs: 60_000 });
+
+/** "Here is what I really used for N people." Allowed for the recipe's author and anyone who has made it. */
+export const apiSaveScaleNote = (recipeId: string, body: ScaleNoteRequest): Promise<ScaleNote> =>
+  api().put<ScaleNote>(`/v1/recipes/${recipeId}/scale-notes`, body);
+
+export const apiScaleNotes = async (recipeId: string): Promise<ScaleNote[]> => (await api().get<{ items: ScaleNote[] }>(`/v1/recipes/${recipeId}/scale-notes`)).items;
+
+/* ---------------------------------------------------------------- more AI helpers (thin wrappers; each call is limited per day by the server) */
+
+export const apiTonight = (body: TonightRequest = {}): Promise<TonightResponse> => api().post<TonightResponse>('/v1/ai/tonight', body, { timeoutMs: 45_000 });
+export const apiLeftovers = (body: LeftoversRequest): Promise<LeftoversResponse> => api().post<LeftoversResponse>('/v1/ai/leftovers', body, { timeoutMs: 45_000 });
+export const apiWasteCoach = (): Promise<WasteCoachResponse> => api().get<WasteCoachResponse>('/v1/ai/waste-coach', { timeoutMs: 45_000 });
+export const apiHealthSummary = (): Promise<HealthSummaryResponse> => api().get<HealthSummaryResponse>('/v1/ai/health-summary', { timeoutMs: 45_000 });
+export const apiRewriteRecipe = (body: RewriteRecipeRequest): Promise<RewriteRecipeResponse> => api().post<RewriteRecipeResponse>('/v1/ai/rewrite-recipe', body, { timeoutMs: 60_000 });
+export const apiCookChat = (body: CookChatRequest): Promise<CookChatResponse> => api().post<CookChatResponse>('/v1/ai/cook-chat', body, { timeoutMs: 45_000 });
+export const apiChatAssist = (body: ChatAssistRequest): Promise<ChatAssistResponse> => api().post<ChatAssistResponse>('/v1/ai/chat-assist', body, { timeoutMs: 45_000 });
+export const apiSearchIntent = (q: string): Promise<SearchIntentResponse> => api().post<SearchIntentResponse>('/v1/ai/search-intent', { q }, { timeoutMs: 30_000 });
+
+/** Uploads the photos, then has the server list what it sees. Nothing is saved until the person ticks what to keep. */
+export async function apiPantryScan(imageUris: string[], kind: PantryScanRequest['kind']): Promise<PantryScanResponse> {
+  const uploaded = await Promise.all(imageUris.slice(0, 4).map((uri) => uploadFile(uri, 'import_frame')));
+  return api().post<PantryScanResponse>('/v1/ai/pantry-scan', { uploadIds: uploaded.map((u) => u.id), kind }, { timeoutMs: 90_000 });
+}
+
+export async function apiPlateCheck(imageUri: string, recipeId?: string): Promise<PlateCheckResponse> {
+  const up = await uploadFile(imageUri, 'made_post');
+  return api().post<PlateCheckResponse>('/v1/ai/plate-check', { uploadId: up.id, ...(recipeId ? { recipeId } : {}) }, { timeoutMs: 60_000 });
+}
+
+export async function apiSuggestCaption(imageUri: string): Promise<CaptionResponse> {
+  const up = await uploadFile(imageUri, 'made_post');
+  return api().post<CaptionResponse>('/v1/ai/caption', { uploadId: up.id }, { timeoutMs: 60_000 });
 }

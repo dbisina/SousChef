@@ -64,6 +64,7 @@ export default function ShoppingListScreen() {
   } = useShoppingList();
 
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [byAisle, setByAisle] = useState(false);
   const [pantryModalItem, setPantryModalItem] = useState<ShoppingListItem | null>(null);
   const [showPantryModal, setShowPantryModal] = useState(false);
   const [pantryAmount, setPantryAmount] = useState(1);
@@ -208,10 +209,14 @@ export default function ShoppingListScreen() {
             { value: 'inPantry', label: t('planShop.inPantry', 'In pantry {{n}}', { n: itemsInPantry }) },
           ]}
         />
+        <Pressable accessibilityRole="switch" accessibilityState={{ checked: byAisle }} onPress={() => setByAisle((v) => !v)} style={{ minHeight: 44, justifyContent: 'center' }}>
+          <Muted>{byAisle ? t('planShop.aisleOn', 'Shop order: on. Tap for a plain list') : t('planShop.aisleOff', 'Tap to sort in shop order')}</Muted>
+        </Pressable>
       </View>
 
       <ShoppingList
         items={filteredItems}
+        byAisle={byAisle}
         onToggleItem={handleToggleItem}
         showPantryIndicator={filterMode !== 'inPantry'}
         footer={

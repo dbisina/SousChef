@@ -3,7 +3,7 @@
 // person has agreed to the health consent.
 
 export type GlucoseTiming = 'fasting' | 'before-meal' | '1h-after' | '2h-after' | 'bedtime';
-export type ReadingSource = 'manual' | 'apple-health' | 'sample';
+export type ReadingSource = 'manual' | 'apple-health';
 export type ReadingKind = 'glucose' | 'bp' | 'cholesterol';
 
 interface ReadingBase {

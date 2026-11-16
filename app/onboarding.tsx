@@ -20,7 +20,7 @@ import {
   UIconButton,
   type IconName,
 } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
+import { Backdrop } from '@/components/ui/Backdrop';
 import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
 import { isDesignReview } from '@/lib/designReview';
 
@@ -60,7 +60,6 @@ interface Chip {
 
 interface Slide {
   id: string;
-  photo: number;
   alt: string;
   chips: Chip[];
 }
@@ -68,7 +67,6 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     id: '1',
-    photo: SAMPLE.pasta,
     alt: 'A bowl of tagliatelle on a wooden table',
     chips: [
       { icon: 'play', key: 'tiktok', text: 'TikTok', top: 170, left: 22 },
@@ -78,7 +76,6 @@ const SLIDES: Slide[] = [
   },
   {
     id: '2',
-    photo: SAMPLE.grocery,
     alt: 'A mesh bag of fresh produce',
     chips: [
       { icon: 'cart', key: 'shopping', text: 'Auto shopping list', top: 180, right: 22 },
@@ -88,7 +85,6 @@ const SLIDES: Slide[] = [
   },
   {
     id: '3',
-    photo: SAMPLE.chef,
     alt: 'A woman cooking at a kitchen island',
     chips: [
       { icon: 'mic', key: 'next', text: '“Next step”', top: 170, left: 22 },
@@ -186,12 +182,9 @@ export default function OnboardingScreen() {
   const renderSlide = ({ item, index: i }: { item: Slide; index: number }) => (
     <View style={{ width, flex: 1 }}>
       <View style={{ height: HERO_HEIGHT, backgroundColor: tokens.ground }}>
-        <Image
-          source={item.photo}
-          accessibilityLabel={item.alt}
-          resizeMode="cover"
-          style={{ width: '100%', height: '100%' }}
-        />
+        <View accessible accessibilityLabel={item.alt} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <Backdrop />
+          </View>
         <LinearGradient
           pointerEvents="none"
           colors={[`${tokens.ground}00`, tokens.ground]}

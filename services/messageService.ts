@@ -1,4 +1,3 @@
-import { buildConversations, buildMessages } from '@/data/sample/messages';
 import { ME_ID } from '@/types/social';
 import type { Conversation, Message, PhotoRef } from '@/types/social';
 
@@ -24,8 +23,8 @@ export interface MessageService {
 let counter = 0;
 
 export const localMessageService: MessageService = {
-  seed(now = new Date()) {
-    return { conversations: buildConversations(now), messages: buildMessages(now) };
+  seed() {
+    return { conversations: [], messages: [] };
   },
   async fetchSnapshot(now) {
     return this.seed(now);

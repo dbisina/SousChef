@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text as RNText, View } from 'react-native';
+import { HealthSummaryCard } from '@/components/ai/AiInsights';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -33,7 +34,6 @@ import {
   timeText,
 } from '@/components/health/format';
 import { ValueTile } from '@/components/health/ValueTile';
-import { PREVIEW_LABEL } from '@/constants/features';
 import { formatRise, glucoseStatus } from '@/lib/health';
 import {
   latestBp,
@@ -63,7 +63,6 @@ export default function HealthScreen() {
   const bp = useMemo(() => latestBp(readings), [readings]);
   const ldl = useMemo(() => latestLdl(readings), [readings]);
   const bars = useMemo(() => glucoseBars(readings, period, now), [readings, period, now]);
-  const hasSample = useMemo(() => readings.some((r) => r.source === 'sample'), [readings]);
 
   const periodMeals = useMemo(() => {
     const start = new Date(now);
@@ -97,7 +96,6 @@ export default function HealthScreen() {
         onBack={() => router.back()}
         right={
           <View className="flex-row items-center" style={{ gap: 8 }}>
-            {hasSample ? <Tag tone="o" label={PREVIEW_LABEL} /> : null}
             <UIconButton icon="share" label={t('health.doctorReport', 'Doctor report')} onPress={() => go('/health/report')} />
             <UIconButton
               icon="plus"
@@ -109,6 +107,7 @@ export default function HealthScreen() {
         }
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+        {apiEnabled() && consent === 'granted' ? <HealthSummaryCard /> : null}
         {apiEnabled() && consent === 'needed' ? (
           <UCard style={{ gap: 12, padding: 20 }}>
             <H2>{t('health.consentTitle', 'Keep your health numbers safe')}</H2>

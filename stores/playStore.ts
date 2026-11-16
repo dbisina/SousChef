@@ -13,7 +13,6 @@ import {
   updateStreak,
 } from '@/lib/dailyDish';
 import { canStart, hintPenalty, secondsLeft } from '@/lib/mysteryKitchen';
-import { SAMPLE_STREAK } from '@/data/sample/play';
 import { playService } from '@/services/playService';
 import { apiEnabled } from '@/lib/api';
 import { currentUserId } from '@/lib/session';
@@ -52,7 +51,8 @@ interface PlayState {
   loadDaily: (now?: Date) => Promise<void>;
   /** Server mode: asks the server how a room stands (called when it announces a change). */
   refreshRound: (code: string) => Promise<void>;
-  hostRound: () => MysteryKitchenRound;
+  /** Opens a room. A solo game (server mode) starts with just you. */
+  hostRound: (mode?: 'solo' | 'group') => MysteryKitchenRound;
   joinRound: (code: string) => MysteryKitchenRound;
   startRound: (now?: number) => void;
   /** Unlock the next hint. Each costs 10 points. Returns the hint text or null. */
@@ -62,18 +62,11 @@ interface PlayState {
   leaveRound: () => void;
 }
 
-const seedStreak = (): DailyDishStreak => ({
-  current: SAMPLE_STREAK.current,
-  best: SAMPLE_STREAK.best,
-  // Yesterday, so the sample streak is live today.
-  lastSolvedDate: toDateKey(new Date(Date.now() - 86_400_000)),
-});
-
 export const usePlayStore = create<PlayState>()(
   persist(
     (set, get) => ({
       daily: null,
-      streak: apiEnabled() ? { current: 0, best: 0, lastSolvedDate: '' } : seedStreak(),
+      streak: { current: 0, best: 0, lastSolvedDate: '' },
       round: null,
       serverDaily: null,
       playError: null,
@@ -143,11 +136,11 @@ export const usePlayStore = create<PlayState>()(
         return next;
       },
 
-      hostRound: () => {
+      hostRound: (mode = 'group') => {
         if (apiEnabled()) {
           const stand = placeholderRound('');
           set({ round: stand, playError: null });
-          apiCreateRoom({ mode: 'group' })
+          apiCreateRoom({ mode })
             .then((view) => set({ round: toRound(view, currentUserId() ?? '', Date.now()) }))
             .catch((err) => set({ playError: err instanceof Error ? err.message : 'Could not start a room' }));
           return stand;
@@ -244,8 +237,20 @@ export const usePlayStore = create<PlayState>()(
 );
 
 /* Selectors */
-export const selectDailyPuzzle = (s: PlayState, now: Date = new Date()): DailyDishPuzzle =>
-  s.serverDaily ? toDailyPuzzle(s.serverDaily) : puzzleForNumber(s.daily?.puzzleNumber ?? puzzleNumberFor(now), playService.getDailyPuzzles());
+// A selector must hand back the same object while nothing changed, or React re-renders forever ("Maximum update depth exceeded":
+// this crashed the Daily Dish screen when connected to the server). So the server's puzzle is converted once per server response.
+const puzzleOf = new WeakMap<DailyDishView, DailyDishPuzzle>();
+export const selectDailyPuzzle = (s: PlayState, now: Date = new Date()): DailyDishPuzzle => {
+  if (s.serverDaily) {
+    let puzzle = puzzleOf.get(s.serverDaily);
+    if (!puzzle) {
+      puzzle = toDailyPuzzle(s.serverDaily);
+      puzzleOf.set(s.serverDaily, puzzle);
+    }
+    return puzzle;
+  }
+  return puzzleForNumber(s.daily?.puzzleNumber ?? puzzleNumberFor(now), playService.getDailyPuzzles());
+};
 export const selectDailyStreak = (s: PlayState, now: Date = new Date()): number =>
   activeStreak(s.streak, toDateKey(now));
 export const selectDailyScore = (s: PlayState): number => (s.serverDaily ? s.serverDaily.score : s.daily ? scoreSolve(s.daily) : 0);

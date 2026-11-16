@@ -193,7 +193,10 @@ export const useSocialStore = create<SocialState>()(
                 ...(input.communityId ? { communityId: input.communityId } : {}),
               }),
             )
-            .then((saved) => set((s) => ({ posts: s.posts.map((p) => (p.id === post.id ? toPost(saved, meId) : p)) })))
+            .then((saved) => {
+              set((s) => ({ posts: s.posts.map((p) => (p.id === post.id ? toPost(saved, meId) : p)) }));
+              input.onPublished?.();
+            })
             .catch(() => set((s) => ({ posts: s.posts.filter((p) => p.id !== post.id) })));
         }
         set((s) => ({ posts: [post, ...s.posts] }));

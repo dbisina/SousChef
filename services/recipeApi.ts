@@ -5,13 +5,16 @@ import type {
   Page,
   MadePost,
   Recipe as ApiRecipe,
+  RecipeComment as ApiRecipeComment,
+  RateRecipeResponse,
   RecipeMatch,
   RecipeSummary,
+  ToggleResponse,
   UpdateRecipeRequest,
 } from '../shared/index';
 import { api } from '@/lib/api';
 import { uploadFile } from '@/lib/upload';
-import type { Recipe, RecipeFilters, RecipeFormData, RecipeMadePost } from '@/types';
+import type { Recipe, RecipeComment, RecipeFilters, RecipeFormData, RecipeMadePost } from '@/types';
 
 const PAGE = 50;
 /** The app's lists show everything at once; the server pages, so gather a few pages (200 recipes) at most. */
@@ -200,3 +203,32 @@ export async function apiAddMadePost(recipeId: string, photoUri: string): Promis
   const file = await uploadFile(photoUri, 'made_post');
   return toAppMadePost(await api().post<MadePost>(`/v1/recipes/${recipeId}/made`, { imageUrl: file.url }));
 }
+
+/* ---------------------------------------------------------------- likes, saves, ratings, comments, reports */
+
+export const apiSetRecipeLiked = (id: string, on: boolean): Promise<ToggleResponse> =>
+  on ? api().put<ToggleResponse>(`/v1/recipes/${id}/like`) : api().delete<ToggleResponse>(`/v1/recipes/${id}/like`);
+
+export const apiSetRecipeSaved = (id: string, on: boolean): Promise<ToggleResponse> =>
+  on ? api().put<ToggleResponse>(`/v1/recipes/${id}/save`) : api().delete<ToggleResponse>(`/v1/recipes/${id}/save`);
+
+export const apiRateRecipe = (id: string, rating: number, review?: string): Promise<RateRecipeResponse> =>
+  api().put<RateRecipeResponse>(`/v1/recipes/${id}/rating`, { rating, ...(review ? { review } : {}) });
+
+export async function apiRecipeComments(id: string): Promise<RecipeComment[]> {
+  const page = await api().get<Page<ApiRecipeComment>>(`/v1/recipes/${id}/comments`, { query: { limit: 50 } });
+  return page.items.map((c) => ({
+    id: c.id,
+    recipeId: c.recipeId,
+    authorId: c.author.id,
+    authorName: c.author.displayName,
+    ...(c.author.photoUrl ? { authorPhotoURL: c.author.photoUrl } : {}),
+    text: c.text,
+    likes: 0,
+    createdAt: Timestamp.fromDate(new Date(c.createdAt)),
+  }));
+}
+
+export const apiAddRecipeComment = (id: string, text: string): Promise<ApiRecipeComment> => api().post<ApiRecipeComment>(`/v1/recipes/${id}/comments`, { text });
+
+export const apiFlagRecipe = (id: string, reason: string): Promise<void> => api().post<unknown>(`/v1/recipes/${id}/flag`, { reason }).then(() => undefined);
