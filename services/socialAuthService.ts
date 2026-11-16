@@ -15,6 +15,8 @@ import {
   Timestamp,
 } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
+import { apiEnabled } from '@/lib/api';
+import { apiSocialSignIn, authViaFirebase, firebaseSocialSignIn, friendlyApiError } from '@/services/authApi';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -39,6 +41,13 @@ export const signInWithGoogle = async (
   try {
     if (!idToken) {
       return { success: false, error: 'No ID token received from Google' };
+    }
+
+    // With a server address set, the server checks the token and keeps the account (no Firebase involved).
+    if (apiEnabled()) {
+      // Firebase accounts: sign in with Firebase, then trade the token. Otherwise the server checks Google's token itself.
+      if (authViaFirebase()) return { success: true, user: await firebaseSocialSignIn(GoogleAuthProvider.credential(idToken, accessToken)) };
+      return { success: true, user: await apiSocialSignIn('google', idToken) };
     }
 
     // Create credential from tokens
@@ -77,7 +86,7 @@ export const signInWithGoogle = async (
     return { success: true, user: userData };
   } catch (error) {
     console.error('Google sign in error:', error);
-    const message = error instanceof Error ? error.message : 'Google sign in failed';
+    const message = apiEnabled() ? friendlyApiError(error) : error instanceof Error ? error.message : 'Google sign in failed';
     return { success: false, error: message };
   }
 };
@@ -114,6 +123,15 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
 
     if (!identityToken) {
       return { success: false, error: 'No identity token received from Apple' };
+    }
+
+    if (apiEnabled()) {
+      const name = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
+      if (authViaFirebase()) {
+        const credential = new OAuthProvider('apple.com').credential({ idToken: identityToken, rawNonce });
+        return { success: true, user: await firebaseSocialSignIn(credential, name || undefined) };
+      }
+      return { success: true, user: await apiSocialSignIn('apple', identityToken, name || undefined) };
     }
 
     const provider = new OAuthProvider('apple.com');
@@ -174,7 +192,7 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
     }
 
     console.error('Apple sign in error:', error);
-    const message = error instanceof Error ? error.message : 'Apple sign in failed';
+    const message = apiEnabled() ? friendlyApiError(error) : error instanceof Error ? error.message : 'Apple sign in failed';
     return { success: false, error: message };
   }
 };

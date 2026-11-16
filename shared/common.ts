@@ -14,6 +14,9 @@ export type ErrorCode =
   | 'terms_required'
   | 'provider_not_configured'
   | 'provider_rejected'
+  | 'limit_reached'
+  | 'upgrade_required'
+  | 'ai_unavailable'
   | 'internal';
 
 /** Every error response from the API has this body. */

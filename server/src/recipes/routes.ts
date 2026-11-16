@@ -1,7 +1,7 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import type { AuthService } from '../auth/service';
 import { parse } from '../auth/schemas';
-import { errors } from '../errors';
+import { viewerResolvers } from '../auth/viewer';
 import {
   commentParams,
   commentSchema,
@@ -15,19 +15,10 @@ import {
   rateSchema,
   updateRecipeSchema,
 } from './schemas';
-import type { RecipeService, Viewer } from './service';
+import type { RecipeService } from './service';
 
 export function recipeRoutes(app: FastifyInstance, recipes: RecipeService, auth: AuthService): void {
-  const requireViewer = async (request: FastifyRequest): Promise<Viewer> => {
-    const claims = await auth.authenticate(request.headers.authorization);
-    if (!claims) throw errors.unauthorized();
-    return { userId: claims.userId, role: claims.role };
-  };
-  /** For pages anyone can open: a valid sign-in adds personal details, anything else is treated as signed out. */
-  const optionalViewer = async (request: FastifyRequest): Promise<Viewer | null> => {
-    const claims = await auth.authenticate(request.headers.authorization);
-    return claims ? { userId: claims.userId, role: claims.role } : null;
-  };
+  const { requireViewer, optionalViewer } = viewerResolvers(auth);
 
   /* ---- recipes ---- */
 

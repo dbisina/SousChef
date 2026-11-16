@@ -21,7 +21,6 @@ import {
 import { InstructionList, ActionBar, DetailHero } from '@/components/recipe';
 import { sourceLabel } from '@/components/import/WantToCookCard';
 import { showSuccessToast } from '@/stores/toastStore';
-import { SAMPLE } from '@/assets/sample';
 
 type Panel = 'ingredients' | 'steps' | 'tags';
 
@@ -170,7 +169,7 @@ export default function ImportedRecipeDetailScreen() {
     >
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
         <DetailHero
-          source={recipe.imageURL ? { uri: recipe.imageURL } : SAMPLE.bowl}
+          source={recipe.imageURL ? { uri: recipe.imageURL } : null}
           height={360}
           captionBottom={54}
           onBack={() => router.back()}

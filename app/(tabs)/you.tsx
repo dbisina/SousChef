@@ -4,9 +4,7 @@ import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import {
-  AvatarStack,
   Display,
   Icon,
   Muted,
@@ -22,11 +20,9 @@ import {
   type PhotoSource,
 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
-import { CURRENT_USER } from '@/data/sample/social';
 import { useAuthStore } from '@/stores/authStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { latestGlucose, readingStatus, useHealthStore } from '@/stores/healthStore';
-import { useOrderStore } from '@/stores/orderStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useSocialStore } from '@/stores/socialStore';
 import { compactCount } from '@/lib/timeAgo';
@@ -68,7 +64,6 @@ export default function YouScreen() {
   const fetchUserRecipes = useRecipeStore((s) => s.fetchUserRecipes);
   const streak = useGamificationStore((s) => s.streak.currentStreak);
   const readings = useHealthStore((s) => s.readings);
-  const orders = useOrderStore((s) => s.orders);
   const posts = useSocialStore((s) => s.posts);
   const communities = useSocialStore((s) => s.communities);
   const joinedIds = useSocialStore((s) => s.joinedCommunityIds);
@@ -96,9 +91,9 @@ export default function YouScreen() {
   }, [user, fetchUserRecipes]);
 
   const go = (href: string) => router.push(href as Href);
-  const name = user?.displayName || CURRENT_USER.displayName;
-  const handle = user?.email ? user.email.split('@')[0] : CURRENT_USER.handle;
-  const avatar: PhotoSource = user?.photoURL ? { uri: user.photoURL } : (SAMPLE.chef as PhotoSource);
+  const name = user?.displayName || t('you.guest', 'Guest');
+  const handle = user?.email ? user.email.split('@')[0] : 'guest';
+  const avatar: PhotoSource | undefined = user?.photoURL ? { uri: user.photoURL } : undefined;
   const recipeCount = Math.max(myRecipes.length, user?.recipeCount ?? 0);
 
   const myPosts = useMemo(() => posts.filter((p) => p.authorId === ME_ID), [posts]);
@@ -119,10 +114,6 @@ export default function YouScreen() {
       })
     : t('you.healthEmpty', 'Log a reading');
 
-  const lastOrder = useMemo(
-    () => [...orders].sort((a, b) => b.placedAt.localeCompare(a.placedAt))[0],
-    [orders],
-  );
   const communityTarget = joinedIds[0] ?? communities[0]?.id;
 
   const quick: Quick[] = [];
@@ -146,26 +137,17 @@ export default function YouScreen() {
         joinedIds.length > 0
           ? t('you.communities', '{{n}} communities', { n: joinedIds.length })
           : t('you.communitiesNone', 'Communities'),
-      leading: <AvatarStack people={[SAMPLE.p_woman, SAMPLE.p_man].map((s, i) => ({ name: `c${i}`, source: s as PhotoSource }))} size={30} max={2} />,
-      onPress: () => go(`/community/${communityTarget}`),
-    });
-  }
-  if (FEATURES.ordering) {
-    quick.push({
-      key: 'orders',
-      title: t('you.orders', 'Orders'),
-      subtitle: lastOrder ? lastOrder.status : undefined,
       leading: (
         <View className="items-center justify-center bg-ground" style={{ width: 36, height: 36, borderRadius: 18 }}>
-          <Icon name="bag" size="sm" />
+          <Icon name="people" size="sm" />
         </View>
       ),
-      onPress: () => go(lastOrder ? `/order/${lastOrder.id}` : '/restaurant/smash'),
+      onPress: () => go(`/community/${communityTarget}`),
     });
   }
 
   const tile = (width - 8) / 3;
-  const grid: { key: string; source: PhotoSource; label: string; href: string }[] =
+  const grid: { key: string; source: PhotoSource | null; label: string; href: string }[] =
     tab === 'recipes'
       ? myRecipes
           .filter((r) => r.imageURL)
@@ -187,7 +169,7 @@ export default function YouScreen() {
   return (
     <Screen bare>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
-        <PhotoCard source={SAMPLE.veg} height={200} radius={0} fade="both">
+        <PhotoCard source={user?.bannerURL ? { uri: user.bannerURL } : null} height={200} radius={0} fade="both">
           <View
             className="flex-row items-center justify-between"
             style={{ position: 'absolute', top: Math.max(insets.top, 20) + 14, left: 20, right: 20 }}

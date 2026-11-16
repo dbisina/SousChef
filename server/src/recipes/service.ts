@@ -12,10 +12,11 @@ import {
   type RecipeSummary,
   type ToggleResponse,
   type UpdateRecipeRequest,
-  type UserRole,
 } from '@shared';
 import { Prisma } from '../../generated/prisma/client';
+import type { Viewer } from '../auth/viewer';
 import type { Db } from '../db';
+import type { EntitlementService } from '../subscriptions/service';
 import { errors } from '../errors';
 import {
   authorSelect,
@@ -33,10 +34,7 @@ export const FLAG_HIDE_THRESHOLD = 3;
 /** Most ranked matches a text search considers before the filters and the page are applied. */
 const SEARCH_CANDIDATES = 200;
 
-export interface Viewer {
-  userId: string;
-  role: UserRole;
-}
+export type { Viewer };
 
 export interface ListFilters {
   q?: string | undefined;
@@ -58,7 +56,10 @@ const cleanList = (values: string[] | undefined): string[] =>
   [...new Set((values ?? []).map((v) => v.trim().toLowerCase()).filter(Boolean))];
 
 export class RecipeService {
-  constructor(private readonly db: Db) {}
+  constructor(
+    private readonly db: Db,
+    private readonly entitlements: EntitlementService,
+  ) {}
 
   /* ------------------------------------------------------------------ recipes */
 
@@ -94,6 +95,7 @@ export class RecipeService {
 
   async get(id: string, viewer: Viewer | null): Promise<Recipe> {
     const row = await this.visibleRow(id, viewer);
+    await this.requireExclusiveAccess(row, viewer);
     if (!viewer) return toRecipe(row, null);
     const [like, save, rating] = await Promise.all([
       this.db.recipeLike.findUnique({ where: { userId_recipeId: { userId: viewer.userId, recipeId: id } }, select: { userId: true } }),
@@ -406,6 +408,14 @@ export class RecipeService {
     const mine = viewer !== null && (row?.authorId === viewer.userId || viewer.role === 'admin');
     if (!row || (row.status !== 'PUBLISHED' && !mine)) throw errors.notFound('Recipe not found');
     return row;
+  }
+
+  /** Pro-only recipes open for the author, staff and people on a plan that includes them. */
+  private async requireExclusiveAccess(row: RecipeRow, viewer: Viewer | null): Promise<void> {
+    if (!row.isExclusive) return;
+    if (viewer && (viewer.userId === row.authorId || viewer.role === 'admin')) return;
+    if (viewer && (await this.entitlements.forUser(viewer.userId)).features.exclusiveRecipes) return;
+    throw errors.upgradeRequired('pro');
   }
 
   private requireAdminForFlags(viewer: Viewer, input: { isOfficial?: boolean | undefined; isExclusive?: boolean | undefined }): void {
