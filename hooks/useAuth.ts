@@ -78,7 +78,6 @@ export const useAuth = () => {
     if (isDesignReview || !isInitialized) return; // review mode: no route guard
 
     const inAuthGroup = segments[0] === 'auth';
-    const inAdminGroup = segments[0] === 'admin';
     const inOnboarding = segments[0] === 'onboarding';
 
     if (!user && !inAuthGroup && !inOnboarding) {
@@ -92,9 +91,6 @@ export const useAuth = () => {
       });
     } else if (user && (inAuthGroup || inOnboarding)) {
       // Signed in and on auth screen, redirect to home
-      router.replace('/(tabs)');
-    } else if (user && inAdminGroup && user.role !== 'admin' && user.role !== 'chef') {
-      // Trying to access admin without permission
       router.replace('/(tabs)');
     }
   }, [user, segments, isInitialized]);
