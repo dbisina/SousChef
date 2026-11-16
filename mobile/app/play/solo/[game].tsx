@@ -113,13 +113,32 @@ export default function SoloGameScreen() {
           <Muted>{t('play.solo.correct', '{{c}} of {{n}} right', { c: result.correctCount, n: result.total })}</Muted>
           <Tag tone="o" large icon="trophy" label={result.newBest ? t('play.solo.newBest', 'New best!') : t('play.solo.best', 'Best {{n}}', { n: result.best })} />
         </View>
-        {result.reveal.map((r, i) => (
-          <UCard key={r.id} style={{ padding: 14, borderRadius: 22, gap: 6 }}>
-            <Title>{`${i + 1}. ${r.correct ? t('play.solo.right', 'Right') : t('play.solo.wrong', 'Not quite')}`}</Title>
-            {Array.isArray(r.answer) ? r.answer.map((s, n) => <Body key={s}>{`${n + 1}. ${s}`}</Body>) : <Body>{r.answer}</Body>}
-            {r.note ? <Muted small>{r.note}</Muted> : null}
-          </UCard>
-        ))}
+        {result.reveal.map((r, i) => {
+          const asked = round?.items[i];
+          const mine = asked?.options && typeof picks[i] === 'number' ? asked.options[picks[i] as number] : null;
+          return (
+            <UCard key={r.id} style={{ padding: 12, borderRadius: 22, gap: 10 }}>
+              <View className="flex-row" style={{ gap: 12 }}>
+                {asked ? (
+                  <Image source={questionPhoto(asked)} contentFit="cover" accessibilityIgnoresInvertColors style={{ width: 72, height: 72, borderRadius: 16 }} />
+                ) : null}
+                <View className="flex-1" style={{ gap: 4, minWidth: 0 }}>
+                  <Tag tone={r.correct ? 'o' : undefined} icon={r.correct ? 'check' : 'close'} label={r.correct ? t('play.solo.right', 'Right') : t('play.solo.wrong', 'Not quite')} />
+                  {asked ? <Title>{asked.prompt}</Title> : null}
+                </View>
+              </View>
+              {Array.isArray(r.answer) ? (
+                r.answer.map((st, n) => <Body key={st}>{`${n + 1}. ${st}`}</Body>)
+              ) : (
+                <View style={{ gap: 2 }}>
+                  {!r.correct && mine ? <Muted small>{t('play.solo.yourAnswer', 'You said: {{a}}', { a: mine })}</Muted> : null}
+                  <Body>{t('play.solo.theAnswer', 'Answer: {{a}}', { a: r.answer })}</Body>
+                </View>
+              )}
+              {r.note ? <Muted small>{r.note}</Muted> : null}
+            </UCard>
+          );
+        })}
       </Screen>
     );
   }
@@ -149,6 +168,13 @@ export default function SoloGameScreen() {
         onBack={() => router.back()}
         right={round ? <Tag large label={`${Math.min(index + 1, round.items.length)}/${round.items.length}`} /> : undefined}
       />
+      {round && !error ? (
+        <View className="flex-row" style={{ gap: 5 }}>
+          {round.items.map((it, n) => (
+            <View key={it.id} style={{ flex: 1, height: 5, borderRadius: 3, backgroundColor: n <= index ? '#F97316' : 'rgba(255,255,255,0.14)' }} />
+          ))}
+        </View>
+      ) : null}
       {error ? (
         <View style={{ gap: 12, alignItems: 'center', paddingTop: 24 }}>
           <Muted center>{error}</Muted>
