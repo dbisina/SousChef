@@ -28,8 +28,8 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAd
       style={{ paddingTop: Math.max(insets.top, 20) + 14, paddingBottom: 10, paddingHorizontal: 20, gap: 12 }}
     >
       <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
-      <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, bottom: 10, height: 46, alignItems: 'center', justifyContent: 'center' }}>
-        <RNText className="text-ink" accessibilityRole="header" style={{ fontFamily: FONT.display, fontSize: 19, lineHeight: 24, letterSpacing: -0.38 }}>
+      <View pointerEvents="none" style={{ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' }}>
+        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" style={{ fontFamily: FONT.display, fontSize: 19, lineHeight: 24, letterSpacing: -0.38 }}>
           SousChef
         </RNText>
       </View>
@@ -97,7 +97,7 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
       style={{ flexGrow: 0, marginHorizontal: -20 }}
       contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
     >
-      <StoryRing source={me?.photoURL ? { uri: me.photoURL } : null} name={t('home.yourPlate', 'Your plate')} seen add onPress={onAdd} />
+      <StoryRing source={me?.photoURL ? { uri: me.photoURL } : null} name={t('home.yourPlate', 'Your plate')} initialsFrom={me?.displayName} seen add onPress={onAdd} />
       {stories.map((story) => {
         const author = authors.find((a) => a.id === story.authorId);
         if (!author) return null;

@@ -252,12 +252,12 @@ export default function ImportScreen() {
           <UInput
             icon="link"
             label={t('importUi.urlLabel', 'Recipe URL')}
-            placeholder="https://..."
+            placeholder="Paste a link, or say what you want to cook"
             value={url}
             onChangeText={setUrl}
             autoCapitalize="none"
             autoCorrect={false}
-            keyboardType="url"
+            keyboardType="default"
             returnKeyType="go"
             onSubmitEditing={handleImport}
             editable={!isImporting}

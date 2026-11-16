@@ -115,6 +115,8 @@ export default function RootLayout() {
     const handleInitialURL = async () => {
       // Review mode: on web the page URL itself would be read as a shared recipe link.
       if (isDesignReview) return;
+      // On web the launch URL is just the page address (never a shared link), so it must not open the import screen.
+      if (Platform.OS === 'web') return;
       // Check Share Extension bridge first
       const shareExtURL = await getSharedURL();
       if (shareExtURL) {
@@ -136,6 +138,7 @@ export default function RootLayout() {
 
     // Listen for incoming URLs while app is running (Linking + Share Extension)
     const subscription = Linking.addEventListener('url', (event) => {
+      if (Platform.OS === 'web') return; // page navigation, not a shared link
       const extracted = extractURLFromText(event.url);
       if (extracted) {
         setSharedURL(extracted);

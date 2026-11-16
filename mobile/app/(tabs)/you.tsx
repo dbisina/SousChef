@@ -102,7 +102,7 @@ export default function YouScreen() {
       .then((p) => setCounts({ followers: p.followerCount, following: p.followingCount }))
       .catch(() => undefined);
   }, [user?.id]);
-  const handle = user?.email ? user.email.split('@')[0] : 'guest';
+  const handle = user?.handle ?? (user?.email ? user.email.split('@')[0] : 'guest');
   const avatar: PhotoSource | undefined = user?.photoURL ? { uri: user.photoURL } : undefined;
   const recipeCount = Math.max(myRecipes.length, user?.recipeCount ?? 0);
 
