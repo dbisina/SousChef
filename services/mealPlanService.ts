@@ -24,6 +24,23 @@ import {
   WasteEntryFormData,
   MealType,
 } from '@/types/mealplan';
+import { apiEnabled } from '@/lib/api';
+import {
+  apiCheckShoppingItem,
+  apiCurrentPlan,
+  apiDeletePlan,
+  apiDeleteWaste,
+  apiLogWaste,
+  apiPlanByWeek,
+  apiPlans,
+  apiSavePlan,
+  apiSetMeal,
+  apiWasteLog,
+  apiWasteStats,
+} from '@/services/mealPlanApi';
+
+// With EXPO_PUBLIC_API_URL set, plans and the waste log live on the SousChef server. A plan is identified by its
+// week (the Monday), so that is the "plan id" passed around the app in that mode.
 
 // Collection paths
 const getMealPlansCollection = (userId: string) =>
@@ -71,6 +88,7 @@ export const getDayName = (dateString: string): string => {
 export const getCurrentMealPlan = async (
   userId: string
 ): Promise<WeeklyMealPlan | null> => {
+  if (apiEnabled()) return apiCurrentPlan();
   const weekStart = getWeekStartDate();
   return getMealPlanByWeek(userId, weekStart);
 };
@@ -80,6 +98,7 @@ export const getMealPlanByWeek = async (
   userId: string,
   weekStartDate: string
 ): Promise<WeeklyMealPlan | null> => {
+  if (apiEnabled()) return apiPlanByWeek(weekStartDate).catch(() => null);
   try {
     const plansRef = getMealPlansCollection(userId);
     const q = query(plansRef, where('weekStartDate', '==', weekStartDate));
@@ -102,6 +121,7 @@ export const getMealPlanByWeek = async (
 
 // Get all meal plans for a user
 export const getMealPlans = async (userId: string): Promise<WeeklyMealPlan[]> => {
+  if (apiEnabled()) return apiPlans().catch(() => []);
   try {
     const plansRef = getMealPlansCollection(userId);
     const q = query(plansRef, orderBy('weekStartDate', 'desc'));
@@ -121,6 +141,7 @@ export const saveMealPlan = async (
   userId: string,
   plan: Omit<WeeklyMealPlan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
 ): Promise<WeeklyMealPlan> => {
+  if (apiEnabled()) return apiSavePlan(plan);
   try {
     // Check if plan exists for this week
     const existing = await getMealPlanByWeek(userId, plan.weekStartDate);
@@ -169,6 +190,7 @@ export const updateMeal = async (
   mealType: MealType,
   meal: PlannedMeal | null
 ): Promise<void> => {
+  if (apiEnabled()) return apiSetMeal(planId, date, mealType, meal);
   try {
     const planRef = doc(getMealPlansCollection(userId), planId);
     const planDoc = await getDoc(planRef);
@@ -214,6 +236,7 @@ export const deleteMealPlan = async (
   userId: string,
   planId: string
 ): Promise<void> => {
+  if (apiEnabled()) return apiDeletePlan(planId);
   try {
     await deleteDoc(doc(getMealPlansCollection(userId), planId));
   } catch (error) {
@@ -228,6 +251,7 @@ export const updateShoppingListItem = async (
   itemId: string,
   checked: boolean
 ): Promise<void> => {
+  if (apiEnabled()) return apiCheckShoppingItem(planId, itemId, checked);
   try {
     const planRef = doc(getMealPlansCollection(userId), planId);
     const planDoc = await getDoc(planRef);
@@ -261,6 +285,7 @@ export const logWasteEntry = async (
   userId: string,
   data: WasteEntryFormData
 ): Promise<FoodWasteEntry> => {
+  if (apiEnabled()) return apiLogWaste(data); // the server keeps the running totals
   try {
     const entryId = generateId();
     const entry: FoodWasteEntry = {
@@ -291,6 +316,7 @@ export const getWasteLog = async (
   userId: string,
   limit?: number
 ): Promise<FoodWasteEntry[]> => {
+  if (apiEnabled()) return apiWasteLog(limit).catch(() => []);
   try {
     const wasteRef = getWasteLogCollection(userId);
     const q = query(wasteRef, orderBy('date', 'desc'));
@@ -316,6 +342,7 @@ export const deleteWasteEntry = async (
   userId: string,
   entryId: string
 ): Promise<void> => {
+  if (apiEnabled()) return apiDeleteWaste(entryId);
   try {
     await deleteDoc(doc(getWasteLogCollection(userId), entryId));
   } catch (error) {
@@ -325,6 +352,7 @@ export const deleteWasteEntry = async (
 
 // Get waste statistics
 export const getWasteStats = async (userId: string): Promise<WasteStats | null> => {
+  if (apiEnabled()) return apiWasteStats().catch(() => null);
   try {
     const statsDoc = await getDoc(getWasteStatsDoc(userId));
 

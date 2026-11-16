@@ -11,16 +11,19 @@ import type {
   SocialLoginRequest,
   UpdateProfileRequest,
 } from '@shared';
-import type { User } from '../../generated/prisma/client';
+import type { AuthProvider, User } from '../../generated/prisma/client';
 import type { Config } from '../config';
 import { isUniqueViolation, type Db } from '../db';
 import { errors } from '../errors';
 import { recipesTouchedBy, recomputeRecipeCounters } from '../recipes/counters';
+import { recomputeSocialCounters, socialTouchedBy } from '../social/counters';
 import type { UploadService } from '../uploads/service';
 import type { IdTokenVerifier } from './idToken';
 import type { Mailer } from './mailer';
 import { hashPassword, verifyAgainstDummy, verifyPassword } from './password';
 import { hashToken, newOpaqueToken, signAccessToken, verifyAccessToken, type AccessClaims } from './tokens';
+
+const PROVIDER_NAME: Record<AuthProvider, 'google' | 'apple' | 'firebase'> = { GOOGLE: 'google', APPLE: 'apple', FIREBASE: 'firebase' };
 
 export interface AuthDeps {
   db: Db;
@@ -246,6 +249,7 @@ export class AuthService {
           ...(input.handle !== undefined ? { handle: input.handle } : {}),
           ...(input.bio !== undefined ? { bio: input.bio.trim() } : {}),
           ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
+          ...(input.bannerUrl !== undefined ? { bannerUrl: input.bannerUrl } : {}),
           ...(input.isChef !== undefined ? { isChef: input.isChef } : {}),
         },
       });
@@ -267,10 +271,12 @@ export class AuthService {
     // Remember which recipes this person had touched: their likes, saves, comments and ratings vanish with the account,
     // so those recipes' totals are recounted afterwards.
     const touched = await recipesTouchedBy(this.db, userId);
+    const social = await socialTouchedBy(this.db, userId);
     const files = (await this.uploads?.keysFor(userId)) ?? [];
     // Sessions, devices, identities, consents, resets and everything they wrote are removed with the user (onDelete: Cascade).
     await this.db.user.delete({ where: { id: userId } });
     await recomputeRecipeCounters(this.db, touched);
+    await recomputeSocialCounters(this.db, social);
     await this.uploads?.deleteKeys(files);
   }
 
@@ -300,7 +306,7 @@ export class AuthService {
     passwordHash?: string;
     displayName: string;
     termsVersion: string;
-    identity?: { provider: 'GOOGLE' | 'APPLE'; providerUserId: string; email: string | null };
+    identity?: { provider: AuthProvider; providerUserId: string; email: string | null };
   }): Promise<User> {
     const base = slugifyHandle(input.displayName);
     for (let attempt = 0; attempt < 6; attempt++) {
@@ -333,6 +339,7 @@ export class AuthService {
 
   /** Creates the next session and the access and refresh tokens that go with it. */
   private async issue(user: User, deviceName?: string, familyId?: string): Promise<AuthResponse> {
+    if (user.suspendedAt) throw errors.forbidden('This account is suspended');
     const now = this.now();
     const refreshToken = newOpaqueToken();
     const session = await this.db.session.create({
@@ -363,13 +370,14 @@ export class AuthService {
     await this.db.session.updateMany({ where: { familyId, revokedAt: null }, data: { revokedAt: this.now() } });
   }
 
-  private toMe(user: User, providers: ('GOOGLE' | 'APPLE')[]): Me {
+  private toMe(user: User, providers: AuthProvider[]): Me {
     return {
       id: user.id,
       handle: user.handle,
       displayName: user.displayName,
       bio: user.bio,
       photoUrl: user.photoUrl,
+      bannerUrl: user.bannerUrl,
       isChef: user.isChef,
       isVerifiedChef: user.verifiedChefAt !== null,
       kind: user.kind === 'HOUSE' ? 'house' : 'person',
@@ -378,7 +386,7 @@ export class AuthService {
       role: user.role === 'ADMIN' ? 'admin' : 'user',
       providers: [
         ...(user.passwordHash ? (['password'] as const) : []),
-        ...providers.map((p) => (p === 'GOOGLE' ? ('google' as const) : ('apple' as const))),
+        ...providers.map((p) => PROVIDER_NAME[p]),
       ],
       createdAt: user.createdAt.toISOString(),
     };

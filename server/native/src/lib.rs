@@ -15,6 +15,40 @@ pub struct VideoLink {
     pub canonical: Option<String>,
 }
 
+/// One post to be ranked. See `souschef-feed` for how the numbers are used.
+#[napi(object)]
+pub struct FeedCandidate {
+    pub id: String,
+    pub author_id: String,
+    pub age_hours: f64,
+    pub likes: u32,
+    pub comments: u32,
+    pub saves: u32,
+    pub views: u32,
+    pub author_affinity: f64,
+    pub has_recipe: bool,
+}
+
+/// Orders posts for the "for you" feed and returns the ids of the best `limit`, best first.
+#[napi]
+pub fn rank_feed(candidates: Vec<FeedCandidate>, limit: u32) -> Vec<String> {
+    let posts: Vec<souschef_feed::Candidate> = candidates
+        .into_iter()
+        .map(|c| souschef_feed::Candidate {
+            id: c.id,
+            author_id: c.author_id,
+            age_hours: c.age_hours,
+            likes: c.likes,
+            comments: c.comments,
+            saves: c.saves,
+            views: c.views,
+            author_affinity: c.author_affinity,
+            has_recipe: c.has_recipe,
+        })
+        .collect();
+    souschef_feed::rank(&posts, limit as usize)
+}
+
 /// Parses a TikTok, Instagram or YouTube link. Returns null if it is not one of those, or not a video.
 #[napi]
 pub fn parse_video_link(input: String) -> Option<VideoLink> {

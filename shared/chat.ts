@@ -82,7 +82,9 @@ export type ChatEvent =
   | { type: 'receipt'; conversationId: string; userId: string; delivered?: number; read?: number }
   | { type: 'reaction'; conversationId: string; messageId: string; userId: string; emoji: string; active: boolean; count: number }
   /** Members or the title changed, or you were added or removed: fetch the conversation again. */
-  | { type: 'conversation.updated'; conversationId: string };
+  | { type: 'conversation.updated'; conversationId: string }
+  /** A Mystery Kitchen room changed (someone joined, it started, a plate came in, it finished): fetch the room again. */
+  | { type: 'game.updated'; code: string; phase: 'lobby' | 'cooking' | 'done' | 'closed' };
 
 /* ---------------------------------------------------------------- conversations */
 
@@ -129,3 +131,26 @@ export interface Blocked {
   user: Participant;
   at: string;
 }
+
+/* ---------------------------------------------------------------- the live connection (WebSocket /v1/ws) */
+
+/**
+ * What the phone sends. The first frame must be `auth` (within 10 seconds), with the access token. Messages are sent
+ * with the normal requests, not here; the connection only listens, and carries typing and small acknowledgements.
+ */
+export type ClientFrame =
+  | { type: 'auth'; token: string }
+  | { type: 'ping' }
+  /** This phone has received everything in the conversation up to `seq` (marks it delivered). */
+  | { type: 'ack'; conversationId: string; seq: number }
+  | { type: 'typing'; conversationId: string; typing: boolean };
+
+/** What the server sends. Close codes: 4400 bad frame, 4401 not signed in, 4408 no sign-in in time, 4409 replaced by a newer connection. */
+export type ServerFrame =
+  | { type: 'ready'; userId: string; serverTime: string; online: string[] }
+  | { type: 'pong' }
+  | { type: 'event'; event: ChatEvent }
+  | { type: 'typing'; conversationId: string; userId: string; typing: boolean }
+  /** Someone you share a conversation with came online or went offline. */
+  | { type: 'presence'; userId: string; online: boolean }
+  | { type: 'error'; code: 'unauthorized' | 'bad_frame' | 'not_found'; message: string };

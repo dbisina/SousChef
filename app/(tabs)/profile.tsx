@@ -1,4 +1,5 @@
 import React from 'react';
+import { SERVER_MODE } from '@/constants/features';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +25,6 @@ import {
   type IconName,
 } from '@/components/ui';
 import { getTierFeatures } from '@/services/subscriptionService';
-import { SAMPLE } from '@/assets/sample';
 
 type SettingsRoute =
   | '/subscription'
@@ -36,10 +36,7 @@ type SettingsRoute =
   | '/settings/help'
   | '/settings/advertise'
   | '/settings/terms'
-  | '/admin/add-recipe'
-  | '/admin/manage-ads'
-  | '/settings/analytics'
-  | '/admin/seed';
+  | '/settings/analytics';
 
 interface MenuItem {
   id: string;
@@ -121,11 +118,9 @@ export default function ProfileScreen() {
     { id: 'terms', icon: 'book', label: t('account.profile.legal', 'Terms and privacy'), route: '/settings/terms' },
   ];
 
+  // Recipes are added from the normal create flow and ads are run from the staff dashboard, so the only chef item is analytics.
   const chefItems: MenuItem[] = [
-    { id: 'add-recipe', icon: 'plus', label: t('account.profile.addOfficial', 'Add official recipe'), route: '/admin/add-recipe' },
-    { id: 'ads', icon: 'bag', label: t('account.profile.manageAds', 'Manage ads'), route: '/admin/manage-ads' },
     { id: 'analytics', icon: 'trend', label: t('account.profile.analytics', 'Recipe analytics'), route: '/settings/analytics' },
-    { id: 'seed', icon: 'grid', label: t('account.profile.seed', 'Database seeder'), route: '/admin/seed' },
   ];
 
   const items = isGuest ? guestItems : [...memberItems, ...(isChef ? chefItems : [])];
@@ -151,7 +146,7 @@ export default function ProfileScreen() {
   };
 
   const name = isGuest ? t('account.profile.guestChef', 'Guest Chef') : user.displayName;
-  const photo = !isGuest && user.photoURL ? { uri: user.photoURL } : SAMPLE.chef;
+  const photo = !isGuest && user.photoURL ? { uri: user.photoURL } : null;
   const stats = isGuest
     ? t('account.profile.browsingAsGuest', 'Browsing as guest')
     : t('account.profile.stats', '{{recipes}} recipes · {{saved}} saved', {

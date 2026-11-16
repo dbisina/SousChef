@@ -7,10 +7,14 @@ export interface Storage {
   presignUpload(input: { key: string; contentType: string; expiresSeconds: number }): Promise<{ url: string; headers: Record<string, string> }>;
   /** Size and type of the stored file, or null if there is none. */
   head(key: string): Promise<{ size: number; contentType: string } | null>;
+  /** The stored bytes, or null if there is no such file. For files the server itself has to read (frames for the AI). */
+  read(key: string): Promise<Buffer | null>;
   /** Removes a file. Removing one that is already gone is not an error. */
   delete(key: string): Promise<void>;
   /** The address the file is served from once it exists. */
   publicUrl(key: string): string;
+  /** The reverse of `publicUrl`: which stored file an address points at, or null if it is not one of ours. */
+  keyFromPublicUrl(url: string): string | null;
 }
 
 export interface S3Settings extends Credentials {
@@ -71,6 +75,14 @@ export class S3Storage implements Storage {
     return { size: Number(res.headers.get('content-length') ?? 0), contentType: res.headers.get('content-type') ?? '' };
   }
 
+  async read(key: string) {
+    const signed = signRequest({ method: 'GET', endpoint: this.settings.endpoint, path: this.path(key), now: this.now(), credentials: this.settings });
+    const res = await this.request(signed.url, { method: 'GET', headers: signed.headers });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`storage GET failed with ${res.status}`);
+    return Buffer.from(await res.arrayBuffer());
+  }
+
   async delete(key: string) {
     const signed = signRequest({ method: 'DELETE', endpoint: this.settings.endpoint, path: this.path(key), now: this.now(), credentials: this.settings });
     const res = await this.request(signed.url, { method: 'DELETE', headers: signed.headers });
@@ -79,5 +91,15 @@ export class S3Storage implements Storage {
 
   publicUrl(key: string): string {
     return `${this.settings.publicUrl}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  }
+
+  keyFromPublicUrl(url: string): string | null {
+    const base = `${this.settings.publicUrl}/`;
+    if (!url.startsWith(base)) return null;
+    try {
+      return url.slice(base.length).split('?')[0]!.split('/').map(decodeURIComponent).join('/');
+    } catch {
+      return null;
+    }
   }
 }

@@ -1027,6 +1027,11 @@ export const CALORIE_DATABASE: Record<string, CalorieEntry> = {
     fat: 0,
     fiber: 0,
   },
+  // Used in the starter recipes
+  'arborio rice': { name: 'Arborio Rice (dry)', caloriesPer100g: 350, defaultUnit: 'cup', defaultAmount: 0.5, gramsPerUnit: 200, protein: 6.5, carbs: 80, fat: 0.6, fiber: 1.4 },
+  mascarpone: { name: 'Mascarpone', caloriesPer100g: 429, defaultUnit: 'g', defaultAmount: 100, gramsPerUnit: 1, protein: 4.8, carbs: 4.6, fat: 44, fiber: 0 },
+  ladyfingers: { name: 'Ladyfingers', caloriesPer100g: 380, defaultUnit: 'g', defaultAmount: 100, gramsPerUnit: 1, protein: 8, carbs: 78, fat: 3.5, fiber: 1.5 },
+  espresso: { name: 'Espresso', caloriesPer100g: 2, defaultUnit: 'ml', defaultAmount: 30, gramsPerUnit: 1, protein: 0.1, carbs: 0, fat: 0, fiber: 0 },
 };
 
 // Unit conversion helpers

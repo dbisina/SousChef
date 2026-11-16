@@ -5,7 +5,7 @@ import { PhotoCard, UIconButton } from '@/components/ui';
 import type { PhotoSource } from '@/components/ui';
 
 interface DetailHeroProps {
-  source: PhotoSource;
+  source?: PhotoSource | null;
   height?: number;
   onBack: () => void;
   backLabel: string;

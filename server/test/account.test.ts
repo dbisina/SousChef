@@ -56,6 +56,7 @@ describe('profile', () => {
     ['an empty name', { displayName: '  ' }, 'displayName'],
     ['a photo link that is not https', { photoUrl: 'http://example.com/a.jpg' }, 'photoUrl'],
     ['a photo that is not a link', { photoUrl: 'javascript:alert(1)' }, 'photoUrl'],
+    ['a banner link that is not https', { bannerUrl: 'http://example.com/b.jpg' }, 'bannerUrl'],
   ])('rejects %s', async (_label, bad, field) => {
     const auth = await register(t);
     const res = await patch(auth, bad);
@@ -67,6 +68,16 @@ describe('profile', () => {
     const auth = await register(t);
     expect((await patch(auth, { photoUrl: 'https://cdn.example.com/a.jpg' })).json<Me>().photoUrl).toBe('https://cdn.example.com/a.jpg');
     expect((await patch(auth, { photoUrl: null })).json<Me>().photoUrl).toBeNull();
+  });
+
+  it('sets, replaces and removes a profile banner, and shows it on the public profile', async () => {
+    const auth = await register(t);
+    expect((await patch(auth, {})).json<Me>().bannerUrl).toBeNull();
+    expect((await patch(auth, { bannerUrl: 'https://cdn.example.com/b1.jpg' })).json<Me>().bannerUrl).toBe('https://cdn.example.com/b1.jpg');
+    expect((await patch(auth, { bannerUrl: 'https://cdn.example.com/b2.jpg', bio: 'hi' })).json<Me>().bannerUrl).toBe('https://cdn.example.com/b2.jpg');
+    const profile = await t.app.inject({ method: 'GET', url: `/v1/users/${auth.user.id}`, headers: bearer(auth) });
+    expect(profile.json<{ bannerUrl: string | null }>().bannerUrl).toBe('https://cdn.example.com/b2.jpg');
+    expect((await patch(auth, { bannerUrl: null })).json<Me>().bannerUrl).toBeNull();
   });
 
   it('needs a sign-in', async () => {
