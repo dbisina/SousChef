@@ -1,5 +1,6 @@
 // "Want to cook", the shopping list and link import against the SousChef server.
 // Used by wantToCookStore and recipeImportService when EXPO_PUBLIC_API_URL is set.
+import { resolveTikTokVideo } from '@/lib/tiktokVideo';
 import { Timestamp } from '@/lib/firebase';
 import type {
   AddShoppingItemsRequest,
@@ -168,6 +169,18 @@ export async function apiExtractFromUrl(
 ): Promise<URLExtractionResponse | null> {
   onProgress?.('Reading the link...');
   let result = await api().post<ImportResult>('/v1/imports', { url }, { timeoutMs: 60_000 });
+  if (result.status === 'needs_frames' && result.platform === 'tiktok') {
+    // TikTok refuses the server's address but not this phone's: find the video file here, and the server reads it.
+    try {
+      onProgress?.('Fetching the video...');
+      const found = await resolveTikTokVideo(url);
+      if (found) {
+        result = await api().post<ImportResult>(`/v1/imports/${result.id}/video`, found, { timeoutMs: 120_000 });
+      }
+    } catch {
+      // the screenshot fallback below (if the caller offers it), then the on-device reader
+    }
+  }
   if (result.status === 'needs_frames' && askFrames) {
     const uris = await askFrames();
     if (uris && uris.length > 0) {

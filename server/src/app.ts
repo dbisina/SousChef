@@ -41,7 +41,7 @@ import { mysteryKitchenRoutes } from './play/mkRoutes';
 import { SoloGameService } from './play/solo';
 import { GamePoolService } from './play/pool';
 import { ytDlpSource, type VideoTextSource } from './imports/videoText';
-import { ytDlpFrames, type VideoFrameSource } from './imports/videoFrames';
+import { downloadVideo, framesFromBytes, ytDlpFrames, type VideoFrame, type VideoFrameSource } from './imports/videoFrames';
 import { braveSearch, firstWorking, tavilySearch, type WebSearch } from './imports/webSearch';
 import { soloRoutes } from './play/soloRoutes';
 import { backgroundJobs } from './jobs';
@@ -91,6 +91,8 @@ export interface BuildOptions {
   videoFrames?: VideoFrameSource | null;
   /** Web search for imports by description (default: Tavily then Brave when their keys are set). Tests pass a stub or null. */
   webSearch?: WebSearch | null;
+  /** Downloads and reads a video the phone resolved (default: on when YT_DLP_PATH is set; needs ffmpeg). Tests pass a stub or null. */
+  phoneVideo?: { download: (url: string, cookie?: string) => Promise<Buffer>; frames: (bytes: Buffer) => Promise<VideoFrame[]> } | null;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
   aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
@@ -197,7 +199,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
-  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText, options.videoFrames === undefined ? (config.YT_DLP_PATH ? ytDlpFrames({ ytDlp: config.YT_DLP_PATH, ffmpeg: config.FFMPEG_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoFrames, options.webSearch === undefined ? webSearchFromConfig(config) : options.webSearch), auth, config);
+  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText, options.videoFrames === undefined ? (config.YT_DLP_PATH ? ytDlpFrames({ ytDlp: config.YT_DLP_PATH, ffmpeg: config.FFMPEG_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoFrames, options.webSearch === undefined ? webSearchFromConfig(config) : options.webSearch, options.phoneVideo === undefined ? (config.YT_DLP_PATH ? { download: (url, cookie) => downloadVideo(url, cookie), frames: (bytes) => framesFromBytes(bytes, { ffmpeg: config.FFMPEG_PATH }) } : null) : options.phoneVideo), auth, config);
   const insights = new InsightCache(db, options.now);
   const vitals = new VitalsService(db, HealthCipher.fromKeys(config.HEALTH_DATA_KEY, config.HEALTH_DATA_KEY_ID, config.HEALTH_DATA_OLD_KEYS), options.now);
   aiToolsRoutes(

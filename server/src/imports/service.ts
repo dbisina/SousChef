@@ -10,7 +10,7 @@ import type { Storage } from '../storage/storage';
 import type { EntitlementService } from '../subscriptions/service';
 import type { UploadService } from '../uploads/service';
 import { parseLink } from '../videoLink';
-import type { VideoFrameSource } from './videoFrames';
+import type { VideoFrame, VideoFrameSource } from './videoFrames';
 import type { WebHit, WebSearch } from './webSearch';
 import { instagramCaptionFromEmbed, tiktokFromPage, type VideoText, type VideoTextSource } from './videoText';
 import { cleanText, jsonLdRecipes, pageMeta, recipeFromJsonLd, visibleText, type ParsedRecipe } from './html';
@@ -67,6 +67,8 @@ export class ImportService {
     private readonly frames: VideoFrameSource | null = null,
     /** Searches the web for "I want to cook X" requests that are not links. */
     private readonly search: WebSearch | null = null,
+    /** Reads a video the phone fetched through its own connection (the platform blocks the server's address). */
+    private readonly phoneVideo: { download: (url: string, cookie?: string) => Promise<Buffer>; frames: (bytes: Buffer) => Promise<VideoFrame[]> } | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ importing a link */
@@ -92,6 +94,42 @@ export class ImportService {
     }
     const row = await this.finish(userId, target, outcome);
     return this.result(row.id, 'done', target.platform, outcome, false, null);
+  }
+
+  /**
+   * Finishes an import that needed frames when the platform refuses the server's address but not the phone's: the phone
+   * resolved the video's own address (and the cookie the platform gave it) and hands them over; the server downloads that one
+   * file, takes pictures from it and has a vision model read the recipe. Nothing is kept.
+   */
+  async addVideo(userId: string, importId: string, source: { videoUrl: string; cookie?: string }): Promise<ImportResult> {
+    const row = await this.db.import.findFirst({ where: { id: importId, userId } });
+    if (!row) throw errors.notFound('Import not found');
+    const platform = platformOf(row.key);
+    if (row.status === 'DONE') return this.result(row.id, 'done', platform, row.recipe as unknown as ImportedRecipe, false, null);
+    if (!this.phoneVideo) throw errors.aiUnavailable('This feature is not set up on this server');
+
+    let pictures: VideoFrame[];
+    try {
+      pictures = await this.phoneVideo.frames(await this.phoneVideo.download(source.videoUrl, source.cookie));
+    } catch (err) {
+      throw errors.validation({ videoUrl: err instanceof Error ? err.message : 'The video could not be read' });
+    }
+    const request: AiRequest = {
+      task: 'extract_recipe_from_frames',
+      system: SYSTEM,
+      prompt: `These pictures were taken at even intervals from a cooking video (${row.url}). Read the recipe from what is shown: text on screen, the ingredients and the steps being done.`,
+      images: pictures.map((p) => ({ base64: p.base64, mimeType: p.mimeType })),
+      json: true,
+      maxOutputTokens: 2500,
+      temperature: 0.1,
+    };
+    const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: await this.dailyLimit(userId) } });
+    const recipe = toImported(parsed, { sourceUrl: row.url, platform, videoUrl: row.url, fallbackConfidence: 0.5 });
+    if (!recipe) throw errors.validation({ videoUrl: 'No recipe could be read from that video' });
+    const target: Target = { platform, key: row.key, url: row.url, videoId: row.key.split(':')[1] ?? null };
+    await this.db.import.update({ where: { id: row.id }, data: { status: 'DONE', recipe: recipe as unknown as Prisma.InputJsonValue, confidence: recipe.extractionConfidence } });
+    await this.cache(target, recipe);
+    return this.result(row.id, 'done', platform, recipe, false, null);
   }
 
   /**

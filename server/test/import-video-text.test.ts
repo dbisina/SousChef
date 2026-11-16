@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ImportResult } from '@shared';
 import { captionsToText, instagramCaptionFromEmbed, tiktokFromPage, ytDlpSource, type VideoText } from '../src/imports/videoText';
-import { frameTimes, ytDlpFrames } from '../src/imports/videoFrames';
+import { downloadVideo, frameTimes, isAllowedVideoUrl, ytDlpFrames } from '../src/imports/videoFrames';
 import { makeApp, register, type TestApp } from './helpers';
 import { call } from './recipeHelpers';
 
@@ -196,5 +196,82 @@ describe('reading a video from its pictures', () => {
     };
     const body = (await call(w, 'POST', '/v1/imports', ama, { url: 'https://www.tiktok.com/@a/video/7234567890123456798' })).json<ImportResult>();
     expect(body.status).toBe('needs_frames');
+  });
+});
+
+describe('reading a video the phone fetched', () => {
+  it('only accepts https addresses on a platform\'s own video network', () => {
+    expect(isAllowedVideoUrl('https://v16-webapp-prime.tiktok.com/video/tos/alisg/x/?a=1')).toBe(true);
+    expect(isAllowedVideoUrl('https://v19.tiktokcdn.com/x.mp4')).toBe(true);
+    for (const bad of ['http://v16.tiktok.com/x', 'https://evil.example.com/x.mp4', 'https://tiktok.com.evil.example/x', 'https://169.254.169.254/latest', 'https://user:pw@v16.tiktok.com/x', 'https://v16.tiktok.com:8443/x', 'not a url']) {
+      expect(isAllowedVideoUrl(bad), bad).toBe(false);
+    }
+  });
+
+  it('downloads with the cookie, refuses what is too small or too large, and never follows a redirect', async () => {
+    const seen: { url: string; headers: Record<string, string>; redirect?: string }[] = [];
+    const reply = (status: number, bytes: number, headers: Record<string, string> = {}): typeof fetch =>
+      (async (url: string, init?: RequestInit) => {
+        seen.push({ url, headers: init?.headers as Record<string, string>, ...(init?.redirect ? { redirect: init.redirect } : {}) });
+        return { ok: status < 400, status, headers: { get: (k: string) => headers[k.toLowerCase()] ?? null }, arrayBuffer: async () => new ArrayBuffer(bytes) };
+      }) as unknown as typeof fetch;
+    const ok = await downloadVideo('https://v16.tiktok.com/video/x', 'tt_chain_token=abc', reply(206, 50_000));
+    expect(ok.byteLength).toBe(50_000);
+    expect(seen[0]).toMatchObject({ url: 'https://v16.tiktok.com/video/x', redirect: 'error' });
+    expect(seen[0]?.headers['cookie']).toBe('tt_chain_token=abc');
+    await expect(downloadVideo('https://evil.example.com/x', undefined, reply(200, 50_000))).rejects.toThrow('not allowed');
+    await expect(downloadVideo('https://v16.tiktok.com/x', undefined, reply(403, 10))).rejects.toThrow('403');
+    await expect(downloadVideo('https://v16.tiktok.com/x', undefined, reply(200, 100))).rejects.toThrow('not a video');
+    await expect(downloadVideo('https://v16.tiktok.com/x', undefined, reply(200, 100, { 'content-length': String(500 * 1024 * 1024) }))).rejects.toThrow('too large');
+  });
+
+  describe('finishing an import from it', () => {
+    let w: TestApp;
+    let downloaded: { url: string; cookie?: string } | null = null;
+    beforeAll(async () => {
+      w = await makeApp(
+        { IMPORT_RATE_LIMIT_MAX: '100000' },
+        {
+          phoneVideo: {
+            download: async (url, cookie) => {
+              downloaded = { url, ...(cookie ? { cookie } : {}) };
+              if (url.includes('bad')) throw new Error('the video could not be downloaded (403)');
+              return Buffer.alloc(20_000);
+            },
+            frames: async () => [{ base64: Buffer.alloc(8, 1).toString('base64'), mimeType: 'image/jpeg' }],
+          },
+        },
+      );
+    });
+    afterAll(() => w.close());
+    beforeEach(async () => {
+      await w.reset();
+      downloaded = null;
+    });
+
+    const needsVideo = async (who: Awaited<ReturnType<typeof register>>, id = '7234567890123456701') =>
+      (await call(w, 'POST', '/v1/imports', who, { url: `https://www.tiktok.com/@a/video/${id}` })).json<ImportResult>();
+
+    it('reads the recipe from the video file the phone resolved, and caches it', async () => {
+      const ama = await register(w);
+      const pending = await needsVideo(ama);
+      expect(pending.status).toBe('needs_frames');
+      w.ai.gemini.handler = () => recipeJson;
+      w.ai.nebius.handler = () => recipeJson;
+      const res = await call(w, 'POST', `/v1/imports/${pending.id}/video`, ama, { videoUrl: 'https://v16-webapp-prime.tiktok.com/video/tos/x', cookie: 'tt_chain_token=abc' });
+      expect(res.statusCode).toBe(200);
+      expect(res.json<ImportResult>()).toMatchObject({ id: pending.id, status: 'done', platform: 'tiktok', recipe: { title: 'Garlic Butter Pasta' } });
+      expect(downloaded).toEqual({ url: 'https://v16-webapp-prime.tiktok.com/video/tos/x', cookie: 'tt_chain_token=abc' });
+      expect(await w.db.importCache.count({ where: { key: 'tiktok:7234567890123456701' } })).toBe(1);
+    });
+
+    it('turns away someone else\'s import, a bad address and a download that fails', async () => {
+      const [ama, kemi] = [await register(w), await register(w)] as const;
+      const pending = await needsVideo(ama, '7234567890123456702');
+      expect((await call(w, 'POST', `/v1/imports/${pending.id}/video`, kemi, { videoUrl: 'https://v16.tiktok.com/x' })).statusCode).toBe(404);
+      expect((await call(w, 'POST', `/v1/imports/${pending.id}/video`, ama, { videoUrl: 'not a url' })).statusCode).toBe(400);
+      expect((await call(w, 'POST', `/v1/imports/${pending.id}/video`, ama, { videoUrl: 'https://v16.tiktok.com/bad' })).statusCode).toBe(400);
+      expect((await call(w, 'POST', `/v1/imports/${pending.id}/video`, undefined, { videoUrl: 'https://v16.tiktok.com/x' })).statusCode).toBe(401);
+    });
   });
 });

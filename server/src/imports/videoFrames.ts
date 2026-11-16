@@ -1,5 +1,5 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readdir, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -75,32 +75,82 @@ export function ytDlpFrames(options: FrameOptions): VideoFrameSource {
       if (!downloaded) throw new Error('the video could not be downloaded');
       const video = path.join(dir, downloaded);
 
-      let duration = 0;
-      try {
-        const probed = await run(options.ffmpeg, ['-hide_banner', '-i', video], 15_000).catch((e: { stderr?: string }) => ({ stdout: String(e.stderr ?? '') }));
-        const m = /Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/.exec(probed.stdout);
-        if (m) duration = Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
-      } catch {
-        duration = 0;
-      }
-      const times = frameTimes(duration, count);
-      for (let i = 0; i < times.length; i++) {
-        await run(
-          options.ffmpeg,
-          ['-hide_banner', '-loglevel', 'error', '-y', '-ss', String(times[i]), '-i', video, '-frames:v', '1', '-vf', 'scale=720:-2', '-q:v', '4', path.join(dir, `f${String(i).padStart(2, '0')}.jpg`)],
-          30_000,
-        ).catch(() => undefined);
-      }
-      const names = (await readdir(dir)).filter((n) => /^f\d+\.jpg$/.test(n)).sort();
-      const frames: VideoFrame[] = [];
-      for (const n of names) {
-        const bytes = await readFile(path.join(dir, n));
-        if (bytes.byteLength > 5_000) frames.push({ base64: bytes.toString('base64'), mimeType: 'image/jpeg' });
-      }
-      if (frames.length === 0) throw new Error('no pictures could be taken from the video');
-      return frames;
+      return await takeFrames(dir, video, options.ffmpeg, count, run);
     } finally {
       await rm(dir, { recursive: true, force: true }).catch(() => undefined);
     }
   };
+}
+
+/** Pictures spread through a video file already on disk (in `dir`), taken with ffmpeg. */
+async function takeFrames(dir: string, video: string, ffmpeg: string, count: number, run: NonNullable<FrameOptions['run']>): Promise<VideoFrame[]> {
+  let duration = 0;
+  try {
+    const probed = await run(ffmpeg, ['-hide_banner', '-i', video], 15_000).catch((e: { stderr?: string }) => ({ stdout: String(e.stderr ?? '') }));
+    const m = /Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/.exec(probed.stdout);
+    if (m) duration = Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+  } catch {
+    duration = 0;
+  }
+  const times = frameTimes(duration, count);
+  for (let i = 0; i < times.length; i++) {
+    await run(
+      ffmpeg,
+      ['-hide_banner', '-loglevel', 'error', '-y', '-ss', String(times[i]), '-i', video, '-frames:v', '1', '-vf', 'scale=720:-2', '-q:v', '4', path.join(dir, `f${String(i).padStart(2, '0')}.jpg`)],
+      30_000,
+    ).catch(() => undefined);
+  }
+  const names = (await readdir(dir)).filter((n) => /^f\d+\.jpg$/.test(n)).sort();
+  const frames: VideoFrame[] = [];
+  for (const n of names) {
+    const bytes = await readFile(path.join(dir, n));
+    if (bytes.byteLength > 5_000) frames.push({ base64: bytes.toString('base64'), mimeType: 'image/jpeg' });
+  }
+  if (frames.length === 0) throw new Error('no pictures could be taken from the video');
+  return frames;
+}
+
+/** Pictures from video bytes the server already has (a copy the phone's own connection could fetch). */
+export async function framesFromBytes(bytes: Buffer, options: Pick<FrameOptions, 'ffmpeg' | 'frames' | 'run'>): Promise<VideoFrame[]> {
+  const dir = await mkdtemp(path.join(tmpdir(), 'frames-'));
+  try {
+    const video = path.join(dir, 'v.mp4');
+    await writeFile(video, bytes);
+    return await takeFrames(dir, video, options.ffmpeg, options.frames ?? 8, options.run ?? exec);
+  } finally {
+    await rm(dir, { recursive: true, force: true }).catch(() => undefined);
+  }
+}
+
+/** Addresses a phone may hand over for the server to download: a video file on a platform's own video network, over https. */
+const VIDEO_HOSTS = /(^|\.)(tiktok\.com|tiktokcdn\.com|tiktokcdn-us\.com|tiktokv\.com|byteoversea\.com|ibytedtos\.com|muscdn\.com)$/i;
+export const isAllowedVideoUrl = (raw: string): boolean => {
+  try {
+    const u = new URL(raw);
+    return u.protocol === 'https:' && !u.username && !u.password && (u.port === '' || u.port === '443') && VIDEO_HOSTS.test(u.hostname);
+  } catch {
+    return false;
+  }
+};
+
+export const MAX_VIDEO_BYTES = 60 * 1024 * 1024;
+
+/**
+ * Downloads a video the phone resolved (the address and the cookie the platform gave the phone). Only allowed video hosts,
+ * https, a size cap and a time cap. Throws when refused or too large.
+ */
+export async function downloadVideo(url: string, cookie: string | undefined, request: typeof fetch = fetch): Promise<Buffer> {
+  if (!isAllowedVideoUrl(url)) throw new Error('that video address is not allowed');
+  const res = await request(url, {
+    headers: { 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', referer: 'https://www.tiktok.com/', ...(cookie ? { cookie } : {}), range: 'bytes=0-' },
+    redirect: 'error',
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!res.ok) throw new Error(`the video could not be downloaded (${res.status})`);
+  const declared = Number(res.headers.get('content-length'));
+  if (Number.isFinite(declared) && declared > MAX_VIDEO_BYTES) throw new Error('the video is too large');
+  const bytes = Buffer.from(await res.arrayBuffer());
+  if (bytes.byteLength > MAX_VIDEO_BYTES) throw new Error('the video is too large');
+  if (bytes.byteLength < 10_000) throw new Error('that is not a video');
+  return bytes;
 }

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import type { AddFramesRequest, CreateImportRequest, ScanRecipeRequest, ScanRecipeResponse, SearchImportRequest } from '@shared';
+import type { AddFramesRequest, CreateImportRequest, ScanRecipeRequest, ScanRecipeResponse, SearchImportRequest, AddVideoRequest } from '@shared';
 import { parse } from '../auth/schemas';
 import type { AuthService } from '../auth/service';
 import { viewerResolvers } from '../auth/viewer';
@@ -9,6 +9,7 @@ import type { ImportService } from './service';
 
 const createSchema = z.object({ url: z.string().trim().min(8).max(2048) }) satisfies z.ZodType<CreateImportRequest>;
 const searchSchema = z.object({ query: z.string().trim().min(3).max(200) }) satisfies z.ZodType<SearchImportRequest>;
+const videoSchema = z.object({ videoUrl: z.string().trim().url().max(4096), cookie: z.string().max(8192).optional() }) satisfies z.ZodType<AddVideoRequest>;
 const framesSchema = z.object({ uploadIds: z.array(z.uuid()).min(1).max(8) }) satisfies z.ZodType<AddFramesRequest>;
 const scanSchema = z.object({ uploadIds: z.array(z.uuid()).min(1).max(8), bookName: z.string().trim().max(80).optional() }) satisfies z.ZodType<ScanRecipeRequest>;
 const idParam = z.object({ id: z.uuid() });
@@ -27,6 +28,12 @@ export function importRoutes(app: FastifyInstance, imports: ImportService, auth:
   app.post('/v1/imports/search', limited, async (request, reply) => {
     const { userId } = await requireViewer(request);
     return reply.code(201).send(await imports.findByQuery(userId, parse(searchSchema, request.body).query));
+  });
+
+  /** The phone resolved a video's own address (the server's address is blocked): read the recipe from that file. */
+  app.post('/v1/imports/:id/video', limited, async (request) => {
+    const { userId } = await requireViewer(request);
+    return imports.addVideo(userId, parse(idParam, request.params).id, parse(videoSchema, request.body));
   });
 
   app.post('/v1/imports/:id/frames', limited, async (request) => {

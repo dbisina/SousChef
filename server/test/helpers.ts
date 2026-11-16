@@ -5,7 +5,7 @@ import type { IdTokenVerifier, VerifiedIdentity } from '../src/auth/idToken';
 import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
 import type { VideoTextSource } from '../src/imports/videoText';
-import type { VideoFrameSource } from '../src/imports/videoFrames';
+import type { VideoFrame, VideoFrameSource } from '../src/imports/videoFrames';
 import type { WebSearch } from '../src/imports/webSearch';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
@@ -144,7 +144,7 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null; videoFrames?: VideoFrameSource | null; webSearch?: WebSearch | null } = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null; videoFrames?: VideoFrameSource | null; webSearch?: WebSearch | null; phoneVideo?: { download: (url: string, cookie?: string) => Promise<Buffer>; frames: (bytes: Buffer) => Promise<VideoFrame[]> } | null } = {}): Promise<TestApp> {
   const push = new FakePushSender();
   const ai = makeFakeAi();
   const web = new FakeWeb();
@@ -165,6 +165,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     videoText: options.videoText ?? null,
     videoFrames: options.videoFrames ?? null,
     webSearch: options.webSearch ?? null,
+    phoneVideo: options.phoneVideo ?? null,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
