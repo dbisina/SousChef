@@ -47,6 +47,7 @@ model User {
   handle          String    @unique
   bio             String    @default("")
   photoUrl        String?
+  bannerUrl       String?
   role            UserRole  @default(USER)
   kind            AccountKind @default(PERSON)
   isChef          Boolean   @default(false)
