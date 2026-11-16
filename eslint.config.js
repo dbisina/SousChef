@@ -5,7 +5,7 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    // server/ is a separate project with its own dependencies and lint config.
-    ignores: ["dist/*", "dist-web/**", "tools/fidelity/out/**", "server/**"],
+    // server/ and admin/ are separate projects with its own dependencies and lint config.
+    ignores: ["dist/*", "dist-web/**", "tools/fidelity/out/**", "server/**", "admin/**"],
   }
 ]);

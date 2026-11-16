@@ -1,7 +1,14 @@
 import type { Db } from '../db';
 
-/** Posts and comments (not the person's own) whose totals will change when this person's account goes. */
-export async function socialTouchedBy(db: Db, userId: string): Promise<{ postIds: string[]; commentIds: string[] }> {
+export interface Touched {
+  postIds: string[];
+  commentIds: string[];
+  /** Communities the person belonged to (or asked to join). */
+  communityIds: string[];
+}
+
+/** Posts, comments and communities whose totals will change when this person's account goes. */
+export async function socialTouchedBy(db: Db, userId: string): Promise<Touched> {
   const posts = await db.$queryRaw<{ id: string }[]>`
     SELECT DISTINCT "postId" AS id FROM (
       SELECT "postId" FROM "PostLike" WHERE "userId" = ${userId}::uuid
@@ -15,11 +22,32 @@ export async function socialTouchedBy(db: Db, userId: string): Promise<{ postIds
       UNION ALL SELECT "parentId" AS "commentId" FROM "PostComment" WHERE "authorId" = ${userId}::uuid AND "parentId" IS NOT NULL
     ) t
     WHERE "commentId" NOT IN (SELECT "id" FROM "PostComment" WHERE "authorId" = ${userId}::uuid)`;
-  return { postIds: posts.map((p) => p.id), commentIds: comments.map((c) => c.id) };
+  const communities = await db.communityMember.findMany({ where: { userId }, select: { communityId: true } });
+  return { postIds: posts.map((p) => p.id), commentIds: comments.map((c) => c.id), communityIds: communities.map((c) => c.communityId) };
 }
 
-/** Recounts likes, saves, comments and replies from the rows themselves. */
-export async function recomputeSocialCounters(db: Db, touched: { postIds: string[]; commentIds: string[] }): Promise<void> {
+/**
+ * Recounts likes, saves, comments and replies from the rows themselves, and tidies the communities the person left
+ * behind: members recounted, a new owner chosen if the owner went (an admin first, else the longest-standing member),
+ * and a community with nobody left removed together with its chat room.
+ */
+export async function recomputeSocialCounters(db: Db, touched: Touched): Promise<void> {
+  if (touched.communityIds.length > 0) {
+    await db.$executeRaw`
+      UPDATE "Community" c SET "memberCount" = (SELECT count(*) FROM "CommunityMember" x WHERE x."communityId" = c."id" AND x."status" = 'MEMBER')
+      WHERE c."id" = ANY(${touched.communityIds}::uuid[])`;
+    await db.$executeRaw`
+      UPDATE "CommunityMember" m SET "role" = 'owner'
+      WHERE (m."communityId", m."userId") IN (
+        SELECT DISTINCT ON (cm."communityId") cm."communityId", cm."userId" FROM "CommunityMember" cm
+        WHERE cm."communityId" = ANY(${touched.communityIds}::uuid[]) AND cm."status" = 'MEMBER'
+          AND NOT EXISTS (SELECT 1 FROM "CommunityMember" o WHERE o."communityId" = cm."communityId" AND o."role" = 'owner')
+        ORDER BY cm."communityId", (cm."role" = 'admin') DESC, cm."joinedAt" ASC)`;
+    await db.$executeRaw`
+      DELETE FROM "Conversation" WHERE "id" IN (
+        SELECT "conversationId" FROM "Community" WHERE "id" = ANY(${touched.communityIds}::uuid[]) AND "memberCount" = 0 AND "conversationId" IS NOT NULL)`;
+    await db.$executeRaw`DELETE FROM "Community" WHERE "id" = ANY(${touched.communityIds}::uuid[]) AND "memberCount" = 0`;
+  }
   if (touched.postIds.length > 0) {
     await db.$executeRaw`
       UPDATE "Post" p SET

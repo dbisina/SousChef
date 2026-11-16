@@ -16,6 +16,8 @@ const createPostSchema = z.object({
   caption: text(2000).optional(),
   meta: text(120).optional(),
   recipeId: z.uuid().optional(),
+  communityId: z.uuid().optional(),
+  challengeId: z.uuid().optional(),
   photoUploadId: z.uuid(),
   videoUploadId: z.uuid().optional(),
 }) satisfies z.ZodType<CreatePostRequest>;
@@ -75,6 +77,12 @@ export function socialRoutes(app: FastifyInstance, follows: FollowService, posts
     const viewer = await requireViewer(request);
     const { limit: n, cursor } = parse(pageQuery, request.query);
     return posts.followingFeed(viewer, n, cursor);
+  });
+
+  /** Ranked for the viewer; works signed out. */
+  app.get('/v1/feed/for-you', async (request) => {
+    const { limit: n, cursor } = parse(pageQuery, request.query);
+    return posts.forYou(await optionalViewer(request), n, cursor);
   });
 
   app.get('/v1/feed/discover', async (request) => {

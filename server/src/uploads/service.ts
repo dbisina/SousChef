@@ -113,6 +113,22 @@ export class UploadService {
     return row ? this.store().publicUrl(row.key) : null;
   }
 
+  /** Removes an upload on behalf of the system (a story that expired, content that was taken down). Never throws. */
+  async discardById(id: string): Promise<void> {
+    try {
+      const row = await this.db.upload.findFirst({ where: { id, status: { not: 'DELETED' } }, select: { id: true, key: true } });
+      if (row && this.storage) await this.discard(row.id, row.key);
+    } catch (err) {
+      this.log.warn({ err, id }, 'could not remove an upload');
+    }
+  }
+
+  /** Where a finished upload of the right purpose lives in the file store, for features that read the file themselves. */
+  async keyFor(userId: string, id: string, purpose: UploadPurpose): Promise<string | null> {
+    const row = await this.db.upload.findFirst({ where: { id, userId, status: 'READY', purpose }, select: { key: true } });
+    return row?.key ?? null;
+  }
+
   /** The files of an account that is about to be deleted. */
   async keysFor(userId: string): Promise<string[]> {
     const rows = await this.db.upload.findMany({ where: { userId, status: { not: 'DELETED' } }, select: { key: true } });

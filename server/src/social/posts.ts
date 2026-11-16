@@ -12,7 +12,9 @@ import type { Viewer } from '../auth/viewer';
 import type { Db } from '../db';
 import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
+import type { WriteGuard } from '../moderation/service';
 import type { UploadService } from '../uploads/service';
+import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank } from './forYou';
 
 const MAX_POSTS_PER_DAY = 20;
 const DAY_MS = 86_400_000;
@@ -32,11 +34,13 @@ export class PostService {
     private readonly db: Db,
     private readonly uploads: UploadService,
     private readonly now: () => Date = () => new Date(),
+    private readonly guard: WriteGuard | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ posts */
 
   async create(userId: string, input: CreatePostRequest): Promise<Post> {
+    await this.guard?.check(userId, [input.title, input.caption]);
     const since = new Date(this.now().getTime() - DAY_MS);
     if ((await this.db.post.count({ where: { authorId: userId, createdAt: { gte: since } } })) >= MAX_POSTS_PER_DAY) {
       throw errors.limitReached('You have posted a lot today. Try again tomorrow');
@@ -48,6 +52,16 @@ export class PostService {
     if (input.recipeId) {
       const recipe = await this.db.recipe.findFirst({ where: { id: input.recipeId, OR: [{ status: 'PUBLISHED' }, { authorId: userId }] }, select: { id: true } });
       if (!recipe) throw errors.validation({ recipeId: 'That recipe does not exist' });
+    }
+    if (input.challengeId && !input.communityId) throw errors.validation({ challengeId: 'A challenge belongs to a community' });
+    if (input.communityId) {
+      const member = await this.db.communityMember.findFirst({ where: { communityId: input.communityId, userId, status: 'MEMBER' }, select: { userId: true } });
+      if (!member) throw errors.forbidden('Join the community to post in it');
+    }
+    if (input.challengeId) {
+      const challenge = await this.db.challenge.findFirst({ where: { id: input.challengeId, communityId: input.communityId as string }, select: { endsAt: true } });
+      if (!challenge) throw errors.validation({ challengeId: 'That challenge is not in this community' });
+      if (challenge.endsAt <= this.now()) throw errors.validation({ challengeId: 'That challenge has ended' });
     }
     const photoUrl = await this.uploads.urlFor(userId, input.photoUploadId, 'made_post');
     if (!photoUrl) throw errors.validation({ photoUploadId: 'Finish uploading the photo first' });
@@ -67,6 +81,8 @@ export class PostService {
         photoUrl,
         videoUrl,
         recipeId: input.recipeId ?? null,
+        communityId: input.communityId ?? null,
+        challengeId: input.challengeId ?? null,
         createdAt: this.now(),
       },
       include: withAuthor,
@@ -112,6 +128,74 @@ export class PostService {
     );
   }
 
+  /**
+   * "For you": the last week's public posts, ordered by the Rust ranker (engagement, freshness, who you follow or have
+   * liked, and no author filling the page). Works signed out too, with no personal lift. The cursor remembers the moment
+   * the candidates were fixed at, so new posts arriving do not shuffle pages already seen.
+   */
+  async forYou(viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
+    const state = cursor ? decodeCursor(cursor) : null;
+    if (cursor && !state) throw errors.validation({ cursor: 'Not a valid cursor' });
+    const asOf = state ? new Date(state.asOf) : this.now();
+    const offset = state?.offset ?? 0;
+
+    const where: Prisma.PostWhereInput = {
+      status: 'PUBLISHED',
+      createdAt: { gte: new Date(asOf.getTime() - FOR_YOU_WINDOW_MS), lte: asOf },
+      ...(viewer ? notBlocked(viewer.userId) : {}),
+    };
+    const rows = await this.db.post.findMany({
+      where: viewer?.role === 'admin' ? where : { AND: [where, this.communityGate(viewer?.userId ?? null)] },
+      include: withAuthor,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      take: FOR_YOU_CANDIDATES,
+    });
+    if (rows.length === 0) return { items: [], nextCursor: null };
+
+    const authors = [...new Set(rows.map((r) => r.authorId))];
+    const [followed, engaged] = viewer
+      ? await Promise.all([
+          this.db.follow.findMany({ where: { followerId: viewer.userId, followingId: { in: authors } }, select: { followingId: true } }),
+          this.db.post.findMany({
+            where: {
+              authorId: { in: authors },
+              OR: [
+                { likes: { some: { userId: viewer.userId, createdAt: { gte: new Date(asOf.getTime() - 30 * 24 * 3_600_000) } } } },
+                { saves: { some: { userId: viewer.userId, createdAt: { gte: new Date(asOf.getTime() - 30 * 24 * 3_600_000) } } } },
+              ],
+            },
+            select: { authorId: true },
+            distinct: ['authorId'],
+          }),
+        ])
+      : [[], []];
+    const followedIds = new Set(followed.map((f) => f.followingId));
+    const engagedIds = new Set(engaged.map((p) => p.authorId));
+    const affinity = (authorId: string): number =>
+      viewer && authorId === viewer.userId ? AFFINITY.self : followedIds.has(authorId) ? AFFINITY.followed : engagedIds.has(authorId) ? AFFINITY.engaged : AFFINITY.stranger;
+
+    const ranked = rank(
+      rows.map((r) => ({
+        id: r.id,
+        authorId: r.authorId,
+        ageHours: (asOf.getTime() - r.createdAt.getTime()) / 3_600_000,
+        likes: r.likeCount,
+        comments: r.commentCount,
+        saves: r.saveCount,
+        views: r.viewCount,
+        authorAffinity: affinity(r.authorId),
+        hasRecipe: r.recipeId !== null,
+      })),
+      offset + limit,
+    );
+    const pageIds = ranked.slice(offset, offset + limit);
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    const items = await this.decorate(pageIds.map((id) => byId.get(id) as PostRow), viewer?.userId ?? null);
+    // More to show when the candidates run past this page.
+    const more = rows.length > offset + limit && ranked.length === offset + limit;
+    return { items, nextCursor: more ? encodeCursor({ asOf: asOf.toISOString(), offset: offset + limit }) : null };
+  }
+
   /** Everyone's recent public posts. */
   async discoverFeed(viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
     return this.page({ status: 'PUBLISHED', ...(viewer ? notBlocked(viewer.userId) : {}) }, viewer, limit, cursor);
@@ -119,7 +203,7 @@ export class PostService {
 
   async listSaved(viewer: Viewer, limit: number, cursor?: string): Promise<Page<Post>> {
     const rows = await this.db.postSave.findMany({
-      where: { userId: viewer.userId, post: { status: 'PUBLISHED' } },
+      where: { userId: viewer.userId, post: { AND: [{ status: 'PUBLISHED' }, this.communityGate(viewer.userId)] } },
       include: { post: { include: withAuthor } },
       orderBy: [{ createdAt: 'desc' }, { postId: 'desc' }],
       take: limit + 1,
@@ -176,6 +260,7 @@ export class PostService {
     await this.visible(postId, viewer);
     const text = input.text?.trim() ?? '';
     if (!text && !input.voice) throw errors.validation({ text: 'Write something or record a voice note' });
+    await this.guard?.check(viewer.userId, [text]);
     let voice: { url: string; durationSec: number } | null = null;
     if (input.voice) {
       const url = await this.uploads.urlFor(viewer.userId, input.voice.uploadId, 'voice');
@@ -237,12 +322,39 @@ export class PostService {
     const mine = viewer !== null && (row?.authorId === viewer.userId || viewer.role === 'admin');
     if (!row || (row.status !== 'PUBLISHED' && !mine)) throw errors.notFound('Post not found');
     if (viewer && viewer.userId !== row.authorId && (await this.blockedBetween(viewer.userId, row.authorId))) throw errors.notFound('Post not found');
+    if (row.communityId && viewer?.role !== 'admin') {
+      // A post inside a private community is for its members.
+      const inside = await this.db.post.count({ where: { id, ...this.communityGate(viewer?.userId ?? null) } });
+      if (inside === 0) throw errors.notFound('Post not found');
+    }
     return row;
+  }
+
+  /** Posts outside any community, in public ones, or in private ones the viewer belongs to. */
+  private communityGate(viewerId: string | null): Prisma.PostWhereInput {
+    return {
+      OR: [
+        { communityId: null },
+        { community: { visibility: 'PUBLIC' } },
+        ...(viewerId ? [{ community: { members: { some: { userId: viewerId, status: 'MEMBER' as const } } } }] : []),
+      ],
+    };
+  }
+
+  /** A community's posts. Everyone sees a public community's; only members see a private one's. */
+  async byCommunity(communityId: string, viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
+    const community = await this.db.community.findUnique({ where: { id: communityId }, select: { visibility: true } });
+    if (!community) throw errors.notFound('Community not found');
+    if (community.visibility === 'PRIVATE' && viewer?.role !== 'admin') {
+      const member = viewer ? await this.db.communityMember.findFirst({ where: { communityId, userId: viewer.userId, status: 'MEMBER' }, select: { userId: true } }) : null;
+      if (!member) throw errors.notFound('Community not found');
+    }
+    return this.page({ communityId, status: 'PUBLISHED', ...(viewer ? notBlocked(viewer.userId) : {}) }, viewer, limit, cursor);
   }
 
   private async page(where: Prisma.PostWhereInput, viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
     const rows = await this.db.post.findMany({
-      where,
+      where: viewer?.role === 'admin' ? where : { AND: [where, this.communityGate(viewer?.userId ?? null)] },
       include: withAuthor,
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: limit + 1,
@@ -293,6 +405,8 @@ export class PostService {
       photoUrl: r.photoUrl,
       videoUrl: r.videoUrl,
       recipeId: r.recipeId,
+      communityId: r.communityId,
+      challengeId: r.challengeId,
       likeCount: r.likeCount,
       commentCount: r.commentCount,
       saveCount: r.saveCount,

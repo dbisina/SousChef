@@ -3,7 +3,6 @@ import { ScrollView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useVoiceStore } from '@/stores/voiceStore';
-import { SAMPLE } from '@/assets/sample';
 import {
   FONT,
   Muted,
@@ -28,7 +27,6 @@ export default function VoiceSettingsScreen() {
       <TopBar variant="compact" title={t('account.voice.title', 'Voice Commands')} onBack={() => router.back()} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 14 }}>
         <PhotoCard
-          source={SAMPLE.chef}
           height={190}
           topLeft={<Tag tone="glassDark" large icon="mic" label={t('account.voice.handsFree', 'Hands-free')} />}
           topRight={
