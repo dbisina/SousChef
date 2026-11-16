@@ -6,9 +6,21 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    // Plain Node scripts are not covered by the TypeScript config, so declare the Node global they use.
+    // Plain Node scripts are not covered by the TypeScript config, so declare the Node globals they use. They are command
+    // line tools, so printing to the console is their job.
     files: ['scripts/**/*.mjs'],
-    languageOptions: { globals: { process: 'readonly' } },
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        URL: 'readonly',
+        performance: 'readonly',
+        WebSocket: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+      },
+    },
   },
   {
     rules: {
@@ -18,4 +30,6 @@ export default tseslint.config(
       'no-console': 'error',
     },
   },
+  // After the general rules, so it wins: command line scripts print to the console.
+  { files: ['scripts/**/*.mjs'], rules: { 'no-console': 'off' } },
 );
