@@ -1,4 +1,7 @@
 # SousChef marketing log
+- 2026-11-16: Recipes imported from TikTok, Instagram and YouTube are now read by watching the video itself on the server (no screenshots), and typing what you want to cook searches the web for a real recipe.
+- 2026-11-16: Game questions come with real, licence-checked photos of the dish; solo Mystery Kitchen starts straight away; people pick their own @username and follower counts are real.
+- 2026-11-16: Home header redone (plus button, centred name), proper settings icon, bug report and developer contact, back-to-home from cooking fixed, the app's own food photos are back on Meal Plan, Pantry and Shopping.
 
 One place to turn what we build into posts. Every feature gets a block; every commit that ships something adds a line to
 the **build diary** at the bottom. If a feature is not honest to show yet, its status says so.
