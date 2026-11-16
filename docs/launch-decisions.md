@@ -12,6 +12,11 @@ Nothing here has been built for the stores. Order agreed: finish and test locall
 - Usernames: `@handle` chosen in Edit profile with a live availability check; shown on profiles; follower and following counts come from the server (this fixed follows "not updating").
 - Imports: TikTok/Instagram/YouTube links with no recipe in the caption are read by downloading a small copy on the server (yt-dlp + ffmpeg) and having a vision model read pictures from it. The app no longer asks for screenshots. Typing what you want to cook searches the web (Tavily, then Brave); with neither key set, the model writes a standard recipe and the app says so.
 
+## Video downloads (tested live)
+- YouTube and Instagram reels: the server downloads a picture-only copy (yt-dlp + ffmpeg) and a vision model reads it.
+- TikTok refuses the host address, so the phone resolves the video file address and cookie and the server downloads that file.
+- Optional: `YT_DLP_COOKIES_PATH` (cookies file from a logged-in account) for Instagram posts that need a login; not needed for public reels. `IMPORT_PROXY_URL` routes yt-dlp through a proxy.
+
 ## Also fixed
 - `mobile/GoogleService-Info.plist` now has the capital I that `app.json` expects (EAS runs on Linux, which is case sensitive).
 
