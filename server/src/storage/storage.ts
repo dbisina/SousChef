@@ -13,6 +13,8 @@ export interface Storage {
   delete(key: string): Promise<void>;
   /** The address the file is served from once it exists. */
   publicUrl(key: string): string;
+  /** The reverse of `publicUrl`: which stored file an address points at, or null if it is not one of ours. */
+  keyFromPublicUrl(url: string): string | null;
 }
 
 export interface S3Settings extends Credentials {
@@ -89,5 +91,15 @@ export class S3Storage implements Storage {
 
   publicUrl(key: string): string {
     return `${this.settings.publicUrl}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  }
+
+  keyFromPublicUrl(url: string): string | null {
+    const base = `${this.settings.publicUrl}/`;
+    if (!url.startsWith(base)) return null;
+    try {
+      return url.slice(base.length).split('?')[0]!.split('/').map(decodeURIComponent).join('/');
+    } catch {
+      return null;
+    }
   }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { ScrollView, Text as RNText, View } from 'react-native';
+import { Text as RNText, View } from 'react-native';
+import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';

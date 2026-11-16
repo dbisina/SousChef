@@ -20,6 +20,11 @@ import {
     AdMetrics,
     FALLBACK_AD,
 } from '@/types/ads';
+import { apiEnabled } from '@/lib/api';
+import { apiAdForPlacement, apiAllAds, apiCreateAd, apiDeleteAd, apiRecordAd, apiSubmitInquiry, apiUpdateAd } from '@/services/adApi';
+
+// With EXPO_PUBLIC_API_URL set, ads come from the SousChef server: it picks the ad, leaves out people on an ad-free
+// plan, counts views and taps per day, and keeps spend and budgets.
 
 // ── Firestore Collections ──
 const ADS_COLLECTION = 'sponsoredAds';
@@ -35,6 +40,10 @@ const IMPRESSIONS_COLLECTION = 'adImpressions';
 export const getActiveAdsForPlacement = async (
     placement: AdPlacement
 ): Promise<SponsoredAd[]> => {
+    if (apiEnabled()) {
+        const ad = await apiAdForPlacement(placement).catch(() => null);
+        return ad ? [ad] : [];
+    }
     try {
         const now = Timestamp.now();
         const adsRef = collection(db, ADS_COLLECTION);
@@ -75,7 +84,8 @@ export const getActiveAdsForPlacement = async (
  */
 export const getAdForPlacement = async (
     placement: AdPlacement
-): Promise<SponsoredAd> => {
+): Promise<SponsoredAd | null> => {
+    if (apiEnabled()) return apiAdForPlacement(placement); // null: this person's plan has no ads
     const ads = await getActiveAdsForPlacement(placement);
 
     if (ads.length > 0) {
@@ -102,6 +112,7 @@ export const getAdForPlacement = async (
 export const recordImpression = async (adId: string): Promise<void> => {
     try {
         if (adId === 'fallback') return; // Don't track fallback ads
+        if (apiEnabled()) return await apiRecordAd(adId, 'impression');
 
         // Increment impression count on the ad document
         const adRef = doc(db, ADS_COLLECTION, adId);
@@ -129,6 +140,7 @@ export const recordImpression = async (adId: string): Promise<void> => {
 export const recordClick = async (adId: string): Promise<void> => {
     try {
         if (adId === 'fallback') return;
+        if (apiEnabled()) return await apiRecordAd(adId, 'click');
 
         const adRef = doc(db, ADS_COLLECTION, adId);
         await updateDoc(adRef, {
@@ -168,6 +180,14 @@ export const getAdMetrics = (ad: SponsoredAd): AdMetrics => {
 export const submitAdInquiry = async (
     inquiry: Omit<AdInquiry, 'id' | 'status' | 'submittedAt'>
 ): Promise<string> => {
+    if (apiEnabled()) {
+        try {
+            await apiSubmitInquiry(inquiry);
+            return 'submitted';
+        } catch {
+            throw new Error('Failed to submit inquiry. Please try again.');
+        }
+    }
     try {
         const docRef = await addDoc(collection(db, INQUIRIES_COLLECTION), {
             ...inquiry,
@@ -187,6 +207,7 @@ export const submitAdInquiry = async (
  * Get ALL sponsored ads (for admin management).
  */
 export const getAllAds = async (): Promise<SponsoredAd[]> => {
+    if (apiEnabled()) return apiAllAds().catch(() => []);
     try {
         const snapshot = await getDocs(collection(db, ADS_COLLECTION));
         const ads: SponsoredAd[] = [];
@@ -212,6 +233,7 @@ export const getAllAds = async (): Promise<SponsoredAd[]> => {
 export const createSponsoredAd = async (
     ad: Omit<SponsoredAd, 'id' | 'createdAt' | 'updatedAt' | 'impressions' | 'clicks' | 'spentCents'>
 ): Promise<string> => {
+    if (apiEnabled()) return apiCreateAd(ad);
     const now = Timestamp.now();
     const docRef = await addDoc(collection(db, ADS_COLLECTION), {
         ...ad,
@@ -231,6 +253,7 @@ export const updateSponsoredAd = async (
     adId: string,
     updates: Partial<SponsoredAd>
 ): Promise<void> => {
+    if (apiEnabled()) return apiUpdateAd(adId, updates);
     const adRef = doc(db, ADS_COLLECTION, adId);
     await updateDoc(adRef, {
         ...updates,
@@ -242,6 +265,7 @@ export const updateSponsoredAd = async (
  * Delete a sponsored ad.
  */
 export const deleteSponsoredAd = async (adId: string): Promise<void> => {
+    if (apiEnabled()) return apiDeleteAd(adId);
     await deleteDoc(doc(db, ADS_COLLECTION, adId));
 };
 
@@ -253,39 +277,3 @@ export const toggleAdStatus = async (adId: string, currentStatus: string): Promi
     await updateSponsoredAd(adId, { status: newStatus as any });
 };
 
-// ── Seed Demo Ad (for hackathon demo) ──
-
-/**
- * Create a demo sponsored ad in Firestore for development/demo purposes.
- */
-export const seedDemoAd = async (): Promise<string> => {
-    const now = Timestamp.now();
-    const endDate = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
-
-    const demoAd: Omit<SponsoredAd, 'id'> = {
-        advertiserId: 'demo_brand',
-        advertiserName: 'FreshCart',
-        advertiserLogo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=100&q=80',
-        title: 'Farm Fresh to Your Door',
-        subtitle: 'Organic ingredients delivered in 2 hours — 20% off first order',
-        imageURL: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=80',
-        ctaText: 'Order Now',
-        ctaURL: 'https://freshcart.example.com/?ref=souschef',
-        placements: ['welcome_modal', 'home_feed'],
-        format: 'card',
-        status: 'active',
-        startDate: now,
-        endDate,
-        budgetCents: 500000, // $5,000
-        cpmCents: 500, // $5 CPM
-        spentCents: 0,
-        impressions: 0,
-        clicks: 0,
-        createdAt: now,
-        updatedAt: now,
-        accentColor: '#22C55E',
-    };
-
-    const docRef = await addDoc(collection(db, ADS_COLLECTION), demoAd);
-    return docRef.id;
-};

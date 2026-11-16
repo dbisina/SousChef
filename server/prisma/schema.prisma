@@ -24,6 +24,7 @@ enum AccountKind {
 enum AuthProvider {
   GOOGLE
   APPLE
+  FIREBASE
 }
 
 enum ConsentKind {
@@ -46,11 +47,15 @@ model User {
   handle          String    @unique
   bio             String    @default("")
   photoUrl        String?
+  bannerUrl       String?
   role            UserRole  @default(USER)
   kind            AccountKind @default(PERSON)
   isChef          Boolean   @default(false)
   /// Set when the verified-chef badge is granted (payment plus identity check). Only the server sets this.
   verifiedChefAt  DateTime?
+  /// Set by staff when an account is suspended: no sign-in, no new content. Cleared to lift it.
+  suspendedAt     DateTime?
+  suspendedReason String    @default("")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -101,6 +106,18 @@ model User {
   promoGrants      PromoGrant[]
   aiUsage          AiUsage[]
   imports          Import[]
+  dailyDishGames   DailyDishGame[]
+  dailyDishStreak  DailyDishStreak?
+  soloScores       SoloGameScore[]
+  poolSeen         GamePoolSeen[]
+  hostedRooms      GameRoom[]
+  gamePlayers      GamePlayer[]
+  gameSubmissions  GameSubmission[]
+  healthReadings   HealthReading[]
+  healthMeals      HealthMeal[]
+  chefVerifications ChefVerification[]
+  aiInsights       AiInsight[]
+  scaleNotes       RecipeScaleNote[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -247,6 +264,7 @@ model Recipe {
   cookbooks  CookbookRecipe[]
   posts      Post[]
   stories    Story[]
+  scaleNotes RecipeScaleNote[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -325,6 +343,27 @@ model RecipeMadePost {
 
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
+}
+
+/// How a cook really scaled a recipe to a number of people. The recipe's author or anyone who made it can add one.
+/// These teach the AI: they are shown as examples and their ratios become the "typical" scaling for salt, spice and so on.
+model RecipeScaleNote {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  recipeId    String   @db.Uuid
+  authorId    String   @db.Uuid
+  servings    Int
+  /// {name, amount, unit}[] using the recipe's own ingredient names
+  amounts     Json
+  tip         String   @default("")
+  cookTimeMin Int?
+  panNote     String   @default("")
+  createdAt   DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, authorId, servings])
+  @@index([recipeId, servings])
 }
 
 /// A report. One per person per recipe; enough distinct reports hide the recipe.
@@ -785,6 +824,8 @@ model Post {
   saveCount    Int        @default(0)
   viewCount    Int        @default(0)
   createdAt    DateTime   @default(now())
+  /// When the automatic model check looked at it. Null: still waiting for the check.
+  moderatedAt  DateTime?
 
   author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   recipe   Recipe?       @relation(fields: [recipeId], references: [id], onDelete: SetNull)
@@ -795,6 +836,7 @@ model Post {
   comments PostComment[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, moderatedAt])
   @@index([authorId, createdAt(sort: Desc)])
   @@index([communityId, createdAt(sort: Desc)])
   @@index([challengeId])
@@ -902,7 +944,9 @@ enum ReportStatus {
 /// Someone reporting a post, comment, person, story or message. One report per person per thing.
 model Report {
   id           String       @id @default(uuid(7)) @db.Uuid
-  reporterId   String       @db.Uuid
+  /// Null for a report raised by the automatic check rather than a person.
+  reporterId   String?      @db.Uuid
+  auto         Boolean      @default(false)
   /// "post", "comment", "user", "story" or "message"
   targetType   String
   targetId     String       @db.Uuid
@@ -916,7 +960,7 @@ model Report {
   resolvedAt   DateTime?
   createdAt    DateTime     @default(now())
 
-  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reporter User? @relation(fields: [reporterId], references: [id], onDelete: Cascade)
 
   @@unique([reporterId, targetType, targetId])
   @@index([status, createdAt(sort: Desc)])
@@ -1105,4 +1149,219 @@ model Import {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt(sort: Desc)])
+}
+
+/// One puzzle in the Daily Dish rotation. The answer lives only here and on the server's screens, never in the app.
+model DailyPuzzle {
+  /// Its place in the rotation, 1..N. The puzzle for a day is chosen by the day's number modulo N.
+  position Int      @id
+  answer   String
+  aliases  String[]
+  /// Up to six clues, hardest first.
+  clues    String[]
+  photoUrl String?
+}
+
+/// One person's game on one day.
+model DailyDishGame {
+  userId     String    @db.Uuid
+  /// "YYYY-MM-DD" in UTC
+  dateKey    String
+  cluesShown Int       @default(1)
+  guesses    String[]
+  /// "playing", "solved" or "failed"
+  status     String    @default("playing")
+  score      Int       @default(0)
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, dateKey])
+  @@index([dateKey, status, score(sort: Desc)])
+}
+
+/// A Mystery Kitchen game: a lobby, then a timed cook-off, then results.
+model GameRoom {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  /// 4 digits, unique among rooms still open
+  code        String
+  hostId      String    @db.Uuid
+  /// "solo" or "group"
+  mode        String
+  /// "lobby", "cooking" or "done"
+  phase       String    @default("lobby")
+  difficulty  String    @default("medium")
+  totalSec    Int
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  /// The secret dish, its basket and twist, chosen when the game starts
+  dish        String?
+  basket      String[]
+  twist       String?
+  hints       String[]
+  createdAt   DateTime  @default(now())
+
+  host        User             @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  players     GamePlayer[]
+  submissions GameSubmission[]
+
+  @@index([code, phase])
+  @@index([createdAt])
+}
+
+model GamePlayer {
+  roomId    String   @db.Uuid
+  userId    String   @db.Uuid
+  hintsUsed Int      @default(0)
+  joinedAt  DateTime @default(now())
+
+  room GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId])
+}
+
+model GameSubmission {
+  roomId      String   @db.Uuid
+  userId      String   @db.Uuid
+  photoUrl    String?
+  note        String   @default("")
+  judgeScore  Int
+  score       Int
+  hintsUsed   Int      @default(0)
+  feedback    String   @default("")
+  /// "ai" or "fair_play"
+  judgedBy    String
+  submittedAt DateTime @default(now())
+
+  room GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+/// A health reading. What it measured stays readable (so lists can be filtered by time); the numbers are encrypted.
+model HealthReading {
+  id      String   @id @db.Uuid
+  userId  String   @db.Uuid
+  /// "glucose", "bp" or "cholesterol"
+  kind    String
+  at      DateTime
+  source  String   @default("manual")
+  mealId  String?  @db.Uuid
+  /// AES-256-GCM of the numbers, bound to this user and row (see vitals/crypto.ts)
+  payload Bytes
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meal HealthMeal? @relation(fields: [mealId], references: [id], onDelete: SetNull)
+
+  @@index([userId, at(sort: Desc)])
+  @@index([mealId])
+}
+
+/// A meal someone logged against their readings. Title, carbs and grouping are encrypted.
+model HealthMeal {
+  id      String   @id @db.Uuid
+  userId  String   @db.Uuid
+  at      DateTime
+  payload Bytes
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readings HealthReading[]
+
+  @@index([userId, at(sort: Desc)])
+}
+
+/// A request for the verified-chef badge. Staff approve or reject it.
+model ChefVerification {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @db.Uuid
+  /// "pending", "approved", "rejected" or "revoked"
+  status          String    @default("pending")
+  note            String
+  portfolioUrl    String?
+  rejectionReason String?
+  submittedAt     DateTime  @default(now())
+  decidedAt       DateTime?
+  decidedById     String?   @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, submittedAt(sort: Desc)])
+  @@index([status, submittedAt])
+}
+
+/// An AI answer kept so asking again costs nothing: a search sentence, this week's waste coach, today's health summary.
+model AiInsight {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  /// "search", "waste_coach", "health_summary", ...
+  kind      String
+  /// What makes it the same question: a normalised sentence, a week, a day.
+  key       String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, key])
+  @@index([createdAt])
+}
+
+model DailyDishStreak {
+  userId         String @id @db.Uuid
+  current        Int    @default(0)
+  best           Int    @default(0)
+  /// "" until the first solve
+  lastSolvedDate String @default("")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// A person's results in one solo game (Kitchen Trivia, Step Sorter, Ingredient Match).
+model SoloGameScore {
+  userId    String   @db.Uuid
+  game      String
+  best      Int      @default(0)
+  last      Int      @default(0)
+  plays     Int      @default(0)
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, game])
+  @@index([game, best(sort: Desc)])
+}
+
+/// A question for one of the generated games, written by a model (or by hand, for the first trivia) and checked.
+model GamePoolItem {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  game      String
+  prompt    String
+  correct   String
+  wrong     String[]
+  note      String   @default("")
+  /// Stops the same question being stored twice.
+  hash      String   @unique
+  source    String   @default("ai")
+  createdAt DateTime @default(now())
+
+  seen GamePoolSeen[]
+
+  @@index([game, createdAt])
+}
+
+/// Which questions a player has already had, so a new round gives new ones first.
+model GamePoolSeen {
+  userId String   @db.Uuid
+  itemId String   @db.Uuid
+  at     DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item GamePoolItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([userId, itemId])
+  @@index([userId, at])
 }

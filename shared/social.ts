@@ -70,6 +70,7 @@ export interface CreatePostCommentRequest {
 
 export interface UserProfile extends Participant {
   bio: string;
+  bannerUrl: string | null;
   followerCount: number;
   followingCount: number;
   recipeCount: number;
@@ -144,7 +145,10 @@ export type ReportAction = 'hide' | 'restore' | 'dismiss';
 /** A report as staff see it, with a snapshot of what was reported. */
 export interface AdminReport {
   id: string;
-  reporter: Participant;
+  /** Null when the automatic check raised it. */
+  reporter: Participant | null;
+  /** Raised by the automatic check, not a person. */
+  auto: boolean;
   targetType: ReportTarget;
   targetId: string;
   reason: ReportReason;

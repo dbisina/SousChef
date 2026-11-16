@@ -10,6 +10,7 @@ import type { Storage } from '../storage/storage';
 import type { EntitlementService } from '../subscriptions/service';
 import type { UploadService } from '../uploads/service';
 import { parseLink } from '../videoLink';
+import { instagramCaptionFromEmbed, tiktokFromPage, type VideoText, type VideoTextSource } from './videoText';
 import { cleanText, jsonLdRecipes, pageMeta, recipeFromJsonLd, visibleText, type ParsedRecipe } from './html';
 import { FetchError, httpsRequester, resolveRedirects, safeGet, type Requester } from './net';
 
@@ -59,6 +60,7 @@ export class ImportService {
     private readonly storage: Storage | null,
     private readonly requester: Requester = httpsRequester,
     private readonly now: () => Date = () => new Date(),
+    private readonly videoText: VideoTextSource | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ importing a link */
@@ -129,6 +131,42 @@ export class ImportService {
     }
   }
 
+  /**
+   * Reads a recipe from photos of a cookbook page (or a screenshot): one to eight pictures of the same recipe. Nothing is
+   * cached or kept; the pictures are deleted afterwards.
+   */
+  async scanPhotos(userId: string, uploadIds: string[], bookName?: string): Promise<ImportedRecipe> {
+    if (!this.storage) throw errors.aiUnavailable('This feature is not set up on this server');
+    if (uploadIds.length === 0 || uploadIds.length > MAX_FRAMES) throw errors.validation({ uploadIds: `Send between 1 and ${MAX_FRAMES} photos` });
+    try {
+      const images: { base64: string; mimeType: string }[] = [];
+      let total = 0;
+      for (const id of uploadIds) {
+        const key = await this.uploads.keyFor(userId, id, 'import_frame');
+        const bytes = key ? await this.storage.read(key) : null;
+        if (!bytes) throw errors.validation({ uploadIds: 'Finish uploading each photo first' });
+        total += bytes.byteLength;
+        if (total > MAX_FRAME_BYTES_TOTAL) throw errors.validation({ uploadIds: 'The photos are too large together' });
+        images.push({ base64: bytes.toString('base64'), mimeType: sniffImageType(bytes) });
+      }
+      const request: AiRequest = {
+        task: 'extract_recipe_from_frames',
+        system: SYSTEM,
+        prompt: `These are photos of a printed recipe${bookName ? ` from the cookbook "${bookName.slice(0, 80)}"` : ''}. Read the recipe exactly as printed: the title, the ingredients with amounts, and the steps. If the pages show different recipes, read the first one.`,
+        images,
+        json: true,
+        maxOutputTokens: 2500,
+        temperature: 0.1,
+      };
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: IMPORT_DAILY_LIMIT[await this.tier(userId)] } });
+      const recipe = toImported(parsed, { sourceUrl: `scan:${(bookName ?? 'photo').slice(0, 80)}`, platform: 'website', fallbackConfidence: 0.5 });
+      if (!recipe) throw errors.validation({ uploadIds: 'No recipe could be read from those photos' });
+      return recipe;
+    } finally {
+      for (const id of uploadIds) await this.uploads.discardById(id);
+    }
+  }
+
   async get(userId: string, id: string): Promise<ImportResult> {
     const row = await this.db.import.findFirst({ where: { id, userId } });
     if (!row) throw errors.notFound('Import not found');
@@ -186,17 +224,27 @@ export class ImportService {
     return recipe;
   }
 
-  /** A video: the caption (and, for YouTube, the video itself if a model that can watch it is set up). Null if no recipe in it. */
+  /** A video: its caption and subtitles (and, for YouTube without subtitles, the video itself if a model that can watch it is set up). Null if no recipe in it. */
   private async fromVideo(target: Target, userId: string, dailyLimit: number): Promise<ImportedRecipe | null> {
     const meta = await this.videoMeta(target);
     const caption = [meta.title, meta.description].filter(Boolean).join('\n');
-    const base = `Platform: ${target.platform}\nAuthor: ${meta.author ?? 'unknown'}\nCaption / title:\n${caption}`;
+    const transcript = meta.transcript ?? '';
+    const base = `Platform: ${target.platform}
+Author: ${meta.author ?? 'unknown'}
+Caption / title:
+${caption}${transcript ? `
+
+Words spoken in the video (subtitles):
+${transcript}` : ''}`;
+    // With subtitles in hand reading the text is cheaper and steadier than watching; watch only when there are none.
     const watch: AiRequest | null =
-      target.platform === 'youtube'
-        ? { task: 'extract_recipe', system: SYSTEM, prompt: `${base}\n\nWatch the video too and read the recipe from it.`, videoUrl: `https://www.youtube.com/watch?v=${target.videoId}`, json: true, maxOutputTokens: 2500, temperature: 0.1 }
+      target.platform === 'youtube' && !transcript
+        ? { task: 'extract_recipe', system: SYSTEM, prompt: `${base}
+
+Watch the video too and read the recipe from it.`, videoUrl: `https://www.youtube.com/watch?v=${target.videoId}`, json: true, maxOutputTokens: 2500, temperature: 0.1 }
         : null;
-    // A caption this short cannot hold a recipe; do not pay to read it (a YouTube video can still be watched).
-    const text: AiRequest | null = caption.length >= 80 ? { task: 'extract_recipe', system: SYSTEM, prompt: base, json: true, maxOutputTokens: 2500, temperature: 0.1 } : null;
+    // Text this short cannot hold a recipe; do not pay to read it (a YouTube video can still be watched).
+    const text: AiRequest | null = caption.length + transcript.length >= 80 ? { task: 'extract_recipe', system: SYSTEM, prompt: base, json: true, maxOutputTokens: 3000, temperature: 0.1 } : null;
     const run = (request: AiRequest) => this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: dailyLimit } });
 
     let parsed: AiRecipe | null = null;
@@ -217,25 +265,75 @@ export class ImportService {
     return toImported(parsed, { sourceUrl: target.url, platform: target.platform, imageUrl: meta.image ?? undefined, videoUrl: target.url, fallbackConfidence: 0.6 });
   }
 
-  /** What the platform will tell anyone about a public video. Best effort: any failure just means less to go on. */
-  private async videoMeta(target: Target): Promise<{ title?: string; description?: string; author?: string; image?: string }> {
-    try {
-      if (target.platform === 'youtube') {
-        const r = await safeGet(`https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${target.videoId}`)}&format=json`, { maxBytes: 100_000 }, this.requester);
-        const j = JSON.parse(r.text) as { title?: string; author_name?: string; thumbnail_url?: string };
-        return { ...(j.title ? { title: cleanText(j.title, 500) } : {}), ...(j.author_name ? { author: cleanText(j.author_name, 100) } : {}), ...(j.thumbnail_url ? { image: j.thumbnail_url } : {}) };
+  /**
+   * What the platform will tell anyone about a public video: the oEmbed card, then yt-dlp (caption + subtitles), then the
+   * platform's own public page for what is still missing. Best effort: any failure just means less to go on.
+   */
+  private async videoMeta(target: Target): Promise<VideoText> {
+    const got: VideoText = {};
+    const merge = (more: VideoText) => {
+      for (const [k, v] of Object.entries(more)) if (v && !(got as Record<string, string>)[k]) (got as Record<string, string>)[k] = v;
+    };
+    const tryGet = async (url: string, maxBytes: number): Promise<string | null> => {
+      try {
+        return (await safeGet(url, { maxBytes }, this.requester)).text;
+      } catch {
+        return null;
       }
-      if (target.platform === 'tiktok') {
-        const r = await safeGet(`https://www.tiktok.com/oembed?url=${encodeURIComponent(target.url)}`, { maxBytes: 100_000 }, this.requester);
-        const j = JSON.parse(r.text) as { title?: string; author_name?: string; thumbnail_url?: string };
-        return { ...(j.title ? { title: cleanText(j.title, 4000) } : {}), ...(j.author_name ? { author: cleanText(j.author_name, 100) } : {}), ...(j.thumbnail_url ? { image: j.thumbnail_url } : {}) };
+    };
+    // yt-dlp first: it sees the full caption and subtitles. The oEmbed card only has a title.
+    if (this.videoText) {
+      try {
+        merge(await this.videoText(target.url));
+      } catch {
+        // blocked, private or unsupported: carry on with the public pages below
       }
-      const page = await safeGet(target.url, { maxBytes: 600_000 }, this.requester);
-      const meta = pageMeta(page.text);
-      return { ...(meta.title ? { title: meta.title } : {}), ...(meta.description ? { description: meta.description } : {}), ...(meta.image ? { image: meta.image } : {}) };
-    } catch {
-      return {};
     }
+    if (target.platform === 'youtube') {
+      const body = await tryGet(`https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${target.videoId}`)}&format=json`, 100_000);
+      try {
+        const j = JSON.parse(body ?? '{}') as { title?: string; author_name?: string; thumbnail_url?: string };
+        merge({ ...(j.title ? { title: cleanText(j.title, 500) } : {}), ...(j.author_name ? { author: cleanText(j.author_name, 100) } : {}), ...(j.thumbnail_url ? { image: j.thumbnail_url } : {}) });
+      } catch {
+        // not JSON
+      }
+      return got;
+    }
+    if (target.platform === 'tiktok') {
+      const body = await tryGet(`https://www.tiktok.com/oembed?url=${encodeURIComponent(target.url)}`, 100_000);
+      try {
+        const j = JSON.parse(body ?? '{}') as { title?: string; author_name?: string; thumbnail_url?: string };
+        merge({ ...(j.title ? { title: cleanText(j.title, 4000) } : {}), ...(j.author_name ? { author: cleanText(j.author_name, 100) } : {}), ...(j.thumbnail_url ? { image: j.thumbnail_url } : {}) });
+      } catch {
+        // not JSON
+      }
+      if (!got.description || got.description.length < 40) {
+        const page = await tryGet(target.url, 900_000);
+        if (page) merge(tiktokFromPage(page));
+      }
+      return got;
+    }
+    if (target.platform === 'instagram') {
+      if (!got.description || got.description.length < 40) {
+        const embed = target.videoId ? await tryGet(`https://www.instagram.com/p/${encodeURIComponent(target.videoId)}/embed/captioned/`, 900_000) : null;
+        const caption = embed ? instagramCaptionFromEmbed(embed) : undefined;
+        if (caption) merge({ description: caption });
+      }
+      if (!got.description) {
+        const page = await tryGet(target.url, 600_000);
+        if (page) {
+          const meta = pageMeta(page);
+          merge({ ...(meta.title ? { title: meta.title } : {}), ...(meta.description ? { description: meta.description } : {}), ...(meta.image ? { image: meta.image } : {}) });
+        }
+      }
+      return got;
+    }
+    const page = await tryGet(target.url, 600_000);
+    if (page) {
+      const meta = pageMeta(page);
+      merge({ ...(meta.title ? { title: meta.title } : {}), ...(meta.description ? { description: meta.description } : {}), ...(meta.image ? { image: meta.image } : {}) });
+    }
+    return got;
   }
 
   private async fetchPage(url: string) {
@@ -290,7 +388,7 @@ const platformOf = (key: string): ImportPlatform => {
 };
 
 /** PNG and WebP announce themselves in their first bytes; anything else is treated as JPEG. */
-function sniffImageType(bytes: Buffer): string {
+export function sniffImageType(bytes: Buffer): string {
   if (bytes.subarray(1, 4).toString() === 'PNG') return 'image/png';
   if (bytes.subarray(0, 4).toString() === 'RIFF' && bytes.subarray(8, 12).toString() === 'WEBP') return 'image/webp';
   return 'image/jpeg';

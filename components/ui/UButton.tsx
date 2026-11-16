@@ -3,6 +3,7 @@ import { ActivityIndicator, Text as RNText, View, type StyleProp, type ViewStyle
 import { Pressable } from './Pressable';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { Icon } from './Icon';
 import { FONT } from './fonts';
 import { useColor, useTokens } from './tone';
@@ -154,11 +155,13 @@ export function CtaBar({ children, vertical, fade }: CtaBarProps) {
           style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
         />
       ) : null}
-      <View style={{ flexDirection: vertical ? 'column' : 'row', gap: 10, alignItems: 'stretch' }}>
-        {vertical
-          ? children
-          : React.Children.map(children, (c) => (c ? <View style={{ flex: 1, minWidth: 0 }}>{c}</View> : null))}
-      </View>
+      <KeyboardStickyView offset={{ closed: 0, opened: bottom - 10 }}>
+        <View style={{ flexDirection: vertical ? 'column' : 'row', gap: 10, alignItems: 'stretch' }}>
+          {vertical
+            ? children
+            : React.Children.map(children, (c) => (c ? <View style={{ flex: 1, minWidth: 0 }}>{c}</View> : null))}
+        </View>
+      </KeyboardStickyView>
     </View>
   );
 }

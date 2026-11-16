@@ -235,11 +235,11 @@ describe('the router', () => {
 });
 
 describe('setting the services up from configuration', () => {
-  it('builds only the services whose keys are set, and keeps Nebius off until a model is named', () => {
+  it('builds only the services whose keys are set, and a Nebius model only when it is named', () => {
     expect(providersFromConfig(testConfig()).map((p) => p.name)).toEqual([]);
     const withKeys = testConfig({ AI_GEMINI_API_KEY: 'g', AI_DEEPSEEK_API_KEY: 'd', AI_NEBIUS_API_KEY: 'n' });
-    expect(providersFromConfig(withKeys).map((p) => p.name)).toEqual(['gemini', 'deepseek']);
-    const full = testConfig({ AI_GEMINI_API_KEY: 'g', AI_NEBIUS_API_KEY: 'n', AI_NEBIUS_MODEL: 'some/model' });
+    expect(providersFromConfig(withKeys).map((p) => p.name)).toEqual(['gemini', 'deepseek', 'nebius', 'nebius-vision', 'nebius-vision-2']);
+    const full = testConfig({ AI_GEMINI_API_KEY: 'g', AI_NEBIUS_API_KEY: 'n', AI_NEBIUS_MODEL: 'some/model', AI_NEBIUS_VISION_MODEL: '', AI_NEBIUS_VISION_MODEL_2: '' });
     expect(providersFromConfig(full).map((p) => `${p.name}:${p.model}`)).toEqual(['gemini:gemini-2.5-flash', 'nebius:some/model']);
   });
 

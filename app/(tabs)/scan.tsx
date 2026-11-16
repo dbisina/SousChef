@@ -16,7 +16,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import { usePortionAnalysis } from '@/hooks/useAI';
 import { useRemainingUsage } from '@/hooks/useSubscription';
 import { CameraCapture } from '@/components/camera';
@@ -346,12 +345,7 @@ export default function ScanScreen() {
 
   return (
     <Screen tone="dark" bare>
-      <Image
-        source={capturedImage ? { uri: capturedImage } : SAMPLE.bowl}
-        style={StyleSheet.absoluteFill}
-        contentFit="cover"
-        accessible={false}
-      />
+      {capturedImage ? <Image source={{ uri: capturedImage }} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} /> : null}
 
       <View
         className="flex-row items-center justify-between"

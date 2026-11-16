@@ -1,5 +1,6 @@
 import React, { memo, useMemo, useCallback, useState } from 'react';
-import { View, Text as RNText, Platform, Alert, Modal, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text as RNText, Platform, Alert, Modal, ScrollView } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -29,7 +30,6 @@ import {
   UIconButton,
   useTone,
 } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
 
 interface ShoppingListViewProps {
   compact?: boolean;
@@ -408,7 +408,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({ compact = fa
 
   return (
     <View style={{ gap: 14 }}>
-      <PhotoCard source={SAMPLE.grocery} height={150}>
+      <PhotoCard height={150}>
         <View style={{ position: 'absolute', left: 18, right: 18, bottom: 16, gap: 10, zIndex: 1 }}>
           <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
             <RNText

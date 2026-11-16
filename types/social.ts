@@ -1,7 +1,5 @@
-import type { SampleName } from '@/assets/sample';
-
-/** Photo reference: a key of SAMPLE in assets/sample/index.ts. */
-export type PhotoRef = SampleName;
+/** Photo reference: the address of a real photo from the server. */
+export type PhotoRef = string;
 
 export interface Author {
   id: string;
@@ -95,7 +93,7 @@ export interface Community {
   memberAvatars: PhotoRef[];
 }
 
-export type MessageKind = 'text' | 'recipe-card' | 'voice';
+export type MessageKind = 'text' | 'recipe-card' | 'voice' | 'image';
 
 interface MessageBase {
   id: string;
@@ -121,8 +119,16 @@ export interface VoiceMessage extends MessageBase {
   durationSec: number;
   /** Bar heights, 0..100. */
   waveform: number[];
+  /** Where the recording is, when it came from the server. */
+  url?: string;
 }
-export type Message = TextMessage | RecipeCardMessage | VoiceMessage;
+export interface ImageMessage extends MessageBase {
+  kind: 'image';
+  /** The picture: an address from the server, or a file on this phone while it is still sending. */
+  url: string;
+  caption?: string;
+}
+export type Message = TextMessage | RecipeCardMessage | VoiceMessage | ImageMessage;
 
 export type ConversationKind = 'friend' | 'group' | 'order' | 'community';
 
