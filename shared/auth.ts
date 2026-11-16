@@ -16,6 +16,8 @@ export interface PublicProfile {
 
 /** The signed-in user's own account. */
 export interface Me extends PublicProfile {
+  /** The wide picture across the top of their profile; null when none is set. */
+  bannerUrl: string | null;
   email: string | null;
   emailVerified: boolean;
   role: UserRole;
@@ -92,6 +94,8 @@ export interface UpdateProfileRequest {
   handle?: string;
   bio?: string;
   photoUrl?: string | null;
+  /** null removes the banner. */
+  bannerUrl?: string | null;
   isChef?: boolean;
 }
 

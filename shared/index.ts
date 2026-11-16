@@ -25,3 +25,4 @@ export * from './scale';
 export * from './weeks';
 export * from './pantryMatch';
 export type { CalorieEntry } from './calories';
+export * from './admin';

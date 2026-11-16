@@ -13,7 +13,6 @@ import {
   updateStreak,
 } from '@/lib/dailyDish';
 import { canStart, hintPenalty, secondsLeft } from '@/lib/mysteryKitchen';
-import { SAMPLE_STREAK } from '@/data/sample/play';
 import { playService } from '@/services/playService';
 import { apiEnabled } from '@/lib/api';
 import { currentUserId } from '@/lib/session';
@@ -63,18 +62,11 @@ interface PlayState {
   leaveRound: () => void;
 }
 
-const seedStreak = (): DailyDishStreak => ({
-  current: SAMPLE_STREAK.current,
-  best: SAMPLE_STREAK.best,
-  // Yesterday, so the sample streak is live today.
-  lastSolvedDate: toDateKey(new Date(Date.now() - 86_400_000)),
-});
-
 export const usePlayStore = create<PlayState>()(
   persist(
     (set, get) => ({
       daily: null,
-      streak: apiEnabled() ? { current: 0, best: 0, lastSolvedDate: '' } : seedStreak(),
+      streak: { current: 0, best: 0, lastSolvedDate: '' },
       round: null,
       serverDaily: null,
       playError: null,

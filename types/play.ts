@@ -1,4 +1,5 @@
-import type { PhotoLike as PhotoRef } from '@/assets/sample';
+/** The address of a real photo from the server. */
+type PhotoRef = string;
 
 export interface Game {
   id: string;

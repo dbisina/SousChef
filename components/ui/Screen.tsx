@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from 'react';
-import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
+import { View, type StyleProp, type ViewStyle } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useSegments } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -37,14 +38,16 @@ export function Screen({ tone = 'auto', scroll, bottomSpace = 0, bare, footer, c
       {bare ? (
         children
       ) : scroll ? (
-        <ScrollView
+        // Scrolls the field you are typing in above the keyboard (also on Android 15, where the window no longer resizes).
+        <KeyboardAwareScrollView
           className="flex-1"
           contentContainerStyle={{ paddingHorizontal: 20, gap: 18, paddingBottom: bottomSpace }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          bottomOffset={32}
         >
           <PaddedBody.Provider value>{children}</PaddedBody.Provider>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       ) : (
         <View className="flex-1 px-5" style={{ gap: 18, paddingBottom: bottomSpace }}>
           <PaddedBody.Provider value>{children}</PaddedBody.Provider>

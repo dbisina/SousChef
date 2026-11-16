@@ -277,39 +277,3 @@ export const toggleAdStatus = async (adId: string, currentStatus: string): Promi
     await updateSponsoredAd(adId, { status: newStatus as any });
 };
 
-// ── Seed Demo Ad (for hackathon demo) ──
-
-/**
- * Create a demo sponsored ad in Firestore for development/demo purposes.
- */
-export const seedDemoAd = async (): Promise<string> => {
-    const now = Timestamp.now();
-    const endDate = Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
-
-    const demoAd: Omit<SponsoredAd, 'id'> = {
-        advertiserId: 'demo_brand',
-        advertiserName: 'FreshCart',
-        advertiserLogo: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?auto=format&fit=crop&w=100&q=80',
-        title: 'Farm Fresh to Your Door',
-        subtitle: 'Organic ingredients delivered in 2 hours — 20% off first order',
-        imageURL: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=80',
-        ctaText: 'Order Now',
-        ctaURL: 'https://freshcart.example.com/?ref=souschef',
-        placements: ['welcome_modal', 'home_feed'],
-        format: 'card',
-        status: 'active',
-        startDate: now,
-        endDate,
-        budgetCents: 500000, // $5,000
-        cpmCents: 500, // $5 CPM
-        spentCents: 0,
-        impressions: 0,
-        clicks: 0,
-        createdAt: now,
-        updatedAt: now,
-        accentColor: '#22C55E',
-    };
-
-    const docRef = await addDoc(collection(db, ADS_COLLECTION), demoAd);
-    return docRef.id;
-};

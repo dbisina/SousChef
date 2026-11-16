@@ -3,7 +3,6 @@ import { RefreshControl, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import { useAuthStore } from '@/stores/authStore';
 import { useMealPlanStore } from '@/stores/mealPlanStore';
 import { useWantToCookStore, safeTimestampMillis } from '@/stores/wantToCookStore';
@@ -13,7 +12,7 @@ import { latestGlucose, readingStatus, useHealthStore } from '@/stores/healthSto
 import { useSocialStore } from '@/stores/socialStore';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getTierFeatures } from '@/services/subscriptionService';
-import { FEATURES, SERVER_MODE } from '@/constants/features';
+import { FEATURES } from '@/constants/features';
 import { ListRow, Rows, Screen, SponsoredAdCard, WelcomeModal, useColor, type PhotoSource } from '@/components/ui';
 import { isDesignReview } from '@/lib/designReview';
 import { HomeHeader, LinkBar, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
@@ -26,7 +25,6 @@ import {
   MysteryCard,
   PlanShare,
   ReelsRow,
-  SponsoredDish,
   type ImportedCardData,
   type PlanCardData,
 } from '@/components/feed/HomeFeed';
@@ -51,15 +49,7 @@ const PLATFORMS: Record<string, string> = {
   website: 'Website',
 };
 
-const MEAL_FALLBACK: Record<MealType, keyof typeof SAMPLE> = {
-  breakfast: 'toast',
-  lunch: 'bowl',
-  dinner: 'salmon',
-  snack: 'brownie',
-};
-
-const photoFor = (imageURL: string | undefined, type: MealType): PhotoSource =>
-  imageURL ? { uri: imageURL } : (SAMPLE[MEAL_FALLBACK[type]] as PhotoSource);
+const photoFor = (imageURL: string | undefined): PhotoSource | null => (imageURL ? { uri: imageURL } : null);
 
 const weekday = (iso: string) => {
   const [y, m, d] = iso.split('-').map(Number);
@@ -146,73 +136,50 @@ export default function HomeScreen() {
     setRefreshing(false);
   };
 
-  // Tonight: today's dinner from the real plan, else a sample card.
+  // Tonight: today's dinner from the real plan. Without one the home screen offers the AI "what can I cook tonight" card.
   const tonightMeal = currentPlan?.days.find((d) => d.date === todayKey())?.dinner;
   const tonight = tonightMeal
     ? {
         title: tonightMeal.recipeName,
         sub: t('home.tonightServes', 'Serves {{n}}', { n: tonightMeal.servings }),
-        photo: photoFor(tonightMeal.imageURL, 'dinner'),
-        preview: false,
+        photo: photoFor(tonightMeal.imageURL),
         href: `/recipe/${tonightMeal.recipeId}`,
       }
-    : {
-        title: t('home.sampleTonightTitle', 'Herb salmon with broccoli'),
-        sub: t('home.sampleTonightSub', '25 min · you have 5 of 6'),
-        photo: SAMPLE.salmon as PhotoSource,
-        preview: true,
-        href: '/(tabs)/mealplan',
-      };
+    : null;
 
-  // Imported by you: newest saved import, else a sample card.
-  const imported: ImportedCardData & { href: string } = useMemo(() => {
+  // Imported by you: the newest saved import, if there is one.
+  const imported: (ImportedCardData & { href: string }) | null = useMemo(() => {
     const items = wantToCookItems
       .filter((i) => i.status === 'saved' && i.importedRecipe)
       .sort((a, b) => safeTimestampMillis(b.savedAt) - safeTimestampMillis(a.savedAt));
     const item = items[0];
     const r = item?.importedRecipe;
-    if (item && r) {
-      const key = (r.sourcePlatform ?? '').toLowerCase();
-      const minutes = (r.prepTime ?? 0) + (r.cookTime ?? 0);
-      return {
-        id: item.id,
-        title: r.title,
-        platform: PLATFORMS[key] ?? (key ? key.charAt(0).toUpperCase() + key.slice(1) : t('home.link', 'Link')),
-        minutes: minutes > 0 ? minutes : undefined,
-        photo: r.imageURL ? { uri: r.imageURL } : (SAMPLE.tacos2 as PhotoSource),
-        href: `/imported-recipe/${item.id}`,
-      };
-    }
+    if (!item || !r) return null;
+    const key = (r.sourcePlatform ?? '').toLowerCase();
+    const minutes = (r.prepTime ?? 0) + (r.cookTime ?? 0);
     return {
-      id: 'sample-import',
-      title: t('home.sampleImportTitle', 'Chickpea avocado tacos'),
-      platform: 'TikTok',
-      minutes: 20,
-      photo: SAMPLE.tacos2 as PhotoSource,
-      preview: true,
-      href: '/import',
+      id: item.id,
+      title: r.title,
+      platform: PLATFORMS[key] ?? (key ? key.charAt(0).toUpperCase() + key.slice(1) : t('home.link', 'Link')),
+      minutes: minutes > 0 ? minutes : undefined,
+      photo: r.imageURL ? { uri: r.imageURL } : null,
+      href: `/imported-recipe/${item.id}`,
     };
   }, [wantToCookItems, t]);
 
-  // Plan carousel: the real plan when one exists, else a friend's sample plan.
-  const planCards: PlanCardData[] = useMemo(() => {
-    const real = (currentPlan?.days ?? [])
-      .map((d) => {
-        const type: MealType | undefined = d.dinner ? 'dinner' : d.lunch ? 'lunch' : d.breakfast ? 'breakfast' : undefined;
-        const meal = type ? d[type] : undefined;
-        return type && meal
-          ? { key: d.date, day: weekday(d.date), title: meal.recipeName, photo: photoFor(meal.imageURL, type) }
-          : null;
-      })
-      .filter((c): c is PlanCardData => c !== null)
-      .slice(0, 5);
-    if (real.length > 0) return real;
-    return [
-      { key: 'mon', day: t('home.mon', 'Mon'), title: t('home.sampleEggToast', 'Egg toast'), photo: SAMPLE.toast as PhotoSource },
-      { key: 'tue', day: t('home.tue', 'Tue'), title: t('home.sampleSalmonBowl', 'Salmon bowl'), photo: SAMPLE.powerbowl as PhotoSource },
-      { key: 'wed', day: t('home.wed', 'Wed'), title: t('home.sampleChickenSalad', 'Chicken salad'), photo: SAMPLE.salad as PhotoSource },
-    ];
-  }, [currentPlan, t]);
+  // Plan carousel: the days of the real plan.
+  const planCards: PlanCardData[] = useMemo(
+    () =>
+      (currentPlan?.days ?? [])
+        .map((d): PlanCardData | null => {
+          const type: MealType | undefined = d.dinner ? 'dinner' : d.lunch ? 'lunch' : d.breakfast ? 'breakfast' : undefined;
+          const meal = type ? d[type] : undefined;
+          return type && meal ? { key: d.date, day: weekday(d.date), title: meal.recipeName, photo: photoFor(meal.imageURL) } : null;
+        })
+        .filter((c): c is PlanCardData => c !== null)
+        .slice(0, 5),
+    [currentPlan],
+  );
   const planIsReal = (currentPlan?.days ?? []).some((d) => d.breakfast || d.lunch || d.dinner);
 
   const friendPost = posts.find((p) => p.kind === 'recipe');
@@ -248,14 +215,12 @@ export default function HomeScreen() {
       >
         <LinkBar onPress={() => go('/import')} />
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
-        {/* Invented example cards only exist off-line; connected to a server there is the real plan, or nothing. */}
-        {!tonight.preview || !SERVER_MODE ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} preview={tonight.preview} onPress={() => go(tonight.href)} /> : null}
+        {tonight ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} onPress={() => go(tonight.href)} /> : null}
         {!isGuest ? <AiTonightCard /> : null}
         {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
         {FEATURES.feed ? <ReelsRow /> : null}
-        {!imported.preview || !SERVER_MODE ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
-        {planIsReal || !SERVER_MODE ? <PlanShare shared={!planIsReal} cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}
-        {FEATURES.ordering ? <SponsoredDish /> : null}
+        {imported ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
+        {planIsReal ? <PlanShare cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}
         {FEATURES.feed ? <ChallengeCard /> : null}
         {FEATURES.feed && madePost ? <MadeYourRecipe postId={madePost.id} /> : null}
         {FEATURES.play ? <MysteryCard /> : null}

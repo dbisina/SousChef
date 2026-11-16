@@ -7,7 +7,16 @@ import { ApiError } from '@/lib/api';
 import { apiSoloAnswer, apiSoloStart } from '@/services/soloApi';
 import { SOLO_GAMES, type SoloGameId, type SoloResult, type SoloRound } from '../../../shared/index';
 
-const NAMES: Record<SoloGameId, string> = { trivia: 'Kitchen Trivia', sorter: 'Step Sorter', match: 'Ingredient Match' };
+const NAMES: Record<SoloGameId, string> = {
+  trivia: 'Kitchen Trivia',
+  myth: 'Myth or Fact',
+  cuisine: 'Name That Cuisine',
+  odd: 'Odd One Out',
+  technique: 'Technique Match',
+  pairing: 'Flavour Pairing',
+  sorter: 'Step Sorter',
+  match: 'Ingredient Match',
+};
 
 const isGame = (g: unknown): g is SoloGameId => typeof g === 'string' && (SOLO_GAMES as readonly string[]).includes(g);
 

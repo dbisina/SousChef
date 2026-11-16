@@ -63,18 +63,12 @@ interface HealthState {
   logReading: (input: NewReadingInput) => HealthReading;
   logMeal: (meal: MealLog) => void;
   removeReading: (id: string) => void;
-  /** Rebuild sample data relative to now (keeps everything the user logged). */
-  refreshSample: (now?: Date) => void;
 }
-
-const isSample = (r: { source?: string; sample?: boolean }) => r.source === 'sample' || r.sample === true;
-
-const sampleSeed = () => healthService.seedSample();
 
 export const useHealthStore = create<HealthState>()(
   persist(
     (set, get) => {
-      const seed = apiEnabled() ? { readings: [], meals: [] } : sampleSeed();
+      const seed = { readings: [] as HealthReading[], meals: [] as MealLog[] };
       return {
         readings: seed.readings,
         meals: seed.meals,
@@ -147,28 +141,19 @@ export const useHealthStore = create<HealthState>()(
             apiDeleteReading(id).catch(() => set((s) => ({ readings: [...s.readings, gone] }))); // put it back if the server kept it
           }
         },
-        refreshSample: (now = new Date()) => {
-          if (apiEnabled()) return; // real data only
-          const fresh = healthService.seedSample(now);
-          set((s) => ({
-            readings: [...fresh.readings, ...s.readings.filter((r) => !isSample(r))],
-            meals: [...fresh.meals, ...s.meals.filter((m) => !isSample(m))],
-          }));
-        },
       };
     },
     {
       name: apiEnabled() ? 'souschef-health-server-v1' : 'souschef-health-v1',
       storage: createJSONStorage(() => AsyncStorage),
       version: 1,
-      // Sample history is rebuilt on launch; only user-entered data is stored.
       // With the server on, health data is never written to the phone's storage: it lives encrypted on the server.
       partialize: (s) =>
         apiEnabled()
           ? {}
           : {
-              readings: s.readings.filter((r) => !isSample(r)),
-              meals: s.meals.filter((m) => !isSample(m)),
+              readings: s.readings,
+              meals: s.meals,
             },
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<Pick<HealthState, 'readings' | 'meals'>>;
