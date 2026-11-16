@@ -1,6 +1,7 @@
 import type { AiRouter } from '../ai/router';
 import type { InviteService } from '../invites/service';
 import type { MysteryKitchenService } from '../play/mysteryKitchen';
+import type { GamePoolService } from '../play/pool';
 import type { ModerationService } from '../moderation/service';
 import type { StoryService } from '../social/stories';
 import type { UploadService } from '../uploads/service';
@@ -17,6 +18,7 @@ export interface JobServices {
   moderation: ModerationService;
   maintenance: Maintenance;
   ai: AiRouter;
+  pool: GamePoolService;
 }
 
 /** Everything that runs in the background, and how often. */
@@ -33,6 +35,12 @@ export function backgroundJobs(s: JobServices): Job[] {
     { name: 'invites', everyMs: 5 * MINUTE, run: async () => `settled ${await s.invites.settleAll()} inviters` },
     { name: 'stories', everyMs: 10 * MINUTE, run: async () => `removed ${await s.stories.sweepExpired()} old stories` },
     { name: 'uploads', everyMs: 10 * MINUTE, run: async () => `removed ${await s.uploads.sweepExpired()} unfinished uploads` },
+    // Keeps the generated games stocked with new questions (waits quietly when the AI is off or over budget).
+    {
+      name: 'game-pool',
+      everyMs: 6 * 60 * MINUTE,
+      run: async () => (s.ai.available('game_content') ? describe(await s.pool.topUp()) : 'AI off, skipped'),
+    },
     { name: 'maintenance', everyMs: 60 * MINUTE, run: async () => describe(await s.maintenance.purge()) },
   ];
 }
