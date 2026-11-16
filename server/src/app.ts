@@ -193,7 +193,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
   importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText), auth, config);
   const insights = new InsightCache(db, options.now);
-  const vitals = new VitalsService(db, HealthCipher.fromBase64(config.HEALTH_DATA_KEY), options.now);
+  const vitals = new VitalsService(db, HealthCipher.fromKeys(config.HEALTH_DATA_KEY, config.HEALTH_DATA_KEY_ID, config.HEALTH_DATA_OLD_KEYS), options.now);
   aiToolsRoutes(
     app,
     new AiToolsService(db, ai, entitlements, options.now),
