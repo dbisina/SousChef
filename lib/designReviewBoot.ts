@@ -22,7 +22,6 @@ export function bootDesignReview(): void {
     health: require('@/stores/healthStore').useHealthStore,
     language: require('@/stores/languageStore').useLanguageStore,
     message: require('@/stores/messageStore').useMessageStore,
-    order: require('@/stores/orderStore').useOrderStore,
     play: require('@/stores/playStore').usePlayStore,
     setup: require('@/stores/setupStore').useSetupStore,
     social: require('@/stores/socialStore').useSocialStore,

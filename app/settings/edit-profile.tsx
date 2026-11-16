@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
+import { apiEnabled } from '@/lib/api';
+import { DeleteAccountSheet } from '@/components/settings/DeleteAccountSheet';
 import { uploadImage } from '@/lib/cloudinary';
+import { uploadFile } from '@/lib/upload';
 import {
   CtaBar,
   FONT,
@@ -13,6 +17,7 @@ import {
   Icon,
   ListRow,
   Muted,
+  PhotoCard,
   Rows,
   Screen,
   Tag,
@@ -33,6 +38,9 @@ export default function EditProfileScreen() {
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
+  const [bannerURL, setBannerURL] = useState(user?.bannerURL || '');
+  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [deleteSheet, setDeleteSheet] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
   const languageName = SUPPORTED_LANGUAGES.find((l) => l.code === language)?.nativeName ?? language;
@@ -48,10 +56,9 @@ export default function EditProfileScreen() {
     if (!result.canceled && result.assets[0]) {
       setIsUploading(true);
       try {
-        const uploadedUrl = await uploadImage(
-          result.assets[0].uri,
-          `souschef/avatars/${user?.id}`
-        );
+        const uploadedUrl = apiEnabled()
+          ? (await uploadFile(result.assets[0].uri, 'avatar')).url
+          : await uploadImage(result.assets[0].uri, `souschef/avatars/${user?.id}`);
         setPhotoURL(uploadedUrl);
       } catch (error) {
         showErrorToast(
@@ -61,6 +68,27 @@ export default function EditProfileScreen() {
       } finally {
         setIsUploading(false);
       }
+    }
+  };
+
+  const handlePickBanner = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [3, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets[0]) return;
+    setIsUploadingBanner(true);
+    try {
+      setBannerURL((await uploadFile(result.assets[0].uri, 'banner')).url);
+    } catch {
+      showErrorToast(
+        t('account.edit.bannerFailed', "We couldn't upload your new banner just yet. Want to try again?"),
+        t('account.edit.uploadProblem', 'Upload Problem'),
+      );
+    } finally {
+      setIsUploadingBanner(false);
     }
   };
 
@@ -77,6 +105,7 @@ export default function EditProfileScreen() {
       await updateUserProfile({
         displayName: displayName.trim(),
         photoURL: photoURL || undefined,
+        ...(apiEnabled() ? { bannerURL } : {}),
       });
       showSuccessToast(
         t('account.edit.savedBody', 'Looking good! Your profile has been updated.'),
@@ -92,6 +121,10 @@ export default function EditProfileScreen() {
   };
 
   const handleDeleteAccount = () => {
+    if (apiEnabled()) {
+      setDeleteSheet(true); // the server asks for the password (or the word DELETE) in a sheet
+      return;
+    }
     Alert.alert(
       t('account.edit.deleteTitle', 'Delete Account'),
       t(
@@ -151,6 +184,25 @@ export default function EditProfileScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150, gap: 16 }}
         >
+          {apiEnabled() ? (
+            <View style={{ gap: 8 }}>
+              <Pressable accessibilityRole="button" accessibilityLabel={t('account.edit.changeBanner', 'Change banner')} onPress={handlePickBanner} disabled={isUploadingBanner}>
+                <PhotoCard source={bannerURL ? { uri: bannerURL } : null} height={120} radius={24} fade="none">
+                  <View style={{ position: 'absolute', right: 12, bottom: 12 }}>
+                    <UIconButton
+                      icon="camera"
+                      tone="black"
+                      label={isUploadingBanner ? t('account.edit.uploading', 'Uploading...') : t('account.edit.changeBanner', 'Change banner')}
+                      onPress={handlePickBanner}
+                      disabled={isUploadingBanner}
+                    />
+                  </View>
+                </PhotoCard>
+              </Pressable>
+              {bannerURL ? <UButton size="sm" variant="ghost" label={t('account.edit.removeBanner', 'Remove banner')} onPress={() => setBannerURL('')} /> : null}
+            </View>
+          ) : null}
+
           <View style={{ alignSelf: 'center', marginTop: 6, marginBottom: 4 }}>
             <UAvatar
               name={displayName || user?.displayName || ''}
@@ -229,6 +281,7 @@ export default function EditProfileScreen() {
           </Rows>
         </ScrollView>
       </KeyboardAvoidingView>
+      <DeleteAccountSheet visible={deleteSheet} onClose={() => setDeleteSheet(false)} onDeleted={() => router.replace('/auth/login')} />
     </Screen>
   );
 }

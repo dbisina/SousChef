@@ -1,4 +1,3 @@
-import { buildSampleHealth } from '@/data/sample/health';
 import type {
   GlucoseTiming,
   HealthReading,
@@ -6,8 +5,6 @@ import type {
   MealType,
   ReadingSource,
 } from '@/types/health';
-import type { MenuDish } from '@/types/order';
-import { rateNutrition } from '@/lib/nutrition';
 
 export type NewReadingInput =
   | { kind: 'glucose'; mmol: number; timing: GlucoseTiming; mealId?: string; at?: Date }
@@ -18,7 +15,6 @@ export type NewReadingInput =
 export interface HealthService {
   seedSample(now?: Date): { readings: HealthReading[]; meals: MealLog[] };
   buildReading(input: NewReadingInput, source?: ReadingSource): HealthReading;
-  mealFromDish(dish: MenuDish, orderId: string, now?: Date): MealLog;
 }
 
 let counter = 0;
@@ -33,7 +29,7 @@ export function mealTypeFor(date: Date): MealType {
 }
 
 export const localHealthService: HealthService = {
-  seedSample: (now) => buildSampleHealth(now),
+  seedSample: () => ({ readings: [], meals: [] }),
   buildReading(input, source = 'manual') {
     const at = (input.at ?? new Date()).toISOString();
     const base = { id: uid('r'), at, source };
@@ -44,19 +40,6 @@ export const localHealthService: HealthService = {
       return { ...base, kind: 'bp', systolic: input.systolic, diastolic: input.diastolic };
     }
     return { ...base, kind: 'cholesterol', ldl: input.ldl };
-  },
-  mealFromDish(dish, orderId, now = new Date()) {
-    return {
-      id: uid('meal'),
-      title: dish.name,
-      mealType: mealTypeFor(now),
-      at: now.toISOString(),
-      carbsG: dish.carbsG,
-      portionLabel: `${dish.portionG} g`,
-      group: dish.category,
-      ratings: rateNutrition(dish.per100g),
-      fromOrderId: orderId,
-    };
   },
 };
 

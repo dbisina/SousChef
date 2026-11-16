@@ -258,7 +258,7 @@ describe('the moderation queue', () => {
 
     const all = await queue(admin);
     expect(all.items).toHaveLength(3);
-    const onPost = all.items.find((r) => r.targetType === 'post' && r.reporter.displayName === 'Kemi');
+    const onPost = all.items.find((r) => r.targetType === 'post' && r.reporter?.displayName === 'Kemi');
     expect(onPost).toMatchObject({ reason: 'abuse', status: 'open', reportCount: 2, target: { summary: 'Questionable post', authorId: ama.user.id, hidden: false } });
     expect(all.items.find((r) => r.targetType === 'user')?.target?.summary).toContain('(Ama)');
     expect((await queue(admin, '?type=user')).items).toHaveLength(1);

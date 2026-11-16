@@ -5,7 +5,6 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { WantToCookItem } from '@/types/wantToCook';
 import { Icon, PhotoCard, Tag, Thumb, UIconButton, FONT } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
 
 export type WantToCookCardVariant = 'hero' | 'tile' | 'row';
 
@@ -48,7 +47,7 @@ export const WantToCookCard = memo<WantToCookCardProps>(({
   const cooked = item.status === 'cooked';
   const minutes = (recipe.prepTime || 0) + (recipe.cookTime || 0);
   const source = sourceLabel(recipe.sourcePlatform);
-  const photo = recipe.imageURL ? { uri: recipe.imageURL } : SAMPLE.bowl;
+  const photo = recipe.imageURL ? { uri: recipe.imageURL } : null;
 
   const handlePress = () => {
     if (Platform.OS !== 'web') {

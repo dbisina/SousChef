@@ -1,9 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Platform, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import {
   Chip,
   CtaBar,
@@ -146,7 +146,6 @@ export default function AdvertiseScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 190 }}>
           <PhotoCard
-            source={SAMPLE.veg}
             height={260}
             radius={0}
             fade="both"

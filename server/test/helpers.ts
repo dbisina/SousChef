@@ -4,6 +4,7 @@ import { buildApp, type Built } from '../src/app';
 import type { IdTokenVerifier, VerifiedIdentity } from '../src/auth/idToken';
 import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
+import type { VideoTextSource } from '../src/imports/videoText';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
 import type { ChatEvent } from '@shared';
@@ -23,6 +24,8 @@ export function testConfig(overrides: Record<string, string> = {}): Config {
     // Tests make many requests from one address; the limiter has its own tests with a small limit.
     RATE_LIMIT_MAX: '100000',
     AUTH_RATE_LIMIT_MAX: '100000',
+    // A fixed key made only for tests.
+    HEALTH_DATA_KEY: Buffer.alloc(32, 7).toString('base64'),
     ...overrides,
   });
 }
@@ -45,7 +48,7 @@ export class FakeVerifier implements IdTokenVerifier {
   configured = true;
   private readonly tokens = new Map<string, VerifiedIdentity>();
 
-  allow(token: string, identity: Partial<VerifiedIdentity> & { providerUserId: string; provider: 'GOOGLE' | 'APPLE' }): void {
+  allow(token: string, identity: Partial<VerifiedIdentity> & { providerUserId: string; provider: 'GOOGLE' | 'APPLE' | 'FIREBASE' }): void {
     this.tokens.set(token, { email: null, emailVerified: false, name: null, ...identity });
   }
   isConfigured(_provider: SocialProvider): boolean {
@@ -89,6 +92,9 @@ export class FakeStorage implements Storage {
   publicUrl(key: string) {
     return `https://media.test/${key}`;
   }
+  keyFromPublicUrl(url: string) {
+    return url.startsWith('https://media.test/') ? url.slice('https://media.test/'.length) : null;
+  }
 }
 
 /** Remembers what chat announced, so a test can check who was told what. */
@@ -123,6 +129,8 @@ export interface TestApp {
   events: CaptureEvents;
   storage: FakeStorage;
   games: Built['games'];
+  moderation: Built['moderation'];
+  jobs: Built['jobs'];
   app: FastifyInstance;
   db: Db;
   mail: CaptureMailer;
@@ -134,7 +142,7 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions> } = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null } = {}): Promise<TestApp> {
   const push = new FakePushSender();
   const ai = makeFakeAi();
   const web = new FakeWeb();
@@ -152,13 +160,14 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     pushSender: push,
     aiProviders: ai.all,
     importRequester: web.requester,
+    videoText: options.videoText ?? null,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();
@@ -183,6 +192,8 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     events,
     storage,
     games: built.games,
+    moderation: built.moderation,
+    jobs: built.jobs,
     app: built.app,
     db: built.db,
     mail,

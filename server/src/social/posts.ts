@@ -12,6 +12,7 @@ import type { Viewer } from '../auth/viewer';
 import type { Db } from '../db';
 import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
+import type { WriteGuard } from '../moderation/service';
 import type { UploadService } from '../uploads/service';
 import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank } from './forYou';
 
@@ -33,11 +34,13 @@ export class PostService {
     private readonly db: Db,
     private readonly uploads: UploadService,
     private readonly now: () => Date = () => new Date(),
+    private readonly guard: WriteGuard | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ posts */
 
   async create(userId: string, input: CreatePostRequest): Promise<Post> {
+    await this.guard?.check(userId, [input.title, input.caption]);
     const since = new Date(this.now().getTime() - DAY_MS);
     if ((await this.db.post.count({ where: { authorId: userId, createdAt: { gte: since } } })) >= MAX_POSTS_PER_DAY) {
       throw errors.limitReached('You have posted a lot today. Try again tomorrow');
@@ -257,6 +260,7 @@ export class PostService {
     await this.visible(postId, viewer);
     const text = input.text?.trim() ?? '';
     if (!text && !input.voice) throw errors.validation({ text: 'Write something or record a voice note' });
+    await this.guard?.check(viewer.userId, [text]);
     let voice: { url: string; durationSec: number } | null = null;
     if (input.voice) {
       const url = await this.uploads.urlFor(viewer.userId, input.voice.uploadId, 'voice');
