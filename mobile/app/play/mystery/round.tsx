@@ -37,6 +37,7 @@ export default function MysteryRoundScreen() {
   const submitPlate = usePlayStore((s) => s.submitPlate);
   const leaveRound = usePlayStore((s) => s.leaveRound);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [stepIndex, setStepIndex] = useState(0);
   // With the server on, handing in a plate means taking a photo of it for the judge.
   const handIn = async () => {
     if (!apiEnabled()) return submitPlate();
@@ -66,6 +67,7 @@ export default function MysteryRoundScreen() {
     return <Screen tone="dark" />;
   }
 
+  const steps = round.secret.steps ?? [];
   const hints = round.secret.hints.slice(0, round.hintsUnlocked);
   const hintsLeft = round.secret.hints.length - round.hintsUnlocked;
   const leave = () => {
@@ -118,6 +120,32 @@ export default function MysteryRoundScreen() {
           ))}
         </View>
       </View>
+
+      {steps.length > 0 ? (
+        <View style={{ gap: 10 }}>
+          <View className="flex-row items-center justify-between">
+            <H2>{t('play.mk.howToCook', 'How to cook it')}</H2>
+            <Tag label={t('play.mk.stepOf', 'Step {{n}} of {{m}}', { n: stepIndex + 1, m: steps.length })} />
+          </View>
+          <UCard style={{ borderRadius: 24, padding: 18, gap: 14 }}>
+            <View className="flex-row" style={{ gap: 6 }}>
+              {steps.map((_, i) => (
+                <View key={i} style={{ flex: 1, height: 4, borderRadius: 2, backgroundColor: i <= stepIndex ? tk.accent : tk.line }} />
+              ))}
+            </View>
+            <Body style={{ fontSize: 17, lineHeight: 25 }}>{steps[stepIndex]}</Body>
+            <View className="flex-row" style={{ gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <UButton variant="ghost" size="sm" label={t('play.mk.prevStep', 'Back')} disabled={stepIndex === 0} onPress={() => setStepIndex((i) => Math.max(0, i - 1))} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <UButton size="sm" label={stepIndex >= steps.length - 1 ? t('play.mk.lastStep', 'Last step') : t('play.mk.nextStep', 'Next step')} disabled={stepIndex >= steps.length - 1} onPress={() => setStepIndex((i) => Math.min(steps.length - 1, i + 1))} />
+              </View>
+            </View>
+          </UCard>
+          <Muted small>{t('play.mk.stepsNote', 'Cook it the way the steps say, plate it, then photograph it. Your plate is matched against the real dish.')}</Muted>
+        </View>
+      ) : null}
 
       {hints.map((h, i) => (
         <UCard key={h} style={{ borderRadius: 22, padding: 14, marginTop: -2 }}>

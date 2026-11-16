@@ -6,6 +6,7 @@
 //   npm run seed -- --pro me@example.com   give an existing account a Pro plan for 30 days (test hosts only)
 //   npm run seed -- --reset-generated      delete the recipes (and their posts) that --generate wrote, to write them again
 //   npm run seed -- --puzzles N            write Daily Dish puzzles until there are N (and stock the generated games)
+//   npm run seed -- --puzzle-photos [N]    give Daily Dish puzzles a real photo of the answer, N at a time (default 20)
 //   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch)
 //   npm run seed -- --generate [N]         write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
@@ -16,7 +17,7 @@ import { loadConfig } from '../config';
 import { storageFromConfig } from '../storage/storage';
 import dishList from '../../seed/dishes.json';
 import { GamePoolService, POOL_GAMES } from '../play/pool';
-import { generateContent, generatePuzzles, type DishDef } from './generate';
+import { backfillPuzzlePhotos, generateContent, generatePuzzles, type DishDef } from './generate';
 import { seedContent } from './run';
 
 async function main() {
@@ -51,6 +52,16 @@ async function main() {
           process.stdout.write(`${game}: ${err instanceof Error ? err.message : String(err)}\n`);
         }
       }
+    }
+    const puzzlePhotosAt = args.indexOf('--puzzle-photos');
+    if (puzzlePhotosAt >= 0) {
+      // Real photos of the answers to Daily Dish puzzles that have none: N at a time (default 20).
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      const storage = storageFromConfig(config);
+      if (!storage) throw new Error('--puzzle-photos needs the file store settings');
+      const added = await backfillPuzzlePhotos(db, buildAiRouter(config, db, log), storage, (line) => process.stdout.write(`${line}\n`), { pauseMs: 2500, limit: Number(args[puzzlePhotosAt + 1]) || 20 });
+      process.stdout.write(`puzzle photos added: ${added}\n`);
     }
     const photosAt = args.indexOf('--photos');
     if (photosAt >= 0) {

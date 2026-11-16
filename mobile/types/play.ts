@@ -36,6 +36,8 @@ export interface MKDishSecret {
   photo: PhotoRef;
   ingredients: MKIngredient[];
   hints: string[];
+  /** How to cook it, step by step, never naming the dish. */
+  steps?: string[];
 }
 
 export interface MKTwist {

@@ -49,7 +49,8 @@ export function toRound(view: MkRoomView, meId: string, now: number): MysteryKit
       // The dish stays secret until the end; the hints you have bought come first, locked ones are empty slots.
       name: view.dish ?? '',
       description: '',
-      photo: '',
+      photo: view.dishPhotoUrl ?? '',
+      steps: view.steps,
       ingredients: (view.basket ?? []).map((label) => ({ label })),
       hints: [...view.hints, ...Array.from({ length: view.hintsLeft }, () => '')],
     },

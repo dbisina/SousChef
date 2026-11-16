@@ -315,3 +315,37 @@ export async function generatePuzzles(db: Db, ai: AiRouter, target: number, say:
   }
   return added.length;
 }
+
+/**
+ * Gives Daily Dish puzzles a real photo of the answer (shown when the game is over): the lead picture of the dish's Wikipedia
+ * article, free licences only, checked by a vision model, stored on our own file store. A puzzle with no verified photo is left
+ * without one. Returns how many were given a photo. Safe to run again.
+ */
+export async function backfillPuzzlePhotos(
+  db: Db,
+  ai: AiRouter,
+  storage: Storage,
+  say: (line: string) => void = () => undefined,
+  options: { fetchImpl?: typeof fetch; pauseMs?: number; limit?: number } = {},
+): Promise<number> {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const todo = await db.dailyPuzzle.findMany({ where: { photoUrl: null }, orderBy: { position: 'asc' }, take: options.limit ?? 40 });
+  let added = 0;
+  for (const puzzle of todo) {
+    try {
+      const photo = await findWikipediaPhoto(puzzle.answer, fetchImpl);
+      if (photo && (await photoShows(ai, puzzle.answer, photo))) {
+        const url = await store(storage, `daily/${slug(puzzle.answer)}.jpg`, photo, fetchImpl);
+        await db.dailyPuzzle.update({ where: { position: puzzle.position }, data: { photoUrl: url } });
+        added += 1;
+        say(`photo: ${puzzle.answer}`);
+      } else {
+        say(`no photo: ${puzzle.answer}`);
+      }
+    } catch (err) {
+      say(`photo failed for ${puzzle.answer}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
+  }
+  return added;
+}
