@@ -16,6 +16,8 @@ import {
   COLLECTIONS,
 } from '@/lib/firebase';
 import { Cookbook, Recipe } from '@/types';
+import { apiEnabled } from '@/lib/api';
+import { apiCookbookRecipes, apiCookbookWithRecipes, apiListCookbooks, apiSetCookbookLiked, apiSetCookbookSaved } from '@/services/cookbookApi';
 
 interface CookbookState {
   cookbooks: Cookbook[];
@@ -55,6 +57,10 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
   fetchCookbooks: async () => {
     set({ isLoading: true, error: null });
     try {
+      if (apiEnabled()) {
+        set({ cookbooks: await apiListCookbooks(), isLoading: false });
+        return;
+      }
       const cookbooksRef = collection(db, COLLECTIONS.COOKBOOKS);
       const q = query(cookbooksRef, orderBy('createdAt', 'desc'), limit(20));
       const snapshot = await getDocs(q);
@@ -74,6 +80,11 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
   fetchCookbookById: async (id) => {
     set({ isLoading: true, error: null });
     try {
+      if (apiEnabled()) {
+        const found = await apiCookbookWithRecipes(id);
+        set({ currentCookbook: found?.cookbook ?? null, currentCookbookRecipes: found?.recipes ?? [], isLoading: false });
+        return found?.cookbook ?? null;
+      }
       const cookbookDoc = await getDoc(doc(db, COLLECTIONS.COOKBOOKS, id));
       if (cookbookDoc.exists()) {
         const cookbook = { id: cookbookDoc.id, ...cookbookDoc.data() } as Cookbook;
@@ -100,6 +111,9 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
 
   fetchCookbookRecipes: async (recipeIds) => {
     try {
+      // Server mode: the server holds a cookbook's recipes, so ask for the open cookbook's.
+      const open = get().currentCookbook;
+      if (apiEnabled() && open) return await apiCookbookRecipes(open.id);
       const recipes: Recipe[] = [];
       // Fetch recipes in batches (Firestore 'in' query limit is 10)
       const batchSize = 10;
@@ -122,6 +136,14 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
 
   likeCookbook: async (cookbookId) => {
     try {
+      if (apiEnabled()) {
+        const likes = await apiSetCookbookLiked(cookbookId, true);
+      set((state) => ({
+        cookbooks: state.cookbooks.map((c) => (c.id === cookbookId ? { ...c, likes: likes } : c)),
+        currentCookbook: state.currentCookbook?.id === cookbookId ? { ...state.currentCookbook, likes: likes } : state.currentCookbook,
+      }));
+        return;
+      }
       await updateDoc(doc(db, COLLECTIONS.COOKBOOKS, cookbookId), {
         likes: increment(1),
       });
@@ -142,6 +164,14 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
 
   unlikeCookbook: async (cookbookId) => {
     try {
+      if (apiEnabled()) {
+        const likes = await apiSetCookbookLiked(cookbookId, false);
+      set((state) => ({
+        cookbooks: state.cookbooks.map((c) => (c.id === cookbookId ? { ...c, likes: likes } : c)),
+        currentCookbook: state.currentCookbook?.id === cookbookId ? { ...state.currentCookbook, likes: likes } : state.currentCookbook,
+      }));
+        return;
+      }
       await updateDoc(doc(db, COLLECTIONS.COOKBOOKS, cookbookId), {
         likes: increment(-1),
       });
@@ -162,6 +192,7 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
 
   saveCookbook: async (cookbookId, userId) => {
     try {
+      if (apiEnabled()) return await apiSetCookbookSaved(cookbookId, true);
       await updateDoc(doc(db, COLLECTIONS.USERS, userId), {
         savedCookbooks: arrayUnion(cookbookId),
       });
@@ -172,6 +203,7 @@ export const useCookbookStore = create<CookbookState>((set, get) => ({
 
   unsaveCookbook: async (cookbookId, userId) => {
     try {
+      if (apiEnabled()) return await apiSetCookbookSaved(cookbookId, false);
       await updateDoc(doc(db, COLLECTIONS.USERS, userId), {
         savedCookbooks: arrayRemove(cookbookId),
       });
