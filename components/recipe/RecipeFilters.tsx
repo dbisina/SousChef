@@ -188,6 +188,9 @@ const CUISINES: Array<{ label: string; value: Cuisine }> = [
   { label: 'Mediterranean', value: 'mediterranean' },
   { label: 'Korean', value: 'korean' },
   { label: 'Vietnamese', value: 'vietnamese' },
+  { label: 'Nigerian', value: 'nigerian' },
+  { label: 'West African', value: 'west-african' },
+  { label: 'African', value: 'african' },
 ];
 
 const DIFFICULTIES: Array<{ label: string; value: Difficulty }> = [

@@ -23,7 +23,9 @@
         "image": "latest"
       },
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "EXPO_PUBLIC_API_URL": "https://souschef-api-production.up.railway.app",
+        "EXPO_PUBLIC_AUTH_VIA": "firebase"
       }
     },
     "production": {
@@ -35,7 +37,9 @@
         "image": "latest"
       },
       "env": {
-        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "EXPO_PUBLIC_API_URL": "https://souschef-api-production.up.railway.app",
+        "EXPO_PUBLIC_AUTH_VIA": "firebase"
       }
     }
   },

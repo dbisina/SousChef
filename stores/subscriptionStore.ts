@@ -40,6 +40,21 @@ import {
   canUseVoice,
   recordVoiceUsage as recordVoiceUsageService,
 } from '@/services/subscriptionService';
+import { apiEnabled } from '@/lib/api';
+import { serverTier } from '@/services/entitlementsApi';
+
+const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, premium: 1, pro: 2 };
+
+/**
+ * With a server address set, the server also knows the plan (from the store's payment events, and free Pro time earned by
+ * inviting friends, which the store knows nothing about). The person gets the better of the two, so a purchase shows at
+ * once even before the server hears about it, and earned time shows even though the store says free.
+ */
+async function withServerTier(tier: SubscriptionTier): Promise<SubscriptionTier> {
+  if (!apiEnabled()) return tier;
+  const fromServer = await serverTier();
+  return fromServer && TIER_RANK[fromServer] > TIER_RANK[tier] ? fromServer : tier;
+}
 
 interface SubscriptionStore extends SubscriptionState {
   currentAppUserID: string | null;
@@ -150,6 +165,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         }
       }
 
+      finalTier = await withServerTier(finalTier);
+
       const usage = await getDailyUsage();
 
       set({
@@ -225,6 +242,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
           finalTier = user?.subscriptionTier || 'pro';
         }
       }
+
+      finalTier = await withServerTier(finalTier);
 
       set({
         customerInfo,
@@ -513,6 +532,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         tier = user?.subscriptionTier || 'pro';
       }
     }
+
+    tier = await withServerTier(tier);
 
     set({
       customerInfo,
