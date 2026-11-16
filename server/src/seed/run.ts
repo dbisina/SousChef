@@ -67,7 +67,7 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
     report.houses.created++;
     say(`${dry ? 'would create' : 'creating'} official account ${def.displayName}`);
     if (!dry) {
-      const photo = data.recipes.find((r) => r.house === key)?.imageUrl;
+      const photo = data.recipes.find((r) => r.house === key)?.imageUrl; // the newer accounts get theirs from their first generated recipe
       const made = await house.create({ displayName: def.displayName, handle: def.handle, bio: def.bio, ...(photo ? { photoUrl: photo } : {}) });
       houseIds.set(key, made.user.id);
     }
