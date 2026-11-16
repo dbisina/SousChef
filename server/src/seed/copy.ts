@@ -2,12 +2,17 @@
 // Nothing here names a real person. Photos reuse the recipe photos (web links); there is no upload involved.
 import type { DailyPuzzleInput } from '@shared';
 
-export type HouseKey = 'kitchen' | 'baking' | 'quick';
+export type HouseKey = 'kitchen' | 'baking' | 'quick' | 'vegan' | 'street' | 'healthy' | 'family' | 'desserts';
 
 export const HOUSES: Record<HouseKey, { handle: string; displayName: string; bio: string }> = {
   kitchen: { handle: 'souschef_kitchen', displayName: 'SousChef Kitchen', bio: 'Everyday dinners made properly. An official SousChef account.' },
   baking: { handle: 'souschef_baking', displayName: 'SousChef Baking', bio: 'Cakes, bakes and breakfasts that work first time. An official SousChef account.' },
   quick: { handle: 'souschef_quick', displayName: 'SousChef Quick Meals', bio: 'Good food in 30 minutes or less. An official SousChef account.' },
+  vegan: { handle: 'souschef_green', displayName: 'SousChef Green', bio: 'Plant-based cooking that never feels like a compromise. An official SousChef account.' },
+  street: { handle: 'souschef_street', displayName: 'SousChef Street Food', bio: 'Classics from the world’s markets and street stalls, made at home. An official SousChef account.' },
+  healthy: { handle: 'souschef_healthy', displayName: 'SousChef Healthy', bio: 'Balanced, easy and full of flavour. An official SousChef account.' },
+  family: { handle: 'souschef_family', displayName: 'SousChef Family Table', bio: 'Comfort food the whole table will eat. An official SousChef account.' },
+  desserts: { handle: 'souschef_sweet', displayName: 'SousChef Desserts', bio: 'Puddings, pastries and sweet endings. An official SousChef account.' },
 };
 
 /** What each official account says about a recipe it shares (by recipe title). */

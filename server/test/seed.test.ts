@@ -25,14 +25,16 @@ describe('first run', () => {
   it('adds the official accounts, recipes, cookbooks, posts and puzzles', async () => {
     const report = await seedContent(t.db);
     expect(report).toEqual({
-      houses: { created: 3, existing: 0 },
+      houses: { created: 8, existing: 0 },
       recipes: { created: 10, existing: 0 },
       cookbooks: { created: 3, existing: 0 },
       posts: { created: HOUSE_POSTS.length, existing: 0 },
       puzzles: 'set',
+      photosRefreshed: 0,
       admin: null,
+      pro: null,
     });
-    expect(await counts()).toEqual({ houses: 3, recipes: 10, cookbooks: 3, posts: HOUSE_POSTS.length, puzzles: PUZZLES.length });
+    expect(await counts()).toEqual({ houses: 8, recipes: 10, cookbooks: 3, posts: HOUSE_POSTS.length, puzzles: PUZZLES.length });
 
     const houses = await t.db.user.findMany({ where: { kind: 'HOUSE' }, orderBy: { handle: 'asc' } });
     expect(houses.map((h) => h.handle)).toEqual(Object.values(HOUSES).map((h) => h.handle).sort());
@@ -77,7 +79,7 @@ describe('running again', () => {
     await seedContent(t.db);
     const before = await counts();
     const again = await seedContent(t.db);
-    expect(again).toMatchObject({ houses: { created: 0, existing: 3 }, recipes: { created: 0, existing: 10 }, cookbooks: { created: 0, existing: 3 }, posts: { created: 0 }, puzzles: 'kept' });
+    expect(again).toMatchObject({ houses: { created: 0, existing: 8 }, recipes: { created: 0, existing: 10 }, cookbooks: { created: 0, existing: 3 }, posts: { created: 0 }, puzzles: 'kept' });
     expect(await counts()).toEqual(before);
   });
 
@@ -87,6 +89,21 @@ describe('running again', () => {
     const again = await seedContent(t.db);
     expect(again.cookbooks).toEqual({ created: 3, existing: 0 });
     expect(again.recipes.created).toBe(0);
+  });
+
+  it('fixes a photo link that has changed in the seed data, on recipes, cookbooks and posts that already exist', async () => {
+    await seedContent(t.db);
+    await t.db.recipe.updateMany({ where: { title: 'Classic Chicken Stir-Fry' }, data: { imageUrl: 'https://example.com/dead.jpg' } });
+    await t.db.cookbook.updateMany({ where: { title: 'Kitchen Classics' }, data: { coverImageUrl: 'https://example.com/dead.jpg' } });
+    await t.db.post.updateMany({ where: { title: 'Stir-fry in 30 minutes' }, data: { photoUrl: 'https://example.com/dead.jpg' } });
+    const dry = await seedContent(t.db, { dryRun: true });
+    expect(dry.photosRefreshed).toBe(3);
+    expect((await t.db.recipe.findFirstOrThrow({ where: { title: 'Classic Chicken Stir-Fry' } })).imageUrl).toBe('https://example.com/dead.jpg'); // a dry run changes nothing
+    const real = await seedContent(t.db);
+    expect(real.photosRefreshed).toBe(3);
+    expect((await t.db.recipe.findFirstOrThrow({ where: { title: 'Classic Chicken Stir-Fry' } })).imageUrl).toMatch(/^https:\/\/images\.unsplash\.com\//);
+    expect((await t.db.post.findFirstOrThrow({ where: { title: 'Stir-fry in 30 minutes' } })).photoUrl).toMatch(/unsplash/);
+    expect((await seedContent(t.db)).photosRefreshed).toBe(0);
   });
 
   it('leaves puzzles that staff have already set alone', async () => {
@@ -100,9 +117,30 @@ describe('dry run', () => {
   it('says what would happen and writes nothing', async () => {
     const lines: string[] = [];
     const report = await seedContent(t.db, { dryRun: true }, (l) => lines.push(l));
-    expect(report).toMatchObject({ houses: { created: 3 }, puzzles: 'would-set' });
+    expect(report).toMatchObject({ houses: { created: 8 }, puzzles: 'would-set' });
     expect(lines.some((l) => l.startsWith('would create official account'))).toBe(true);
     expect(await counts()).toEqual({ houses: 0, recipes: 0, cookbooks: 0, posts: 0, puzzles: 0 });
+  });
+});
+
+describe('a Pro plan for a test account', () => {
+  it('gives an existing account 30 days of Pro, and only that account', async () => {
+    const ama = await register(t, { email: 'ama@example.com' });
+    const ben = await register(t, { email: 'ben@example.com' });
+    const report = await seedContent(t.db, { proEmail: 'Ama@example.com' });
+    expect(report.pro).toBe('Ama@example.com');
+    const sub = await t.db.subscription.findUniqueOrThrow({ where: { userId: ama.user.id } });
+    expect(sub).toMatchObject({ tier: 'pro', status: 'ACTIVE' });
+    expect(sub.expiresAt!.getTime()).toBeGreaterThan(Date.now() + 29 * 86_400_000);
+    expect(await t.db.subscription.count({ where: { userId: ben.user.id } })).toBe(0);
+    expect(await seedContent(t.db, { proEmail: 'ama@example.com' })).toMatchObject({ pro: 'ama@example.com' }); // again is fine
+  });
+
+  it('says to register first, and a dry run gives nothing', async () => {
+    await expect(seedContent(t.db, { proEmail: 'nobody@example.com' })).rejects.toThrow(/Register in the app first/);
+    const ama = await register(t, { email: 'ama@example.com' });
+    await seedContent(t.db, { dryRun: true, proEmail: 'ama@example.com' });
+    expect(await t.db.subscription.count({ where: { userId: ama.user.id } })).toBe(0);
   });
 });
 

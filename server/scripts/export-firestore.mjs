@@ -39,6 +39,14 @@ async function all(collection) {
 /** Which official SousChef account a recipe goes under (decided by the old author, which is then thrown away). */
 const houseFor = (authorName) => (/julia/i.test(authorName) ? 'baking' : /jamie/i.test(authorName) ? 'quick' : 'kitchen');
 
+/** Photos whose old links no longer exist (found 2026-11-15), swapped for working ones. */
+const PHOTO_FIXES = {
+  'Grilled Salmon with Asparagus': 'https://images.unsplash.com/photo-1485921325833-c519f76c4927?auto=format&fit=crop&w=800&q=80',
+  'Classic Chicken Stir-Fry': 'https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=800&q=80',
+  'Avocado Toast with Poached Egg': 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?auto=format&fit=crop&w=800&q=80',
+  'Kitchen Classics': 'https://images.unsplash.com/photo-1507048331197-7d4ac70811cf?auto=format&fit=crop&w=800&q=80',
+};
+
 const recipesRaw = await all('recipes');
 const byTitle = new Map();
 const idToTitle = new Map();
@@ -48,7 +56,7 @@ for (const r of recipesRaw) {
   byTitle.set(r.title, {
     title: r.title,
     description: r.description ?? '',
-    imageUrl: r.imageURL,
+    imageUrl: PHOTO_FIXES[r.title] ?? r.imageURL,
     category: r.category,
     cuisine: r.cuisine,
     difficulty: r.difficulty,
@@ -69,7 +77,7 @@ const unnamed = (text) => (text ?? '').replace(/,? (?:curated|chosen|picked|writ
 const cookbooks = (await all('cookbooks')).map((c) => ({
   title: neutral(c.title),
   description: unnamed(c.description),
-  coverImageUrl: c.coverImageURL,
+  coverImageUrl: PHOTO_FIXES[neutral(c.title)] ?? c.coverImageURL,
   category: c.category ?? undefined,
   // By recipe title, so the two copies of a recipe collapse into one.
   recipes: [...new Set((c.recipeIds ?? []).map((id) => idToTitle.get(id)).filter(Boolean))],

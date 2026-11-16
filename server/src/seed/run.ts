@@ -22,6 +22,8 @@ export interface SeedOptions {
   dryRun?: boolean;
   /** Make this existing account staff. */
   adminEmail?: string;
+  /** Give this existing account a Pro plan for 30 days (for trying a test host; no payment involved). */
+  proEmail?: string;
 }
 
 export interface SeedReport {
@@ -30,7 +32,10 @@ export interface SeedReport {
   cookbooks: { created: number; existing: number };
   posts: { created: number; existing: number };
   puzzles: 'set' | 'kept' | 'would-set';
+  /** Photos whose address changed in the seed data and were updated on things that already existed. */
+  photosRefreshed: number;
   admin: string | null;
+  pro: string | null;
 }
 
 const tally = () => ({ created: 0, existing: 0 });
@@ -42,7 +47,7 @@ const tally = () => ({ created: 0, existing: 0 });
  */
 export async function seedContent(db: Db, options: SeedOptions = {}, say: (line: string) => void = () => undefined): Promise<SeedReport> {
   const dry = options.dryRun === true;
-  const report: SeedReport = { houses: tally(), recipes: tally(), cookbooks: tally(), posts: tally(), puzzles: 'kept', admin: null };
+  const report: SeedReport = { houses: tally(), recipes: tally(), cookbooks: tally(), posts: tally(), puzzles: 'kept', photosRefreshed: 0, admin: null, pro: null };
   const house = new HouseService(db);
   const recipes = new RecipeService(db, new EntitlementService(db));
   const cookbooks = new CookbookService(db);
@@ -62,7 +67,7 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
     report.houses.created++;
     say(`${dry ? 'would create' : 'creating'} official account ${def.displayName}`);
     if (!dry) {
-      const photo = data.recipes.find((r) => r.house === key)?.imageUrl;
+      const photo = data.recipes.find((r) => r.house === key)?.imageUrl; // the newer accounts get theirs from their first generated recipe
       const made = await house.create({ displayName: def.displayName, handle: def.handle, bio: def.bio, ...(photo ? { photoUrl: photo } : {}) });
       houseIds.set(key, made.user.id);
     }
@@ -72,10 +77,15 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
   const recipeIds = new Map<string, string>();
   for (const r of data.recipes) {
     const authorId = houseIds.get(r.house);
-    const existing = authorId ? await db.recipe.findFirst({ where: { authorId, title: r.title }, select: { id: true } }) : null;
+    const existing = authorId ? await db.recipe.findFirst({ where: { authorId, title: r.title }, select: { id: true, imageUrl: true } }) : null;
     if (existing) {
       recipeIds.set(r.title, existing.id);
       report.recipes.existing++;
+      // A photo link that has since gone dead is fixed in the seed data; keep what is already saved in step.
+      if (existing.imageUrl !== r.imageUrl) {
+        report.photosRefreshed++;
+        if (!dry) await db.recipe.update({ where: { id: existing.id }, data: { imageUrl: r.imageUrl } });
+      }
       continue;
     }
     report.recipes.created++;
@@ -89,8 +99,13 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
 
   // 3. Cookbooks
   for (const c of data.cookbooks) {
-    if (await db.cookbook.findFirst({ where: { title: c.title }, select: { id: true } })) {
+    const have = await db.cookbook.findFirst({ where: { title: c.title }, select: { id: true, coverImageUrl: true } });
+    if (have) {
       report.cookbooks.existing++;
+      if (have.coverImageUrl !== c.coverImageUrl) {
+        report.photosRefreshed++;
+        if (!dry) await db.cookbook.update({ where: { id: have.id }, data: { coverImageUrl: c.coverImageUrl } });
+      }
       continue;
     }
     report.cookbooks.created++;
@@ -106,9 +121,13 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
     const recipe = data.recipes.find((r) => r.title === p.recipe);
     if (!recipe) continue;
     const accountId = houseIds.get(recipe.house);
-    const exists = accountId ? await db.post.findFirst({ where: { authorId: accountId, title: p.title }, select: { id: true } }) : null;
+    const exists = accountId ? await db.post.findFirst({ where: { authorId: accountId, title: p.title }, select: { id: true, photoUrl: true } }) : null;
     if (exists) {
       report.posts.existing++;
+      if (exists.photoUrl !== recipe.imageUrl) {
+        report.photosRefreshed++;
+        if (!dry) await db.post.update({ where: { id: exists.id }, data: { photoUrl: recipe.imageUrl } });
+      }
       continue;
     }
     report.posts.created++;
@@ -137,6 +156,20 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
       if (!dry) await db.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
     }
     report.admin = email;
+  }
+
+  // 7. A Pro plan for a test account
+  if (options.proEmail) {
+    const email = options.proEmail.trim();
+    const user = await db.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' }, kind: 'PERSON' }, select: { id: true } });
+    if (!user) throw new Error('No account with that email yet. Register in the app first, then run this again.');
+    say(`${dry ? 'would give' : 'giving'} ${email} a Pro plan for 30 days`);
+    if (!dry) {
+      const now = new Date();
+      const data = { tier: 'pro', status: 'ACTIVE' as const, willRenew: false, expiresAt: new Date(now.getTime() + 30 * 86_400_000), lastEventAt: now };
+      await db.subscription.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
+    }
+    report.pro = email;
   }
   return report;
 }
