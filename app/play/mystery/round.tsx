@@ -40,7 +40,9 @@ export default function MysteryRoundScreen() {
   // With the server on, handing in a plate means taking a photo of it for the judge.
   const handIn = async () => {
     if (!apiEnabled()) return submitPlate();
-    const shot = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 });
+    const options = { mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 };
+    // No camera (or no permission for it): pick a photo of the plate instead of doing nothing.
+    const shot = await ImagePicker.launchCameraAsync(options).catch(() => ImagePicker.launchImageLibraryAsync(options));
     const uri = !shot.canceled ? shot.assets[0]?.uri : undefined;
     if (uri) submitPlate(undefined, uri);
   };

@@ -1,14 +1,3 @@
-import {
-  AUTHORS,
-  CHALLENGES,
-  COMMUNITIES,
-  CURRENT_USER,
-  buildComments,
-  buildEvents,
-  buildPosts,
-  buildReels,
-  buildStories,
-} from '@/data/sample/social';
 import { ME_ID } from '@/types/social';
 import type {
   Author,
@@ -58,17 +47,8 @@ let counter = 0;
 const uid = (prefix: string) => `${prefix}-${Date.now().toString(36)}-${(counter++).toString(36)}`;
 
 export const localFeedService: FeedService = {
-  seed(now = new Date()) {
-    return {
-      authors: AUTHORS,
-      posts: buildPosts(now),
-      reels: buildReels(now),
-      stories: buildStories(now),
-      comments: buildComments(now),
-      communities: COMMUNITIES,
-      challenges: CHALLENGES,
-      events: buildEvents(now),
-    };
+  seed() {
+    return { authors: [], posts: [], reels: [], stories: [], comments: [], communities: [], challenges: [], events: [] };
   },
   async fetchSnapshot(now) {
     return this.seed(now);
@@ -103,4 +83,3 @@ export const localFeedService: FeedService = {
 };
 
 export const feedService: FeedService = localFeedService;
-export { CURRENT_USER };

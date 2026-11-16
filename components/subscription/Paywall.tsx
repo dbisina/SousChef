@@ -24,7 +24,7 @@ import {
 } from '@/components/ui';
 import { formatPrice, getPricePerMonth, calculateAnnualSavings } from '@/lib/revenuecat';
 import { TOKEN_HEX } from '@/stores/themeStore';
-import { SAMPLE } from '@/assets/sample';
+import { Backdrop } from '@/components/ui/Backdrop';
 import { FeatureComparison } from './FeatureComparison';
 
 interface PaywallProps {
@@ -222,7 +222,7 @@ export const Paywall: React.FC<PaywallProps> = ({
     <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
       <Screen tone="dark" bare>
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 340 }}>
-          <Image source={SAMPLE.beef} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
+          <Backdrop />
           <LinearGradient
             pointerEvents="none"
             colors={[`${GROUND}00`, GROUND]}

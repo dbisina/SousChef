@@ -1,6 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
-import { photoSource } from '@/assets/sample';
+import { photoSource } from '@/lib/photo';
 import { findAuthor } from '@/lib/people';
 import { Icon, UAvatar } from '@/components/ui';
 import type { Author, Conversation } from '@/types/social';
