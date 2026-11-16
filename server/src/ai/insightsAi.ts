@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import {
-  amountInTableUnits,
   buildDoctorReport,
   calculateIngredientCalories,
   calculateNutrition,
@@ -76,7 +75,15 @@ const rewriteSchema = z.object({
   notes: z.array(z.string()).catch([]),
 });
 const cookSchema = z.object({ answer: z.string() });
-const assistSchema = z.object({ replies: z.array(z.string()).optional().catch(undefined), summary: z.string().optional().catch(undefined) });
+// Models sometimes give the summary as a list of lines instead of one string; both are fine.
+const assistSchema = z.object({
+  replies: z.array(z.string()).optional().catch(undefined),
+  summary: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v.join('\n') : v))
+    .optional()
+    .catch(undefined),
+});
 
 const WASTE_SYSTEM = `You help someone waste less food. You are given facts about what they threw away. Reply with JSON only: {"insights": [3 short plain sentences], "tip": one practical sentence}. Use only the facts given and quote their numbers exactly. Be kind, never scold. No health or medical claims.`;
 const HEALTH_SYSTEM = `You turn health numbers into 2 or 3 plain sentences. Reply with JSON only: {"summary": string}. Use only the facts given, quote numbers exactly, and never invent any. Do not give advice, say what someone should do, mention medicine or doses, diagnose, or say a number is good or bad for their health. Just describe what the numbers show.`;
@@ -215,8 +222,7 @@ export class InsightAiService {
 
     // Numbers come from our own tables, not from the AI.
     const full: RecipeIngredient[] = ingredients.map((i) => ({ ...i, calories: calculateIngredientCalories(i.name, i.amount, i.unit) }));
-    // The table counts in its own units (a piece, a cup...), so amounts in grams or ml are converted first.
-    const nutrition = calculateNutrition(full.map((i) => ({ ...i, amount: amountInTableUnits(i.name, i.amount, i.unit) })), recipe.servings);
+    const nutrition = calculateNutrition(full, recipe.servings);
     const diet = dietHolds(goal, ingredients.map((i) => i.name));
     const meets: boolean | null = goal === 'under-500-kcal' ? nutrition.caloriesPerServing <= 500 : goal === 'high-protein' ? nutrition.protein >= 25 : diet;
     const flags = new Set(recipe.dietaryFlags.map(nameKey));

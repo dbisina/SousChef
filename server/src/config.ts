@@ -38,6 +38,12 @@ const schema = z
     GOOGLE_CLIENT_IDS: csv,
     /** For Apple this is the app's bundle id. */
     APPLE_CLIENT_IDS: csv,
+    /** The Firebase project whose sign-in tokens the server accepts (the app signs in with Firebase, the server trades the token for its own). Empty means off. */
+    FIREBASE_PROJECT_ID: z.string().trim().default(''),
+    /** Web pages allowed to call the API from a browser (exact origins, separated by commas), for the app's web build. Empty means none. */
+    CORS_ORIGINS: csv,
+    /** Folder holding the built staff dashboard (admin/dist). When set, the API serves it at /admin/. Empty means off. */
+    ADMIN_DIR: z.string().trim().default(''),
 
     /** Where the password reset email sends the person. The token is added as ?token=... */
     APP_RESET_URL: z.string().default('souschef://reset-password'),
@@ -83,15 +89,37 @@ const schema = z
     /** Providers allowed to see private requests (health numbers, private chats, receipts), separated by commas. */
     AI_PRIVATE_PROVIDERS: z
       .string()
-      .default('gemini')
+      // Gemini (funded key) and Nebius (pay-per-use, no training on your data by its terms: confirm this before launch).
+      .default('gemini,nebius,nebius-vision,nebius-vision-2,nebius-dedicated')
       .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
     AI_DEEPSEEK_API_KEY: z.string().default(''),
     AI_DEEPSEEK_MODEL: z.string().default('deepseek-chat'),
     AI_DEEPSEEK_BASE_URL: z.string().default('https://api.deepseek.com'),
     AI_NEBIUS_API_KEY: z.string().default(''),
-    /** No default: pick the model (for example the safety model) in the Nebius console. */
-    AI_NEBIUS_MODEL: z.string().default(''),
-    AI_NEBIUS_BASE_URL: z.string().default('https://api.studio.nebius.com/v1'),
+    /** Nebius Token Factory (OpenAI-compatible). Text work and the moderation check. */
+    /** Path of the yt-dlp program (empty = off). Reads video captions and subtitles for link imports. */
+    YT_DLP_PATH: z.string().default(''),
+    /** Optional outbound proxy for yt-dlp, for platforms that block data-centre addresses. */
+    IMPORT_PROXY_URL: z.string().default(''),
+    AI_NEBIUS_MODEL: z.string().default('Qwen/Qwen3-30B-A3B-Instruct-2507'),
+    AI_NEBIUS_BASE_URL: z.string().default('https://api.tokenfactory.nebius.com/v1'),
+    /** Photo jobs (fridge and receipt scans, plate checks, captions, cookbook pages, post photos). Chosen by trying the catalogue's vision models on real photos. Empty turns one off. */
+    AI_NEBIUS_VISION_MODEL: z.string().default('MiniMaxAI/MiniMax-M3.1-Flash'),
+    AI_NEBIUS_VISION_MODEL_2: z.string().default('deepseek-ai/DeepSeek-V4.1-Flash-1017'),
+    /**
+     * A dedicated endpoint (your own GPUs, created in the Nebius console or with POST /v0/dedicated_endpoints). The model is
+     * its routing_key, the address is its region's (eu-north1: https://api.tokenfactory.nebius.com/v1, eu-west1:
+     * https://api.tokenfactory.eu-west1.nebius.com/v1, us-central1: https://api.tokenfactory.us-central1.nebius.com/v1) and
+     * the key is AI_NEBIUS_API_KEY. When set it is tried first for text work.
+     */
+    AI_NEBIUS_DEDICATED_MODEL: z.string().default(''),
+    AI_NEBIUS_DEDICATED_BASE_URL: z.string().default(''),
+    AI_NEBIUS_DEDICATED_IMAGES: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+    /** The order photo jobs try providers in. Put gemini first once its account is funded. */
+    AI_VISION_FIRST: z
+      .string()
+      .default('nebius-vision,nebius-vision-2,gemini')
+      .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
     /** Imports (each can open a web page and call an AI service) allowed per minute per address. */
     IMPORT_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(20),
     /** All AI calls together stop when this much has been spent in a month (US dollars). */
@@ -100,8 +128,12 @@ const schema = z
     AI_PRICE_GEMINI_OUT: z.coerce.number().min(0).default(2.5),
     AI_PRICE_DEEPSEEK_IN: z.coerce.number().min(0).default(0.28),
     AI_PRICE_DEEPSEEK_OUT: z.coerce.number().min(0).default(0.42),
-    AI_PRICE_NEBIUS_IN: z.coerce.number().min(0).default(0.2),
-    AI_PRICE_NEBIUS_OUT: z.coerce.number().min(0).default(0.6),
+    AI_PRICE_NEBIUS_IN: z.coerce.number().min(0).default(0.1),
+    AI_PRICE_NEBIUS_OUT: z.coerce.number().min(0).default(0.3),
+    AI_PRICE_NEBIUS_VISION_IN: z.coerce.number().min(0).default(0.15),
+    AI_PRICE_NEBIUS_VISION_OUT: z.coerce.number().min(0).default(0.6),
+    AI_PRICE_NEBIUS_VISION_2_IN: z.coerce.number().min(0).default(0.3),
+    AI_PRICE_NEBIUS_VISION_2_OUT: z.coerce.number().min(0).default(1.2),
 
     /** File store for uploads (Cloudflare R2 or any S3-compatible bucket). Set all of the S3_* values and STORAGE_PUBLIC_URL, or none. */
     S3_ENDPOINT: z.string().default(''),

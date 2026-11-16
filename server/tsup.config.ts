@@ -1,7 +1,9 @@
 import { defineConfig } from 'tsup';
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  // index is the server; seed is the starter-content command (npm run seed). Both are bundled, so the shared/ code and
+  // the seed data are inside them (plain tsx/node cannot load the ../shared files).
+  entry: { index: 'src/index.ts', seed: 'src/seed/cli.ts' },
   format: ['esm'],
   target: 'node22',
   platform: 'node',

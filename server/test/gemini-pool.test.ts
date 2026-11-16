@@ -161,7 +161,7 @@ describe('settings', () => {
     expect(c.AI_GEMINI_FREE_KEYS).toEqual(['a1', 'b2', 'c3']);
     expect(c.AI_GEMINI_SPILL_TO_PAID).toBe(true);
     expect(c.AI_GEMINI_PAID_ONLY_TASKS).toEqual([]);
-    expect(c.AI_PRIVATE_PROVIDERS).toEqual(['gemini']);
+    expect(c.AI_PRIVATE_PROVIDERS).toEqual(['gemini', 'nebius', 'nebius-vision', 'nebius-vision-2', 'nebius-dedicated']);
     expect(loadConfig(base).AI_GEMINI_FREE_KEYS).toEqual([]);
   });
 
