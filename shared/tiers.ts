@@ -112,4 +112,6 @@ export interface Entitlements {
   expiresAt: string | null;
   /** False once they have cancelled: access continues until `expiresAt`. */
   willRenew: boolean;
+  /** Where the access comes from: a real subscription, free time earned (inviting friends), or nothing. */
+  source: 'none' | 'paid' | 'promo';
 }

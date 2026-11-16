@@ -2,12 +2,10 @@ import { View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
 import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim } from '@/components/ui';
 import type { IconName } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
 
 interface Tile {
   title: string;
   subtitle: string;
-  photo: keyof typeof SAMPLE;
   href: Href;
 }
 
@@ -18,10 +16,10 @@ interface Row {
 }
 
 const TILES: Tile[] = [
-  { title: 'Import a link', subtitle: 'Video or website', photo: 'phone', href: '/import' as Href },
-  { title: 'New post', subtitle: 'Recipe, photo, video', photo: 'gnocchi', href: '/post/new' as Href },
-  { title: 'Start a game', subtitle: 'Mystery Kitchen', photo: 'friends', href: '/play/mystery/lobby' as Href },
-  { title: 'Scan a cookbook', subtitle: 'Pages to recipes', photo: 'cookbook', href: '/cookbook-library' as Href },
+  { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href },
+  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href },
+  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href },
+  { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href },
 ];
 
 const ROWS: Row[] = [
@@ -49,7 +47,6 @@ export default function CreateScreen() {
         {TILES.map((t) => (
           <PhotoCard
             key={t.title}
-            source={SAMPLE[t.photo]}
             height={170}
             radius={26}
             width="48%"

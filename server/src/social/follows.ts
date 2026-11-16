@@ -15,7 +15,7 @@ export class FollowService {
 
   /** A profile. Someone who blocked you looks like they do not exist. */
   async profile(id: string, viewer: Viewer | null): Promise<UserProfile> {
-    const user = await this.db.user.findUnique({ where: { id }, select: { ...authorSelect, bio: true, createdAt: true } });
+    const user = await this.db.user.findUnique({ where: { id }, select: { ...authorSelect, bio: true, bannerUrl: true, createdAt: true } });
     if (!user) throw errors.notFound('Person not found');
     const theirBlock = viewer ? await this.db.block.findUnique({ where: { blockerId_blockedId: { blockerId: id, blockedId: viewer.userId } } }) : null;
     if (theirBlock) throw errors.notFound('Person not found');
@@ -36,7 +36,7 @@ export class FollowService {
       ]);
       relation = { following: following !== null, followedBy: followedBy !== null, blocked: blocked !== null };
     }
-    return { ...toAuthor(user), bio: user.bio, followerCount, followingCount, recipeCount, postCount, createdAt: user.createdAt.toISOString(), viewer: relation };
+    return { ...toAuthor(user), bio: user.bio, bannerUrl: user.bannerUrl, followerCount, followingCount, recipeCount, postCount, createdAt: user.createdAt.toISOString(), viewer: relation };
   }
 
   async setFollowing(userId: string, target: string, on: boolean): Promise<FollowToggle> {

@@ -16,6 +16,9 @@ export interface Post {
   photoUrl: string;
   videoUrl: string | null;
   recipeId: string | null;
+  /** Set for a post made inside a community. */
+  communityId: string | null;
+  challengeId: string | null;
   likeCount: number;
   commentCount: number;
   saveCount: number;
@@ -31,6 +34,10 @@ export interface CreatePostRequest {
   caption?: string;
   meta?: string;
   recipeId?: string;
+  /** Post inside a community you are a member of. */
+  communityId?: string;
+  /** Enter one of that community's running challenges. */
+  challengeId?: string;
   /** A finished `made_post` upload. */
   photoUploadId: string;
   /** A finished `post_video` upload, for a video post. */
@@ -63,6 +70,7 @@ export interface CreatePostCommentRequest {
 
 export interface UserProfile extends Participant {
   bio: string;
+  bannerUrl: string | null;
   followerCount: number;
   followingCount: number;
   recipeCount: number;
@@ -137,7 +145,10 @@ export type ReportAction = 'hide' | 'restore' | 'dismiss';
 /** A report as staff see it, with a snapshot of what was reported. */
 export interface AdminReport {
   id: string;
-  reporter: Participant;
+  /** Null when the automatic check raised it. */
+  reporter: Participant | null;
+  /** Raised by the automatic check, not a person. */
+  auto: boolean;
   targetType: ReportTarget;
   targetId: string;
   reason: ReportReason;

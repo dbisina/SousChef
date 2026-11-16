@@ -1,0 +1,8 @@
+[package]
+name = "souschef-feed"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# No dependencies on purpose: this is plain arithmetic over a few hundred posts, run on every "for you" request.
+[dependencies]

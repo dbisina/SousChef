@@ -1,4 +1,3 @@
-import { SAMPLE } from '@/assets/sample';
 import type { PhotoSource } from '@/components/ui';
 import { average, isGlucose, isSameLocalDay, round1 } from '@/lib/health';
 import type { GlucoseReading, GlucoseStatus, GlucoseTiming, HealthPeriod, HealthReading, MealLog } from '@/types/health';
@@ -41,17 +40,9 @@ export function agoText(iso: string, now: Date = new Date()): string {
   return `${Math.round(days / 7)} weeks ago`;
 }
 
-/** Sample photo for a logged meal (title keywords, then meal type). */
-export function healthMealPhoto(meal: Pick<MealLog, 'title' | 'mealType' | 'group'>): PhotoSource {
-  const k = `${meal.title} ${meal.group}`.toLowerCase();
-  if (/rice|bowl/.test(k)) return SAMPLE.ricebowl as PhotoSource;
-  if (/toast|egg/.test(k)) return SAMPLE.toast as PhotoSource;
-  if (/salad/.test(k)) return SAMPLE.salad as PhotoSource;
-  if (/pasta|noodle/.test(k)) return SAMPLE.pasta as PhotoSource;
-  if (/burger/.test(k)) return SAMPLE.burger as PhotoSource;
-  if (/taco/.test(k)) return SAMPLE.tacos as PhotoSource;
-  const byType = { Breakfast: SAMPLE.toast, Lunch: SAMPLE.bowl, Dinner: SAMPLE.salmon, Snack: SAMPLE.brownie };
-  return byType[meal.mealType] as PhotoSource;
+/** A logged meal has no photo of its own: the screen shows its initial. */
+export function healthMealPhoto(_meal: Pick<MealLog, 'title' | 'mealType' | 'group'>): PhotoSource | null {
+  return null;
 }
 
 export const GLUCOSE_CHART_MAX = 12;
