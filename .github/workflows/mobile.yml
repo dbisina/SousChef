@@ -1,0 +1,36 @@
+name: mobile
+
+on:
+  pull_request:
+    paths:
+      - "mobile/**"
+      - "shared/**"
+      - ".github/workflows/mobile.yml"
+  push:
+    branches: [master, main]
+    paths:
+      - "mobile/**"
+      - "shared/**"
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      # The app's own peer dependencies disagree in places (the EAS build sets the same flag).
+      - run: npm ci --legacy-peer-deps
+      - run: npx tsc --noEmit
+      - run: npx jest --ci
