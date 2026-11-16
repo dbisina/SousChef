@@ -24,6 +24,7 @@ enum AccountKind {
 enum AuthProvider {
   GOOGLE
   APPLE
+  FIREBASE
 }
 
 enum ConsentKind {
@@ -46,11 +47,15 @@ model User {
   handle          String    @unique
   bio             String    @default("")
   photoUrl        String?
+  bannerUrl       String?
   role            UserRole  @default(USER)
   kind            AccountKind @default(PERSON)
   isChef          Boolean   @default(false)
   /// Set when the verified-chef badge is granted (payment plus identity check). Only the server sets this.
   verifiedChefAt  DateTime?
+  /// Set by staff when an account is suspended: no sign-in, no new content. Cleared to lift it.
+  suspendedAt     DateTime?
+  suspendedReason String    @default("")
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -75,6 +80,48 @@ model User {
   wasteEntries   WasteEntry[]
   cookbookLikes  CookbookLike[]
   cookbookSaves  CookbookSave[]
+  subscription   Subscription?
+  uploads        Upload[]
+
+  chatMemberships ConversationMember[]
+  messages        Message[]
+  messageReactions MessageReaction[]
+  blocking        Block[] @relation("Blocker")
+  blockedBy       Block[] @relation("Blocked")
+
+  followers       Follow[] @relation("Following")
+  following       Follow[] @relation("Follower")
+  posts           Post[]
+  postLikes       PostLike[]
+  postSaves       PostSave[]
+  postComments    PostComment[]
+  postCommentLikes PostCommentLike[]
+  stories          Story[]
+  storyViews       StoryView[]
+  reports          Report[]
+  communityMemberships CommunityMember[]
+  inviteCode       InviteCode?
+  invitesSent      Invite[] @relation("Inviter")
+  invitedBy        Invite?  @relation("Invitee")
+  promoGrants      PromoGrant[]
+  aiUsage          AiUsage[]
+  imports          Import[]
+  dailyDishGames   DailyDishGame[]
+  dailyDishStreak  DailyDishStreak?
+  soloScores       SoloGameScore[]
+  poolSeen         GamePoolSeen[]
+  hostedRooms      GameRoom[]
+  gamePlayers      GamePlayer[]
+  gameSubmissions  GameSubmission[]
+  healthReadings   HealthReading[]
+  healthMeals      HealthMeal[]
+  chefVerifications ChefVerification[]
+  aiInsights       AiInsight[]
+  scaleNotes       RecipeScaleNote[]
+
+  // Finding people by the start or part of a name or handle.
+  @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
+  @@index([displayName(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_displayName_trgm_idx")
 }
 
 /// A Google or Apple account linked to a user.
@@ -215,6 +262,9 @@ model Recipe {
   flags    RecipeFlag[]
   wantToCook WantToCookItem[]
   cookbooks  CookbookRecipe[]
+  posts      Post[]
+  stories    Story[]
+  scaleNotes RecipeScaleNote[]
 
   @@index([status, createdAt(sort: Desc), id(sort: Desc)])
   @@index([status, likeCount(sort: Desc), id(sort: Desc)])
@@ -293,6 +343,27 @@ model RecipeMadePost {
 
   @@index([recipeId, createdAt(sort: Desc)])
   @@index([authorId])
+}
+
+/// How a cook really scaled a recipe to a number of people. The recipe's author or anyone who made it can add one.
+/// These teach the AI: they are shown as examples and their ratios become the "typical" scaling for salt, spice and so on.
+model RecipeScaleNote {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  recipeId    String   @db.Uuid
+  authorId    String   @db.Uuid
+  servings    Int
+  /// {name, amount, unit}[] using the recipe's own ingredient names
+  amounts     Json
+  tip         String   @default("")
+  cookTimeMin Int?
+  panNote     String   @default("")
+  createdAt   DateTime @default(now())
+
+  recipe Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@unique([recipeId, authorId, servings])
+  @@index([recipeId, servings])
 }
 
 /// A report. One per person per recipe; enough distinct reports hide the recipe.
@@ -549,4 +620,748 @@ model AdInquiry {
   submittedAt DateTime        @default(now())
 
   @@index([status, submittedAt(sort: Desc)])
+}
+
+enum SubscriptionState {
+  ACTIVE
+  /// They turned off renewal. Access continues until the period ends.
+  CANCELLED
+  /// The renewal payment failed. Access continues until the period ends (the store's grace period).
+  BILLING_ISSUE
+  EXPIRED
+}
+
+/// A person's paid plan, kept up to date by RevenueCat's webhook. The server, not the phone, decides who has what.
+model Subscription {
+  userId      String            @id @db.Uuid
+  /// "premium" or "pro"
+  tier        String
+  productId   String?
+  store       String?
+  status      SubscriptionState
+  willRenew   Boolean           @default(true)
+  /// End of the paid period; null if the store gave none.
+  expiresAt   DateTime?
+  /// The time of the newest RevenueCat event applied, so an older event arriving late cannot undo a newer one.
+  lastEventAt DateTime
+  updatedAt   DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Webhook events already handled, by the provider's event id (the provider retries, so we must be idempotent).
+model WebhookEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
+}
+
+enum UploadStatus {
+  PENDING
+  READY
+  DELETED
+}
+
+/// A file a person sent (or is about to send) straight to the file store. Other content refers to READY uploads.
+model Upload {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  userId       String       @db.Uuid
+  /// Where it lives in the bucket: purpose/userId/id.ext
+  key          String       @unique
+  purpose      String
+  contentType  String
+  /// What the phone said it would send; the real size is checked when the upload is completed.
+  declaredSize Int
+  size         Int?
+  status       UploadStatus @default(PENDING)
+  createdAt    DateTime     @default(now())
+  readyAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+}
+
+enum ConversationKind {
+  DIRECT
+  GROUP
+  COMMUNITY
+}
+
+/// A chat. Messages in it are numbered 1, 2, 3... with no gaps (`lastSeq` is the latest number handed out), which is
+/// what lets a phone that was offline ask for "everything after 41".
+model Conversation {
+  id            String           @id @default(uuid(7)) @db.Uuid
+  kind          ConversationKind
+  title         String?
+  photoUrl      String?
+  /// For a direct chat: both people's ids, smaller first, so the same pair always finds the same chat.
+  directKey     String?          @unique
+  createdById   String?          @db.Uuid
+  lastSeq       Int              @default(0)
+  lastMessageAt DateTime?
+  createdAt     DateTime         @default(now())
+
+  members  ConversationMember[]
+  messages Message[]
+
+  @@index([lastMessageAt(sort: Desc)])
+}
+
+model ConversationMember {
+  conversationId   String   @db.Uuid
+  userId           String   @db.Uuid
+  /// "member" or "admin"
+  role             String   @default("member")
+  joinedAt         DateTime @default(now())
+  /// Highest message number this person has seen / has had delivered to their phone.
+  lastReadSeq      Int      @default(0)
+  lastDeliveredSeq Int      @default(0)
+  muted            Boolean  @default(false)
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String    @id @default(uuid(7)) @db.Uuid
+  conversationId String    @db.Uuid
+  /// Position in the conversation: 1, 2, 3...
+  seq            Int
+  senderId       String    @db.Uuid
+  /// Chosen by the sender's phone. Sending the same one twice (a retry) stores the message once.
+  clientId       String
+  /// "text", "recipe-card", "voice" or "image"
+  kind           String
+  /// Depends on kind (see shared/chat.ts). Emptied when the message is deleted.
+  body           Json
+  replyToId      String?   @db.Uuid
+  createdAt      DateTime  @default(now())
+  deletedAt      DateTime?
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User              @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  reactions    MessageReaction[]
+
+  @@unique([conversationId, seq])
+  @@unique([senderId, clientId])
+  @@index([conversationId, seq(sort: Desc)])
+}
+
+model MessageReaction {
+  messageId String   @db.Uuid
+  userId    String   @db.Uuid
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId, emoji])
+  @@index([messageId])
+}
+
+/// One person has blocked another: no direct chat between them, in either direction.
+model Block {
+  blockerId String   @db.Uuid
+  blockedId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId])
+  @@index([blockedId])
+}
+
+/// One person follows another.
+model Follow {
+  followerId  String   @db.Uuid
+  followingId String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followingId, createdAt(sort: Desc)])
+  @@index([followerId, createdAt(sort: Desc)])
+}
+
+enum PostStatus {
+  PUBLISHED
+  /// Taken down by moderation; the author still sees it.
+  HIDDEN
+  /// Hidden by the house-content kill switch; coming back when it is switched off.
+  PAUSED
+}
+
+/// Something shared to the feed: a recipe, a "made this" photo, a video, or a meal plan.
+model Post {
+  id           String     @id @default(uuid(7)) @db.Uuid
+  authorId     String     @db.Uuid
+  /// "recipe", "made-this", "video" or "plan"
+  kind         String
+  title        String
+  caption      String     @default("")
+  /// A short line such as "35 min · Easy".
+  meta         String?
+  photoUrl     String
+  videoUrl     String?
+  recipeId     String?    @db.Uuid
+  /// Set for a post made inside a community; private communities' posts stay inside them.
+  communityId  String?    @db.Uuid
+  challengeId  String?    @db.Uuid
+  status       PostStatus @default(PUBLISHED)
+  likeCount    Int        @default(0)
+  commentCount Int        @default(0)
+  saveCount    Int        @default(0)
+  viewCount    Int        @default(0)
+  createdAt    DateTime   @default(now())
+  /// When the automatic model check looked at it. Null: still waiting for the check.
+  moderatedAt  DateTime?
+
+  author   User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  recipe   Recipe?       @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  community Community?   @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  challenge Challenge?   @relation(fields: [challengeId], references: [id], onDelete: SetNull)
+  likes    PostLike[]
+  saves    PostSave[]
+  comments PostComment[]
+
+  @@index([status, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([status, moderatedAt])
+  @@index([authorId, createdAt(sort: Desc)])
+  @@index([communityId, createdAt(sort: Desc)])
+  @@index([challengeId])
+}
+
+model PostLike {
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([postId])
+}
+
+model PostSave {
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([postId])
+}
+
+/// A comment on a post. Replies point at a top-level comment (one level deep). A comment can be a voice note.
+model PostComment {
+  id               String    @id @default(uuid(7)) @db.Uuid
+  postId           String    @db.Uuid
+  authorId         String    @db.Uuid
+  parentId         String?   @db.Uuid
+  text             String    @default("")
+  voiceUrl         String?
+  voiceDurationSec Int?
+  likeCount        Int       @default(0)
+  replyCount       Int       @default(0)
+  createdAt        DateTime  @default(now())
+  deletedAt        DateTime?
+
+  post    Post              @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent  PostComment?      @relation("Replies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies PostComment[]     @relation("Replies")
+  likes   PostCommentLike[]
+
+  @@index([postId, parentId, createdAt(sort: Desc)])
+  @@index([parentId, createdAt])
+}
+
+model PostCommentLike {
+  userId    String   @db.Uuid
+  commentId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment PostComment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([userId, commentId])
+  @@index([commentId])
+}
+
+/// A photo that disappears after 24 hours.
+model Story {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  authorId  String   @db.Uuid
+  photoUrl  String
+  /// The upload behind the photo, so the file can be removed with the story.
+  uploadId  String?  @db.Uuid
+  recipeId  String?  @db.Uuid
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  author User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  recipe Recipe?     @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  views  StoryView[]
+
+  @@index([authorId, expiresAt])
+  @@index([expiresAt])
+}
+
+model StoryView {
+  storyId  String   @db.Uuid
+  viewerId String   @db.Uuid
+  viewedAt DateTime @default(now())
+
+  story  Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  viewer User  @relation(fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@id([storyId, viewerId])
+  @@index([viewerId])
+}
+
+enum ReportStatus {
+  OPEN
+  ACTIONED
+  DISMISSED
+}
+
+/// Someone reporting a post, comment, person, story or message. One report per person per thing.
+model Report {
+  id           String       @id @default(uuid(7)) @db.Uuid
+  /// Null for a report raised by the automatic check rather than a person.
+  reporterId   String?      @db.Uuid
+  auto         Boolean      @default(false)
+  /// "post", "comment", "user", "story" or "message"
+  targetType   String
+  targetId     String       @db.Uuid
+  /// "spam", "abuse", "inappropriate", "misinformation" or "other"
+  reason       String
+  details      String       @default("")
+  status       ReportStatus @default(OPEN)
+  /// The staff member who closed it, and what they did ("hidden", "restored", "dismissed").
+  resolvedById String?      @db.Uuid
+  resolution   String?
+  resolvedAt   DateTime?
+  createdAt    DateTime     @default(now())
+
+  reporter User? @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, targetType, targetId])
+  @@index([status, createdAt(sort: Desc)])
+  @@index([targetType, targetId])
+}
+
+enum CommunityVisibility {
+  PUBLIC
+  /// Anyone can see it exists and ask to join; only members see inside.
+  PRIVATE
+}
+
+enum MemberStatus {
+  MEMBER
+  /// Asked to join a private community and waiting for an admin.
+  PENDING
+}
+
+/// A group of people around a shared interest, with a chat room, posts, challenges and events.
+model Community {
+  id             String              @id @default(uuid(7)) @db.Uuid
+  name           String
+  description    String              @default("")
+  photoUrl       String?
+  visibility     CommunityVisibility @default(PUBLIC)
+  /// People with status MEMBER.
+  memberCount    Int                 @default(0)
+  createdById    String?             @db.Uuid
+  /// The community's chat room.
+  conversationId String?             @db.Uuid
+  createdAt      DateTime            @default(now())
+
+  members    CommunityMember[]
+  challenges Challenge[]
+  events     CommunityEvent[]
+  posts      Post[]
+
+  @@index([visibility, createdAt(sort: Desc), id(sort: Desc)])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Community_name_trgm_idx")
+}
+
+model CommunityMember {
+  communityId String       @db.Uuid
+  userId      String       @db.Uuid
+  /// "owner", "admin" or "member"
+  role        String       @default("member")
+  status      MemberStatus @default(MEMBER)
+  joinedAt    DateTime     @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communityId, userId])
+  @@index([userId, status])
+}
+
+/// A cooking challenge inside a community. Entries are the community's posts that name it.
+model Challenge {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  communityId String   @db.Uuid
+  title       String
+  description String   @default("")
+  photoUrl    String?
+  endsAt      DateTime
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  entries   Post[]
+
+  @@index([communityId, endsAt])
+}
+
+model CommunityEvent {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  communityId String   @db.Uuid
+  title       String
+  detail      String   @default("")
+  startsAt    DateTime
+  createdById String?  @db.Uuid
+  createdAt   DateTime @default(now())
+
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId, startsAt])
+}
+
+/// A person's invite code: one each, handed to friends.
+model InviteCode {
+  userId    String   @id @db.Uuid
+  code      String   @unique
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// Someone who joined with a code. It counts for the inviter once the invitee does something real.
+model Invite {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  inviterId   String    @db.Uuid
+  /// Each person can be invited once.
+  inviteeId   String    @unique @db.Uuid
+  code        String
+  createdAt   DateTime  @default(now())
+  qualifiedAt DateTime?
+
+  inviter User @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee User @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  @@index([inviterId, qualifiedAt])
+}
+
+/// Free time on a paid plan, earned rather than bought. The best of this and a real subscription applies.
+model PromoGrant {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  /// "pro"
+  tier      String
+  /// Says what earned it and makes granting idempotent: one grant per person per key.
+  key       String
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId, endsAt])
+}
+
+/// One call to an AI model: who asked, what for, which model, how many tokens and what it is estimated to have cost.
+/// The monthly budget and the per-person daily limits are worked out from these rows.
+model AiUsage {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  userId       String?  @db.Uuid
+  /// What the call was for: "import", "judge", "moderate", ...
+  task         String
+  provider     String
+  model        String
+  inputTokens  Int
+  outputTokens Int
+  /// Estimated cost in millionths of a US dollar, from the configured price per million tokens.
+  costMicros   Int
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId, task, createdAt])
+}
+
+enum ImportStatus {
+  DONE
+  /// The caption did not hold a recipe; the phone is asked to send frames from the video.
+  NEEDS_FRAMES
+}
+
+/// Recipes already worked out from a link, shared by everyone: the second person to paste the same video costs nothing.
+/// Only recipes derived from public pages are kept here, never anything personal.
+model ImportCache {
+  /// "youtube:<id>", "tiktok:<id>", "instagram:<code>" or "web:<hash of the address>"
+  key        String   @id
+  sourceUrl  String
+  platform   String
+  /// ImportedRecipe (see shared/kitchen.ts)
+  recipe     Json
+  confidence Float
+  hits       Int      @default(0)
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  @@index([lastUsedAt])
+}
+
+/// One person's attempt to import a link, so a "needs frames" import can be finished later.
+model Import {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  userId     String       @db.Uuid
+  url        String
+  key        String
+  status     ImportStatus
+  recipe     Json?
+  confidence Float?
+  createdAt  DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+/// One puzzle in the Daily Dish rotation. The answer lives only here and on the server's screens, never in the app.
+model DailyPuzzle {
+  /// Its place in the rotation, 1..N. The puzzle for a day is chosen by the day's number modulo N.
+  position Int      @id
+  answer   String
+  aliases  String[]
+  /// Up to six clues, hardest first.
+  clues    String[]
+  photoUrl String?
+}
+
+/// One person's game on one day.
+model DailyDishGame {
+  userId     String    @db.Uuid
+  /// "YYYY-MM-DD" in UTC
+  dateKey    String
+  cluesShown Int       @default(1)
+  guesses    String[]
+  /// "playing", "solved" or "failed"
+  status     String    @default("playing")
+  score      Int       @default(0)
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, dateKey])
+  @@index([dateKey, status, score(sort: Desc)])
+}
+
+/// A Mystery Kitchen game: a lobby, then a timed cook-off, then results.
+model GameRoom {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  /// 4 digits, unique among rooms still open
+  code        String
+  hostId      String    @db.Uuid
+  /// "solo" or "group"
+  mode        String
+  /// "lobby", "cooking" or "done"
+  phase       String    @default("lobby")
+  difficulty  String    @default("medium")
+  totalSec    Int
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  /// The secret dish, its basket and twist, chosen when the game starts
+  dish        String?
+  basket      String[]
+  twist       String?
+  hints       String[]
+  createdAt   DateTime  @default(now())
+
+  host        User             @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  players     GamePlayer[]
+  submissions GameSubmission[]
+
+  @@index([code, phase])
+  @@index([createdAt])
+}
+
+model GamePlayer {
+  roomId    String   @db.Uuid
+  userId    String   @db.Uuid
+  hintsUsed Int      @default(0)
+  joinedAt  DateTime @default(now())
+
+  room GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId])
+}
+
+model GameSubmission {
+  roomId      String   @db.Uuid
+  userId      String   @db.Uuid
+  photoUrl    String?
+  note        String   @default("")
+  judgeScore  Int
+  score       Int
+  hintsUsed   Int      @default(0)
+  feedback    String   @default("")
+  /// "ai" or "fair_play"
+  judgedBy    String
+  submittedAt DateTime @default(now())
+
+  room GameRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+/// A health reading. What it measured stays readable (so lists can be filtered by time); the numbers are encrypted.
+model HealthReading {
+  id      String   @id @db.Uuid
+  userId  String   @db.Uuid
+  /// "glucose", "bp" or "cholesterol"
+  kind    String
+  at      DateTime
+  source  String   @default("manual")
+  mealId  String?  @db.Uuid
+  /// AES-256-GCM of the numbers, bound to this user and row (see vitals/crypto.ts)
+  payload Bytes
+
+  user User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meal HealthMeal? @relation(fields: [mealId], references: [id], onDelete: SetNull)
+
+  @@index([userId, at(sort: Desc)])
+  @@index([mealId])
+}
+
+/// A meal someone logged against their readings. Title, carbs and grouping are encrypted.
+model HealthMeal {
+  id      String   @id @db.Uuid
+  userId  String   @db.Uuid
+  at      DateTime
+  payload Bytes
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readings HealthReading[]
+
+  @@index([userId, at(sort: Desc)])
+}
+
+/// A request for the verified-chef badge. Staff approve or reject it.
+model ChefVerification {
+  id              String    @id @default(uuid(7)) @db.Uuid
+  userId          String    @db.Uuid
+  /// "pending", "approved", "rejected" or "revoked"
+  status          String    @default("pending")
+  note            String
+  portfolioUrl    String?
+  rejectionReason String?
+  submittedAt     DateTime  @default(now())
+  decidedAt       DateTime?
+  decidedById     String?   @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, submittedAt(sort: Desc)])
+  @@index([status, submittedAt])
+}
+
+/// An AI answer kept so asking again costs nothing: a search sentence, this week's waste coach, today's health summary.
+model AiInsight {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  /// "search", "waste_coach", "health_summary", ...
+  kind      String
+  /// What makes it the same question: a normalised sentence, a week, a day.
+  key       String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind, key])
+  @@index([createdAt])
+}
+
+model DailyDishStreak {
+  userId         String @id @db.Uuid
+  current        Int    @default(0)
+  best           Int    @default(0)
+  /// "" until the first solve
+  lastSolvedDate String @default("")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// A person's results in one solo game (Kitchen Trivia, Step Sorter, Ingredient Match).
+model SoloGameScore {
+  userId    String   @db.Uuid
+  game      String
+  best      Int      @default(0)
+  last      Int      @default(0)
+  plays     Int      @default(0)
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, game])
+  @@index([game, best(sort: Desc)])
+}
+
+/// A question for one of the generated games, written by a model (or by hand, for the first trivia) and checked.
+model GamePoolItem {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  game      String
+  prompt    String
+  correct   String
+  wrong     String[]
+  note      String   @default("")
+  /// Stops the same question being stored twice.
+  hash      String   @unique
+  source    String   @default("ai")
+  createdAt DateTime @default(now())
+
+  seen GamePoolSeen[]
+
+  @@index([game, createdAt])
+}
+
+/// Which questions a player has already had, so a new round gives new ones first.
+model GamePoolSeen {
+  userId String   @db.Uuid
+  itemId String   @db.Uuid
+  at     DateTime @default(now())
+
+  user User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item GamePoolItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@id([userId, itemId])
+  @@index([userId, at])
 }

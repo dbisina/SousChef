@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
+import { Linking, Text, View } from 'react-native';
+import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';

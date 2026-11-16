@@ -12,6 +12,8 @@ import {
   generateId,
 } from '@/lib/firebase';
 import { PantryItem, PantryCategory, PantryItemFormData } from '@/types';
+import { apiEnabled } from '@/lib/api';
+import { apiAddPantryItem, apiClearPantry, apiDeletePantryItem, apiListPantry, apiUpdatePantryItem } from '@/services/pantryApi';
 import {
   selectExpiringItems,
   selectExpiredItems,
@@ -54,6 +56,10 @@ export const usePantryStore = create<PantryState>((set, get) => ({
   fetchPantryItems: async (userId) => {
     set({ isLoading: true, error: null });
     try {
+      if (apiEnabled()) {
+        set({ items: await apiListPantry(), isLoading: false });
+        return;
+      }
       const pantryRef = collection(db, 'users', userId, 'pantry');
       const q = query(pantryRef, orderBy('addedAt', 'desc'));
       const snapshot = await getDocs(q);
@@ -81,6 +87,11 @@ export const usePantryStore = create<PantryState>((set, get) => ({
   addPantryItem: async (userId, data) => {
     set({ error: null });
     try {
+      if (apiEnabled()) {
+        const created = await apiAddPantryItem(data);
+        set((state) => ({ items: [created, ...state.items.filter((i) => i.id !== created.id)] }));
+        return;
+      }
       const itemId = generateId();
       const itemData: PantryItem = {
         id: itemId,
@@ -113,6 +124,11 @@ export const usePantryStore = create<PantryState>((set, get) => ({
   updatePantryItem: async (userId, itemId, data) => {
     set({ isLoading: true, error: null });
     try {
+      if (apiEnabled()) {
+        const updated = await apiUpdatePantryItem(itemId, data);
+        set((state) => ({ items: state.items.map((item) => (item.id === itemId ? updated : item)), isLoading: false }));
+        return;
+      }
       const itemRef = doc(db, 'users', userId, 'pantry', itemId);
       await setDoc(itemRef, data, { merge: true });
 
@@ -132,7 +148,8 @@ export const usePantryStore = create<PantryState>((set, get) => ({
   deletePantryItem: async (userId, itemId) => {
     set({ isLoading: true, error: null });
     try {
-      await deleteDoc(doc(db, 'users', userId, 'pantry', itemId));
+      if (apiEnabled()) await apiDeletePantryItem(itemId);
+      else await deleteDoc(doc(db, 'users', userId, 'pantry', itemId));
 
       set((state) => ({
         items: state.items.filter((item) => item.id !== itemId),
@@ -151,9 +168,12 @@ export const usePantryStore = create<PantryState>((set, get) => ({
       const { items } = get();
 
       // Delete all items
-      await Promise.all(
-        items.map((item) => deleteDoc(doc(db, 'users', userId, 'pantry', item.id)))
-      );
+      if (apiEnabled()) await apiClearPantry();
+      else {
+        await Promise.all(
+          items.map((item) => deleteDoc(doc(db, 'users', userId, 'pantry', item.id)))
+        );
+      }
 
       set({ items: [], isLoading: false });
     } catch (error: unknown) {

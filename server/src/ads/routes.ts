@@ -13,6 +13,7 @@ import { parse } from '../auth/schemas';
 import type { AuthService } from '../auth/service';
 import { viewerResolvers } from '../auth/viewer';
 import type { Config } from '../config';
+import type { EntitlementService } from '../subscriptions/service';
 import type { AdService } from './service';
 
 const text = (max: number) => z.string().trim().max(max);
@@ -88,14 +89,22 @@ const inquiryListQuery = z.object({
 });
 const inquiryStatusSchema = z.object({ status: z.enum(['new', 'contacted', 'active', 'declined']) });
 
-export function adRoutes(app: FastifyInstance, ads: AdService, auth: AuthService, config: Config): void {
-  const { requireAdmin } = viewerResolvers(auth);
+export function adRoutes(app: FastifyInstance, ads: AdService, auth: AuthService, config: Config, entitlements: EntitlementService): void {
+  const { requireAdmin, optionalViewer } = viewerResolvers(auth);
   // Counting a view or click is open to anyone, so it is limited per address; so is the advertiser form.
   const tracking = { config: { rateLimit: { max: Math.min(config.RATE_LIMIT_MAX, 60), timeWindow: '1 minute' } } };
   const strict = { config: { rateLimit: { max: config.AUTH_RATE_LIMIT_MAX, timeWindow: '1 minute' } } };
 
-  /** The ad to show in a place. Always answers: SousChef's own ad stands in when no campaign is running. */
-  app.get('/v1/ads', async (request) => ({ ad: await ads.forPlacement(parse(placementQuery, request.query).placement) }));
+  /**
+   * The ad to show in a place. SousChef's own ad stands in when no campaign is running. People on a plan that is
+   * ad-free get `{ ad: null }`.
+   */
+  app.get('/v1/ads', async (request) => {
+    const { placement } = parse(placementQuery, request.query);
+    const viewer = await optionalViewer(request);
+    if (viewer && (await entitlements.forUser(viewer.userId)).features.adFree) return { ad: null };
+    return { ad: await ads.forPlacement(placement) };
+  });
 
   app.post('/v1/ads/:id/impression', tracking, async (request, reply) => {
     await ads.record(parse(adIdParam, request.params).id, 'impression');

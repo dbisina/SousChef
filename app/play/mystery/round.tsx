@@ -25,6 +25,8 @@ import { samplePhoto } from '@/components/play/samplePhoto';
 import { useNow } from '@/components/play/useNow';
 import { HINT_COST, secondsLeft } from '@/lib/mysteryKitchen';
 import { usePlayStore } from '@/stores/playStore';
+import * as ImagePicker from 'expo-image-picker';
+import { apiEnabled } from '@/lib/api';
 
 export default function MysteryRoundScreen() {
   const router = useRouter();
@@ -35,6 +37,15 @@ export default function MysteryRoundScreen() {
   const submitPlate = usePlayStore((s) => s.submitPlate);
   const leaveRound = usePlayStore((s) => s.leaveRound);
   const [menuOpen, setMenuOpen] = useState(false);
+  // With the server on, handing in a plate means taking a photo of it for the judge.
+  const handIn = async () => {
+    if (!apiEnabled()) return submitPlate();
+    const options = { mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.7 };
+    // No camera (or no permission for it): pick a photo of the plate instead of doing nothing.
+    const shot = await ImagePicker.launchCameraAsync(options).catch(() => ImagePicker.launchImageLibraryAsync(options));
+    const uri = !shot.canceled ? shot.assets[0]?.uri : undefined;
+    if (uri) submitPlate(undefined, uri);
+  };
 
   const phase = round?.phase;
   const now = useNow(phase === 'cooking');
@@ -70,7 +81,7 @@ export default function MysteryRoundScreen() {
       bottomSpace={130}
       footer={
         <CtaBar>
-          <UButton icon="camera" label={t('play.mk.submit', 'Submit my plate')} onPress={() => submitPlate()} />
+          <UButton icon="camera" label={t('play.mk.submit', 'Submit my plate')} onPress={() => void handIn()} />
         </CtaBar>
       }
     >
