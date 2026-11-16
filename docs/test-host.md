@@ -23,12 +23,15 @@ A throwaway host for trying the app against the real server. Not production: pro
 
 Not set on purpose: the `S3_*` file-store settings (no bucket yet, so photo uploads and pantry/plate/caption photo features do not work here), `GOOGLE_CLIENT_IDS` / `APPLE_CLIENT_IDS` (server-side Google/Apple sign-in), `REVENUECAT_WEBHOOK_SECRET`, `EXPO_ACCESS_TOKEN`.
 
-## Nebius endpoints
+## Nebius: per token only
 
-- Public (shared) endpoints need no deployment: base URL `https://api.tokenfactory.nebius.com/v1`, the model is the routing key (e.g. `MiniMaxAI/MiniMax-M3.1-Flash`, vision, about $0.15 in / $0.60 out per million tokens). Test only; region may change.
-- Dedicated endpoint (own GPUs): Token Factory > Model endpoints > Deploy dedicated endpoint. Pick model weights, flavor, GPU (H100 eu-north1 or H200 us-central1, 4 or 8 per replica) and min/max replicas; about $0.31 per minute per 4-GPU H100 replica while running, so delete it when not testing. The region cannot change after creation. When ready it gets a `routing_key`.
-- Call it like any OpenAI-compatible model with the same API key: set `AI_NEBIUS_DEDICATED_MODEL=<routing_key>`, `AI_NEBIUS_DEDICATED_BASE_URL=<its region's base URL>` (eu-north1 `https://api.tokenfactory.nebius.com/v1`, eu-west1 `https://api.tokenfactory.eu-west1.nebius.com/v1`, us-central1 `https://api.tokenfactory.us-central1.nebius.com/v1`), and `AI_NEBIUS_DEDICATED_IMAGES=true` if it is a vision model. It is then tried first for the work it is allowed.
-- None is deployed on this host (trial credit is nearly spent).
+- The server uses Nebius's shared endpoints only, billed per token (no GPUs, no per-minute charge): base URL `https://api.tokenfactory.nebius.com/v1`, the model is the routing key (text: `Qwen/Qwen3-30B-A3B-Instruct-2507`; photos: `MiniMaxAI/MiniMax-M3.1-Flash`, about $0.15 in / $0.60 out per million tokens, and `deepseek-ai/DeepSeek-V4.1-Flash-1017`). The Token Factory catalog has text, vision and embedding models only: no speech or voice models, so voice is on-device recognition and speech.
+- Spend is bounded by `AI_MONTHLY_BUDGET_USD` (estimated from token counts) and each person's daily limits.
+- Dedicated endpoints (own GPUs, billed per minute) are not used and not deployed. The settings for one (`AI_NEBIUS_DEDICATED_*`) stay in the code, empty and off; leave them empty.
+
+## Link imports (YouTube, TikTok, Instagram)
+
+The API image carries `yt-dlp` (`YT_DLP_PATH`), which reads a video's caption and subtitles without downloading the video. The text goes to the text model. TikTok falls back to the page's own data and Instagram to its public embed caption. If a platform blocks the host's address, set `IMPORT_PROXY_URL`. When a caption holds no recipe the app asks the person for up to 6 screenshots of the video and the server reads those (Nebius vision). `server/scripts/probe-imports.mjs` checks real links against the live host; with the Agent Reach tool installed it can also print Agent Reach's own reading of each link for comparison.
 
 ## Web build and CORS
 
