@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, StyleSheet, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Modal, StyleSheet, Text as RNText, View, useWindowDimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { Pressable } from './Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon } from './Icon';
@@ -114,6 +114,8 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
           onPress={onClose}
           style={[StyleSheet.absoluteFill, { backgroundColor: FIXED.scrim }]}
         />
+        {/* A sheet with a field in it (a code, a note) rises above the keyboard. Android resizes a modal window by itself. */}
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} pointerEvents="box-none" style={{ flex: 1, justifyContent: 'flex-end' }}>
         <View
           accessibilityViewIsModal
           accessibilityLabel={title}
@@ -130,6 +132,7 @@ export function Sheet({ visible, onClose, title, children }: SheetProps) {
         >
           {children}
         </View>
+        </KeyboardAvoidingView>
       </ToneBlock>
     </Modal>
   );

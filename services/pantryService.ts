@@ -12,12 +12,26 @@ import {
   generateId,
 } from '@/lib/firebase';
 import { PantryItem, PantryItemFormData, PantryCategory } from '@/types';
+import { apiEnabled } from '@/lib/api';
+import {
+  apiAddPantryItem,
+  apiBulkAddPantry,
+  apiClearPantry,
+  apiDeletePantryItem,
+  apiListPantry,
+  apiPantrySummary,
+  apiUpdatePantryItem,
+} from '@/services/pantryApi';
+
+// With EXPO_PUBLIC_API_URL set, the pantry lives on the SousChef server and the person is the signed-in account
+// (the userId argument is kept so callers do not change).
 
 const getPantryCollection = (userId: string) =>
   collection(db, 'users', userId, 'pantry');
 
 // Get all pantry items for a user
 export const getPantryItems = async (userId: string): Promise<PantryItem[]> => {
+  if (apiEnabled()) return apiListPantry();
   const q = query(getPantryCollection(userId), orderBy('addedAt', 'desc'));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as PantryItem[];
@@ -28,6 +42,7 @@ export const getPantryItemsByCategory = async (
   userId: string,
   category: PantryCategory
 ): Promise<PantryItem[]> => {
+  if (apiEnabled()) return apiListPantry({ category });
   const q = query(
     getPantryCollection(userId),
     where('category', '==', category),
@@ -42,6 +57,7 @@ export const addPantryItem = async (
   userId: string,
   data: PantryItemFormData
 ): Promise<PantryItem> => {
+  if (apiEnabled()) return apiAddPantryItem(data);
   const itemId = generateId();
   const itemData: PantryItem = {
     id: itemId,
@@ -67,6 +83,10 @@ export const updatePantryItem = async (
   itemId: string,
   data: Partial<PantryItemFormData>
 ): Promise<void> => {
+  if (apiEnabled()) {
+    await apiUpdatePantryItem(itemId, data);
+    return;
+  }
   const { expiryDate, ...rest } = data;
   const updateData: Partial<PantryItem> = { ...rest };
 
@@ -83,11 +103,13 @@ export const deletePantryItem = async (
   userId: string,
   itemId: string
 ): Promise<void> => {
+  if (apiEnabled()) return apiDeletePantryItem(itemId);
   await deleteDoc(doc(getPantryCollection(userId), itemId));
 };
 
 // Clear all pantry items
 export const clearPantry = async (userId: string): Promise<void> => {
+  if (apiEnabled()) return apiClearPantry();
   const items = await getPantryItems(userId);
   await Promise.all(
     items.map((item) => deleteDoc(doc(getPantryCollection(userId), item.id)))
@@ -96,6 +118,7 @@ export const clearPantry = async (userId: string): Promise<void> => {
 
 // Get expiring items (within 3 days)
 export const getExpiringItems = async (userId: string): Promise<PantryItem[]> => {
+  if (apiEnabled()) return apiListPantry({ filter: 'expiring' });
   const items = await getPantryItems(userId);
   const now = new Date();
   const threeDays = 3 * 24 * 60 * 60 * 1000;
@@ -110,6 +133,7 @@ export const getExpiringItems = async (userId: string): Promise<PantryItem[]> =>
 
 // Get expired items
 export const getExpiredItems = async (userId: string): Promise<PantryItem[]> => {
+  if (apiEnabled()) return apiListPantry({ filter: 'expired' });
   const items = await getPantryItems(userId);
   const now = new Date();
 
@@ -124,6 +148,7 @@ export const searchPantryItems = async (
   userId: string,
   searchQuery: string
 ): Promise<PantryItem[]> => {
+  if (apiEnabled()) return apiListPantry({ q: searchQuery });
   const items = await getPantryItems(userId);
   const query = searchQuery.toLowerCase();
 
@@ -145,6 +170,7 @@ export const bulkAddPantryItems = async (
   userId: string,
   items: PantryItemFormData[]
 ): Promise<PantryItem[]> => {
+  if (apiEnabled()) return apiBulkAddPantry(items);
   const addedItems = await Promise.all(
     items.map((item) => addPantryItem(userId, item))
   );
@@ -168,6 +194,7 @@ export const updatePantryItemAmount = async (
 export const getPantrySummary = async (
   userId: string
 ): Promise<Record<PantryCategory, number>> => {
+  if (apiEnabled()) return apiPantrySummary();
   const items = await getPantryItems(userId);
   const summary: Record<PantryCategory, number> = {
     produce: 0,

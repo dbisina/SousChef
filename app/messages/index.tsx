@@ -1,20 +1,20 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
+import { photoSource } from '@/lib/photo';
 import { ConversationRow } from '@/components/chat/ConversationRow';
 import { Chip, ChipRow, H2, ListRow, Muted, Rows, Screen, Sheet, TopBar, UAvatar, UIconButton, UInput } from '@/components/ui';
-import { AUTHORS } from '@/data/sample/social';
 import { filterConversations, useMessageStore, type ConversationFilter } from '@/stores/messageStore';
-import { useOrderStore } from '@/stores/orderStore';
+import { useSocialStore } from '@/stores/socialStore';
+import { apiEnabled } from '@/lib/api';
 import { ME_ID, type Conversation } from '@/types/social';
 
 const FILTERS: { id: ConversationFilter; key: string; fallback: string }[] = [
   { id: 'all', key: 'messages.filterAll', fallback: 'All' },
   { id: 'friends', key: 'messages.filterFriends', fallback: 'Friends' },
   { id: 'groups', key: 'messages.filterGroups', fallback: 'Groups' },
-  { id: 'orders', key: 'messages.filterOrders', fallback: 'Orders' },
 ];
 
 export default function MessagesScreen() {
@@ -22,21 +22,17 @@ export default function MessagesScreen() {
   const { t } = useTranslation();
   const conversations = useMessageStore((s) => s.conversations);
   const startConversation = useMessageStore((s) => s.startConversation);
-  const orders = useOrderStore((s) => s.orders);
+  const startConversationOnServer = useMessageStore((s) => s.startConversationOnServer);
+  const knownPeople = useSocialStore((s) => s.authors);
   const [filter, setFilter] = useState<ConversationFilter>('all');
   const [query, setQuery] = useState('');
   const [picking, setPicking] = useState(false);
 
   const rows = useMemo(() => filterConversations([...conversations], filter, query), [conversations, filter, query]);
-  const people = useMemo(() => AUTHORS.filter((a) => a.id !== ME_ID), []);
+  // With the server on, the people you can message are the ones the app knows about (you follow, or have seen).
+  const people = useMemo(() => knownPeople.filter((a) => a.id !== ME_ID), [knownPeople]);
 
   const open = (c: Conversation) => {
-    if (c.kind === 'order') {
-      // Tracking screen for the matching live order, else the latest one; the chat thread if none exists.
-      const order = orders.find((o) => o.id === c.orderId) ?? orders.find((o) => o.restaurantName === c.title) ?? orders[0];
-      router.push(order ? { pathname: '/order/[id]', params: { id: order.id } } : { pathname: '/messages/[id]', params: { id: c.id } });
-      return;
-    }
     if (c.kind === 'community' && c.communityId) {
       router.push({ pathname: '/community/[id]', params: { id: c.communityId } });
       return;
@@ -44,10 +40,10 @@ export default function MessagesScreen() {
     router.push({ pathname: '/messages/[id]', params: { id: c.id } });
   };
 
-  const startWith = (authorId: string, name: string) => {
-    const id = startConversation(authorId, name);
+  const startWith = async (authorId: string, name: string) => {
+    const id = apiEnabled() ? await startConversationOnServer(authorId) : startConversation(authorId, name);
     setPicking(false);
-    router.push({ pathname: '/messages/[id]', params: { id } });
+    if (id) router.push({ pathname: '/messages/[id]', params: { id } });
   };
 
   return (
@@ -108,7 +104,7 @@ export default function MessagesScreen() {
               key={a.id}
               title={a.displayName}
               subtitle={`@${a.handle}`}
-              leading={<UAvatar name={a.displayName} source={SAMPLE[a.avatar]} size={44} />}
+              leading={<UAvatar name={a.displayName} source={photoSource(a.avatar)} size={44} />}
               onPress={() => startWith(a.id, a.displayName)}
             />
           ))}

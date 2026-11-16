@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,6 +21,11 @@ import {
 import { useSocialStore } from '@/stores/socialStore';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import { photoOf } from '@/components/feed/shared';
+import * as ImagePicker from 'expo-image-picker';
+import type { ScaleNoteRequest } from '../../shared/index';
+import { PostAiHelpers } from '@/components/ai/AiPost';
+import { apiSaveScaleNote } from '@/services/aiToolsApi';
+import { apiEnabled } from '@/lib/api';
 import type { PhotoRef, PostKind } from '@/types/social';
 
 const PHOTOS: PhotoRef[] = ['gnocchi', 'pasta', 'penne'];
@@ -39,6 +45,7 @@ export default function NewPostScreen() {
   const [recipe, setRecipe] = useState<{ id: string; title: string } | null>(null);
   const [communityId, setCommunityId] = useState<string | null>(null);
   const [picker, setPicker] = useState<PickerKind>(null);
+  const [scaleNote, setScaleNote] = useState<ScaleNoteRequest | null>(null);
 
   const saved = useMemo(
     () =>
@@ -49,7 +56,15 @@ export default function NewPostScreen() {
   );
   const community = communities.find((c) => c.id === communityId);
   const others = PHOTOS.filter((p) => p !== photo);
-  const canShare = caption.trim().length > 0;
+  const canShare = caption.trim().length > 0 && !(apiEnabled() && !/^(file|content):/i.test(photo));
+
+  // With the server on, a post needs a real photo from the phone (the sample photos cannot be uploaded).
+  const choosePhoto = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    const uri = !result.canceled ? result.assets[0]?.uri : undefined;
+    if (uri) setPhoto(uri);
+  };
+  const needsRealPhoto = apiEnabled() && !/^(file|content):/i.test(photo);
 
   const share = () => {
     if (!canShare) return;
@@ -60,6 +75,8 @@ export default function NewPostScreen() {
       title: recipe?.title,
       recipeId: recipe?.id,
       communityId: communityId ?? undefined,
+      // The cook's scaling numbers go to the server only once the post exists (the server checks they made the recipe).
+      ...(scaleNote && recipe ? { onPublished: () => { void apiSaveScaleNote(recipe.id, scaleNote).catch(() => undefined); } } : {}),
     });
     router.replace(`/post/${post.id}` as Href);
   };
@@ -120,6 +137,17 @@ export default function NewPostScreen() {
           </View>
         </View>
 
+        {apiEnabled() ? (
+          <Rows>
+            <ListRow
+              icon="image"
+              title={t('newPost.choosePhoto', 'Choose a photo')}
+              subtitle={needsRealPhoto ? t('newPost.photoNeeded', 'Pick a photo from your phone to share') : t('newPost.photoChosen', 'Photo chosen. Tap to change it')}
+              onPress={choosePhoto}
+            />
+          </Rows>
+        ) : null}
+
         <Field
           label={t('newPost.caption', 'Caption')}
           placeholder={t('newPost.captionPlaceholder', 'Say something about this dish…')}
@@ -127,6 +155,8 @@ export default function NewPostScreen() {
           onChangeText={setCaption}
           multiline
         />
+
+        <PostAiHelpers photo={photo} {...(recipe ? { recipeId: recipe.id } : {})} onCaption={setCaption} onScaleNote={setScaleNote} hasScaleNote={scaleNote !== null} />
 
         <Rows>
           <ListRow
