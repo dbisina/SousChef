@@ -1346,6 +1346,12 @@ model GamePoolItem {
   /// Stops the same question being stored twice.
   hash      String   @unique
   source    String   @default("ai")
+  /// A real, licence-checked photo of what the question is about (stored on our own file store), when there is one.
+  imageUrl   String?
+  /// The Wikipedia article the photo comes from, kept so it can be found again.
+  photoTitle String?
+  /// True once a photo has been looked for, so an item with none is not searched for again and again.
+  photoTried Boolean  @default(false)
   createdAt DateTime @default(now())
 
   seen GamePoolSeen[]

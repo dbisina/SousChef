@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Body, CtaBar, H2, Muted, Screen, Tag, Title, TopBar, UButton, UCard } from '@/components/ui';
@@ -158,6 +159,15 @@ export default function SoloGameScreen() {
         </View>
       ) : (
         <View style={{ gap: 12 }}>
+          {item.imageUrl ? (
+            <Image
+              source={{ uri: item.imageUrl }}
+              accessibilityIgnoresInvertColors
+              contentFit="cover"
+              transition={150}
+              style={{ width: '100%', height: 190, borderRadius: 24 }}
+            />
+          ) : null}
           <H2>{item.prompt}</H2>
           {item.options?.map((option, i) => (
             <UButton key={`${index}-${option}`} variant={picks[index] === i ? 'accent' : 'primary'} label={option} onPress={() => setPick(i)} />

@@ -61,7 +61,7 @@ const SYSTEM = `You are a professional recipe developer writing for a cooking ap
 Rules: real, sensible quantities for the stated servings; metric or common kitchen units (g, ml, tbsp, tsp, cup, piece, clove, pinch); every step names the heat, the time or the sign that it is done; no invented health claims; nothing unsafe.
 Return only JSON: {"description": one or two inviting sentences, "servings": number, "prepTime": minutes, "cookTime": minutes, "difficulty": "easy"|"medium"|"hard", "ingredients": [{"name": string, "amount": number, "unit": string}], "instructions": [string], "tags": [string], "dietaryFlags": subset of ["vegetarian","vegan","gluten-free","dairy-free","nut-free"], "allergens": subset of ["gluten","dairy","eggs","nuts","peanuts","soy","fish","shellfish","sesame"], "nutritionPerServing": {"calories": kcal, "protein": g, "carbs": g, "fat": g, "fiber": g} for ONE serving, worked out from your ingredient amounts, "postTitle": a short friendly headline, "postCaption": two sentences of practical advice for cooking it well}.`;
 
-interface Photo {
+export interface Photo {
   bytes: Buffer;
   mime: string;
   /** Text to credit the photographer with, or null when the licence asks for none. */
@@ -145,7 +145,7 @@ export async function photoShows(ai: AiRouter, title: string, photo: Photo): Pro
 
 const slug = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-async function store(storage: Storage, key: string, photo: Photo, fetchImpl: typeof fetch): Promise<string> {
+export async function store(storage: Storage, key: string, photo: Photo, fetchImpl: typeof fetch): Promise<string> {
   const signed = await storage.presignUpload({ key, contentType: photo.mime, expiresSeconds: 600 });
   const res = await fetchImpl(signed.url, { method: 'PUT', headers: signed.headers, body: new Uint8Array(photo.bytes) });
   if (!res.ok) throw new Error(`upload failed (${res.status})`);

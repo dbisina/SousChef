@@ -4,6 +4,8 @@ import type { AiRouter } from '../ai/router';
 import type { Db } from '../db';
 import { errors } from '../errors';
 import type { MkDifficulty } from '@shared';
+import { findWikipediaPhoto, photoShows, store } from '../seed/generate';
+import type { Storage } from '../storage/storage';
 import { TRIVIA } from './trivia';
 import type { MkDish } from './dishes';
 
@@ -24,7 +26,8 @@ const SPEC: Record<PoolGame, { wrong: number; brief: string }> = {
 
 const SYSTEM = (game: PoolGame, count: number) => `You write questions for a cooking game. ${SPEC[game].brief}
 Write ${count} different questions. Rules: every fact must be true and checkable; exactly one answer is right; wrong answers are plausible but clearly wrong to a cook; no trick wording; no offensive content; short ("prompt" under 200 characters, answers under 60); "note" is one sentence on why the answer is right.
-Return only JSON: {"items": [{"prompt": string, "correct": string, "wrong": [${Array.from({ length: SPEC[game].wrong }, () => 'string').join(', ')}], "note": string}]}`;
+"photo" is the exact title of an English Wikipedia article about the dish, ingredient or technique the question is ABOUT, so a real photo can be shown with it (for example "Ratatouille"); it must never be the answer itself or reveal it; use "" when no single food article fits.
+Return only JSON: {"items": [{"prompt": string, "correct": string, "wrong": [${Array.from({ length: SPEC[game].wrong }, () => 'string').join(', ')}], "note": string, "photo": string}]}`;
 
 const itemSchema = (wrong: number) =>
   z.object({
@@ -32,6 +35,7 @@ const itemSchema = (wrong: number) =>
     correct: z.string().trim().min(1).max(80),
     wrong: z.array(z.string().trim().min(1).max(80)).length(wrong),
     note: z.string().trim().max(240).default(''),
+    photo: z.string().trim().max(80).optional().catch(undefined),
   });
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -43,6 +47,7 @@ export interface PoolItem {
   correct: string;
   wrong: string[];
   note: string;
+  imageUrl?: string;
 }
 
 const shuffle = <T>(list: readonly T[], random: () => number): T[] => {
@@ -66,7 +71,31 @@ export class GamePoolService {
     private readonly random: () => number = Math.random,
     /** Top the pool up in the background when a player is running low. Off in tests. */
     private readonly autoRefill = true,
+    /** Where question photos are kept. Without it, questions have no picture. */
+    private readonly photos: { storage: Storage | null; fetchImpl?: typeof fetch; pauseMs?: number } | null = null,
   ) {}
+
+  /** A verified, licence-checked photo of the article, stored on our own file store; null when there is none. */
+  private async photoFor(title: string, cache: Map<string, string | null>): Promise<string | null> {
+    const key = title.toLowerCase();
+    if (cache.has(key)) return cache.get(key) ?? null;
+    let url: string | null = null;
+    const photos = this.photos;
+    if (photos?.storage) {
+      const fetchImpl = photos.fetchImpl ?? fetch;
+      try {
+        const photo = await findWikipediaPhoto(title, fetchImpl);
+        if (photo && (await photoShows(this.ai, title, photo))) {
+          url = await store(photos.storage, `game/${createHash('sha1').update(key).digest('hex').slice(0, 20)}.jpg`, photo, fetchImpl);
+        }
+      } catch {
+        url = null; // no photo is fine: the question shows without one
+      }
+      if (photos.pauseMs) await new Promise((r) => setTimeout(r, photos.pauseMs));
+    }
+    cache.set(key, url);
+    return url;
+  }
 
   /** Adds a batch of new questions. Returns how many were kept. */
   async refill(game: PoolGame, count = 25): Promise<number> {
@@ -76,19 +105,22 @@ export class GamePoolService {
       z.object({ items: z.array(z.unknown()).min(1) }),
     );
     const schema = itemSchema(spec.wrong);
-    const rows: { game: string; prompt: string; correct: string; wrong: string[]; note: string; hash: string; source: string }[] = [];
+    const rows: { game: string; prompt: string; correct: string; wrong: string[]; note: string; hash: string; source: string; photoTitle: string | null; imageUrl: string | null; photoTried: boolean }[] = [];
+    const cache = new Map<string, string | null>();
     const seen = new Set<string>();
     for (const candidate of raw.items) {
       const parsed = schema.safeParse(candidate);
       if (!parsed.success) continue;
-      const { prompt, correct, wrong, note } = parsed.data;
+      const { prompt, correct, wrong, note, photo } = parsed.data;
       const answers = [correct, ...wrong].map(norm);
       if (new Set(answers).size !== answers.length) continue; // an answer repeated, or the right one also listed as wrong
       if (game === 'myth' && !['Fact', 'Myth'].includes(correct)) continue;
       const hash = itemHash(game, prompt, correct);
       if (seen.has(hash)) continue;
       seen.add(hash);
-      rows.push({ game, prompt, correct, wrong, note, hash, source: 'ai' });
+      const photoTitle = photo && photo.length >= 2 && norm(photo) !== norm(correct) ? photo : null; // never a picture of the answer
+      const imageUrl = photoTitle ? await this.photoFor(photoTitle, cache) : null;
+      rows.push({ game, prompt, correct, wrong, note, hash, source: 'ai', photoTitle, imageUrl, photoTried: photoTitle !== null });
     }
     if (rows.length === 0) throw errors.aiUnavailable('The question writer gave nothing usable');
     const made = await this.db.gamePoolItem.createMany({ data: rows.map((r) => ({ ...r, createdAt: this.now() })), skipDuplicates: true });
@@ -131,7 +163,7 @@ export class GamePoolService {
       picked.map((p) => this.db.gamePoolSeen.upsert({ where: { userId_itemId: { userId, itemId: p.id } }, create: { userId, itemId: p.id, at: now }, update: { at: now } })),
     );
     if (this.autoRefill && fresh.length - picked.length < 40) void this.refill(game).catch(() => undefined);
-    return picked.map((p) => ({ id: p.id, prompt: p.prompt, correct: p.correct, wrong: p.wrong, note: p.note }));
+    return picked.map((p) => ({ id: p.id, prompt: p.prompt, correct: p.correct, wrong: p.wrong, note: p.note, ...(p.imageUrl ? { imageUrl: p.imageUrl } : {}) }));
   }
 
   /**
@@ -183,6 +215,46 @@ Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"ha
     return { name: row.prompt, difficulty, basket: row.wrong, hints: hints as [string, string, string] };
   }
 
+  /**
+   * Gives questions that have no picture one: the model names the Wikipedia article each question is about, and a real photo
+   * from it is stored. Each question is only tried once. Returns how many got a photo.
+   */
+  async backfillPhotos(limit = 30): Promise<number> {
+    if (!this.photos?.storage) return 0;
+    const todo = await this.db.gamePoolItem.findMany({ where: { photoTried: false, imageUrl: null, game: { in: [...POOL_GAMES] } }, take: limit, orderBy: { createdAt: 'asc' } });
+    if (todo.length === 0) return 0;
+    let titles: Record<string, string> = {};
+    const needAsk = todo.filter((t) => !t.photoTitle);
+    if (needAsk.length > 0) {
+      try {
+        const raw = await this.ai.runJson(
+          {
+            task: 'game_content',
+            system: 'For each numbered cooking question, give the exact title of an English Wikipedia article about the dish, ingredient or technique the question is ABOUT, so a real photo can be shown with it. Never the answer itself. Use "" when no single food article fits. Return only JSON: {"photos": {"1": "Title", "2": ""}}',
+            prompt: needAsk.map((t, i) => `${i + 1}. ${t.prompt} (answer: ${t.correct})`).join('\n'),
+            json: true,
+            maxOutputTokens: 1500,
+            temperature: 0,
+          },
+          z.object({ photos: z.record(z.string(), z.string()) }),
+        );
+        titles = Object.fromEntries(needAsk.map((t, i) => [t.id, (raw.photos[String(i + 1)] ?? '').trim()]));
+      } catch {
+        return 0; // try again next time
+      }
+    }
+    const cache = new Map<string, string | null>();
+    let added = 0;
+    for (const item of todo) {
+      const title = item.photoTitle ?? titles[item.id] ?? '';
+      const ok = title.length >= 2 && norm(title) !== norm(item.correct);
+      const imageUrl = ok ? await this.photoFor(title, cache) : null;
+      await this.db.gamePoolItem.update({ where: { id: item.id }, data: { photoTried: true, photoTitle: ok ? title : null, imageUrl } });
+      if (imageUrl) added += 1;
+    }
+    return added;
+  }
+
   /** Keeps every generated game stocked (the background job). */
   async topUp(minimum = 80): Promise<Record<string, number>> {
     const out: Record<string, number> = {};
@@ -201,6 +273,11 @@ Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"ha
       } catch {
         out['mk'] = 0;
       }
+    }
+    try {
+      out['photos'] = await this.backfillPhotos();
+    } catch {
+      out['photos'] = 0;
     }
     return out;
   }

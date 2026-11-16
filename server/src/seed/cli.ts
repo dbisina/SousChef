@@ -42,7 +42,7 @@ async function main() {
       const ai = buildAiRouter(config, db, log);
       const added = await generatePuzzles(db, ai, target, (line) => process.stdout.write(`${line}\n`));
       process.stdout.write(`added ${added} puzzles\n`);
-      const pool = new GamePoolService(db, ai, undefined, undefined, false);
+      const pool = new GamePoolService(db, ai, undefined, undefined, false, { storage: storageFromConfig(config), pauseMs: 2500 });
       for (const game of POOL_GAMES) {
         try {
           process.stdout.write(`${game}: +${await pool.refill(game)} questions\n`);

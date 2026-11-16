@@ -10,6 +10,8 @@ import type { Storage } from '../storage/storage';
 import type { EntitlementService } from '../subscriptions/service';
 import type { UploadService } from '../uploads/service';
 import { parseLink } from '../videoLink';
+import type { VideoFrameSource } from './videoFrames';
+import type { WebHit, WebSearch } from './webSearch';
 import { instagramCaptionFromEmbed, tiktokFromPage, type VideoText, type VideoTextSource } from './videoText';
 import { cleanText, jsonLdRecipes, pageMeta, recipeFromJsonLd, visibleText, type ParsedRecipe } from './html';
 import { FetchError, httpsRequester, resolveRedirects, safeGet, type Requester } from './net';
@@ -61,6 +63,10 @@ export class ImportService {
     private readonly requester: Requester = httpsRequester,
     private readonly now: () => Date = () => new Date(),
     private readonly videoText: VideoTextSource | null = null,
+    /** Downloads a video and takes pictures from it, so a video with no recipe in its caption can still be read. */
+    private readonly frames: VideoFrameSource | null = null,
+    /** Searches the web for "I want to cook X" requests that are not links. */
+    private readonly search: WebSearch | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ importing a link */
@@ -86,6 +92,55 @@ export class ImportService {
     }
     const row = await this.finish(userId, target, outcome);
     return this.result(row.id, 'done', target.platform, outcome, false, null);
+  }
+
+  /**
+   * "I want to cook ..." with no link: search the web for a real recipe page and import the first good one (a page that
+   * carries structured recipe data is read without the AI). If the search finds nothing usable, or is not set up, the model
+   * writes a standard version of the dish and says so.
+   */
+  async findByQuery(userId: string, rawQuery: string): Promise<ImportResult> {
+    const query = rawQuery.replace(/\s+/g, ' ').trim();
+    if (query.length < 3 || query.length > 200) throw errors.validation({ query: 'Say what you would like to cook' });
+    let hits: WebHit[] = [];
+    if (this.search) {
+      try {
+        hits = await this.search(`${query} recipe`);
+      } catch {
+        hits = []; // the search is down or out of credit: the fallback below still answers
+      }
+    }
+    // Videos and social posts are imported from their own links; a search for a dish wants a recipe page.
+    const pages = hits.filter((h) => !/(youtube\.com|youtu\.be|tiktok\.com|instagram\.com|facebook\.com|pinterest\.|reddit\.com)/i.test(h.url)).slice(0, 4);
+    for (const hit of pages) {
+      try {
+        const found = await this.create(userId, hit.url);
+        if (found.status === 'done' && found.recipe) return { ...found, message: `Found on ${new URL(hit.url).hostname.replace(/^www\./, '')}` };
+      } catch (err) {
+        // A person's own daily limit is theirs to hear about; a page that will not open or has no recipe just moves on to the next.
+        if (err instanceof AppError && err.code === 'limit_reached') throw err;
+      }
+    }
+
+    const dailyLimit = await this.dailyLimit(userId);
+    const parsed = await this.ai.runJson(
+      {
+        task: 'extract_recipe',
+        system: SYSTEM,
+        prompt: `No recipe page could be found for this request, so write a standard, accurate recipe yourself, from what you know of the dish. Do not claim any source.\nRequest: ${query}`,
+        json: true,
+        maxOutputTokens: 2500,
+        temperature: 0.3,
+      },
+      aiRecipeSchema,
+      { userId, dailyLimit: { perDay: dailyLimit } },
+    );
+    const link = `https://duckduckgo.com/?q=${encodeURIComponent(`${query} recipe`)}`;
+    const recipe = toImported(parsed, { sourceUrl: link, platform: 'website', fallbackConfidence: 0.4 });
+    if (!recipe) throw errors.validation({ query: 'We could not find a recipe for that. Try a dish name or paste a link' });
+    const target: Target = { platform: 'website', key: `query:${createHash('sha1').update(query.toLowerCase()).digest('hex').slice(0, 24)}`, url: link, videoId: null };
+    const row = await this.finish(userId, target, recipe);
+    return this.result(row.id, 'done', 'website', recipe, false, 'Written by SousChef AI: no confirmed recipe page was found');
   }
 
   /** Finishes an import that needed frames: the AI reads the recipe from the pictures. The frames are deleted afterwards. */
@@ -259,10 +314,41 @@ Watch the video too and read the recipe from it.`, videoUrl: `https://www.youtub
       }
     }
     if (!parsed) {
-      if (!text) return null;
+      if (!text) return this.fromWatching(target, userId, dailyLimit, base, meta.image);
       parsed = await run(text);
     }
-    return toImported(parsed, { sourceUrl: target.url, platform: target.platform, imageUrl: meta.image ?? undefined, videoUrl: target.url, fallbackConfidence: 0.6 });
+    const fromText = toImported(parsed, { sourceUrl: target.url, platform: target.platform, imageUrl: meta.image ?? undefined, videoUrl: target.url, fallbackConfidence: 0.6 });
+    return fromText ?? this.fromWatching(target, userId, dailyLimit, base, meta.image);
+  }
+
+  /**
+   * Watches the video itself when its caption and subtitles hold no recipe: the server downloads a small copy, takes
+   * pictures from it and has a vision model read them (on-screen text, the ingredients, the steps). Null when this server
+   * cannot watch videos or nothing readable came of it, so the caller can fall back to asking the phone for frames.
+   */
+  private async fromWatching(target: Target, userId: string, dailyLimit: number, base: string, image: string | undefined): Promise<ImportedRecipe | null> {
+    if (!this.frames) return null;
+    try {
+      const pictures = await this.frames(target.url);
+      const request: AiRequest = {
+        task: 'extract_recipe_from_frames',
+        system: SYSTEM,
+        prompt: `${base}
+
+These pictures were taken at even intervals from the video itself. Read the recipe from what is shown: text on screen, the ingredients and the steps being done.`,
+        images: pictures.map((p) => ({ base64: p.base64, mimeType: p.mimeType })),
+        json: true,
+        maxOutputTokens: 2500,
+        temperature: 0.1,
+      };
+      if (!this.ai.canServe(request)) return null;
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: dailyLimit } });
+      return toImported(parsed, { sourceUrl: target.url, platform: target.platform, imageUrl: image ?? undefined, videoUrl: target.url, fallbackConfidence: 0.5 });
+    } catch (err) {
+      // A person's own daily limit is theirs to hear about; any other failure (download blocked, no model) just means "could not watch".
+      if (err instanceof AppError && err.code !== 'ai_unavailable') throw err;
+      return null;
+    }
   }
 
   /**

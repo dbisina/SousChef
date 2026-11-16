@@ -150,7 +150,7 @@ export class SoloGameService {
     const items: SoloItem[] = [];
     for (const q of await this.pool.draw(userId, game, TRIVIA_COUNT)) {
       const options = game === 'myth' ? [...[q.correct, ...q.wrong]].sort() : shuffle([q.correct, ...q.wrong], this.random);
-      items.push({ id: q.id, prompt: q.prompt, options });
+      items.push({ id: q.id, prompt: q.prompt, options, ...(q.imageUrl ? { imageUrl: q.imageUrl } : {}) });
       keys.push({ id: q.id, kind: 'pick', answer: q.correct, options, ...(q.note ? { note: q.note } : {}) });
     }
     return { items, keys };

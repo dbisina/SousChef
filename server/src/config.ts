@@ -99,7 +99,12 @@ const schema = z
     AI_NEBIUS_API_KEY: z.string().default(''),
     /** Nebius Token Factory (OpenAI-compatible). Text work and the moderation check. */
     /** Path of the yt-dlp program (empty = off). Reads video captions and subtitles for link imports. */
+    /** Web search for "I want to cook X" (Tavily first, then Brave; empty = off, the model writes the recipe instead). */
+    TAVILY_API_KEY: z.string().default(''),
+    BRAVE_SEARCH_API_KEY: z.string().default(''),
     YT_DLP_PATH: z.string().default(''),
+    /** ffmpeg, used with yt-dlp to take pictures from a video whose caption holds no recipe. */
+    FFMPEG_PATH: z.string().default('ffmpeg'),
     /** Optional outbound proxy for yt-dlp, for platforms that block data-centre addresses. */
     IMPORT_PROXY_URL: z.string().default(''),
     AI_NEBIUS_MODEL: z.string().default('Qwen/Qwen3-30B-A3B-Instruct-2507'),

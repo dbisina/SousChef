@@ -24,8 +24,7 @@ import { extractPlatformContent, PlatformContent } from './platformExtractorServ
 import { downloadYouTubeVideo, isYouTubeDownloadAvailable } from './youtubeDownloadService';
 import { getInfoAsync } from 'expo-file-system/legacy';
 import { apiEnabled } from '@/lib/api';
-import { apiExtractFromUrl } from '@/services/wantToCookApi';
-import { askForFrames } from '@/lib/importFrames';
+import { apiExtractFromUrl, apiSearchRecipe } from '@/services/wantToCookApi';
 import { apiScanRecipe } from '@/services/aiToolsApi';
 
 /** Kinds of link the server cannot fetch for us: files and pictures on the phone, and direct media. */
@@ -80,6 +79,16 @@ export const extractRecipeFromURL = async (
   thinkingCallbacks?: ThinkingCallbacks,
 ): Promise<URLExtractionResponse> => {
   try {
+    // Not a link or a file on the phone: the person said what they want to cook, so look for a real recipe for it.
+    if (apiEnabled() && !/^(https?:|file:|content:|data:)/i.test(url.trim()) && !/^[\w-]+\.[a-z]{2,}(\/|$)/i.test(url.trim())) {
+      try {
+        const found = await apiSearchRecipe(url.trim(), onProgress);
+        if (found) return found;
+      } catch {
+        // fall through to the message below
+      }
+      return { success: false, error: 'We could not find a recipe for that. Try a dish name or paste a link.', confidence: 0 };
+    }
     const platform = detectPlatform(url);
     onProgress?.(`Detected ${platform} link...`);
 
@@ -87,7 +96,8 @@ export const extractRecipeFromURL = async (
     // already imported costs nothing). Files on the phone, and videos whose caption has no recipe, still use the on-device reader below.
     if (apiEnabled() && /^https?:\/\//i.test(url) && !LOCAL_ONLY_PLATFORMS.has(platform)) {
       try {
-        const fromServer = await apiExtractFromUrl(url, onProgress, askForFrames);
+        // The server watches the video itself when the caption has no recipe, so the person is never asked for screenshots.
+        const fromServer = await apiExtractFromUrl(url, onProgress);
         if (fromServer) return fromServer;
       } catch {
         // The server could not be reached or refused: fall through to the on-device reader.

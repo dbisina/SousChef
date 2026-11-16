@@ -5,6 +5,8 @@ import type { IdTokenVerifier, VerifiedIdentity } from '../src/auth/idToken';
 import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
 import type { VideoTextSource } from '../src/imports/videoText';
+import type { VideoFrameSource } from '../src/imports/videoFrames';
+import type { WebSearch } from '../src/imports/webSearch';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
 import type { ChatEvent } from '@shared';
@@ -142,7 +144,7 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null } = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null; videoFrames?: VideoFrameSource | null; webSearch?: WebSearch | null } = {}): Promise<TestApp> {
   const push = new FakePushSender();
   const ai = makeFakeAi();
   const web = new FakeWeb();
@@ -161,6 +163,8 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     aiProviders: ai.all,
     importRequester: web.requester,
     videoText: options.videoText ?? null,
+    videoFrames: options.videoFrames ?? null,
+    webSearch: options.webSearch ?? null,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });

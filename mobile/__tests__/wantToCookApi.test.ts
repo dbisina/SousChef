@@ -21,7 +21,7 @@ jest.mock('expo-file-system/legacy', () => ({ getInfoAsync: jest.fn() }));
 
 import { api, resetApiForTests } from '@/lib/api';
 import { extractRecipeFromURL } from '@/services/recipeImportService';
-import { toAppItem, importedToApi } from '@/services/wantToCookApi';
+import { toAppItem, importedToApi, apiExtractFromUrl } from '@/services/wantToCookApi';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import type { ImportedRecipe as ApiImported, ShoppingItem, WantToCookItem as ApiItem } from '@shared/index';
 
@@ -179,15 +179,30 @@ describe('link import', () => {
     expect(mockPlatformExtract).toHaveBeenCalledTimes(2);
   });
 
-  it('asks for screenshots when the caption has no recipe, sends them, and uses what the server reads from them', async () => {
-    mockAskFrames.mockResolvedValueOnce(['file:///a.jpg', 'file:///b.jpg']);
-    server
-      .mockResolvedValueOnce(reply(201, { id: 'imp3', status: 'needs_frames', platform: 'tiktok', recipe: null, cached: false, message: 'Send frames' }))
-      .mockResolvedValueOnce(reply(200, { id: 'imp3', status: 'done', platform: 'tiktok', recipe: imported, cached: false, message: null }));
+  it('never asks the person for screenshots of a link: the server watches the video itself', async () => {
+    mockAskFrames.mockClear();
+    server.mockResolvedValueOnce(reply(201, { id: 'imp3', status: 'done', platform: 'tiktok', recipe: imported, cached: false, message: null }));
     const res = await extractRecipeFromURL('https://www.tiktok.com/@a/video/2');
     expect(res).toMatchObject({ success: true });
     expect(res.recipe?.title).toBe('Egusi');
-    expect(sent(1)).toMatchObject({ method: 'POST', path: '/v1/imports/imp3/frames', body: { uploadIds: ['up-file:///a.jpg', 'up-file:///b.jpg'] } });
+    expect(mockAskFrames).not.toHaveBeenCalled();
+  });
+
+  it('still sends screenshots when a caller supplies them (the server can finish a pending import from frames)', async () => {
+    mockAskFrames.mockResolvedValueOnce(['file:///a.jpg', 'file:///b.jpg']);
+    server
+      .mockResolvedValueOnce(reply(201, { id: 'imp4', status: 'needs_frames', platform: 'tiktok', recipe: null, cached: false, message: 'Send frames' }))
+      .mockResolvedValueOnce(reply(200, { id: 'imp4', status: 'done', platform: 'tiktok', recipe: imported, cached: false, message: null }));
+    const res = await apiExtractFromUrl('https://www.tiktok.com/@a/video/3', undefined, () => mockAskFrames());
+    expect(res?.success).toBe(true);
+    expect(sent(1)).toMatchObject({ method: 'POST', path: '/v1/imports/imp4/frames', body: { uploadIds: ['up-file:///a.jpg', 'up-file:///b.jpg'] } });
+  });
+
+  it('looks up a recipe on the web when the person says what they want to cook instead of pasting a link', async () => {
+    server.mockResolvedValueOnce(reply(201, { id: 'imp5', status: 'done', platform: 'website', recipe: imported, cached: false, message: 'Found on recipes.example.com' }));
+    const res = await extractRecipeFromURL('a good vegan lasagne');
+    expect(res).toMatchObject({ success: true, note: 'Found on recipes.example.com' });
+    expect(sent(0)).toMatchObject({ method: 'POST', path: '/v1/imports/search', body: { query: 'a good vegan lasagne' } });
     expect(mockPlatformExtract).not.toHaveBeenCalled();
   });
 

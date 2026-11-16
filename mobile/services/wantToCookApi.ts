@@ -146,6 +146,17 @@ export async function apiClearShopping(checkedOnly: boolean): Promise<void> {
 /* ---------------------------------------------------------------- link import */
 
 /**
+ * "I want to cook ...": the server searches the web for a real recipe page and imports it (or, with no search available,
+ * has the model write a standard version and says so in `message`). Null when nothing usable came back.
+ */
+export async function apiSearchRecipe(query: string, onProgress?: (message: string) => void): Promise<(URLExtractionResponse & { note?: string }) | null> {
+  onProgress?.('Searching the web for a recipe...');
+  const result = await api().post<ImportResult>('/v1/imports/search', { query }, { timeoutMs: 90_000 });
+  if (result.status !== 'done' || !result.recipe) return null;
+  return { success: true, recipe: importedFromApi(result.recipe, result.id), confidence: result.recipe.extractionConfidence, ...(result.message ? { note: result.message } : {}) };
+}
+
+/**
  * Reads a recipe from a link on the server (caption, page data, then AI). Null when the server cannot read it from the
  * link alone (a video whose caption has no recipe), so the caller can fall back to the on-device reader.
  */

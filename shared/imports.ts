@@ -3,6 +3,11 @@ import type { ImportedRecipe } from './kitchen';
 
 export type ImportPlatform = 'youtube' | 'tiktok' | 'instagram' | 'website';
 
+export interface SearchImportRequest {
+  /** What the person wants to cook, in their own words ("a good vegan lasagne"). */
+  query: string;
+}
+
 export interface CreateImportRequest {
   /** A link to a video or to a page with a recipe on it. */
   url: string;

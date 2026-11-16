@@ -41,6 +41,8 @@ import { mysteryKitchenRoutes } from './play/mkRoutes';
 import { SoloGameService } from './play/solo';
 import { GamePoolService } from './play/pool';
 import { ytDlpSource, type VideoTextSource } from './imports/videoText';
+import { ytDlpFrames, type VideoFrameSource } from './imports/videoFrames';
+import { braveSearch, firstWorking, tavilySearch, type WebSearch } from './imports/webSearch';
 import { soloRoutes } from './play/soloRoutes';
 import { backgroundJobs } from './jobs';
 import { Maintenance } from './jobs/maintenance';
@@ -85,6 +87,10 @@ export interface BuildOptions {
   importRequester?: Requester;
   /** Reads a video's caption and subtitles. Tests pass a fake; leave unset to use yt-dlp when YT_DLP_PATH is set. */
   videoText?: VideoTextSource | null;
+  /** Downloads a video and takes pictures from it (default: yt-dlp + ffmpeg when YT_DLP_PATH is set). Tests pass a stub or null. */
+  videoFrames?: VideoFrameSource | null;
+  /** Web search for imports by description (default: Tavily then Brave when their keys are set). Tests pass a stub or null. */
+  webSearch?: WebSearch | null;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
   aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
@@ -191,7 +197,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
-  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText), auth, config);
+  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText, options.videoFrames === undefined ? (config.YT_DLP_PATH ? ytDlpFrames({ ytDlp: config.YT_DLP_PATH, ffmpeg: config.FFMPEG_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoFrames, options.webSearch === undefined ? webSearchFromConfig(config) : options.webSearch), auth, config);
   const insights = new InsightCache(db, options.now);
   const vitals = new VitalsService(db, HealthCipher.fromKeys(config.HEALTH_DATA_KEY, config.HEALTH_DATA_KEY_ID, config.HEALTH_DATA_OLD_KEYS), options.now);
   aiToolsRoutes(
@@ -204,7 +210,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     config,
   );
   playRoutes(app, new DailyDishService(db, options.now), auth);
-  const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test');
+  const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test', config.NODE_ENV === 'test' ? null : { storage, pauseMs: 2500 });
   const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now, undefined, pool);
   mysteryKitchenRoutes(app, games, auth);
   soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now, undefined, pool), auth);
@@ -231,4 +237,11 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   });
 
   return { app, db, auth, uploads, chat, hub, stories, invites, ai, games, moderation, jobs };
+}
+
+function webSearchFromConfig(config: Config): WebSearch | null {
+  const searches: WebSearch[] = [];
+  if (config.TAVILY_API_KEY) searches.push(tavilySearch(config.TAVILY_API_KEY));
+  if (config.BRAVE_SEARCH_API_KEY) searches.push(braveSearch(config.BRAVE_SEARCH_API_KEY));
+  return searches.length > 0 ? firstWorking(searches) : null;
 }

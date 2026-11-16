@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ImportResult } from '@shared';
 import { captionsToText, instagramCaptionFromEmbed, tiktokFromPage, ytDlpSource, type VideoText } from '../src/imports/videoText';
+import { frameTimes, ytDlpFrames } from '../src/imports/videoFrames';
 import { makeApp, register, type TestApp } from './helpers';
 import { call } from './recipeHelpers';
 
@@ -128,6 +129,72 @@ describe('importing a video with captions read by yt-dlp', () => {
       throw new Error('blocked');
     };
     const body = (await importLink(ama, 'https://www.instagram.com/reel/CxYz999AbCd/')).json<ImportResult>();
+    expect(body.status).toBe('needs_frames');
+  });
+});
+
+describe('watching a video for its recipe', () => {
+  it('spreads the pictures through the middle of the video', () => {
+    expect(frameTimes(80, 4)).toEqual([10, 30, 50, 70]);
+    expect(frameTimes(0, 3)).toHaveLength(3); // an unknown length is treated as a minute
+    expect(frameTimes(2, 8)).toHaveLength(2); // never more pictures than seconds
+  });
+
+  it('downloads a small copy, takes pictures with ffmpeg, and returns them', async () => {
+    const { writeFile } = await import('node:fs/promises');
+    const calls: string[] = [];
+    const source = ytDlpFrames({
+      ytDlp: 'yt-dlp',
+      ffmpeg: 'ffmpeg',
+      frames: 3,
+      run: async (bin, args) => {
+        calls.push(bin);
+        if (bin === 'yt-dlp') {
+          await writeFile(args[args.indexOf('-o') + 1] as string, Buffer.alloc(100));
+        } else if (args.includes('-frames:v')) {
+          await writeFile(args[args.length - 1] as string, Buffer.alloc(6000, 7));
+        } else {
+          throw Object.assign(new Error('ffmpeg needs an output'), { stderr: '  Duration: 00:01:30.00, start: 0.000000' });
+        }
+        return { stdout: '' };
+      },
+    });
+    const frames = await source('https://www.tiktok.com/@a/video/1');
+    expect(frames).toHaveLength(3);
+    expect(frames[0]).toMatchObject({ mimeType: 'image/jpeg' });
+    expect(calls[0]).toBe('yt-dlp');
+  });
+
+  it('fails cleanly when the video cannot be downloaded', async () => {
+    const source = ytDlpFrames({ ytDlp: 'yt-dlp', ffmpeg: 'ffmpeg', run: async () => ({ stdout: '' }) });
+    await expect(source('https://www.tiktok.com/@a/video/1')).rejects.toThrow('could not be downloaded');
+  });
+});
+
+describe('reading a video from its pictures', () => {
+  let w: TestApp;
+  let frames: () => Promise<{ base64: string; mimeType: 'image/jpeg' }[]>;
+  beforeAll(async () => {
+    w = await makeApp({ IMPORT_RATE_LIMIT_MAX: '100000' }, { videoFrames: () => frames() });
+  });
+  afterAll(() => w.close());
+  beforeEach(() => w.reset());
+
+  it('reads the recipe from the pictures when the caption has none, so the phone never has to send frames', async () => {
+    const ama = await register(w);
+    frames = async () => [{ base64: Buffer.alloc(8, 1).toString('base64'), mimeType: 'image/jpeg' }];
+    w.ai.gemini.handler = () => recipeJson;
+    w.ai.nebius.handler = () => recipeJson;
+    const body = (await call(w, 'POST', '/v1/imports', ama, { url: 'https://www.tiktok.com/@a/video/7234567890123456799' })).json<ImportResult>();
+    expect(body).toMatchObject({ status: 'done', platform: 'tiktok', recipe: { title: 'Garlic Butter Pasta' } });
+  });
+
+  it('asks the phone for frames only when the video could not be watched either', async () => {
+    const ama = await register(w);
+    frames = async () => {
+      throw new Error('blocked');
+    };
+    const body = (await call(w, 'POST', '/v1/imports', ama, { url: 'https://www.tiktok.com/@a/video/7234567890123456798' })).json<ImportResult>();
     expect(body.status).toBe('needs_frames');
   });
 });
