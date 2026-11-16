@@ -1,0 +1,1 @@
+{"lint":"npx eslint {file}","typecheck":"npm run typecheck","timeout":240}

@@ -11,3 +11,24 @@ export { AdMobBanner } from './AdMobBanner';
 export { RadialFAB } from './RadialFAB';
 export { Toast } from './Toast';
 export type { FABAction } from './RadialFAB';
+
+// ── SousChef 2.0 primitives (see README.md for the naming scheme) ──
+export { Screen, TopBar } from './Screen';
+export { ToneScope, ToneBlock, useTone, useTokens, useColor } from './tone';
+export type { ColorKey } from './tone';
+export { H1, H2, Title, BarTitle, Body, Muted, LinkText, SectionLabel, Display, Dim } from './Typography';
+export { Icon } from './Icon';
+export type { IconName } from './icons';
+export { UIconButton } from './IconButton';
+export { UCard, Tile, Divider } from './Surfaces';
+export { PhotoCard } from './PhotoCard';
+export type { PhotoSource } from './PhotoCard';
+export { Glass } from './Glass';
+export { Chip, ChipRow, Tag, RatingTag } from './Chips';
+export { UButton, CtaBar } from './UButton';
+export { UInput, Field, Segmented, USwitch, Check } from './Forms';
+export { ProgressBar, Stepper, Dots, Ring, BarChart, UBadge, Dot } from './Indicators';
+export { UAvatar, AvatarStack, StoryRing, BookCover, Bubble, Thumb } from './Media';
+export { Rows, ListRow, Sheet, SheetPanel } from './Lists';
+export { FONT } from './fonts';
+export { TabBar } from './TabBar';

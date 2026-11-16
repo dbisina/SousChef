@@ -1,0 +1,12 @@
+{
+  // shared/ is imported by both the app and the server. Without its own config, tools that look for the nearest
+  // tsconfig (vitest, tsup/esbuild) walk up to the app's one, which extends a package the server's install lacks.
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  }
+}

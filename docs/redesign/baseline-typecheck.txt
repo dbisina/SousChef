@@ -1,0 +1,13 @@
+app/(tabs)/browse.tsx(87,11): error TS2339: Property 'name' does not exist on type 'Cookbook'.
+app/(tabs)/browse.tsx(89,11): error TS2339: Property 'author' does not exist on type 'Cookbook'.
+app/(tabs)/mealplan.tsx(407,13): error TS2322: Type '(date: string, mealType: MealType) => void' is not assignable to type '(date: string, mealType: string) => void'.
+  Types of parameters 'mealType' and 'mealType' are incompatible.
+    Type 'string' is not assignable to type 'MealType'.
+app/(tabs)/shopping.tsx(25,11): error TS2339: Property 'addItem' does not exist on type 'PantryState'.
+app/recipe/[id].tsx(412,69): error TS2552: Cannot find name 'useRecipeStore'. Did you mean 'useRecipes'?
+app/recipe/[id].tsx(413,60): error TS2552: Cannot find name 'useRecipeStore'. Did you mean 'useRecipes'?
+app/recipe/[id].tsx(414,52): error TS2552: Cannot find name 'useRecipeStore'. Did you mean 'useRecipes'?
+stores/selectors/mealPlanSelectors.ts(15,10): error TS2459: Module '"../mealPlanStore"' declares 'MealPlanStoreState' locally, but it is not exported.
+stores/selectors/mealPlanSelectors.ts(66,43): error TS7006: Parameter 'item' implicitly has an 'any' type.
+stores/selectors/mealPlanSelectors.ts(78,43): error TS7006: Parameter 'item' implicitly has an 'any' type.
+stores/selectors/mealPlanSelectors.ts(156,25): error TS7006: Parameter 'item' implicitly has an 'any' type.

@@ -1,126 +1,73 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/stores/themeStore';
+import { LegalLayout, LegalSection } from '@/components/subscription/LegalLayout';
+
+const SECTIONS: { title: string; body: string }[] = [
+  {
+    title: '1. Acceptance of Terms',
+    body: 'By accessing or using SousChef, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our application.',
+  },
+  {
+    title: '2. Description of Service',
+    body: 'SousChef is a mobile application that provides recipe management, meal planning, AI-powered cooking assistance, and related features. We reserve the right to modify, suspend, or discontinue any aspect of the service at any time.',
+  },
+  {
+    title: '3. User Accounts',
+    body: 'You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You must provide accurate information when creating an account and keep it updated.',
+  },
+  {
+    title: '4. User Content',
+    body: 'You retain ownership of content you create, including recipes and photos. By posting content, you grant SousChef a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content within the application.',
+  },
+  {
+    title: '5. Subscription and Payments',
+    body: 'Premium features require a paid subscription. Subscriptions automatically renew unless cancelled. Refunds are subject to the policies of Apple App Store or Google Play Store. Prices may change with notice.',
+  },
+  {
+    title: '6. Prohibited Conduct',
+    body: "You agree not to:\n• Use the service for unlawful purposes\n• Upload harmful, offensive, or infringing content\n• Attempt to access other users' accounts\n• Interfere with the service's operation\n• Scrape or collect user data without permission",
+  },
+  {
+    title: '7. AI Features Disclaimer',
+    body: 'AI-powered features (portion analysis, substitutions, voice commands) are provided for informational purposes only. Nutritional estimates may not be accurate. Always verify information, especially for dietary restrictions or allergies.',
+  },
+  {
+    title: '8. Intellectual Property',
+    body: 'SousChef and its original content, features, and functionality are owned by SousChef and are protected by international copyright, trademark, and other intellectual property laws.',
+  },
+  {
+    title: '9. Limitation of Liability',
+    body: 'SousChef shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service. Our liability is limited to the amount you paid for the service in the past 12 months.',
+  },
+  {
+    title: '10. Indemnification',
+    body: 'You agree to indemnify and hold SousChef harmless from any claims, damages, or expenses arising from your use of the service or violation of these terms.',
+  },
+  {
+    title: '11. Termination',
+    body: 'We may terminate or suspend your account at any time for violations of these terms. Upon termination, your right to use the service will immediately cease.',
+  },
+  {
+    title: '12. Changes to Terms',
+    body: 'We may modify these terms at any time. Continued use of the service after changes constitutes acceptance of the modified terms. We will notify users of significant changes.',
+  },
+  {
+    title: '13. Governing Law',
+    body: 'These terms shall be governed by the laws of the State of California, USA, without regard to conflict of law provisions.',
+  },
+  {
+    title: '14. Contact Us',
+    body: 'For questions about these Terms of Service, please contact us at:\nEmail: danbis664@gmail.com',
+  },
+];
 
 export default function TermsOfServiceScreen() {
-  const router = useRouter();
-  const colors = useThemeColors();
-
   return (
-    <SafeAreaView className="flex-1 bg-neutral-50 dark:bg-neutral-900" edges={['top']}>
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-neutral-100 dark:border-neutral-700 bg-white dark:bg-neutral-800">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
-          <Ionicons name="arrow-back" size={24} color={colors.icon} />
-        </TouchableOpacity>
-        <Text className="flex-1 text-lg font-bold text-neutral-900 dark:text-neutral-50 ml-2">
-          Terms of Service
-        </Text>
-      </View>
-
-      <ScrollView className="flex-1 p-4" showsVerticalScrollIndicator={false}>
-        <Text className="text-sm text-neutral-500 dark:text-neutral-400 mb-4">
-          Last updated: February 2026
-        </Text>
-
-        <Section title="1. Acceptance of Terms">
-          By accessing or using SousChef, you agree to be bound by these Terms of Service.
-          If you do not agree to these terms, please do not use our application.
-        </Section>
-
-        <Section title="2. Description of Service">
-          SousChef is a mobile application that provides recipe management, meal planning,
-          AI-powered cooking assistance, and related features. We reserve the right to modify,
-          suspend, or discontinue any aspect of the service at any time.
-        </Section>
-
-        <Section title="3. User Accounts">
-          You are responsible for maintaining the confidentiality of your account credentials
-          and for all activities that occur under your account. You must provide accurate
-          information when creating an account and keep it updated.
-        </Section>
-
-        <Section title="4. User Content">
-          You retain ownership of content you create, including recipes and photos. By posting
-          content, you grant SousChef a non-exclusive, worldwide, royalty-free license to use,
-          display, and distribute your content within the application.
-        </Section>
-
-        <Section title="5. Subscription and Payments">
-          Premium features require a paid subscription. Subscriptions automatically renew unless
-          cancelled. Refunds are subject to the policies of Apple App Store or Google Play Store.
-          Prices may change with notice.
-        </Section>
-
-        <Section title="6. Prohibited Conduct">
-          You agree not to:{'\n'}
-          • Use the service for unlawful purposes{'\n'}
-          • Upload harmful, offensive, or infringing content{'\n'}
-          • Attempt to access other users' accounts{'\n'}
-          • Interfere with the service's operation{'\n'}
-          • Scrape or collect user data without permission
-        </Section>
-
-        <Section title="7. AI Features Disclaimer">
-          AI-powered features (portion analysis, substitutions, voice commands) are provided
-          for informational purposes only. Nutritional estimates may not be accurate. Always
-          verify information, especially for dietary restrictions or allergies.
-        </Section>
-
-        <Section title="8. Intellectual Property">
-          SousChef and its original content, features, and functionality are owned by SousChef
-          and are protected by international copyright, trademark, and other intellectual
-          property laws.
-        </Section>
-
-        <Section title="9. Limitation of Liability">
-          SousChef shall not be liable for any indirect, incidental, special, consequential,
-          or punitive damages arising from your use of the service. Our liability is limited
-          to the amount you paid for the service in the past 12 months.
-        </Section>
-
-        <Section title="10. Indemnification">
-          You agree to indemnify and hold SousChef harmless from any claims, damages, or
-          expenses arising from your use of the service or violation of these terms.
-        </Section>
-
-        <Section title="11. Termination">
-          We may terminate or suspend your account at any time for violations of these terms.
-          Upon termination, your right to use the service will immediately cease.
-        </Section>
-
-        <Section title="12. Changes to Terms">
-          We may modify these terms at any time. Continued use of the service after changes
-          constitutes acceptance of the modified terms. We will notify users of significant changes.
-        </Section>
-
-        <Section title="13. Governing Law">
-          These terms shall be governed by the laws of the State of California, USA, without
-          regard to conflict of law provisions.
-        </Section>
-
-        <Section title="14. Contact Us">
-          For questions about these Terms of Service, please contact us at:{'\n'}
-          Email: danbis664@gmail.com
-        </Section>
-
-        <View className="h-8" />
-      </ScrollView>
-    </SafeAreaView>
+    <LegalLayout active="terms" updated="February 2026">
+      {SECTIONS.map((s) => (
+        <LegalSection key={s.title} title={s.title}>
+          {s.body}
+        </LegalSection>
+      ))}
+    </LegalLayout>
   );
 }
-
-const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <View className="mb-6">
-    <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-100 mb-2">{title}</Text>
-    <Text className="text-neutral-600 dark:text-neutral-400 leading-relaxed">{children}</Text>
-  </View>
-);

@@ -1,0 +1,21 @@
+{
+ "wait": 600,
+ "stores": {
+  "auth": {
+   "user": {
+    "id": "admin1",
+    "email": "admin@example.com",
+    "displayName": "Admin",
+    "role": "admin",
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "savedRecipes": [],
+    "dietaryPreferences": [],
+    "allergies": [],
+    "healthConditions": []
+   },
+   "isGuest": false
+  }
+ }
+}

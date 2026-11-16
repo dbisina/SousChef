@@ -1,0 +1,466 @@
+{
+ "wait": 1500,
+ "stores": {
+  "recipe": {
+   "recipes": [
+    {
+     "id": "fx-salmon",
+     "title": "Herb salmon with broccoli",
+     "description": "",
+     "imageURL": "/__assets/salmon.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "dinner",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 15,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs.",
+      "Serve warm."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 0,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-pancakes",
+     "title": "Blueberry pancakes",
+     "description": "",
+     "imageURL": "/__assets/pancakes.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "breakfast",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 15,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs.",
+      "Serve warm."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 0,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-ramen",
+     "title": "Spicy egg ramen",
+     "description": "",
+     "imageURL": "/__assets/ramen.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs.",
+      "Serve warm."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 0,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-chicken",
+     "title": "Grilled chicken avocado salad",
+     "description": "",
+     "imageURL": "/__assets/salad.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs.",
+      "Serve warm."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 0,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "currentRecipe": {
+    "id": "fx-salmon",
+    "title": "Herb salmon with broccoli",
+    "description": "",
+    "imageURL": "/__assets/salmon.jpg",
+    "authorId": "chef",
+    "authorName": "[CHEF NAME]",
+    "isOfficial": true,
+    "status": "published",
+    "category": "dinner",
+    "cuisine": "mediterranean",
+    "difficulty": "easy",
+    "prepTime": 10,
+    "cookTime": 15,
+    "servings": 2,
+    "ingredients": [
+     {
+      "name": "Salmon",
+      "amount": 2,
+      "unit": "fillets",
+      "calories": 300,
+      "optional": false
+     },
+     {
+      "name": "Broccoli",
+      "amount": 1,
+      "unit": "head",
+      "calories": 55,
+      "optional": false
+     },
+     {
+      "name": "Garlic",
+      "amount": 3,
+      "unit": "cloves",
+      "calories": 12,
+      "optional": false
+     },
+     {
+      "name": "Avocado",
+      "amount": 1,
+      "unit": "whole",
+      "calories": 240,
+      "optional": false
+     },
+     {
+      "name": "Lemon",
+      "amount": 1,
+      "unit": "whole",
+      "calories": 17,
+      "optional": false
+     },
+     {
+      "name": "Olive oil",
+      "amount": 2,
+      "unit": "tbsp",
+      "calories": 240,
+      "optional": false
+     }
+    ],
+    "instructions": [
+     "Heat the oven to 200C.",
+     "Roast the broccoli with garlic and oil for 12 minutes.",
+     "Lay the fillets skin-side down in a hot pan and cook 4–5 minutes until crisp and golden.",
+     "Rest the fish, squeeze over lemon.",
+     "Plate everything with the herbs.",
+     "Serve warm."
+    ],
+    "nutrition": {
+     "caloriesPerServing": 520,
+     "totalCalories": 1040,
+     "protein": 38,
+     "carbs": 32,
+     "fat": 24,
+     "fiber": 7
+    },
+    "tags": [
+     "quick",
+     "high-protein"
+    ],
+    "likes": 0,
+    "rating": 4.8,
+    "ratingCount": 120,
+    "createdAt": {
+     "$daysFromNow": 0
+    }
+   },
+   "isLoading": false,
+   "error": null
+  },
+  "voice": {
+   "timers": [
+    {
+     "id": "fx-timer",
+     "name": "Step 3",
+     "totalSeconds": 756,
+     "remainingSeconds": 272,
+     "isRunning": true,
+     "createdAt": {
+      "$daysFromNow": 0
+     },
+     "endTime": {
+      "$daysFromNow": 0
+     }
+    }
+   ],
+   "activeTimerCount": 1
+  },
+  "gamification": {
+   "streak": {
+    "currentStreak": 5,
+    "longestStreak": 5,
+    "lastCookDate": null
+   }
+  }
+ }
+}

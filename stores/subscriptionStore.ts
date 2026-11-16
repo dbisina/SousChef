@@ -15,6 +15,7 @@ import {
 import type { CustomerCenterCallbacks } from '@/lib/revenuecat';
 import {
   initializeRevenueCat,
+  isRevenueCatDisabled,
   loginToRevenueCat,
   logoutFromRevenueCat,
   getCustomerInfo,
@@ -39,6 +40,21 @@ import {
   canUseVoice,
   recordVoiceUsage as recordVoiceUsageService,
 } from '@/services/subscriptionService';
+import { apiEnabled } from '@/lib/api';
+import { serverTier } from '@/services/entitlementsApi';
+
+const TIER_RANK: Record<SubscriptionTier, number> = { free: 0, premium: 1, pro: 2 };
+
+/**
+ * With a server address set, the server also knows the plan (from the store's payment events, and free Pro time earned by
+ * inviting friends, which the store knows nothing about). The person gets the better of the two, so a purchase shows at
+ * once even before the server hears about it, and earned time shows even though the store says free.
+ */
+async function withServerTier(tier: SubscriptionTier): Promise<SubscriptionTier> {
+  if (!apiEnabled()) return tier;
+  const fromServer = await serverTier();
+  return fromServer && TIER_RANK[fromServer] > TIER_RANK[tier] ? fromServer : tier;
+}
 
 interface SubscriptionStore extends SubscriptionState {
   currentAppUserID: string | null;
@@ -104,7 +120,12 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       // Check if RevenueCat was actually configured (API key might be missing)
       const configured = await isPurchasesConfigured();
       if (!configured) {
-        console.warn('[Subscriptions] RevenueCat not configured — skipping offerings fetch');
+        if (isRevenueCatDisabled()) {
+          // Test/missing key: run as free tier with no banner or warning.
+          set({ isInitialized: true, isLoading: false, error: null });
+          return;
+        }
+        console.warn('[Subscriptions] RevenueCat not configured, skipping offerings fetch');
         set({
           isInitialized: true,
           isLoading: false,
@@ -143,6 +164,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
           finalTier = user?.subscriptionTier || 'pro';
         }
       }
+
+      finalTier = await withServerTier(finalTier);
 
       const usage = await getDailyUsage();
 
@@ -220,6 +243,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         }
       }
 
+      finalTier = await withServerTier(finalTier);
+
       set({
         customerInfo,
         subscriptionTier: finalTier,
@@ -274,6 +299,10 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       // Ensure RevenueCat is configured before fetching
       const configured = await isPurchasesConfigured();
       if (!configured) {
+        if (isRevenueCatDisabled()) {
+          set({ isLoading: false });
+          return;
+        }
         // Attempt re-initialization
         const { useAuthStore } = await import('./authStore');
         const user = useAuthStore.getState().user;
@@ -503,6 +532,8 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
         tier = user?.subscriptionTier || 'pro';
       }
     }
+
+    tier = await withServerTier(tier);
 
     set({
       customerInfo,

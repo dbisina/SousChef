@@ -1,3 +1,80 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * SousChef 2.0 semantic color tokens (space-separated RGB channels so Tailwind can apply alpha).
+ * Source of truth is the token table in stores/themeStore.ts; keep the two in sync.
+ * <Screen tone="dark"> and ThemeProvider override these per subtree at runtime with NativeWind vars().
+ */
+@layer base {
+  :root {
+    --ground: 255 255 255;
+    --surface: 244 244 244;
+    --surface-2: 244 244 244;
+    --surface-3: 241 241 241;
+    --ink: 15 15 15;
+    --ink-inverse: 255 255 255;
+    --muted: 107 107 107;
+    --subtle: 154 154 154;
+    --divider: 239 239 239;
+    --track: 234 234 234;
+    --line: 201 201 201;
+    --raise: 255 255 255;
+    --seen: 226 226 226;
+    --accent: 249 115 22;
+    --accent-ink: 15 15 15;
+    --accent-text: 194 65 12;
+    --tag-o-bg: 255 240 229;
+    --tag-o-fg: 154 52 18;
+    --tag-g-bg: 237 243 232;
+    --tag-g-fg: 54 82 36;
+    --tag-r-bg: 253 236 234;
+    --tag-r-fg: 159 42 28;
+    --rating-lo-bg: 237 243 232;
+    --rating-lo-fg: 54 82 36;
+    --rating-lo-dot: 76 122 53;
+    --rating-md-bg: 255 240 229;
+    --rating-md-fg: 154 52 18;
+    --rating-md-dot: 232 119 15;
+    --rating-hi-bg: 253 236 234;
+    --rating-hi-fg: 159 42 28;
+    --rating-hi-dot: 201 58 39;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: 11 11 11;
+      --surface: 22 22 22;
+      --surface-2: 26 26 26;
+      --surface-3: 31 31 31;
+      --ink: 244 244 244;
+      --ink-inverse: 11 11 11;
+      --muted: 163 163 163;
+      --subtle: 122 122 122;
+      --divider: 34 34 34;
+      --track: 42 42 42;
+      --line: 74 74 74;
+      --raise: 42 42 42;
+      --seen: 42 42 42;
+      --accent: 249 115 22;
+      --accent-ink: 15 15 15;
+      --accent-text: 251 146 60;
+      --tag-o-bg: 255 240 229;
+      --tag-o-fg: 154 52 18;
+      --tag-g-bg: 237 243 232;
+      --tag-g-fg: 54 82 36;
+      --tag-r-bg: 253 236 234;
+      --tag-r-fg: 159 42 28;
+      --rating-lo-bg: 237 243 232;
+      --rating-lo-fg: 54 82 36;
+      --rating-lo-dot: 76 122 53;
+      --rating-md-bg: 255 240 229;
+      --rating-md-fg: 154 52 18;
+      --rating-md-dot: 232 119 15;
+      --rating-hi-bg: 253 236 234;
+      --rating-hi-fg: 159 42 28;
+      --rating-hi-dot: 201 58 39;
+    }
+  }
+}

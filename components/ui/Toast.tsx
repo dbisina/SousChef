@@ -129,4 +129,6 @@ const styles = StyleSheet.create({
   },
 });
 
+Toast.displayName = 'Toast';
+
 export default Toast;

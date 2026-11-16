@@ -1,0 +1,919 @@
+{
+ "wait": 1500,
+ "reapply": true,
+ "stores": {
+  "mealPlan": {
+   "currentPlan": {
+    "id": "plan",
+    "userId": "guest",
+    "weekStartDate": "2026-11-09",
+    "days": [
+     {
+      "date": "2026-11-09",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-10",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-11",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-12",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-13",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-14",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     },
+     {
+      "date": "2026-11-15",
+      "breakfast": {
+       "recipeId": "fx-pancakes",
+       "recipeName": "Fried egg avocado toast",
+       "servings": 2,
+       "imageURL": "/__assets/toast.jpg"
+      },
+      "lunch": {
+       "recipeId": "fx-chicken",
+       "recipeName": "Rainbow tofu grain bowl",
+       "servings": 2,
+       "imageURL": "/__assets/bowl.jpg"
+      },
+      "dinner": {
+       "recipeId": "fx-salmon",
+       "recipeName": "Herb salmon with broccoli",
+       "servings": 2,
+       "imageURL": "/__assets/salmon.jpg"
+      }
+     }
+    ],
+    "isGenerated": true,
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "updatedAt": {
+     "$daysFromNow": 0
+    },
+    "shoppingList": [
+     {
+      "id": "m1",
+      "name": "Broccoli",
+      "amount": 1,
+      "unit": "head",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 1,
+      "toBuy": 1,
+      "checked": true
+     },
+     {
+      "id": "m2",
+      "name": "Salmon fillets",
+      "amount": 2,
+      "unit": "piece",
+      "category": "seafood",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 1,
+      "toBuy": 2,
+      "checked": true
+     },
+     {
+      "id": "m3",
+      "name": "Avocado",
+      "amount": 2,
+      "unit": "piece",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 2,
+      "checked": false
+     },
+     {
+      "id": "m4",
+      "name": "Cherry tomatoes",
+      "amount": 250,
+      "unit": "g",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 250,
+      "checked": false
+     },
+     {
+      "id": "m5",
+      "name": "Steak",
+      "amount": 400,
+      "unit": "g",
+      "category": "meat",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 400,
+      "checked": false
+     },
+     {
+      "id": "m6",
+      "name": "Lemon",
+      "amount": 2,
+      "unit": "piece",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 2,
+      "checked": false
+     },
+     {
+      "id": "m7",
+      "name": "Garlic",
+      "amount": 1,
+      "unit": "pack",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 1,
+      "checked": false
+     },
+     {
+      "id": "m8",
+      "name": "Spinach",
+      "amount": 1,
+      "unit": "pack",
+      "category": "produce",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 1,
+      "checked": false
+     },
+     {
+      "id": "m9",
+      "name": "Eggs",
+      "amount": 6,
+      "unit": "piece",
+      "category": "dairy",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 6,
+      "checked": false
+     },
+     {
+      "id": "m10",
+      "name": "Rice",
+      "amount": 1,
+      "unit": "kg",
+      "category": "grains",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": false,
+      "pantryAmount": 0,
+      "toBuy": 1,
+      "checked": false
+     },
+     {
+      "id": "m11",
+      "name": "Olive oil",
+      "amount": 1,
+      "unit": "pack",
+      "category": "condiments",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 1,
+      "toBuy": 0,
+      "checked": false
+     },
+     {
+      "id": "m12",
+      "name": "Greek yogurt",
+      "amount": 1,
+      "unit": "pack",
+      "category": "dairy",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 1,
+      "toBuy": 0,
+      "checked": false
+     },
+     {
+      "id": "m13",
+      "name": "Chicken thighs",
+      "amount": 2,
+      "unit": "piece",
+      "category": "meat",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 1,
+      "toBuy": 0,
+      "checked": false
+     },
+     {
+      "id": "m14",
+      "name": "Butter",
+      "amount": 1,
+      "unit": "pack",
+      "category": "dairy",
+      "recipes": [
+       "fx-salmon"
+      ],
+      "recipeNames": [
+       "Herb salmon with broccoli"
+      ],
+      "inPantry": true,
+      "pantryAmount": 1,
+      "toBuy": 0,
+      "checked": false
+     }
+    ],
+    "stats": {
+     "pantryItemsUsed": 9,
+     "expiringItemsUsed": 3,
+     "ingredientOverlap": 68,
+     "estimatedSavings": 14,
+     "totalMeals": 21,
+     "uniqueRecipes": 12
+    }
+   },
+   "isLoading": false,
+   "isGenerating": false,
+   "error": null,
+   "isLoadingWaste": false,
+   "wasteLog": [
+    {
+     "id": "w1",
+     "userId": "user1",
+     "itemName": "Spinach",
+     "amount": 2,
+     "unit": "cups",
+     "reason": "expired",
+     "date": {
+      "$daysFromNow": -1
+     },
+     "estimatedValue": 3
+    },
+    {
+     "id": "w2",
+     "userId": "user1",
+     "itemName": "Chicken",
+     "amount": 4,
+     "unit": "oz",
+     "reason": "overcooked",
+     "date": {
+      "$daysFromNow": -1
+     },
+     "estimatedValue": 2.5
+    },
+    {
+     "id": "w3",
+     "userId": "user1",
+     "itemName": "Tomatoes",
+     "amount": 6,
+     "unit": "",
+     "reason": "spoiled",
+     "date": {
+      "$daysFromNow": -1
+     },
+     "estimatedValue": 1.8
+    }
+   ],
+   "wasteStats": {
+    "totalWasted": 48,
+    "wastedThisWeek": 7.3,
+    "wastedThisMonth": 12.4,
+    "itemsWastedThisMonth": 5,
+    "topWastedItems": [
+     {
+      "name": "Produce",
+      "count": 3
+     }
+    ],
+    "wasteByReason": {
+     "expired": 3,
+     "spoiled": 1,
+     "overcooked": 1,
+     "leftover": 0,
+     "other": 0
+    },
+    "trendDirection": "improving",
+    "savedByPlanning": 14
+   }
+  },
+  "recipe": {
+   "recipes": [
+    {
+     "id": "fx-salmon",
+     "title": "Herb salmon with broccoli",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/salmon.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "dinner",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 15,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-pancakes",
+     "title": "Blueberry pancakes",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/pancakes.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "breakfast",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 5,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-ramen",
+     "title": "Spicy egg ramen",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/ramen.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 5,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    },
+    {
+     "id": "fx-chicken",
+     "title": "Grilled chicken avocado salad",
+     "description": "Crisp-skinned salmon, garlic broccoli and avocado.",
+     "imageURL": "/__assets/salad.jpg",
+     "authorId": "chef",
+     "authorName": "[CHEF NAME]",
+     "isOfficial": true,
+     "status": "published",
+     "category": "lunch",
+     "cuisine": "mediterranean",
+     "difficulty": "easy",
+     "prepTime": 10,
+     "cookTime": 10,
+     "servings": 2,
+     "ingredients": [
+      {
+       "name": "Salmon",
+       "amount": 2,
+       "unit": "fillets",
+       "calories": 300,
+       "optional": false
+      },
+      {
+       "name": "Broccoli",
+       "amount": 1,
+       "unit": "head",
+       "calories": 55,
+       "optional": false
+      },
+      {
+       "name": "Garlic",
+       "amount": 3,
+       "unit": "cloves",
+       "calories": 12,
+       "optional": false
+      },
+      {
+       "name": "Avocado",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 240,
+       "optional": false
+      },
+      {
+       "name": "Lemon",
+       "amount": 1,
+       "unit": "whole",
+       "calories": 17,
+       "optional": false
+      },
+      {
+       "name": "Olive oil",
+       "amount": 2,
+       "unit": "tbsp",
+       "calories": 240,
+       "optional": false
+      }
+     ],
+     "instructions": [
+      "Heat the oven to 200C.",
+      "Roast the broccoli with garlic and oil for 12 minutes.",
+      "Sear the salmon",
+      "Lay the fillets skin-side down in a hot pan and cook 4-5 minutes until crisp and golden.",
+      "Rest the fish, squeeze over lemon.",
+      "Plate everything with the herbs."
+     ],
+     "nutrition": {
+      "caloriesPerServing": 520,
+      "totalCalories": 1040,
+      "protein": 38,
+      "carbs": 32,
+      "fat": 24,
+      "fiber": 7
+     },
+     "tags": [
+      "quick",
+      "high-protein"
+     ],
+     "likes": 385,
+     "rating": 4.8,
+     "ratingCount": 120,
+     "createdAt": {
+      "$daysFromNow": 0
+     }
+    }
+   ]
+  },
+  "pantry": {
+   "items": [
+    {
+     "id": "p1",
+     "name": "Chicken thighs",
+     "amount": 2,
+     "unit": "pieces",
+     "category": "meat",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p2",
+     "name": "Spinach",
+     "amount": 1,
+     "unit": "bag",
+     "category": "produce",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 1
+     }
+    },
+    {
+     "id": "p3",
+     "name": "Eggs",
+     "amount": 6,
+     "unit": "pieces",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 14
+     }
+    },
+    {
+     "id": "p4",
+     "name": "Greek yogurt",
+     "amount": 1,
+     "unit": "tub",
+     "category": "dairy",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 2
+     }
+    },
+    {
+     "id": "p5",
+     "name": "Rice",
+     "amount": 1,
+     "unit": "kg",
+     "category": "grains",
+     "addedAt": {
+      "$daysFromNow": 0
+     },
+     "expiryDate": {
+      "$daysFromNow": 200
+     }
+    }
+   ]
+  },
+  "auth": {
+   "user": {
+    "id": "user1",
+    "email": "me@example.com",
+    "displayName": "[YOUR NAME]",
+    "role": "user",
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "savedRecipes": [],
+    "dietaryPreferences": [],
+    "allergies": [],
+    "healthConditions": []
+   },
+   "isGuest": false
+  },
+  "subscription": {
+   "subscriptionTier": "pro",
+   "isSubscribed": true,
+   "isPremium": true,
+   "isPro": true
+  }
+ }
+}

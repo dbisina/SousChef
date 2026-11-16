@@ -3,6 +3,10 @@ import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold } from '@expo-google-fonts/outfit';
+import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { onAuthStateChanged } from 'firebase/auth';
 import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
@@ -15,11 +19,21 @@ import { ThemeProvider } from '@/components/ThemeProvider';
 import { Toast } from '@/components/ui';
 import { registerForPushNotifications, clearBadge } from '@/services/notificationService';
 import { parseShareURL, onShareURL, getSharedURL } from '@/lib/shareExtension';
+import { isDesignReview } from '@/lib/designReview';
+import { bootDesignReview } from '@/lib/designReviewBoot';
+import { DesignReviewFrame } from '@/lib/DesignReviewFrame';
 
 import '../global.css';
 
+
 // Initialize i18n (must be before any component renders)
 import '@/lib/i18n';
+
+// Design-review mode (web, build-time flag): guest everywhere, stores on window.__SC__. No-op otherwise.
+bootDesignReview();
+
+// Hold the native splash until fonts are ready (released in RootLayout).
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Extract a URL from shared text (may contain surrounding text)
 const extractURLFromText = (text: string): string | null => {
@@ -35,10 +49,21 @@ export default function RootLayout() {
   const { isInitialized, setUser, fetchUserData, setInitialized } = useAuthStore();
   const { setSharedURL } = useShareIntentStore();
   const colors = useThemeColors();
+  const [fontsLoaded, fontError] = useFonts({
+    Outfit_400Regular,
+    Outfit_500Medium,
+    Outfit_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
+  const fontsReady = fontsLoaded || !!fontError;
   const notificationListener = useRef<Notifications.EventSubscription>(null);
   const responseListener = useRef<Notifications.EventSubscription>(null);
 
   useEffect(() => {
+    // Review mode: auth is pre-initialised as a guest; a real listener would reset the injected user.
+    if (isDesignReview) return;
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userData = await fetchUserData(firebaseUser.uid);
@@ -88,6 +113,8 @@ export default function RootLayout() {
   useEffect(() => {
     // Check for URL that launched the app (deep link or share extension)
     const handleInitialURL = async () => {
+      // Review mode: on web the page URL itself would be read as a shared recipe link.
+      if (isDesignReview) return;
       // Check Share Extension bridge first
       const shareExtURL = await getSharedURL();
       if (shareExtURL) {
@@ -135,6 +162,12 @@ export default function RootLayout() {
     initSubscription();
   }, []);
 
+  useEffect(() => {
+    if (fontsReady) SplashScreen.hideAsync().catch(() => {});
+  }, [fontsReady]);
+
+  if (!fontsReady) return null;
+
   if (!isInitialized) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
@@ -145,6 +178,8 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <KeyboardProvider>
+      <DesignReviewFrame>
       <ThemeProvider>
       <StatusBar style={colors.statusBarStyle} />
       <Stack
@@ -189,20 +224,6 @@ export default function RootLayout() {
           options={{
             headerShown: false,
             presentation: 'fullScreenModal',
-          }}
-        />
-        <Stack.Screen
-          name="admin/add-recipe"
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
-        <Stack.Screen
-          name="admin/seed"
-          options={{
-            headerShown: false,
-            presentation: 'card',
           }}
         />
         <Stack.Screen
@@ -285,8 +306,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="subscription"
           options={{
-            headerShown: true,
-            title: 'Subscription',
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -339,6 +359,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="create"
+          options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: '#0B0B0B' } }}
+        />
+        <Stack.Screen name="import" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="reels" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen name="story/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen
           name="share"
           options={{
             headerShown: false,
@@ -348,6 +375,8 @@ export default function RootLayout() {
       </Stack>
       <Toast />
       </ThemeProvider>
+      </DesignReviewFrame>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

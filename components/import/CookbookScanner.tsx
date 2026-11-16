@@ -295,7 +295,7 @@ export const CookbookScanner: React.FC<CookbookScannerProps> = ({
                 <Text className="text-white/80 text-center mt-6">
                   {capturedImages.length === 0
                     ? 'Position the recipe page within the frame'
-                    : `${capturedImages.length} page${capturedImages.length !== 1 ? 's' : ''} captured — keep snapping or tap Done`}
+                    : `${capturedImages.length} page${capturedImages.length !== 1 ? 's' : ''} captured. Keep snapping or tap Done`}
                 </Text>
               </View>
 

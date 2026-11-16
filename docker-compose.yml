@@ -1,0 +1,61 @@
+# Local development for the backend:  docker compose up --build
+# API on http://localhost:3000, PostgreSQL on localhost:55432.
+# Run the tests:                      docker compose run --rm server npm test
+
+name: souschef
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: souschef
+      POSTGRES_PASSWORD: souschef
+      POSTGRES_DB: souschef
+    ports:
+      - "55432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      # Creates the separate database the tests use (they empty its tables, so never the real one).
+      - ./server/docker/create-test-db.sql:/docker-entrypoint-initdb.d/create-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U souschef -d souschef"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: dev
+    command: npx prisma migrate deploy
+    environment:
+      DATABASE_URL: postgresql://souschef:souschef@db:5432/souschef
+    depends_on:
+      db:
+        condition: service_healthy
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+      target: dev
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://souschef:souschef@db:5432/souschef
+      DATABASE_URL_TEST: postgresql://souschef:souschef@db:5432/souschef_test
+      # Development only. Production reads a real secret from the environment.
+      JWT_SECRET: dev-only-secret-change-me-0123456789abcdef0123456789
+      LOG_LEVEL: debug
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server/src:/app/server/src
+      - ./server/test:/app/server/test
+      - ./shared:/app/shared
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  dbdata:

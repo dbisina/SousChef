@@ -1,49 +1,47 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Image,
-  TouchableOpacity,
-  Share,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import { ScrollView, Share, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 import { useCookbook } from '@/hooks/useCookbooks';
 import { useAuthStore } from '@/stores/authStore';
 import { Recipe } from '@/types';
-import { RecipeCard } from '@/components/recipe';
-import { Loading, Button, Badge } from '@/components/ui';
-import { useThemeColors } from '@/stores/themeStore';
-import { formatRelativeTime } from '@/lib/utils';
+import {
+  CtaBar,
+  Display,
+  H2,
+  Icon,
+  ListRow,
+  Muted,
+  PhotoCard,
+  Screen,
+  SectionLabel,
+  SheetPanel,
+  Tag,
+  Thumb,
+  UButton,
+  UIconButton,
+  Loading,
+} from '@/components/ui';
 
 export default function CookbookDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const colors = useThemeColors();
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
-  const {
-    cookbook,
-    recipes,
-    isLoading,
-    error,
-    isSaved,
-    toggleSave,
-    handleLike,
-  } = useCookbook(id);
+  const { cookbook, recipes, isLoading, error, isSaved, toggleSave, handleLike } = useCookbook(id);
 
   const handleShare = async () => {
     if (!cookbook) return;
     try {
       await Share.share({
-        message: `Check out this cookbook: ${cookbook.title}\n\nFrom SousChef App`,
+        message: t('cookbooks.curated.shareMessage', 'Check out this cookbook: {{title}}\n\nFrom SousChef App', {
+          title: cookbook.title,
+        }),
       });
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -52,200 +50,119 @@ export default function CookbookDetailScreen() {
   };
 
   if (isLoading) {
-    return <Loading fullScreen message="Loading cookbook..." />;
+    return <Loading fullScreen message={t('cookbooks.curated.loading', 'Loading cookbook...')} />;
   }
 
   if (error || !cookbook) {
     return (
-      <SafeAreaView className="flex-1 bg-white dark:bg-neutral-900 items-center justify-center px-4">
-        <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
-        <Text className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mt-4">
-          Cookbook not found
-        </Text>
-        <Text className="text-neutral-500 dark:text-neutral-400 text-center mt-2">
-          {error || "This cookbook doesn't exist or has been removed."}
-        </Text>
-        <Button
-          title="Go Back"
-          onPress={() => router.back()}
-          className="mt-6"
-        />
-      </SafeAreaView>
+      <Screen tone="dark" bare>
+        <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 32, gap: 14 }}>
+          <Icon name="warning" size="lg" color="muted" />
+          <H2 center>{t('cookbooks.curated.notFound', 'Cookbook not found')}</H2>
+          <Muted center>
+            {error || t('cookbooks.curated.notFoundBody', "This cookbook doesn't exist or has been removed.")}
+          </Muted>
+          <UButton label={t('cookbooks.curated.goBack', 'Go back')} size="sm" onPress={() => router.back()} />
+        </View>
+      </Screen>
     );
   }
 
+  const topInset = Math.max(insets.top, 20) + 14;
+  const difficultyLabel = (d: string) => t(`cookbooks.curated.difficulty_${d}`, d.charAt(0).toUpperCase() + d.slice(1));
+
   return (
-    <View className="flex-1 bg-white dark:bg-neutral-900">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Hero Image */}
-        <View className="relative">
-          <Image
-            source={{ uri: cookbook.coverImageURL }}
-            className="w-full h-72"
-            resizeMode="cover"
-          />
-
-          {/* Overlay gradient */}
-          <LinearGradient
-            colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(0,0,0,0.6)']}
-            className="absolute inset-0"
-          />
-
-          {/* Back button */}
-          <SafeAreaView className="absolute top-0 left-0 right-0">
-            <View className="flex-row items-center justify-between px-4 pt-2">
-              <TouchableOpacity
-                onPress={() => router.back()}
-                className="w-10 h-10 rounded-full bg-black/30 items-center justify-center"
-              >
-                <Ionicons name="arrow-back" size={24} color="white" />
-              </TouchableOpacity>
-
-              <View className="flex-row space-x-2">
-                {user && (
-                  <TouchableOpacity
-                    onPress={toggleSave}
-                    className="w-10 h-10 rounded-full bg-black/30 items-center justify-center"
-                  >
-                    <Ionicons
-                      name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                      size={22}
-                      color={isSaved ? colors.accent : 'white'}
-                    />
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={handleShare}
-                  className="w-10 h-10 rounded-full bg-black/30 items-center justify-center"
-                >
-                  <Ionicons name="share-outline" size={22} color="white" />
-                </TouchableOpacity>
-              </View>
+    <Screen
+      tone="dark"
+      bare
+      footer={
+        user ? (
+          <CtaBar fade>
+            <UButton
+              variant="ghost"
+              icon="heart"
+              label={String(cookbook.likes)}
+              accessibilityLabel={t('cookbooks.curated.like', 'Like')}
+              onPress={handleLike}
+            />
+            <UButton
+              variant={isSaved ? 'ghost' : 'accent'}
+              icon="bookmark"
+              label={isSaved ? t('cookbooks.curated.saved', 'Saved') : t('cookbooks.curated.save', 'Save cookbook')}
+              onPress={toggleSave}
+            />
+          </CtaBar>
+        ) : null
+      }
+    >
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: user ? 130 : 40 }} showsVerticalScrollIndicator={false}>
+        <PhotoCard
+          source={{ uri: cookbook.coverImageURL }}
+          height={380}
+          radius={0}
+          fade="both"
+          accessibilityLabel={cookbook.title}
+        >
+          <View
+            className="flex-row items-center justify-between"
+            style={{ position: 'absolute', top: topInset, left: 20, right: 20, zIndex: 2 }}
+          >
+            <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
+            <View className="flex-row" style={{ gap: 10 }}>
+              <UIconButton icon="share" tone="glassDark" label={t('cookbooks.curated.share', 'Share')} onPress={handleShare} />
+              {user ? (
+                <UIconButton
+                  icon="heart"
+                  tone="glassDark"
+                  label={t('cookbooks.curated.like', 'Like')}
+                  onPress={handleLike}
+                />
+              ) : null}
             </View>
-          </SafeAreaView>
-
-          {/* Cookbook badge */}
-          <View className="absolute bottom-4 left-4 px-3 py-1 rounded-full flex-row items-center" style={{ backgroundColor: colors.accent }}>
-            <Ionicons name="book" size={16} color="white" />
-            <Text className="text-white font-medium ml-1">Cookbook</Text>
           </View>
-
-          {/* Recipe count */}
-          <View className="absolute bottom-4 right-4 bg-black/50 px-3 py-1 rounded-full flex-row items-center">
-            <Ionicons name="restaurant-outline" size={16} color="white" />
-            <Text className="text-white font-medium ml-1">
-              {cookbook.recipeIds.length} recipes
-            </Text>
+          <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 8 }}>
+            <SectionLabel>{t('cookbooks.curated.kicker', 'Curated cookbook')}</SectionLabel>
+            <Display size={32} numberOfLines={3}>
+              {cookbook.title}
+            </Display>
+            <Muted>
+              {t('cookbooks.curated.meta', '{{recipes}} recipes · {{likes}} likes', {
+                recipes: cookbook.recipeIds.length,
+                likes: cookbook.likes,
+              })}
+            </Muted>
           </View>
-        </View>
+        </PhotoCard>
 
-        {/* Content */}
-        <View className="px-4 py-6">
-          {/* Title and meta */}
-          <Text className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {cookbook.title}
-          </Text>
-
-          <View className="flex-row items-center mt-2">
-            <View className="flex-row items-center">
-              <Ionicons name="heart" size={16} color={colors.accent} />
-              <Text className="text-neutral-600 dark:text-neutral-400 ml-1">{cookbook.likes} likes</Text>
-            </View>
-            {cookbook.createdAt && (
-              <>
-                <Text className="text-neutral-300 dark:text-neutral-600 mx-2">|</Text>
-                <Text className="text-neutral-500 dark:text-neutral-400">
-                  {formatRelativeTime(cookbook.createdAt)}
-                </Text>
-              </>
-            )}
-          </View>
-
-          {/* Category badge */}
-          {cookbook.category && (
-            <View className="mt-3">
-              <Badge label={cookbook.category} variant="primary" />
+        <SheetPanel gap={12}>
+          {(cookbook.category || cookbook.description) && (
+            <View style={{ gap: 10 }}>
+              {cookbook.category ? <Tag tone="o" label={cookbook.category} /> : null}
+              {cookbook.description ? <Muted>{cookbook.description}</Muted> : null}
             </View>
           )}
 
-          {/* Description */}
-          <Text className="text-neutral-600 dark:text-neutral-400 mt-4 leading-relaxed">
-            {cookbook.description}
-          </Text>
-
-          {/* Quick stats */}
-          <View className="flex-row justify-around mt-6 py-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
-            <View className="items-center">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                {cookbook.recipeIds.length}
-              </Text>
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400">Recipes</Text>
+          {recipes.length === 0 ? (
+            <View className="items-center" style={{ paddingVertical: 32, gap: 10 }}>
+              <Icon name="kitchen" size="lg" color="muted" />
+              <Muted center>{t('cookbooks.curated.empty', 'No recipes in this cookbook yet')}</Muted>
             </View>
-            <View className="w-px bg-neutral-200 dark:bg-neutral-700" />
-            <View className="items-center">
-              <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                {cookbook.likes}
-              </Text>
-              <Text className="text-sm text-neutral-500 dark:text-neutral-400">Likes</Text>
+          ) : (
+            <View style={{ gap: 12 }}>
+              {recipes.map((recipe) => (
+                <View key={recipe.id} style={{ minHeight: 76, justifyContent: 'center' }}>
+                  <ListRow
+                    title={recipe.title}
+                    subtitle={`${t('cookbooks.curated.minutes', '{{n}} min', { n: recipe.prepTime + recipe.cookTime })} · ${difficultyLabel(String(recipe.difficulty))}`}
+                    leading={<Thumb source={{ uri: recipe.imageURL }} name={recipe.title} size={68} />}
+                    onPress={() => handleRecipePress(recipe)}
+                  />
+                </View>
+              ))}
             </View>
-          </View>
-
-          {/* Recipes Section */}
-          <View className="mt-8">
-            <Text className="text-xl font-bold text-neutral-900 dark:text-neutral-100 mb-4">
-              Recipes in this Cookbook
-            </Text>
-
-            {recipes.length === 0 ? (
-              <View className="py-8 items-center">
-                <Ionicons name="restaurant-outline" size={48} color="#D4D4D4" />
-                <Text className="text-neutral-500 dark:text-neutral-400 mt-3 text-center">
-                  No recipes in this cookbook yet
-                </Text>
-              </View>
-            ) : (
-              recipes.map((recipe) => (
-                <RecipeCard
-                  key={recipe.id}
-                  recipe={recipe}
-                  onPress={() => handleRecipePress(recipe)}
-                  compact
-                />
-              ))
-            )}
-          </View>
-        </View>
+          )}
+        </SheetPanel>
       </ScrollView>
-
-      {/* Bottom action bar */}
-      {user && (
-        <View className="px-4 py-4 bg-white dark:bg-neutral-900 border-t border-neutral-100 dark:border-neutral-800">
-          <View className="flex-row space-x-3">
-            <TouchableOpacity
-              onPress={handleLike}
-              className="flex-row items-center px-4 py-3 bg-neutral-100 dark:bg-neutral-800 rounded-xl"
-            >
-              <Ionicons name="heart-outline" size={20} color={colors.accent} />
-              <Text className="ml-2 font-medium text-neutral-700 dark:text-neutral-300">
-                {cookbook.likes}
-              </Text>
-            </TouchableOpacity>
-            <Button
-              title={isSaved ? 'Saved' : 'Save Cookbook'}
-              onPress={toggleSave}
-              leftIcon={
-                <Ionicons
-                  name={isSaved ? 'bookmark' : 'bookmark-outline'}
-                  size={20}
-                  color="white"
-                />
-              }
-              variant={isSaved ? 'secondary' : 'primary'}
-              className="flex-1"
-            />
-          </View>
-        </View>
-      )}
-    </View>
+    </Screen>
   );
 }

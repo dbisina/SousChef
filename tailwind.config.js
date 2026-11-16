@@ -1,5 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  // Theme is driven by the app's own store (vars() token scopes + colorScheme.set), never the OS media query.
+  darkMode: 'class',
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
     "./components/**/*.{js,jsx,ts,tsx}",
@@ -8,6 +10,48 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // SousChef 2.0 semantic tokens: values come from CSS variables (global.css light/dark sets,
+        // overridden per subtree by <Screen tone> / ToneScope via NativeWind vars()).
+        'ground': 'rgb(var(--ground) / <alpha-value>)',
+        'surface': 'rgb(var(--surface) / <alpha-value>)',
+        'surface-2': 'rgb(var(--surface-2) / <alpha-value>)',
+        'surface-3': 'rgb(var(--surface-3) / <alpha-value>)',
+        'ink': 'rgb(var(--ink) / <alpha-value>)',
+        'ink-inverse': 'rgb(var(--ink-inverse) / <alpha-value>)',
+        'muted': 'rgb(var(--muted) / <alpha-value>)',
+        'subtle': 'rgb(var(--subtle) / <alpha-value>)',
+        'divider': 'rgb(var(--divider) / <alpha-value>)',
+        'track': 'rgb(var(--track) / <alpha-value>)',
+        'line': 'rgb(var(--line) / <alpha-value>)',
+        'raise': 'rgb(var(--raise) / <alpha-value>)',
+        'seen': 'rgb(var(--seen) / <alpha-value>)',
+        'accent': 'rgb(var(--accent) / <alpha-value>)',
+        'accent-ink': 'rgb(var(--accent-ink) / <alpha-value>)',
+        'accent-text': 'rgb(var(--accent-text) / <alpha-value>)',
+        // Fixed (theme independent)
+        night: '#0F0F0F',
+        'night-2': '#1C1C1C',
+        paper: '#FFFFFF',
+        // Tag tones and nutrition rating levels
+        tag: {
+          'o': 'rgb(var(--tag-o-bg) / <alpha-value>)',
+          'o-fg': 'rgb(var(--tag-o-fg) / <alpha-value>)',
+          'g': 'rgb(var(--tag-g-bg) / <alpha-value>)',
+          'g-fg': 'rgb(var(--tag-g-fg) / <alpha-value>)',
+          'r': 'rgb(var(--tag-r-bg) / <alpha-value>)',
+          'r-fg': 'rgb(var(--tag-r-fg) / <alpha-value>)',
+        },
+        rating: {
+          'lo': 'rgb(var(--rating-lo-bg) / <alpha-value>)',
+          'lo-fg': 'rgb(var(--rating-lo-fg) / <alpha-value>)',
+          'lo-dot': 'rgb(var(--rating-lo-dot) / <alpha-value>)',
+          'md': 'rgb(var(--rating-md-bg) / <alpha-value>)',
+          'md-fg': 'rgb(var(--rating-md-fg) / <alpha-value>)',
+          'md-dot': 'rgb(var(--rating-md-dot) / <alpha-value>)',
+          'hi': 'rgb(var(--rating-hi-bg) / <alpha-value>)',
+          'hi-fg': 'rgb(var(--rating-hi-fg) / <alpha-value>)',
+          'hi-dot': 'rgb(var(--rating-hi-dot) / <alpha-value>)',
+        },
         // Warm, appetizing coral palette
         primary: {
           50: '#FFF7ED',
@@ -21,20 +65,7 @@ module.exports = {
           800: '#9A3412',
           900: '#7C2D12',
         },
-        // Fresh sage green for accents
-        secondary: {
-          50: '#F0FDF4',
-          100: '#DCFCE7',
-          200: '#BBF7D0',
-          300: '#86EFAC',
-          400: '#4ADE80',
-          500: '#22C55E',
-          600: '#16A34A',
-          700: '#15803D',
-          800: '#166534',
-          900: '#14532D',
-        },
-        // Warm neutral palette for glassmorphism
+        // Warm neutral palette (legacy screens)
         neutral: {
           50: '#FAFAF9',
           100: '#F5F5F4',
@@ -55,19 +86,15 @@ module.exports = {
           border: 'rgba(255, 255, 255, 0.3)',
           dark: 'rgba(0, 0, 0, 0.05)',
         },
-        // Soft background gradient stops
-        background: {
-          start: '#FFF7ED',
-          middle: '#FEF3C7',
-          end: '#ECFCCB',
-        },
       },
       fontFamily: {
-        // Elegant serif for headings
-        display: ['Poppins', 'System', 'sans-serif'],
-        // Clean sans-serif for body
-        sans: ['Inter', 'System', 'sans-serif'],
-        // Mono for numbers/badges
+        // Outfit for display/headings, Inter for body. Each weight is its own loaded family.
+        display: ['Outfit_500Medium'],
+        'display-regular': ['Outfit_400Regular'],
+        'display-semibold': ['Outfit_600SemiBold'],
+        sans: ['Inter_400Regular'],
+        'sans-medium': ['Inter_500Medium'],
+        'sans-semibold': ['Inter_600SemiBold'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       fontSize: {

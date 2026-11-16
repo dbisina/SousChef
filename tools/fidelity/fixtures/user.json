@@ -1,0 +1,21 @@
+{
+ "wait": 600,
+ "stores": {
+  "auth": {
+   "user": {
+    "id": "user1",
+    "email": "me@example.com",
+    "displayName": "[YOUR NAME]",
+    "role": "user",
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "savedRecipes": [],
+    "dietaryPreferences": [],
+    "allergies": [],
+    "healthConditions": []
+   },
+   "isGuest": false
+  }
+ }
+}

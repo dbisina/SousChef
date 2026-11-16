@@ -1,0 +1,15 @@
+# The server image only needs server/ and shared/. Everything else in this repo is the mobile app.
+*
+!server
+!shared
+!admin
+
+admin/node_modules
+admin/dist
+server/node_modules
+server/dist
+server/generated
+server/native/target
+server/native/*.node
+server/.env
+**/.DS_Store

@@ -5,10 +5,13 @@ import { Appearance, ColorSchemeName } from 'react-native';
 const APPEARANCE_KEY = '@souschef_appearance';
 
 export type ThemeOption = 'light' | 'dark' | 'system';
+export type ThemeMode = 'light' | 'dark';
+/** @deprecated The accent picker was dropped in 2.0 (orange only). Kept so persisted settings and old screens still type-check. */
 export type AccentColor = 'orange' | 'blue' | 'green' | 'purple' | 'pink';
 
 export interface AppearanceSettings {
   theme: ThemeOption;
+  /** @deprecated ignored, accent is always orange */
   accentColor: AccentColor;
   compactMode: boolean;
   showCalories: boolean;
@@ -21,132 +24,183 @@ const defaultSettings: AppearanceSettings = {
   showCalories: true,
 };
 
-// ── Accent color palettes ────────────────────────────────────────────
-export interface AccentPalette {
-  50: string;
-  100: string;
-  200: string;
-  300: string;
-  400: string;
-  500: string; // primary
-  600: string;
-  700: string;
-  800: string;
-  900: string;
-}
+// ── THE token table ──────────────────────────────────────────────────
+// Single source for every semantic color. Values come from docs/redesign/tokens.css.
+// The same numbers live as CSS variables in global.css (static fallback) and are
+// pushed at runtime through NativeWind `vars()` (see components/ui/tone.tsx).
+// Keep global.css in sync when editing this table.
+export const TOKEN_NAMES = [
+  'ground', 'surface', 'surface-2', 'surface-3', 'ink', 'ink-inverse', 'muted', 'subtle',
+  'divider', 'track', 'line', 'raise', 'seen', 'accent', 'accent-ink', 'accent-text',
+  'tag-o-bg', 'tag-o-fg', 'tag-g-bg', 'tag-g-fg', 'tag-r-bg', 'tag-r-fg',
+  'rating-lo-bg', 'rating-lo-fg', 'rating-lo-dot',
+  'rating-md-bg', 'rating-md-fg', 'rating-md-dot',
+  'rating-hi-bg', 'rating-hi-fg', 'rating-hi-dot',
+] as const;
+export type TokenName = (typeof TOKEN_NAMES)[number];
 
-export const ACCENT_PALETTES: Record<AccentColor, AccentPalette> = {
-  orange: {
-    50: '#FFF7ED', 100: '#FFEDD5', 200: '#FED7AA', 300: '#FDBA74',
-    400: '#FB923C', 500: '#F97316', 600: '#EA580C', 700: '#C2410C',
-    800: '#9A3412', 900: '#7C2D12',
-  },
-  blue: {
-    50: '#EFF6FF', 100: '#DBEAFE', 200: '#BFDBFE', 300: '#93C5FD',
-    400: '#60A5FA', 500: '#3B82F6', 600: '#2563EB', 700: '#1D4ED8',
-    800: '#1E40AF', 900: '#1E3A8A',
-  },
-  green: {
-    50: '#F0FDF4', 100: '#DCFCE7', 200: '#BBF7D0', 300: '#86EFAC',
-    400: '#4ADE80', 500: '#22C55E', 600: '#16A34A', 700: '#15803D',
-    800: '#166534', 900: '#14532D',
-  },
-  purple: {
-    50: '#FAF5FF', 100: '#F3E8FF', 200: '#E9D5FF', 300: '#D8B4FE',
-    400: '#C084FC', 500: '#8B5CF6', 600: '#7C3AED', 700: '#6D28D9',
-    800: '#5B21B6', 900: '#4C1D95',
-  },
-  pink: {
-    50: '#FDF2F8', 100: '#FCE7F3', 200: '#FBCFE8', 300: '#F9A8D4',
-    400: '#F472B6', 500: '#EC4899', 600: '#DB2777', 700: '#BE185D',
-    800: '#9D174D', 900: '#831843',
-  },
+const LIGHT: Record<TokenName, string> = {
+  ground: '#FFFFFF',
+  surface: '#F4F4F4',
+  'surface-2': '#F4F4F4',
+  'surface-3': '#F1F1F1',
+  ink: '#0F0F0F',
+  'ink-inverse': '#FFFFFF',
+  muted: '#6B6B6B',
+  subtle: '#9A9A9A',
+  divider: '#EFEFEF',
+  track: '#EAEAEA',
+  line: '#C9C9C9',
+  raise: '#FFFFFF',
+  seen: '#E2E2E2',
+  accent: '#F97316',
+  'accent-ink': '#0F0F0F',
+  'accent-text': '#C2410C',
+  'tag-o-bg': '#FFF0E5', 'tag-o-fg': '#9A3412',
+  'tag-g-bg': '#EDF3E8', 'tag-g-fg': '#365224',
+  'tag-r-bg': '#FDECEA', 'tag-r-fg': '#9F2A1C',
+  'rating-lo-bg': '#EDF3E8', 'rating-lo-fg': '#365224', 'rating-lo-dot': '#4C7A35',
+  'rating-md-bg': '#FFF0E5', 'rating-md-fg': '#9A3412', 'rating-md-dot': '#E8770F',
+  'rating-hi-bg': '#FDECEA', 'rating-hi-fg': '#9F2A1C', 'rating-hi-dot': '#C93A27',
 };
 
-// ── Theme color tokens ───────────────────────────────────────────────
+const DARK: Record<TokenName, string> = {
+  ...LIGHT,
+  ground: '#0B0B0B',
+  surface: '#161616',
+  'surface-2': '#1A1A1A',
+  'surface-3': '#1F1F1F',
+  ink: '#F4F4F4',
+  'ink-inverse': '#0B0B0B',
+  muted: '#A3A3A3',
+  subtle: '#7A7A7A',
+  divider: '#222222',
+  track: '#2A2A2A',
+  line: '#4A4A4A',
+  raise: '#2A2A2A',
+  seen: '#2A2A2A',
+  'accent-text': '#FB923C',
+};
+
+export const TOKEN_HEX: Record<ThemeMode, Record<TokenName, string>> = { light: LIGHT, dark: DARK };
+
+/** Colors that never change with the theme (black/white/glass/overlays). */
+export const FIXED = {
+  night: '#0F0F0F',
+  night2: '#1C1C1C',
+  paper: '#FFFFFF',
+  accent: '#F97316',
+  placeholder: '#7A7A7A',
+  scrim: 'rgba(0,0,0,0.45)',
+  glass: 'rgba(255,255,255,0.82)',
+  glassDark: 'rgba(15,15,15,0.42)',
+  glassEdge: 'rgba(255,255,255,0.14)',
+  photoFadeFrom: 'rgba(0,0,0,0)',
+  photoFadeTo: 'rgba(0,0,0,0.74)',
+  photoFadeTop: 'rgba(0,0,0,0.35)',
+  photoFadeBottom: 'rgba(0,0,0,0.78)',
+  captionSub: 'rgba(255,255,255,0.82)',
+  shadow: '#000000',
+  skeletonLight: '#E7E5E4',
+} as const;
+
+const hexToChannels = (hex: string): string => {
+  const h = hex.replace('#', '');
+  return `${parseInt(h.slice(0, 2), 16)} ${parseInt(h.slice(2, 4), 16)} ${parseInt(h.slice(4, 6), 16)}`;
+};
+
+/** CSS-variable map ("--ground": "255 255 255") for NativeWind `vars()`. */
+export const tokenChannels = (mode: ThemeMode): Record<string, string> => {
+  const out: Record<string, string> = {};
+  for (const name of TOKEN_NAMES) out[`--${name}`] = hexToChannels(TOKEN_HEX[mode][name]);
+  return out;
+};
+
+// ── Legacy color object (useThemeColors) ─────────────────────────────
+// Old screens read these names. Values are derived from the token table above.
+export interface AccentPalette {
+  50: string; 100: string; 200: string; 300: string; 400: string;
+  500: string; 600: string; 700: string; 800: string; 900: string;
+}
+
+/** Orange scale kept for legacy `colors.palette` consumers. */
+const ORANGE_PALETTE: AccentPalette = {
+  50: '#FFF7ED', 100: '#FFEDD5', 200: '#FED7AA', 300: '#FDBA74',
+  400: '#FB923C', 500: '#F97316', 600: '#EA580C', 700: '#C2410C',
+  800: '#9A3412', 900: '#7C2D12',
+};
+
 export interface ThemeColors {
-  // Backgrounds
   background: string;
   surface: string;
   surfaceSecondary: string;
   surfaceTertiary: string;
-  // Text
   text: string;
   textSecondary: string;
   textTertiary: string;
   textMuted: string;
   textInverse: string;
-  // Borders
   border: string;
   borderSecondary: string;
-  // Icon
   icon: string;
   iconSecondary: string;
-  // Accent (from palette)
   accent: string;
   accentLight: string;
   accentDark: string;
   accentBg: string;
   accentSurface: string;
-  // The full palette for fine control
   palette: AccentPalette;
-  // Tab bar
   tabBarFill: string;
   tabBarInactive: string;
-  // Status bar
   statusBarStyle: 'light' | 'dark';
-  // Misc
   isDark: boolean;
   skeleton: string;
   overlay: string;
   refreshTint: string;
   gradientBg: [string, string, string];
+  /** Full new-system token set as hex, keyed by token name. */
+  tokens: Record<TokenName, string>;
 }
 
-const buildColors = (
-  theme: 'light' | 'dark',
-  accent: AccentColor
-): ThemeColors => {
-  const p = ACCENT_PALETTES[accent];
-  const isDark = theme === 'dark';
-
+export const buildColors = (mode: ThemeMode): ThemeColors => {
+  const t = TOKEN_HEX[mode];
+  const isDark = mode === 'dark';
   return {
-    background: isDark ? '#0A0A0A' : '#FAFAF9',
-    surface: isDark ? '#1C1917' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#292524' : '#F5F5F4',
-    surfaceTertiary: isDark ? '#44403C' : '#E7E5E4',
-    text: isDark ? '#FAFAF9' : '#1C1917',
-    textSecondary: isDark ? '#A8A29E' : '#57534E',
-    textTertiary: isDark ? '#78716C' : '#A8A29E',
-    textMuted: isDark ? '#78716C' : '#A8A29E',
-    textInverse: isDark ? '#1C1917' : '#FAFAF9',
-    border: isDark ? '#44403C' : '#E7E5E4',
-    borderSecondary: isDark ? '#292524' : '#F5F5F4',
-    icon: isDark ? '#D6D3D1' : '#404040',
-    iconSecondary: isDark ? '#78716C' : '#A8A29E',
-    accent: p[500],
-    accentLight: isDark ? p[400] : p[500],
-    accentDark: p[700],
-    accentBg: isDark ? p[900] + '30' : p[50],
-    accentSurface: isDark ? p[800] + '50' : p[100],
-    palette: p,
-    tabBarFill: isDark ? '#1C1917' : '#FFFFFF',
-    tabBarInactive: isDark ? '#78716C' : '#A8A29E',
+    background: t.ground,
+    surface: isDark ? t.surface : t.ground,
+    surfaceSecondary: t.surface,
+    surfaceTertiary: t['surface-3'],
+    text: t.ink,
+    textSecondary: t.muted,
+    textTertiary: t.subtle,
+    textMuted: t.subtle,
+    textInverse: t['ink-inverse'],
+    border: t.divider,
+    borderSecondary: t.divider,
+    icon: t.ink,
+    iconSecondary: t.subtle,
+    accent: t.accent,
+    accentLight: t.accent,
+    accentDark: ORANGE_PALETTE[700],
+    accentBg: t['tag-o-bg'],
+    accentSurface: t['tag-o-bg'],
+    palette: ORANGE_PALETTE,
+    tabBarFill: FIXED.night,
+    tabBarInactive: t.subtle,
     statusBarStyle: isDark ? 'light' : 'dark',
     isDark,
-    skeleton: isDark ? '#292524' : '#E7E5E4',
-    overlay: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.5)',
-    refreshTint: p[500],
-    gradientBg: isDark
-      ? ['#0A0A0A', '#1C1917', '#0A0A0A']
-      : ['#FFF7ED', '#FEF3C7', '#ECFCCB'],
+    skeleton: isDark ? t.track : FIXED.skeletonLight,
+    overlay: FIXED.scrim,
+    refreshTint: t.accent,
+    gradientBg: [t.ground, t.ground, t.ground],
+    tokens: t,
   };
 };
 
 // ── Store ────────────────────────────────────────────────────────────
 interface ThemeStore {
   settings: AppearanceSettings;
-  effectiveTheme: 'light' | 'dark';
+  effectiveTheme: ThemeMode;
   colors: ThemeColors;
   isLoaded: boolean;
 
@@ -155,12 +209,11 @@ interface ThemeStore {
     key: K,
     value: AppearanceSettings[K]
   ) => Promise<void>;
+  /** Re-resolve the effective theme (used when the OS scheme changes under 'system'). */
+  syncSystemTheme: () => void;
 }
 
-const getEffective = (
-  theme: ThemeOption,
-  system: ColorSchemeName
-): 'light' | 'dark' => {
+const getEffective = (theme: ThemeOption, system: ColorSchemeName): ThemeMode => {
   if (theme === 'system') return system === 'dark' ? 'dark' : 'light';
   return theme;
 };
@@ -171,19 +224,19 @@ export const useThemeStore = create<ThemeStore>((set, get) => {
   return {
     settings: defaultSettings,
     effectiveTheme: initialEffective,
-    colors: buildColors(initialEffective, defaultSettings.accentColor),
+    colors: buildColors(initialEffective),
     isLoaded: false,
 
     loadSettings: async () => {
       try {
         const stored = await AsyncStorage.getItem(APPEARANCE_KEY);
         if (stored) {
-          const parsed: AppearanceSettings = JSON.parse(stored);
+          const parsed: AppearanceSettings = { ...defaultSettings, ...JSON.parse(stored) };
           const effective = getEffective(parsed.theme, Appearance.getColorScheme());
           set({
             settings: parsed,
             effectiveTheme: effective,
-            colors: buildColors(effective, parsed.accentColor),
+            colors: buildColors(effective),
             isLoaded: true,
           });
         } else {
@@ -200,19 +253,21 @@ export const useThemeStore = create<ThemeStore>((set, get) => {
       try {
         await AsyncStorage.setItem(APPEARANCE_KEY, JSON.stringify(newSettings));
       } catch {}
-      const effective = getEffective(
-        newSettings.theme,
-        Appearance.getColorScheme()
-      );
+      const effective = getEffective(newSettings.theme, Appearance.getColorScheme());
       set({
         settings: newSettings,
         effectiveTheme: effective,
-        colors: buildColors(effective, newSettings.accentColor),
+        colors: buildColors(effective),
       });
+    },
+
+    syncSystemTheme: () => {
+      const { settings } = get();
+      const effective = getEffective(settings.theme, Appearance.getColorScheme());
+      set({ effectiveTheme: effective, colors: buildColors(effective) });
     },
   };
 });
 
 /** Convenience hook – returns just the computed color tokens. */
 export const useThemeColors = () => useThemeStore((s) => s.colors);
-

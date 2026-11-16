@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useSubscription, useRemainingUsage } from '@/hooks/useSubscription';
 import { PremiumBadge } from './PremiumBadge';
-import { useThemeColors } from '@/stores/themeStore';
 import { UsageIndicator } from './UsageIndicator';
+import { Muted, SectionLabel, UButton, UCard, Display } from '@/components/ui';
 
 interface SubscriptionCardProps {
   onUpgradePress?: () => void;
@@ -12,14 +12,14 @@ interface SubscriptionCardProps {
   showUsage?: boolean;
 }
 
+/** Black plan card (.card.k): plan name, status, usage bars and the upgrade / manage action. */
 export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   onUpgradePress,
   onManagePress,
   showUsage = true,
 }) => {
-  const colors = useThemeColors();
-  const { subscriptionTier, isSubscribed, tierName, tierColor, openManagement } =
-    useSubscription();
+  const { t } = useTranslation();
+  const { subscriptionTier, isSubscribed, tierName, openManagement } = useSubscription();
   const { remainingAI, remainingPortion } = useRemainingUsage();
 
   const handleManagePress = () => {
@@ -31,101 +31,32 @@ export const SubscriptionCard: React.FC<SubscriptionCardProps> = ({
   };
 
   return (
-    <View className="bg-white dark:bg-neutral-800 rounded-2xl p-4 shadow-sm border border-neutral-100 dark:border-neutral-700">
-      {/* Header */}
-      <View className="flex-row items-center justify-between mb-4">
-        <View className="flex-row items-center">
-          <View
-            className={`w-12 h-12 rounded-full items-center justify-center ${
-              subscriptionTier === 'pro'
-                ? 'bg-purple-100'
-                : subscriptionTier === 'premium'
-                ? 'bg-primary-100'
-                : 'bg-neutral-100 dark:bg-neutral-700'
-            }`}
-          >
-            <Ionicons
-              name={
-                subscriptionTier === 'pro'
-                  ? 'diamond'
-                  : subscriptionTier === 'premium'
-                  ? 'star'
-                  : 'person'
-              }
-              size={24}
-              color={tierColor}
-            />
-          </View>
-          <View className="ml-3">
-            <View className="flex-row items-center">
-              <Text className="text-lg font-bold text-neutral-900 dark:text-neutral-50">{tierName}</Text>
-              {isSubscribed && (
-                <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} />
-              )}
-            </View>
-            <Text className="text-sm text-neutral-500 dark:text-neutral-400">
-              {isSubscribed ? 'Active subscription' : 'Free plan'}
-            </Text>
-          </View>
+    <UCard tone="black" style={{ gap: 14, borderRadius: 30, padding: 20 }}>
+      <View style={{ gap: 8 }}>
+        <SectionLabel>{t('account.sub.currentPlan', 'Current plan')}</SectionLabel>
+        <View className="flex-row items-center" style={{ gap: 10 }}>
+          <Display size={28}>{tierName}</Display>
+          {isSubscribed ? <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} /> : null}
         </View>
-
-        {isSubscribed ? (
-          <TouchableOpacity
-            onPress={handleManagePress}
-            className="px-3 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-700"
-          >
-            <Text className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Manage</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            onPress={onUpgradePress}
-            className="px-3 py-2 rounded-lg"
-            style={{ backgroundColor: colors.accent }}
-          >
-            <Text className="text-sm font-medium text-white">Upgrade</Text>
-          </TouchableOpacity>
-        )}
+        <Muted small>
+          {isSubscribed
+            ? t('account.sub.active', 'Active subscription')
+            : t('account.sub.freeStatus', 'Free plan')}
+        </Muted>
       </View>
 
-      {/* Usage Section */}
-      {showUsage && (
-        <View className="pt-4 border-t border-neutral-100 dark:border-neutral-700">
-          <Text className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-3">
-            Daily Usage
-          </Text>
-          <View className="space-y-3">
-            <UsageIndicator
-              label="AI Substitutions"
-              remaining={remainingAI}
-              icon="sparkles"
-            />
-            <UsageIndicator
-              label="Portion Analysis"
-              remaining={remainingPortion}
-              icon="camera"
-            />
-          </View>
+      {showUsage ? (
+        <View style={{ gap: 14 }}>
+          <UsageIndicator label={t('account.sub.aiSubs', 'AI Substitutions')} remaining={remainingAI} />
+          <UsageIndicator label={t('account.sub.portion', 'Portion Analysis')} remaining={remainingPortion} />
         </View>
-      )}
+      ) : null}
 
-      {/* Upgrade prompt for free users */}
-      {!isSubscribed && (
-        <TouchableOpacity
-          onPress={onUpgradePress}
-          className="mt-4 p-3 bg-gradient-to-r from-primary-50 to-purple-50 rounded-xl flex-row items-center"
-        >
-          <Ionicons name="rocket" size={20} color={colors.accent} />
-          <View className="flex-1 ml-3">
-            <Text className="text-sm font-medium text-neutral-900 dark:text-neutral-50">
-              Unlock all features
-            </Text>
-            <Text className="text-xs text-neutral-500 dark:text-neutral-400">
-              Get unlimited AI substitutions and more
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
-        </TouchableOpacity>
+      {isSubscribed ? (
+        <UButton variant="ghost" label={t('account.sub.manage', 'Manage')} onPress={handleManagePress} />
+      ) : (
+        <UButton variant="accent" label={t('account.sub.upgrade', 'Upgrade')} onPress={onUpgradePress} />
       )}
-    </View>
+    </UCard>
   );
 };

@@ -1,0 +1,653 @@
+
+X:\GitHub\SousChef\app\(tabs)\_layout.tsx
+  108:11  warning  'user' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\(tabs)\browse.tsx
+  61:33  warning  'query' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  65:9   warning  'isLoading' is assigned a value but never used                                                              @typescript-eslint/no-unused-vars
+  67:27  warning  React Hook useCallback received a function whose dependencies are unknown. Pass an inline function instead  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\(tabs)\index.tsx
+   25:3   warning  'withSpring' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+   38:10  warning  'Recipe' is defined but never used                                                                                                                        @typescript-eslint/no-unused-vars
+   39:10  warning  'RecipeCard' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+   41:10  warning  'Loading' is defined but never used                                                                                                                       @typescript-eslint/no-unused-vars
+   41:19  warning  'Card' is defined but never used                                                                                                                          @typescript-eslint/no-unused-vars
+   54:20  warning  'isLoading' is assigned a value but never used                                                                                                            @typescript-eslint/no-unused-vars
+   85:6   warning  React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array                                                 react-hooks/exhaustive-deps
+  102:6   warning  React Hook useEffect has a missing dependency: 'consumeSharedURL'. Either include it or remove the dependency array                                       react-hooks/exhaustive-deps
+  105:9   warning  'importButtonScale' is assigned a value but never used                                                                                                    @typescript-eslint/no-unused-vars
+  131:6   warning  React Hook useEffect has missing dependencies: 'fetchRecipes', 'fetchWantToCookItems', and 'isGuest'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  138:6   warning  React Hook useEffect has a missing dependency: 'updatePantryMatches'. Either include it or remove the dependency array                                    react-hooks/exhaustive-deps
+  149:6   warning  React Hook useEffect has a missing dependency: 'pulseAnim'. Either include it or remove the dependency array                                              react-hooks/exhaustive-deps
+  207:6   warning  React Hook useCallback has a missing dependency: 'addToShoppingList'. Either include it or remove the dependency array                                    react-hooks/exhaustive-deps
+  732:27  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                           react/no-unescaped-entities
+  732:52  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                           react/no-unescaped-entities
+  755:25  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                           react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\(tabs)\mealplan.tsx
+   25:27  warning  'useCallback' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+   36:19  warning  'Empty' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   37:19  warning  'FeatureGate' is defined but never used                                                                                                @typescript-eslint/no-unused-vars
+   79:5   warning  'setSelectedWeek' is assigned a value but never used                                                                                   @typescript-eslint/no-unused-vars
+   86:11  warning  'isPremium' is assigned a value but never used                                                                                         @typescript-eslint/no-unused-vars
+   86:22  warning  'isPro' is assigned a value but never used                                                                                             @typescript-eslint/no-unused-vars
+  149:6   warning  React Hook useEffect has missing dependencies: 'generate' and 'updatePreferences'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\(tabs)\more.tsx
+  47:9  warning  'adFree' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\(tabs)\pantry.tsx
+  19:10  warning  'Button' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  34:11  warning  'query' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  47:6   warning  React Hook useEffect has a missing dependency: 'refresh'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\(tabs)\profile.tsx
+    6:8   warning  'AsyncStorage' is defined but never used             @typescript-eslint/no-unused-vars
+   11:18  warning  'Card' is defined but never used                     @typescript-eslint/no-unused-vars
+   32:42  warning  'recipesLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   79:30  warning  'error' is defined but never used                    @typescript-eslint/no-unused-vars
+  484:7   warning  'MenuItem' is assigned a value but never used        @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\(tabs)\scan.tsx
+  17:19  warning  'UsageBadge' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\(tabs)\shopping.tsx
+    1:17  warning  'useState' is defined but never used                             @typescript-eslint/no-unused-vars
+    1:27  warning  'useCallback' is defined but never used                          @typescript-eslint/no-unused-vars
+   13:10  warning  'LinearGradient' is defined but never used                       @typescript-eslint/no-unused-vars
+   25:11  warning  'addItem' is assigned a value but never used                     @typescript-eslint/no-unused-vars
+  113:41  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  113:62  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\(tabs)\upload.tsx
+    9:3   warning  'Alert' is defined but never used                            @typescript-eslint/no-unused-vars
+   23:25  warning  'Card' is defined but never used                             @typescript-eslint/no-unused-vars
+  176:14  warning  'error' is defined but never used                            @typescript-eslint/no-unused-vars
+  521:12  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\app\_layout.tsx
+    2:17  warning  'useRouter' is defined but never used                                                                                                                @typescript-eslint/no-unused-vars
+    4:35  warning  'Platform' is defined but never used                                                                                                                 @typescript-eslint/no-unused-vars
+   13:10  warning  'useThemeStore' is defined but never used                                                                                                            @typescript-eslint/no-unused-vars
+   56:6   warning  React Hook useEffect has missing dependencies: 'fetchUserData', 'setInitialized', and 'setUser'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  127:6   warning  React Hook useEffect has a missing dependency: 'setSharedURL'. Either include it or remove the dependency array                                      react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\admin\add-recipe.tsx
+   84:7   error    React Hook "useForm" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?        react-hooks/rules-of-hooks
+  102:92  error    React Hook "useFieldArray" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+  172:14  warning  'error' is defined but never used                                                                                                                                                                @typescript-eslint/no-unused-vars
+  208:55  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\admin\manage-ads.tsx
+  21:18  warning  'Card' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  39:9   warning  'router' is assigned a value but never used                                                                  @typescript-eslint/no-unused-vars
+  73:6   warning  React Hook useEffect has a missing dependency: 'fetchAds'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\admin\seed.tsx
+   2:41   warning  'ActivityIndicator' is defined but never used                 @typescript-eslint/no-unused-vars
+   9:52   warning  'SeedUser' is defined but never used                          @typescript-eslint/no-unused-vars
+  10:45   warning  'addDoc' is defined but never used                            @typescript-eslint/no-unused-vars
+  10:117  warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times  import/no-duplicates
+  11:29   warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times  import/no-duplicates
+  16:9    warning  'router' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+  17:11   warning  'createRecipe' is assigned a value but never used             @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\auth\login.tsx
+   10:3   warning  'Alert' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   59:6   warning  React Hook useEffect has a missing dependency: 'handleGoogleSignIn'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   71:14  warning  'err' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+   88:14  warning  'err' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+  104:14  warning  'err' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+  126:14  warning  'err' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+  270:75  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                        react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\auth\register.tsx
+  59:14  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\cook\[id].tsx
+   12:10  warning  'SafeAreaView' is defined but never used                                                                                                              @typescript-eslint/no-unused-vars
+   23:10  warning  'VoiceButton' is defined but never used                                                                                                               @typescript-eslint/no-unused-vars
+   54:17  warning  'clearVoiceError' is assigned a value but never used                                                                                                  @typescript-eslint/no-unused-vars
+   57:5   warning  'toggleWakeWordMode' is assigned a value but never used                                                                                               @typescript-eslint/no-unused-vars
+  113:6   warning  React Hook useEffect has a missing dependency: 'geminiLive'. Either include it or remove the dependency array                                         react-hooks/exhaustive-deps
+  120:6   warning  React Hook useEffect has a missing dependency: 'fetchTips'. Either include it or remove the dependency array                                          react-hooks/exhaustive-deps
+  130:6   warning  React Hook useEffect has missing dependencies: 'disableWakeWordMode' and 'geminiLive'. Either include them or remove the dependency array             react-hooks/exhaustive-deps
+  171:6   warning  React Hook useEffect has missing dependencies: 'currentStep', 'recipe', 'speakText', and 'stage'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  393:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                       react/no-unescaped-entities
+  393:46  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                       react/no-unescaped-entities
+  650:18  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                       react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\cookbook-library.tsx
+   13:3   warning  'StyleSheet' is defined but never used                           @typescript-eslint/no-unused-vars
+   19:32  warning  'FadeIn' is defined but never used                               @typescript-eslint/no-unused-vars
+   24:10  warning  'showSuccessToast' is defined but never used                     @typescript-eslint/no-unused-vars
+   24:59  warning  'showWarningToast' is defined but never used                     @typescript-eslint/no-unused-vars
+  125:9   warning  'handleRetryFetch' is assigned a value but never used            @typescript-eslint/no-unused-vars
+  359:23  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  471:40  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  471:96  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\cookbook\[id].tsx
+   9:3  warning  'FlatList' is defined but never used    @typescript-eslint/no-unused-vars
+  10:3  warning  'StyleSheet' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\imported-recipe\[id].tsx
+  23:28  warning  'showErrorToast' is defined but never used  @typescript-eslint/no-unused-vars
+  28:11  warning  'user' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\mealplan\shopping.tsx
+   21:10  warning  'Loading' is defined but never used                              @typescript-eslint/no-unused-vars
+   21:19  warning  'Empty' is defined but never used                                @typescript-eslint/no-unused-vars
+   26:10  warning  'showSuccessToast' is defined but never used                     @typescript-eslint/no-unused-vars
+   56:5   warning  'getCategorizedItems' is assigned a value but never used         @typescript-eslint/no-unused-vars
+  326:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  326:61  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  429:38  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\mealplan\waste.tsx
+   10:3   warning  'FlatList' is defined but never used                             @typescript-eslint/no-unused-vars
+   21:33  warning  'Empty' is defined but never used                                @typescript-eslint/no-unused-vars
+   29:10  warning  'showSuccessToast' is defined but never used                     @typescript-eslint/no-unused-vars
+   39:5   warning  'weeklyWaste' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+   40:5   warning  'monthlyWaste' is assigned a value but never used                @typescript-eslint/no-unused-vars
+   41:5   warning  'savedByPlanning' is assigned a value but never used             @typescript-eslint/no-unused-vars
+   46:11  warning  'isPremium' is assigned a value but never used                   @typescript-eslint/no-unused-vars
+   46:22  warning  'isPro' is assigned a value but never used                       @typescript-eslint/no-unused-vars
+   94:14  warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  138:65  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  235:29  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  235:49  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\onboarding.tsx
+   10:3   warning  'ViewStyle' is defined but never used                                                                                                                   @typescript-eslint/no-unused-vars
+   11:3   warning  'Platform' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+   26:3   warning  'withSpring' is defined but never used                                                                                                                  @typescript-eslint/no-unused-vars
+   30:3   warning  'withDelay' is defined but never used                                                                                                                   @typescript-eslint/no-unused-vars
+  166:6   warning  React Hook React.useEffect has missing dependencies: 'blob1Pos', 'blob2Pos', 'rotate', and 'scale'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  306:14  warning  'e' is defined but never used                                                                                                                           @typescript-eslint/no-unused-vars
+  315:14  warning  'e' is defined but never used                                                                                                                           @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\recipe\[id].tsx
+  38:10  warning  'formatTime' is defined but never used                       @typescript-eslint/no-unused-vars
+  44:37  warning  'refetch' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+  46:11  warning  'itemNames' is assigned a value but never used               @typescript-eslint/no-unused-vars
+  51:5   warning  'analyzeWithIngredients' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  57:10  warning  'servings' is assigned a value but never used                @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\settings\advertise.tsx
+    8:3   warning  'Alert' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   19:10  warning  'showSuccessToast' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+   74:14  warning  'error' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   79:6   warning  React Hook useCallback has a missing dependency: 'validate'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   93:68  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                react/no-unescaped-entities
+  140:65  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                react/no-unescaped-entities
+  274:15  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\settings\analytics.tsx
+  18:16  warning  'SCREEN_WIDTH' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  41:6   warning  React Hook useEffect has a missing dependency: 'calculateAnalytics'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\settings\dietary.tsx
+    7:3   warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+  110:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\settings\edit-profile.tsx
+   7:3   warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+  46:16  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  67:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\settings\help.tsx
+  9:3  warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\settings\notifications.tsx
+  28:10  warning  'showSuccessToast' is defined but never used    @typescript-eslint/no-unused-vars
+  28:28  warning  'showErrorToast' is defined but never used      @typescript-eslint/no-unused-vars
+  35:10  warning  'isLoading' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\settings\terms.tsx
+  67:42  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  68:39  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\settings\voice.tsx
+   77:25   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+   77:34   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  117:96   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  117:106  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\settings\weight-loss.tsx
+  102:14  warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  126:59  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\share.tsx
+  29:6  warning  React Hook useEffect has missing dependencies: 'params.url', 'router', and 'setSharedURL'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\shelf-cookbook\[id].tsx
+  366:26  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\shelf-recipe\[id].tsx
+   15:40  warning  'FadeInUp' is defined but never used                                                                                              @typescript-eslint/no-unused-vars
+   43:6   warning  React Hook useEffect has missing dependencies: 'loadFullRecipe' and 'recipe'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  257:21  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                   react/no-unescaped-entities
+  459:27  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                   react/no-unescaped-entities
+  541:24  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                   react/no-unescaped-entities
+  541:41  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                   react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\shopping-list.tsx
+  2:40  warning  'Alert' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\app\subscription.tsx
+    1:27  warning  'useEffect' is defined but never used                            @typescript-eslint/no-unused-vars
+    8:3   warning  'Alert' is defined but never used                                @typescript-eslint/no-unused-vars
+   22:3   warning  'SubscriptionCard' is defined but never used                     @typescript-eslint/no-unused-vars
+   37:5   warning  'features' is assigned a value but never used                    @typescript-eslint/no-unused-vars
+   46:42  warning  'aiUsageToday' is assigned a value but never used                @typescript-eslint/no-unused-vars
+   46:56  warning  'portionUsageToday' is assigned a value but never used           @typescript-eslint/no-unused-vars
+   58:27  warning  'setUseRevenueCatUI' is assigned a value but never used          @typescript-eslint/no-unused-vars
+   93:14  warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  228:18  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\app\user\[id].tsx
+  18:19  warning  'Card' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  18:25  warning  'Button' is defined but never used                                                                                     @typescript-eslint/no-unused-vars
+  52:6   warning  React Hook useCallback has a missing dependency: 'fetchUserRecipes'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\app\want-to-cook.tsx
+  70:6  warning  React Hook useCallback has a missing dependency: 'router'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\ThemeProvider.tsx
+  13:6   warning  React Hook useEffect has a missing dependency: 'loadSettings'. Either include it or remove the dependency array    react-hooks/exhaustive-deps
+  20:6   warning  React Hook useEffect has a missing dependency: 'setColorScheme'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  29:15  warning  'buildColors' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  29:31  warning  A `require()` style import is forbidden                                                                            @typescript-eslint/no-require-imports
+  34:35  warning  A `require()` style import is forbidden                                                                            @typescript-eslint/no-require-imports
+
+X:\GitHub\SousChef\components\import\CookbookScanner.tsx
+  17:10  warning  'BlurView' is defined but never used                                                                                                   @typescript-eslint/no-unused-vars
+  24:3   warning  'withSpring' is defined but never used                                                                                                 @typescript-eslint/no-unused-vars
+  29:3   warning  'FadeOut' is defined but never used                                                                                                    @typescript-eslint/no-unused-vars
+  35:16  warning  'SCREEN_WIDTH' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+  35:38  warning  'SCREEN_HEIGHT' is assigned a value but never used                                                                                     @typescript-eslint/no-unused-vars
+  81:6   warning  React Hook React.useEffect has missing dependencies: 'pulseScale' and 'scanLineY'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\import\ShoppingListView.tsx
+   14:10  warning  'LinearGradient' is defined but never used                       @typescript-eslint/no-unused-vars
+   21:3   warning  'FadeOut' is defined but never used                              @typescript-eslint/no-unused-vars
+  219:35  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  219:47  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  347:36  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+X:\GitHub\SousChef\components\import\URLImportModal.tsx
+  115:6  warning  React Hook useEffect has a missing dependency: 'opacity'. Either include it or remove the dependency array                                                                react-hooks/exhaustive-deps
+  161:6  warning  React Hook useEffect has missing dependencies: 'dot1', 'dot2', and 'dot3'. Either include them or remove the dependency array                                             react-hooks/exhaustive-deps
+  303:6  warning  React Hook useEffect has missing dependencies: 'backdropOpacity', 'modalScale', 'platformAnimations', and 'setError'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  320:6  warning  React Hook useEffect has a missing dependency: 'progressWidth'. Either include it or remove the dependency array                                                          react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\import\WantToCookCard.tsx
+   1:23  warning  'useCallback' is defined but never used                                                                                                                                                             @typescript-eslint/no-unused-vars
+  17:3   warning  'withTiming' is defined but never used                                                                                                                                                              @typescript-eslint/no-unused-vars
+  18:3   warning  'interpolate' is defined but never used                                                                                                                                                             @typescript-eslint/no-unused-vars
+  25:10  warning  'formatDistanceToNow' is defined but never used                                                                                                                                                     @typescript-eslint/no-unused-vars
+  27:16  warning  'SCREEN_WIDTH' is assigned a value but never used                                                                                                                                                   @typescript-eslint/no-unused-vars
+  76:25  error    React Hook "useAnimatedStyle" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks
+
+X:\GitHub\SousChef\components\mealplan\WasteStats.tsx
+  130:9   warning  'colors' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  142:22  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  170:9   warning  'colors' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+  241:9   warning  'themeColors' is assigned a value but never used                 @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\mealplan\WeekView.tsx
+  11:26  warning  'useCallback' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\pantry\AddPantryItem.tsx
+   9:3  warning  'Alert' is defined but never used              @typescript-eslint/no-unused-vars
+  45:5  warning  'setValue' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\pantry\EditPantryItem.tsx
+  16:10  warning  'showSuccessToast' is defined but never used  @typescript-eslint/no-unused-vars
+  50:26  warning  'isDirty' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  90:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\recipe\AllergenWarning.tsx
+  2:22  warning  'TouchableOpacity' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\recipe\IngredientList.tsx
+   58:9  warning  'colors' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  125:9  warning  'colors' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\recipe\InstructionList.tsx
+   58:9  warning  'colors' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  121:9  warning  'colors' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\recipe\MadeThisGallery.tsx
+   9:88  warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times                                                   import/no-duplicates
+  10:28  warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times                                                   import/no-duplicates
+  19:10  warning  'isLoading' is assigned a value but never used                                                                 @typescript-eslint/no-unused-vars
+  28:6   warning  React Hook useEffect has a missing dependency: 'fetchPosts'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\recipe\NutritionCard.tsx
+   20:9   warning  'colors' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  130:9   warning  'colors' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  164:9   warning  'colors' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  181:9   warning  'colors' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+  191:10  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+  199:9   warning  'colors' is assigned a value but never used                  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\recipe\RecipeCard.tsx
+  101:97  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  282:9   warning  'colors' is assigned a value but never used                      @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\recipe\RecipeComments.tsx
+   9:3   warning  'KeyboardAvoidingView' is defined but never used                                                                 @typescript-eslint/no-unused-vars
+  10:3   warning  'Platform' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  32:10  warning  'isLoading' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  37:6   warning  React Hook useEffect has a missing dependency: 'loadComments'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\recipe\RecipeFilters.tsx
+  345:19  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+  356:17  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+  370:21  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\components\subscription\FeatureComparison.tsx
+  10:10  warning  'BlurView' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\subscription\FeatureGate.tsx
+   4:27  warning  'usePremiumFeature' is defined but never used          @typescript-eslint/no-unused-vars
+  23:29  warning  'subscriptionTier' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\subscription\Paywall.tsx
+   12:3   warning  'Linking' is defined but never used                @typescript-eslint/no-unused-vars
+   14:10  warning  'useRouter' is defined but never used              @typescript-eslint/no-unused-vars
+   30:16  warning  'SCREEN_WIDTH' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  482:79  warning  A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+  488:79  warning  A `require()` style import is forbidden            @typescript-eslint/no-require-imports
+
+X:\GitHub\SousChef\components\subscription\RevenueCatPaywall.tsx
+  3:24  warning  'PAYWALL_RESULT' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\subscription\UsageIndicator.tsx
+  113:9  warning  'colors' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\ui\AdMobBanner.tsx
+  32:6  warning  React Hook useEffect has a missing dependency: 'fetchAdForPlacement'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  36:6  warning  React Hook useEffect has a missing dependency: 'trackImpression'. Either include it or remove the dependency array      react-hooks/exhaustive-deps
+  45:6  warning  React Hook useCallback has a missing dependency: 'trackClick'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\ui\Avatar.tsx
+  62:12  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\components\ui\RadialFAB.tsx
+   6:3   warning  'Modal' is defined but never used       @typescript-eslint/no-unused-vars
+  13:10  warning  'BlurView' is defined but never used    @typescript-eslint/no-unused-vars
+  18:3   warning  'withSpring' is defined but never used  @typescript-eslint/no-unused-vars
+  20:3   warning  'withDelay' is defined but never used   @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\ui\SponsoredAdCard.tsx
+  11:10  warning  'Ionicons' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+  42:6   warning  React Hook useEffect has a missing dependency: 'fetchAdForPlacement'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  49:6   warning  React Hook useEffect has a missing dependency: 'trackImpression'. Either include it or remove the dependency array      react-hooks/exhaustive-deps
+  64:6   warning  React Hook useCallback has a missing dependency: 'trackClick'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\ui\StreakWidget.tsx
+  3:10  warning  'useRouter' is defined but never used    @typescript-eslint/no-unused-vars
+  8:10  warning  'LEVEL_NAMES' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\components\ui\Toast.tsx
+  10:3   warning  'withSequence' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+  11:3   warning  'runOnJS' is defined but never used                                                                                            @typescript-eslint/no-unused-vars
+  16:16  warning  'SCREEN_WIDTH' is assigned a value but never used                                                                              @typescript-eslint/no-unused-vars
+  25:32  error    Component definition is missing display name                                                                                   react/display-name
+  26:42  warning  'hideToast' is assigned a value but never used                                                                                 @typescript-eslint/no-unused-vars
+  42:6   warning  React Hook useEffect has missing dependencies: 'opacity' and 'translateY'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\ui\WelcomeModal.tsx
+   6:3  warning  'TouchableOpacity' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  45:6  warning  React Hook useEffect has a missing dependency: 'checkIfShouldShow'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\voice\TimerDisplay.tsx
+  238:1  warning  Import in body of module; reorder to top  import/first
+
+X:\GitHub\SousChef\components\voice\VoiceButton.tsx
+  58:6  warning  React Hook useEffect has a missing dependency: 'pulseAnim'. Either include it or remove the dependency array   react-hooks/exhaustive-deps
+  73:6  warning  React Hook useEffect has a missing dependency: 'rotateAnim'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\components\voice\VoiceOverlay.tsx
+   14:49  warning  'VOICE_COMMAND_EXAMPLES' is defined but never used                                                           @typescript-eslint/no-unused-vars
+   34:9   warning  'width' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+   75:6   warning  React Hook useEffect has a missing dependency: 'waveAnim'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  169:17  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  169:30  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  208:84  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  208:91  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  248:77  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+  248:82  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                              react/no-unescaped-entities
+
+X:\GitHub\SousChef\constants\seeds.ts
+  2:30  warning  'NutritionInfo' is defined but never used             @typescript-eslint/no-unused-vars
+  5:7   warning  'createTimestamp' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\functions\index.js
+   54:16  warning  'downloadError' is defined but never used. Allowed unused caught errors must match /^_/u  no-unused-vars
+  124:18  warning  'strategyError' is defined but never used. Allowed unused caught errors must match /^_/u  no-unused-vars
+  167:18  warning  'error' is defined but never used. Allowed unused caught errors must match /^_/u          no-unused-vars
+  184:18  warning  'cleanupError' is defined but never used. Allowed unused caught errors must match /^_/u   no-unused-vars
+
+X:\GitHub\SousChef\hooks\useAuth.ts
+  42:6  warning  React Hook useEffect has missing dependencies: 'fetchUserData', 'setInitialized', and 'setUser'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  68:6  warning  React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array                                            react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\useCookbooks.ts
+    4:20  warning  'Recipe' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   14:5   warning  'unlikeCookbook' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+   24:6   warning  React Hook useEffect has a missing dependency: 'fetchCookbooks'. Either include it or remove the dependency array     react-hooks/exhaustive-deps
+   91:6   warning  React Hook useEffect has a missing dependency: 'fetchCookbookById'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  123:11  warning  'fetchCookbookRecipes' is assigned a value but never used                                                             @typescript-eslint/no-unused-vars
+  167:6   warning  React Hook useEffect has a missing dependency: 'fetchCookbooks'. Either include it or remove the dependency array     react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\useGeminiLive.ts
+  182:6  warning  React Hook useCallback has missing dependencies: 'callbacks' and 'language'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\useMealPlan.ts
+   68:6  warning  React Hook useEffect has missing dependencies: 'fetchCurrentPlan' and 'user'. Either include them or remove the dependency array                   react-hooks/exhaustive-deps
+   84:6  warning  React Hook useCallback has missing dependencies: 'generatePlan' and 'setError'. Either include them or remove the dependency array                 react-hooks/exhaustive-deps
+   90:6  warning  React Hook useCallback has a missing dependency: 'savePlan'. Either include it or remove the dependency array                                      react-hooks/exhaustive-deps
+   96:6  warning  React Hook useCallback has a missing dependency: 'clearPlan'. Either include it or remove the dependency array                                     react-hooks/exhaustive-deps
+  104:5  warning  React Hook useCallback has a missing dependency: 'fetchPlanByWeek'. Either include it or remove the dependency array                               react-hooks/exhaustive-deps
+  112:5  warning  React Hook useCallback has a missing dependency: 'addMealToPlan'. Either include it or remove the dependency array                                 react-hooks/exhaustive-deps
+  120:5  warning  React Hook useCallback has a missing dependency: 'removeMealFromPlan'. Either include it or remove the dependency array                            react-hooks/exhaustive-deps
+  128:5  warning  React Hook useCallback has a missing dependency: 'setPreferences'. Either include it or remove the dependency array                                react-hooks/exhaustive-deps
+  175:5  warning  React Hook useCallback has a missing dependency: 'toggleShoppingItem'. Either include it or remove the dependency array                            react-hooks/exhaustive-deps
+  182:6  warning  React Hook useCallback has a missing dependency: 'clearCheckedItems'. Either include it or remove the dependency array                             react-hooks/exhaustive-deps
+  245:6  warning  React Hook useEffect has missing dependencies: 'fetchWasteLog', 'fetchWasteStats', and 'user'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  253:5  warning  React Hook useCallback has a missing dependency: 'addWasteEntry'. Either include it or remove the dependency array                                 react-hooks/exhaustive-deps
+  262:5  warning  React Hook useCallback has a missing dependency: 'removeWasteEntry'. Either include it or remove the dependency array                              react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\usePantry.ts
+  30:6  warning  React Hook useEffect has a missing dependency: 'fetchPantryItems'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\useRecipes.ts
+   20:5  warning  'fetchUserRecipes' is assigned a value but never used                                                                                      @typescript-eslint/no-unused-vars
+   25:5  warning  'unlikeRecipe' is assigned a value but never used                                                                                          @typescript-eslint/no-unused-vars
+   45:6  warning  React Hook useEffect has missing dependencies: 'fetchRecipes' and 'rawRecipes.length'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  133:6  warning  React Hook useEffect has a missing dependency: 'fetchRecipeById'. Either include it or remove the dependency array                         react-hooks/exhaustive-deps
+  157:6  warning  React Hook useEffect has a missing dependency: 'fetchUserRecipes'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+  168:6  warning  React Hook useEffect has a missing dependency: 'applyFilters'. Either include it or remove the dependency array                            react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\useSubscription.ts
+    2:10  warning  'Alert' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    8:3   warning  'SubscriptionTier' is defined but never used                                                                                          @typescript-eslint/no-unused-vars
+    9:3   warning  'TIER_FEATURES' is defined but never used                                                                                             @typescript-eslint/no-unused-vars
+   52:5   warning  'logout' is assigned a value but never used                                                                                           @typescript-eslint/no-unused-vars
+   73:6   warning  React Hook useEffect has missing dependencies: 'initialize', 'login', and 'user'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  189:6   warning  React Hook useEffect has a missing dependency: 'checkAccess'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+  314:6   warning  React Hook useEffect has missing dependencies: 'login' and 'rcLogout'. Either include them or remove the dependency array             react-hooks/exhaustive-deps
+  335:6   warning  React Hook useEffect has a missing dependency: 'checkAccess'. Either include it or remove the dependency array                        react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\hooks\useVoice.ts
+   14:3   warning  'formatTimeForSpeech' is defined but never used                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   25:3   warning  'formatInstructionForSpeech' is defined but never used                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   32:10  warning  'VoiceParseResult' is defined but never used                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   32:28  warning  'CookingTimer' is defined but never used                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   34:10  warning  'TIER_FEATURES' is defined but never used                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+  143:6   warning  React Hook useEffect has missing dependencies: 'handleAppStateChange', 'setError', 'setLastCommand', 'setListening', 'setProcessing', 'setTranscript', and 'setWakeWordListening'. Either include them or remove the dependency array                                                                                                                                                                 react-hooks/exhaustive-deps
+  222:6   warning  React Hook useCallback has a missing dependency: 'setError'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  228:6   warning  React Hook useCallback has a missing dependency: 'setListening'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  251:5   warning  React Hook useCallback has a missing dependency: 'setSpeaking'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+  262:6   warning  React Hook useCallback has a missing dependency: 'setError'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+  300:5   warning  React Hook useCallback has missing dependencies: 'setError', 'setWakeWordListening', and 'setWakeWordMode'. Either include them or remove the dependency array                                                                                                                                                                                                                                        react-hooks/exhaustive-deps
+  309:6   warning  React Hook useCallback has missing dependencies: 'setWakeWordListening' and 'setWakeWordMode'. Either include them or remove the dependency array                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
+  466:20  warning  The ref value 'intervalRefs.current' will likely have changed by the time this effect cleanup function runs. If this ref points to a node rendered by React, copy 'intervalRefs.current' to a variable inside the effect, and use that variable in the cleanup function                                                                                                                               react-hooks/exhaustive-deps
+  477:6   warning  React Hook useEffect has missing dependencies: 'startTimerInterval' and 'timers'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                  react-hooks/exhaustive-deps
+  586:6   warning  React Hook useEffect has missing dependencies: 'createTimer', 'currentStep', 'handledCommandId', 'ingredients', 'isWakeWordMode', 'onNextStep', 'onPrevStep', 'onSubstitute', 'recordUsage', 'speakText', and 'totalSteps'. Either include them or remove the dependency array. If 'onNextStep' changes too often, find the parent component that defines it and wrap that definition in useCallback  react-hooks/exhaustive-deps
+
+X:\GitHub\SousChef\lib\firebase.ts
+  17:8   warning  'X:\GitHub\SousChef\node_modules\firebase\auth\dist\esm\index.esm.js' imported multiple times  import/no-duplicates
+  19:43  warning  'X:\GitHub\SousChef\node_modules\firebase\auth\dist\esm\index.esm.js' imported multiple times  import/no-duplicates
+
+X:\GitHub\SousChef\lib\gemini.ts
+    7:3   warning  'SubstitutionSuggestion' is defined but never used  @typescript-eslint/no-unused-vars
+  177:16  warning  'e' is defined but never used                       @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\lib\geminiLive.ts
+  361:13  warning  'uri' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\lib\i18n.ts
+  136:1  warning  Caution: `i18n` also has a named export `use`. Check if you meant to write `import {use} from 'i18next'` instead                        import/no-named-as-default-member
+  153:5  warning  Caution: `i18n` also has a named export `changeLanguage`. Check if you meant to write `import {changeLanguage} from 'i18next'` instead  import/no-named-as-default-member
+
+X:\GitHub\SousChef\lib\revenuecat.ts
+  6:3  warning  'PurchasesError' is defined but never used        @typescript-eslint/no-unused-vars
+  8:3  warning  'PURCHASES_ERROR_CODE' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\lib\shareExtension.ts
+  10:10  warning  'Platform' is defined but never used            @typescript-eslint/no-unused-vars
+  14:7   warning  'APP_GROUP' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\lib\voice.ts
+    2:20  warning  'Alert' is defined but never used         @typescript-eslint/no-unused-vars
+   50:19  warning  A `require()` style import is forbidden   @typescript-eslint/no-require-imports
+   56:10  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+   61:1   warning  Import in body of module; reorder to top  import/first
+  430:12  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\plugins\withShareExtension.js
+   15:5   warning  'withInfoPlist' is assigned a value but never used  no-unused-vars
+   16:5   warning  'IOSConfig' is assigned a value but never used      no-unused-vars
+  331:15  warning  'targetUuid' is assigned a value but never used     no-unused-vars
+
+X:\GitHub\SousChef\services\adService.ts
+   6:5  warning  'getDoc' is defined but never used   @typescript-eslint/no-unused-vars
+  12:5  warning  'orderBy' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\aiOrchestratorService.ts
+   15:21  warning  'visionModel' is defined but never used  @typescript-eslint/no-unused-vars
+   16:18  warning  'Ingredient' is defined but never used   @typescript-eslint/no-unused-vars
+  218:12  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\calorieService.ts
+    4:3   warning  'UNIT_CONVERSIONS' is defined but never used                 @typescript-eslint/no-unused-vars
+  239:10  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\services\mealPlanAIService.ts
+   11:30  warning  'Ingredient' is defined but never used  @typescript-eslint/no-unused-vars
+  222:12  warning  'error' is defined but never used       @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\mealPlanService.ts
+   19:3   warning  'ShoppingListItem' is defined but never used   @typescript-eslint/no-unused-vars
+   23:3   warning  'WasteReason' is defined but never used        @typescript-eslint/no-unused-vars
+   98:12  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  114:12  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  309:12  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  336:12  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  349:11  warning  'weekAgo' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  350:11  warning  'monthAgo' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  393:12  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\notificationService.ts
+    3:20  warning  'Alert' is defined but never used               @typescript-eslint/no-unused-vars
+  127:14  warning  'error' is defined but never used               @typescript-eslint/no-unused-vars
+  207:11  warning  'mealHours' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\platformExtractorService.ts
+  220:9  warning  'isReel' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\recipeImportService.ts
+   11:3   warning  'textModel' is defined but never used                        @typescript-eslint/no-unused-vars
+  107:18  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  146:16  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  186:16  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  201:16  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  216:16  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  231:16  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  244:16  warning  'e' is defined but never used                                @typescript-eslint/no-unused-vars
+  282:16  warning  'error' is defined but never used                            @typescript-eslint/no-unused-vars
+  308:16  warning  'error' is defined but never used                            @typescript-eslint/no-unused-vars
+  512:12  warning  'error' is defined but never used                            @typescript-eslint/no-unused-vars
+  562:12  warning  'error' is defined but never used                            @typescript-eslint/no-unused-vars
+  568:7   warning  'createMockRecipe' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  845:4   warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\services\recipeService.ts
+  16:8   warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times  import/no-duplicates
+  22:52  warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times  import/no-duplicates
+
+X:\GitHub\SousChef\services\voiceService.ts
+  2:10  warning  'useLanguageStore' is defined but never used     @typescript-eslint/no-unused-vars
+  3:10  warning  'SUPPORTED_LANGUAGES' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\services\youtubeDownloadService.ts
+  42:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\stores\cookbookStore.ts
+  12:3  warning  'Timestamp' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\stores\gamificationStore.ts
+  7:3  warning  'UserAchievement' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\stores\languageStore.ts
+  2:18  warning  'X:\GitHub\SousChef\lib\i18n.ts' imported multiple times  import/no-duplicates
+  3:58  warning  'X:\GitHub\SousChef\lib\i18n.ts' imported multiple times  import/no-duplicates
+
+X:\GitHub\SousChef\stores\mealPlanStore.ts
+   20:3   warning  'updateMeal' is defined but never used              @typescript-eslint/no-unused-vars
+   29:3   warning  'generateWeekDates' is defined but never used       @typescript-eslint/no-unused-vars
+   33:3   warning  'calculateShoppingList' is defined but never used   @typescript-eslint/no-unused-vars
+   34:3   warning  'calculateMealPlanStats' is defined but never used  @typescript-eslint/no-unused-vars
+  325:18  warning  'pantryError' is defined but never used             @typescript-eslint/no-unused-vars
+  329:14  warning  'error' is defined but never used                   @typescript-eslint/no-unused-vars
+  387:14  warning  'error' is defined but never used                   @typescript-eslint/no-unused-vars
+  399:14  warning  'error' is defined but never used                   @typescript-eslint/no-unused-vars
+  408:14  warning  'error' is defined but never used                   @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\stores\pantryStore.ts
+  185:35  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\stores\selectors\mealPlanSelectors.ts
+  16:28  warning  'ShoppingCategory' is defined but never used  @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\stores\subscriptionStore.ts
+   8:3  warning  'SubscriptionTier' is defined but never used  @typescript-eslint/no-unused-vars
+  21:3  warning  'getOfferings' is defined but never used      @typescript-eslint/no-unused-vars
+
+X:\GitHub\SousChef\stores\wantToCookStore.ts
+    9:3   warning  'getDoc' is defined but never used                            @typescript-eslint/no-unused-vars
+   15:3   warning  'where' is defined but never used                             @typescript-eslint/no-unused-vars
+   17:3   warning  'addDoc' is defined but never used                            @typescript-eslint/no-unused-vars
+   18:8   warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times  import/no-duplicates
+   23:3   warning  'QuickShoppingList' is defined but never used                 @typescript-eslint/no-unused-vars
+   25:3   warning  'PantryMatchResult' is defined but never used                 @typescript-eslint/no-unused-vars
+   33:3   warning  'generateShoppingList' is defined but never used              @typescript-eslint/no-unused-vars
+   36:28  warning  'X:\GitHub\SousChef\lib\firebase.ts' imported multiple times  import/no-duplicates
+  102:30  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead   @typescript-eslint/array-type
+
+X:\GitHub\SousChef\types\mealplan.ts
+  97:19  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+X:\GitHub\SousChef\types\wantToCook.ts
+  115:24  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+  122:23  warning  Array type using 'Array<T>' is forbidden. Use 'T[]' instead  @typescript-eslint/array-type
+
+✖ 427 problems (50 errors, 377 warnings)
+  0 errors and 20 warnings potentially fixable with the `--fix` option.
+

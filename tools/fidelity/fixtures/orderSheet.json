@@ -1,0 +1,34 @@
+{
+ "wait": 800,
+ "stores": {
+  "auth": {
+   "user": {
+    "id": "user1",
+    "email": "me@example.com",
+    "displayName": "[YOUR NAME]",
+    "role": "user",
+    "createdAt": {
+     "$daysFromNow": 0
+    },
+    "savedRecipes": [],
+    "dietaryPreferences": [],
+    "allergies": [],
+    "healthConditions": []
+   },
+   "isGuest": false
+  },
+  "message": {
+   "conversations": [
+    {
+     "id": "conv-order-rest",
+     "kind": "order",
+     "title": "Smash & Co.",
+     "participantIds": [],
+     "lastPreview": "Your order is on the way",
+     "lastAt": "2026-11-14T01:39:14.359Z",
+     "unread": 0
+    }
+   ]
+  }
+ }
+}

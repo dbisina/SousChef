@@ -1,0 +1,256 @@
+{
+ "wait": 800,
+ "stores": {
+  "cookbookLibrary": {
+   "cookbooks": [
+    {
+     "id": "fx-book",
+     "title": "Weeknight Italian",
+     "author": "Ama Cooks",
+     "coverImageURL": "/__assets/cookbook.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-13T23:59:15.745Z",
+     "recipesScanned": 32,
+     "recipes": [
+      {
+       "id": "fx-salmon",
+       "name": "Herb salmon with broccoli",
+       "pageNumber": 12,
+       "source": "fetched",
+       "description": "Herb salmon with broccoli",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Herb salmon with broccoli",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      },
+      {
+       "id": "fx-chicken",
+       "name": "Grilled chicken avocado salad",
+       "pageNumber": 40,
+       "source": "fetched",
+       "description": "Grilled chicken avocado salad",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Grilled chicken avocado salad",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      }
+     ],
+     "fetchStatus": "done"
+    },
+    {
+     "id": "fx-book2",
+     "title": "The Green Table",
+     "author": "Kemi",
+     "coverImageURL": "/__assets/greens.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-13T23:59:15.745Z",
+     "recipesScanned": 18,
+     "recipes": [
+      {
+       "id": "fx-salmon",
+       "name": "Herb salmon with broccoli",
+       "pageNumber": 12,
+       "source": "fetched",
+       "description": "Herb salmon with broccoli",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Herb salmon with broccoli",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      },
+      {
+       "id": "fx-chicken",
+       "name": "Grilled chicken avocado salad",
+       "pageNumber": 40,
+       "source": "fetched",
+       "description": "Grilled chicken avocado salad",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Grilled chicken avocado salad",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      }
+     ],
+     "fetchStatus": "done"
+    },
+    {
+     "id": "fx-book3",
+     "title": "Bakes & Brunch",
+     "author": "Dayo",
+     "coverImageURL": "/__assets/pancakes.jpg",
+     "description": "Cookbook",
+     "addedAt": "2026-11-13T23:59:15.745Z",
+     "recipesScanned": 0,
+     "recipes": [
+      {
+       "id": "fx-salmon",
+       "name": "Herb salmon with broccoli",
+       "pageNumber": 12,
+       "source": "fetched",
+       "description": "Herb salmon with broccoli",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Herb salmon with broccoli",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      },
+      {
+       "id": "fx-chicken",
+       "name": "Grilled chicken avocado salad",
+       "pageNumber": 40,
+       "source": "fetched",
+       "description": "Grilled chicken avocado salad",
+       "keyIngredients": [
+        "Salmon",
+        "Broccoli"
+       ],
+       "fullContent": {
+        "description": "Grilled chicken avocado salad",
+        "imageURL": "/__assets/salmon.jpg",
+        "prepTime": 10,
+        "cookTime": 15,
+        "servings": 2,
+        "difficulty": "easy",
+        "ingredients": [
+         {
+          "name": "Salmon",
+          "amount": "2",
+          "unit": "fillets"
+         },
+         {
+          "name": "Broccoli",
+          "amount": "1",
+          "unit": "head"
+         }
+        ],
+        "instructions": [
+         "Sear the salmon.",
+         "Roast the broccoli."
+        ]
+       }
+      }
+     ],
+     "fetchStatus": "fetching"
+    }
+   ],
+   "isLoading": false
+  }
+ }
+}

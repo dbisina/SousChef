@@ -49,3 +49,18 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# backend (server/)
+server/node_modules/
+server/dist/
+server/generated/
+server/native/target/
+server/native/*.node
+server/.env
+
+# design-review web build + fidelity harness output
+dist-web/
+tools/fidelity/out/
+tools/fidelity/node_modules/
+.redesign-assets/
+.fidelity-public-index.aside

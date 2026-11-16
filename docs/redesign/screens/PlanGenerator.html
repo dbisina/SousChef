@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Generate meal plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../tokens.css">
+<style>body{margin:0;background:#E9E9E9;display:flex;justify-content:center;padding:24px}.s{border-radius:44px;box-shadow:0 20px 50px rgba(0,0,0,.15)}</style>
+</head>
+<body><div class="s" style="width: 390px; height: 844px">
+<header class="top"><a class="ib" href="MealPlan.html" aria-label="Cancel"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a><h1 class="tt">New Meal Plan</h1><span style="width:46px"></span></header>
+<div class="body" style="gap:16px">
+<div class="row" style="gap:12px"><div class="row" style="gap:0"><img class="ci" src="../../../.redesign-assets/spinach.jpg" alt="" style="border:3px solid #fff"><img class="ci" src="../../../.redesign-assets/chicken.jpg" alt="" style="border:3px solid #fff;margin-left:-14px"><img class="ci" src="../../../.redesign-assets/eggs.jpg" alt="" style="border:3px solid #fff;margin-left:-14px"></div><span class="grow"><b class="t">3 items expiring</b><br><span class="mut sm">They’ll be used first</span></span></div>
+<div class="row sb"><span><b class="t">Servings per meal</b><br><span class="mut sm">How many are you cooking for?</span></span><span class="stp"><button aria-label="Fewer"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"></path></svg></button>2<button aria-label="More"><svg class="i sm" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button></span></div>
+<div class="col" style="gap:10px"><b class="t">Days to plan</b><div class="chips"><button class="chip">3 days</button><button class="chip">5 days</button><button class="chip on">7 days</button><button class="chip">14 days</button></div></div>
+<div class="col" style="gap:10px"><b class="t">Meals</b><div class="chips"><button class="chip sel">Breakfast</button><button class="chip sel">Lunch</button><button class="chip sel">Dinner</button><button class="chip">Snack</button></div></div>
+<div class="col" style="gap:10px"><div class="row sb"><b class="t">Dietary</b><a class="lnk" href="Dietary.html">Edit</a></div><div class="row" style="gap:6px"><span class="tag g lg">Gluten-Free</span><span class="tag r lg">No peanuts</span><span class="tag r lg">No shellfish</span></div></div>
+<div class="rows">
+<div><span class="grow"><b class="t">Prioritize expiring items</b></span><button class="sw on" role="switch" aria-checked="true" aria-label="Prioritize expiring items"></button></div>
+<div><span class="grow"><b class="t">Maximize ingredient overlap</b></span><button class="sw on" role="switch" aria-checked="true" aria-label="Maximize ingredient overlap"></button></div>
+<div><span class="grow"><b class="t">Budget-friendly</b></span><button class="sw" role="switch" aria-checked="false" aria-label="Budget-friendly"></button></div>
+</div>
+</div>
+<div class="cta"><a class="btn o" href="MealPlan.html">Generate Meal Plan</a></div>
+</div></body>
+</html>

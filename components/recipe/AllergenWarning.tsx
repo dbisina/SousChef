@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { Recipe, User } from '@/types';
+import { Icon, FONT } from '@/components/ui';
 
 interface AllergenWarningProps {
   recipe: Recipe;
@@ -63,6 +64,7 @@ const CONDITION_WARNINGS: Record<string, { ingredients: string[]; message: strin
 };
 
 export const AllergenWarning: React.FC<AllergenWarningProps> = ({ recipe, user }) => {
+  const { t } = useTranslation();
   if (!user) return null;
 
   const userAllergens = user.allergies || [];
@@ -90,35 +92,34 @@ export const AllergenWarning: React.FC<AllergenWarningProps> = ({ recipe, user }
   if (matchedAllergens.length === 0 && conditionWarnings.length === 0) return null;
 
   return (
-    <View className="mx-4 mt-3">
-      {/* Allergen warning */}
-      {matchedAllergens.length > 0 && (
-        <View className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 mb-2">
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="warning" size={18} color="#DC2626" />
-            <Text className="font-bold text-red-700 dark:text-red-400 ml-2 text-sm">
-              Allergen Alert
+    <View style={{ gap: 8 }}>
+      {matchedAllergens.length > 0 ? (
+        <View className="bg-tag-r" style={{ borderRadius: 24, padding: 14, gap: 4 }}>
+          <View className="flex-row items-center" style={{ gap: 8 }}>
+            <Icon name="warning" size="sm" color="tag-r-fg" />
+            <Text className="text-tag-r-fg" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+              {t('cooking.allergenAlert', 'Allergen Alert')}
             </Text>
           </View>
-          <Text className="text-red-600 dark:text-red-300 text-sm">
-            Contains: {matchedAllergens.map((a) => ALLERGEN_LABELS[a] || a).join(', ')}
+          <Text className="text-tag-r-fg" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+            {t('cooking.contains', 'Contains: {{list}}', {
+              list: matchedAllergens.map((a) => ALLERGEN_LABELS[a] || a).join(', '),
+            })}
           </Text>
         </View>
-      )}
+      ) : null}
 
-      {/* Health condition warnings */}
       {conditionWarnings.map((warn, index) => (
-        <View
-          key={index}
-          className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-3 mb-2"
-        >
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="medical" size={18} color="#D97706" />
-            <Text className="font-bold text-amber-700 dark:text-amber-400 ml-2 text-sm">
-              Health Notice
+        <View key={index} className="bg-tag-o" style={{ borderRadius: 24, padding: 14, gap: 4 }}>
+          <View className="flex-row items-center" style={{ gap: 8 }}>
+            <Icon name="info" size="sm" color="tag-o-fg" />
+            <Text className="text-tag-o-fg" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+              {t('cooking.healthNotice', 'Health Notice')}
             </Text>
           </View>
-          <Text className="text-amber-600 dark:text-amber-300 text-sm">{warn.message}</Text>
+          <Text className="text-tag-o-fg" style={{ fontFamily: FONT.sans, fontSize: 13 }}>
+            {warn.message}
+          </Text>
         </View>
       ))}
     </View>

@@ -9,3 +9,5 @@ export {
 export { NutritionCard, MiniNutrition, CalorieSummary } from './NutritionCard';
 export { RecipeFilters } from './RecipeFilters';
 export { YouTubePlayer, isValidYouTubeUrl, youtubeUrlPattern } from './YouTubePlayer';
+export { ActionBar } from './ActionBar';
+export { DetailHero } from './DetailHero';
