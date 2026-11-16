@@ -8,6 +8,7 @@ export interface PurgeCounts {
   webhookEvents: number;
   importCache: number;
   aiUsage: number;
+  aiInsights: number;
 }
 
 /** Clears out old rows nobody needs, so tables stay small and the database stays cheap. */
@@ -19,7 +20,7 @@ export class Maintenance {
 
   async purge(): Promise<PurgeCounts> {
     const ago = (days: number) => new Date(this.now().getTime() - days * DAY_MS);
-    const [sessions, passwordResets, webhookEvents, importCache, aiUsage] = await Promise.all([
+    const [sessions, passwordResets, webhookEvents, importCache, aiUsage, aiInsights] = await Promise.all([
       // Expired a week ago, or ended (signed out, rotated or revoked) a month ago. Newer ones are kept for reuse detection.
       this.db.session.deleteMany({ where: { OR: [{ expiresAt: { lt: ago(7) } }, { revokedAt: { lt: ago(30) } }, { rotatedAt: { lt: ago(30) } }] } }),
       this.db.passwordReset.deleteMany({ where: { OR: [{ expiresAt: { lt: ago(1) } }, { usedAt: { lt: ago(7) } }] } }),
@@ -29,7 +30,9 @@ export class Maintenance {
       this.db.importCache.deleteMany({ where: { lastUsedAt: { lt: ago(90) } } }),
       // Spending history is kept for 13 months for the budget and for comparing with last year.
       this.db.aiUsage.deleteMany({ where: { createdAt: { lt: ago(400) } } }),
+      // Cached answers are only useful for days.
+      this.db.aiInsight.deleteMany({ where: { createdAt: { lt: ago(45) } } }),
     ]);
-    return { sessions: sessions.count, passwordResets: passwordResets.count, webhookEvents: webhookEvents.count, importCache: importCache.count, aiUsage: aiUsage.count };
+    return { sessions: sessions.count, passwordResets: passwordResets.count, webhookEvents: webhookEvents.count, importCache: importCache.count, aiUsage: aiUsage.count, aiInsights: aiInsights.count };
   }
 }

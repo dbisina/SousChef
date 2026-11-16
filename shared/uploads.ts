@@ -1,7 +1,7 @@
 // Files people upload (photos, voice notes). The phone sends them straight to the file store with a short-lived link
 // from the server; the server never handles the bytes.
 
-export const UPLOAD_PURPOSES = ['recipe_image', 'made_post', 'avatar', 'story', 'chat_image', 'voice', 'post_video', 'import_frame'] as const;
+export const UPLOAD_PURPOSES = ['recipe_image', 'made_post', 'avatar', 'banner', 'story', 'chat_image', 'voice', 'post_video', 'import_frame'] as const;
 export type UploadPurpose = (typeof UPLOAD_PURPOSES)[number];
 
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const;
@@ -13,6 +13,7 @@ export const UPLOAD_RULES: Record<UploadPurpose, { maxBytes: number; contentType
   recipe_image: { maxBytes: 5 * 1024 * 1024, contentTypes: IMAGE_TYPES },
   made_post: { maxBytes: 5 * 1024 * 1024, contentTypes: IMAGE_TYPES },
   avatar: { maxBytes: 2 * 1024 * 1024, contentTypes: IMAGE_TYPES },
+  banner: { maxBytes: 4 * 1024 * 1024, contentTypes: IMAGE_TYPES },
   story: { maxBytes: 5 * 1024 * 1024, contentTypes: IMAGE_TYPES },
   chat_image: { maxBytes: 5 * 1024 * 1024, contentTypes: IMAGE_TYPES },
   // About 180 KB a minute, so a few minutes fit comfortably.

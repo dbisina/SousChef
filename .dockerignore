@@ -2,7 +2,10 @@
 *
 !server
 !shared
+!admin
 
+admin/node_modules
+admin/dist
 server/node_modules
 server/dist
 server/generated

@@ -103,7 +103,7 @@ describe('the job runner', () => {
 
 describe('the real jobs', () => {
   it('are all there', () => {
-    expect(t.jobs.names).toEqual(['games', 'moderation', 'invites', 'stories', 'uploads', 'maintenance']);
+    expect(t.jobs.names).toEqual(['games', 'moderation', 'invites', 'stories', 'uploads', 'game-pool', 'maintenance']);
   });
 
   it('each run cleanly on an empty server', async () => {
@@ -164,7 +164,7 @@ describe('clearing out old data', () => {
     });
 
     const counts = await new Maintenance(t.db).purge();
-    expect(counts).toEqual({ sessions: 2, passwordResets: 1, webhookEvents: 1, importCache: 1, aiUsage: 0 });
+    expect(counts).toEqual({ sessions: 2, passwordResets: 1, webhookEvents: 1, importCache: 1, aiUsage: 0, aiInsights: 0 });
     const hashes = (await t.db.session.findMany({ select: { tokenHash: true } })).map((s) => s.tokenHash);
     expect(hashes).toContain('recent-revoked');
     expect(hashes).not.toContain('old-expired');

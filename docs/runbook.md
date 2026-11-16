@@ -64,8 +64,65 @@ By hand: `cd /opt/souschef && ./deploy.sh <tag>`. See what is live: `cat .curren
 | Disk nearly full | Old Docker images: `docker image prune -a`. Logs are capped at 50 MB per container. Large tables: look at `pg_total_relation_size`. |
 | AI features say "resting" | Either the monthly budget is spent (raise `AI_MONTHLY_BUDGET_USD` if you accept it) or a provider key is missing or wrong. Imports and the plate judge degrade; moderation waits. |
 | Someone posts something awful | Staff: hide it from the report queue (`/v1/admin/reports`), suspend the account (`POST /v1/admin/users/:id/suspend`). |
-| A key or secret leaked | Replace it in `.env.production`, `./deploy.sh $(cat .current-tag)`. For `JWT_SECRET`, everyone is signed out (expected). Never rotate `HEALTH_DATA_KEY` without re-encrypting the stored data first (there is no tool for that yet). |
+| A key or secret leaked | Replace it in `.env.production`, `./deploy.sh $(cat .current-tag)`. For `JWT_SECRET`, everyone is signed out (expected). For `HEALTH_DATA_KEY` follow "Rotating the health key" below; never just swap it. |
 | Database lost | New server, same setup steps, then restore the newest backup (see `restore-test.sh` for the exact commands, but into the real database). Expect to lose up to a day. |
+
+## Gemini key pool
+
+- `AI_GEMINI_API_KEY` is the funded key. `AI_GEMINI_FREE_KEYS` is a comma-separated list of keys without billing.
+- Ordinary requests rotate across the free keys (cost 0, recorded as provider `gemini-free`). A key that is rate limited rests 1 minute, then 2, 4... up to 6 hours; a key Google refuses (wrong or suspended) is left out for a day. The server logs only the last four characters of a key.
+- Private requests (health summary, chat helper, pantry-scan photos), video, and any task in `AI_GEMINI_PAID_ONLY_TASKS` use the funded key only. If there is no funded key, those features say they are resting rather than use a free key or DeepSeek.
+- When every free key is resting the funded key takes ordinary requests too (`AI_GEMINI_SPILL_TO_PAID=false` makes them fall back to DeepSeek instead). The monthly budget counts only funded usage.
+- See what happened: `SELECT provider, count(*), sum("costMicros") FROM "AiUsage" WHERE "createdAt" > now() - interval '7 days' GROUP BY provider;`
+- Free keys vanish if Google changes limits or suspends them. Read Google's Gemini API terms before relying on keys from several accounts.
+
+## Starter content (official accounts, recipes, puzzles)
+
+A fresh server is empty. `npm run seed` adds the official SousChef accounts (Kitchen, Baking, Quick Meals), the 10 starter recipes and 3 cookbooks that used to live in Firestore (once each, under those accounts), 9 official posts and 14 Daily Dish puzzles. It only adds what is missing, never changes puzzles staff have set, and is safe to run again.
+
+```bash
+npm run seed -- --dry-run                      # say what would be added
+npm run seed                                   # add it
+npm run seed -- --admin you@example.com        # also make an existing account staff (register in the app first)
+```
+
+On the server: `docker compose ... exec api npm run seed`. On the Railway test host: `railway ssh --service souschef-api -- npm run seed -- --admin you@example.com`.
+
+The recipe and cookbook data is `server/seed/content.json`, exported once from Firestore by `server/scripts/export-firestore.mjs` (read-only; drops authors, users, emails and push tokens). Photos are web links, not uploads.
+
+### Pointing the app at a server
+
+Set `EXPO_PUBLIC_API_URL=https://<your host>` in the app's environment (the local `.env`, or `eas env:create` for EAS builds) and restart Expo with `npx expo start -c`. Without it the app keeps using Firebase.
+
+## Signing in with Firebase (the bridge)
+
+The app can keep Firebase Authentication (existing accounts, email and password, Google, Apple) while its data lives on this server. The app signs in with Firebase, then sends the Firebase ID token to `POST /v1/auth/social` (`provider: "firebase"`); the server checks it against Firebase's published keys and returns its own tokens. From then on the session is the server's (refresh, logout, every API call).
+
+- Server: set `FIREBASE_PROJECT_ID` (for this app `souschef-c23d6`). Empty means off. Restart.
+- App: set `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_AUTH_VIA=firebase`.
+- First sign-in makes the server account (the app sends the terms version). The same Firebase uid always finds the same account. If the Firebase email is verified and a server account already has it, they are linked. An unverified Firebase email that another account already has is refused (`email_taken`), never linked.
+- Staff: Firebase roles do not carry over. After someone has signed in once, `npm run seed -- --admin <email>` makes them staff.
+- A Firebase account you disable or delete keeps its server session until that session expires (60 days). To cut someone off now, suspend them in the staff dashboard or delete their server account.
+- Later, Firebase can be dropped: switch the app back to server sign-in and migrate password hashes (not built).
+
+## Staff dashboard
+
+`admin/` is a static website (Vite + React) for staff: reports, chef verification, AI spend and key status, ads, official accounts. It is served by Caddy at `https://<API_DOMAIN>/admin/` next to the API, so it needs no extra process and no CORS.
+
+1. Build it: `cd admin && npm ci && npm run build` (output in `admin/dist`).
+2. Copy it to the server: `rsync -a --delete admin/dist/ <user>@<host>:/opt/souschef/admin/`. Caddy picks up new files at once; no restart.
+3. Open `/admin/` and sign in with an account whose role is ADMIN. Anyone else is signed straight back out.
+4. Optional: in Cloudflare, put the path `/admin/*` behind Cloudflare Access (or an IP allow-list) as a second lock.
+
+Development: run the API on port 3000, then `cd admin && npm run dev` (port 5174; `/v1` is forwarded to the API).
+## Rotating the health key
+
+The first byte of every stored health value says which key sealed it, so old and new keys can live side by side.
+
+1. Make a new key (`openssl rand -base64 32`). In `.env.production` set `HEALTH_DATA_KEY=<new>`, `HEALTH_DATA_KEY_ID=<old id + 1>` (the first key is id 1) and `HEALTH_DATA_OLD_KEYS=<old id>:<old key>`.
+2. `./deploy.sh $(cat .current-tag)`. New readings use the new key; old ones still open.
+3. Run `docker compose ... exec api npm run health:reseal` until it prints `remaining 0`. It can be stopped and run again.
+4. Only then remove the old key from `HEALTH_DATA_OLD_KEYS`. Keep a copy of it for as long as you keep backups taken before the rotation.
 
 ## Measuring
 
@@ -76,6 +133,6 @@ until you have run this on the real server size; do it before the first real use
 ## Known gaps
 
 - Nothing here has been run on a real server, R2 bucket or Cloudflare account yet.
-- No automatic key rotation for `HEALTH_DATA_KEY`.
+- Rotating `HEALTH_DATA_KEY` is a manual, three-step job (below); it has been tested only against the test database.
 - One server means one point of failure: a bad night means minutes to an hour of downtime, and up to a day of data lost in the worst case. Move to a managed database when real money depends on it.
 - Only posts and post comments go through the quick rules, and only posts through the model check. Chat messages and recipe comments are not checked yet (people can still report them).

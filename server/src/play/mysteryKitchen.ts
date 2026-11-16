@@ -26,7 +26,8 @@ import { sniffImageType } from '../imports/service';
 import { authorSelect, toAuthor } from '../recipes/mappers';
 import type { Storage } from '../storage/storage';
 import type { UploadService } from '../uploads/service';
-import { pickDish } from './dishes';
+import { pickDish, TWISTS } from './dishes';
+import type { GamePoolService } from './pool';
 
 /** A room nobody started within this long is thrown away. */
 const LOBBY_TTL_MS = 2 * 60 * 60 * 1000;
@@ -60,6 +61,8 @@ export class MysteryKitchenService {
     private readonly events: ChatEvents,
     private readonly now: () => Date = () => new Date(),
     private readonly random: () => number = Math.random,
+    /** Where model-written dishes come from; the built-in list is the fallback. */
+    private readonly pool: GamePoolService | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ lobby */
@@ -126,11 +129,15 @@ export class MysteryKitchenService {
   async start(userId: string, code: string): Promise<MkRoomView> {
     const room = await this.open(code);
     if (room.hostId !== userId) throw errors.forbidden('Only the host can start the game');
+    // A model-written dish when the pool has one of this difficulty, otherwise the built-in list.
+    const generated = this.pool ? await this.pool.randomDish(room.difficulty as MkDifficulty).catch(() => null) : null;
     await this.locked(room.id, async (tx, current) => {
       if (current.phase !== 'lobby') throw errors.conflict('This game has already started');
       const players = await tx.gamePlayer.count({ where: { roomId: room.id } });
       if (!canStart(current.mode as MkMode, players)) throw errors.conflict(current.mode === 'solo' ? 'A solo game has one player' : 'A group game needs at least two players');
-      const { dish, twist } = pickDish(current.difficulty as MkDifficulty, this.random);
+      const picked = pickDish(current.difficulty as MkDifficulty, this.random);
+      const dish = generated ?? picked.dish;
+      const twist = generated ? (TWISTS[Math.min(TWISTS.length - 1, Math.floor(this.random() * TWISTS.length))] as string) : picked.twist;
       await tx.gameRoom.update({
         where: { id: room.id },
         data: { phase: 'cooking', startedAt: this.now(), dish: dish.name, basket: dish.basket, twist, hints: dish.hints },
