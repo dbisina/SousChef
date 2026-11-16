@@ -4,6 +4,7 @@ import { buildApp, type Built } from '../src/app';
 import type { IdTokenVerifier, VerifiedIdentity } from '../src/auth/idToken';
 import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
+import type { VideoTextSource } from '../src/imports/videoText';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
 import type { ChatEvent } from '@shared';
@@ -47,7 +48,7 @@ export class FakeVerifier implements IdTokenVerifier {
   configured = true;
   private readonly tokens = new Map<string, VerifiedIdentity>();
 
-  allow(token: string, identity: Partial<VerifiedIdentity> & { providerUserId: string; provider: 'GOOGLE' | 'APPLE' }): void {
+  allow(token: string, identity: Partial<VerifiedIdentity> & { providerUserId: string; provider: 'GOOGLE' | 'APPLE' | 'FIREBASE' }): void {
     this.tokens.set(token, { email: null, emailVerified: false, name: null, ...identity });
   }
   isConfigured(_provider: SocialProvider): boolean {
@@ -141,7 +142,7 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions> } = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null } = {}): Promise<TestApp> {
   const push = new FakePushSender();
   const ai = makeFakeAi();
   const web = new FakeWeb();
@@ -159,13 +160,14 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     pushSender: push,
     aiProviders: ai.all,
     importRequester: web.requester,
+    videoText: options.videoText ?? null,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();

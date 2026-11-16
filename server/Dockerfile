@@ -22,6 +22,15 @@ COPY server/native native
 RUN cd native && cargo test --workspace
 RUN node scripts/build-native.mjs
 
+# ---------------------------------------------------------------- admin: build the staff dashboard (the API serves it at /admin/)
+FROM node:${NODE_VERSION}-bookworm-slim AS admin
+WORKDIR /app/admin
+COPY admin/package.json admin/package-lock.json ./
+RUN npm ci
+COPY shared /app/shared
+COPY admin ./
+RUN npm run build
+
 # ---------------------------------------------------------------- build: install, generate the database client, compile
 FROM node:${NODE_VERSION}-bookworm-slim AS build
 WORKDIR /app/server
@@ -33,6 +42,8 @@ COPY shared /app/shared
 COPY server/tsconfig.json server/tsup.config.ts server/prisma.config.ts server/eslint.config.js server/vitest.config.ts ./
 COPY server/prisma ./prisma
 COPY server/src ./src
+# Starter content, bundled into the seed command (npm run seed).
+COPY server/seed ./seed
 COPY server/test ./test
 RUN npx prisma generate
 RUN npm run build
@@ -50,6 +61,11 @@ COPY --from=native /app/server/native ./native
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/server/dist ./dist
 COPY --from=build /app/server/prisma ./prisma
+COPY --from=admin /app/admin/dist ./admin-dist
+ENV ADMIN_DIR=/app/server/admin-dist
+# yt-dlp (one self-contained file): reads video captions and subtitles for link imports. It never downloads the video.
+ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
+ENV YT_DLP_PATH=/usr/local/bin/yt-dlp
 USER node
 EXPOSE 3000
 # The memory cap lives in the start script (--max-old-space-size).
@@ -64,5 +80,9 @@ CMD ["npx", "prisma", "migrate", "deploy"]
 # Everything else (compose, CI, production) names its own target, so this stage changes nothing for them.
 FROM build AS railway
 ENV NODE_ENV=production
+COPY --from=admin /app/admin/dist ./admin-dist
+ENV ADMIN_DIR=/app/server/admin-dist
+ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
+ENV YT_DLP_PATH=/usr/local/bin/yt-dlp
 EXPOSE 3000
 CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]
