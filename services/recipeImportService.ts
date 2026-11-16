@@ -25,6 +25,7 @@ import { downloadYouTubeVideo, isYouTubeDownloadAvailable } from './youtubeDownl
 import { getInfoAsync } from 'expo-file-system/legacy';
 import { apiEnabled } from '@/lib/api';
 import { apiExtractFromUrl } from '@/services/wantToCookApi';
+import { askForFrames } from '@/lib/importFrames';
 import { apiScanRecipe } from '@/services/aiToolsApi';
 
 /** Kinds of link the server cannot fetch for us: files and pictures on the phone, and direct media. */
@@ -86,7 +87,7 @@ export const extractRecipeFromURL = async (
     // already imported costs nothing). Files on the phone, and videos whose caption has no recipe, still use the on-device reader below.
     if (apiEnabled() && /^https?:\/\//i.test(url) && !LOCAL_ONLY_PLATFORMS.has(platform)) {
       try {
-        const fromServer = await apiExtractFromUrl(url, onProgress);
+        const fromServer = await apiExtractFromUrl(url, onProgress, askForFrames);
         if (fromServer) return fromServer;
       } catch {
         // The server could not be reached or refused: fall through to the on-device reader.
@@ -579,45 +580,6 @@ If no recipe found, return: {"error": "no recipe", "confidence": 0}`;
   } catch (error) {
     return null;
   }
-};
-
-// Create mock recipe for development/testing
-const createMockRecipe = (sourceURL: string): ImportedRecipe => {
-  return {
-    id: generateId(),
-    title: 'Imported Recipe (Demo)',
-    description: 'This recipe was imported from ' + detectPlatform(sourceURL),
-    sourceURL,
-    sourcePlatform: detectPlatform(sourceURL),
-    ingredients: [
-      { name: 'Chicken breast', amount: 2, unit: 'pieces', calories: 165, optional: false },
-      { name: 'Olive oil', amount: 2, unit: 'tbsp', calories: 240, optional: false },
-      { name: 'Garlic', amount: 3, unit: 'cloves', calories: 15, optional: false },
-      { name: 'Lemon', amount: 1, unit: 'whole', calories: 20, optional: false },
-      { name: 'Fresh rosemary', amount: 2, unit: 'sprigs', calories: 5, optional: true },
-      { name: 'Salt', amount: 1, unit: 'tsp', calories: 0, optional: false },
-      { name: 'Black pepper', amount: 0.5, unit: 'tsp', calories: 0, optional: false },
-    ],
-    instructions: [
-      'Preheat oven to 400°F (200°C).',
-      'Season chicken breasts with salt and pepper.',
-      'Heat olive oil in an oven-safe skillet over medium-high heat.',
-      'Sear chicken for 3 minutes per side until golden.',
-      'Add garlic and rosemary to the pan.',
-      'Squeeze lemon juice over chicken.',
-      'Transfer to oven and bake for 15-20 minutes until cooked through.',
-      'Let rest for 5 minutes before serving.',
-    ],
-    servings: 2,
-    prepTime: 10,
-    cookTime: 25,
-    difficulty: 'easy',
-    cuisine: 'mediterranean',
-    category: 'dinner',
-    tags: ['chicken', 'healthy', 'quick', 'lemon'],
-    extractedAt: Timestamp.now(),
-    extractionConfidence: 0.95,
-  };
 };
 
 // Extract recipe from cookbook photo using Gemini Vision

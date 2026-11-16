@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SERVER_MODE } from '@/constants/features';
 import {
   View,
   Text,
@@ -306,31 +307,6 @@ export default function MoreScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Admin section: only for admin users */}
-        {user?.role === 'admin' && (
-          <>
-            <View className="px-5 mb-2">
-              <Text className="text-sm font-semibold text-neutral-400 dark:text-neutral-500 uppercase tracking-wider mb-2 ml-1">
-                Admin
-              </Text>
-            </View>
-            <View className="mx-5 bg-white dark:bg-neutral-800 rounded-3xl overflow-hidden mb-5" style={styles.card}>
-              {[
-                { id: 'add-recipe', icon: 'add-circle' as const, label: 'Add Recipe', route: '/admin/add-recipe', color: '#10B981' },
-                { id: 'seed', icon: 'server' as const, label: 'Seed Database', route: '/admin/seed', color: '#6366F1' },
-                { id: 'analytics', icon: 'bar-chart' as const, label: 'Analytics', route: '/settings/analytics', color: '#3B82F6' },
-                { id: 'ads', icon: 'megaphone' as const, label: 'Manage Ads', route: '/admin/manage-ads', color: '#F59E0B' },
-              ].map((item, idx, arr) => (
-                <View key={item.id}>
-                  {renderMenuItem(item as MenuItem)}
-                  {idx < arr.length - 1 && (
-                    <View className="h-px bg-neutral-100 dark:bg-neutral-700 ml-14 mr-4" />
-                  )}
-                </View>
-              ))}
-            </View>
-          </>
-        )}
 
         
       </ScrollView>

@@ -61,6 +61,12 @@ describe('Daily Dish', () => {
     expect(puzzle.answer).toBe(''); // the answer is not on the phone until the game is over
   });
 
+  it('hands the screen the same puzzle object until the server sends a new one (a new object each time crashed the screen)', async () => {
+    routes = [(mm, p) => (mm === 'GET' && p === '/v1/play/daily' ? reply(200, daily()) : undefined)];
+    await store().loadDaily();
+    expect(m.play.selectDailyPuzzle(store())).toBe(m.play.selectDailyPuzzle(store()));
+  });
+
   it('shows a guess at once and lets the server say whether it won', async () => {
     routes = [
       (mm, p) => (mm === 'GET' && p === '/v1/play/daily' ? reply(200, daily()) : undefined),
