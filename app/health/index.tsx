@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, Text as RNText, View } from 'react-native';
+import { HealthSummaryCard } from '@/components/ai/AiInsights';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -17,9 +18,11 @@ import {
   Tag,
   Thumb,
   TopBar,
+  UButton,
   UCard,
   UIconButton,
 } from '@/components/ui';
+import { apiEnabled } from '@/lib/api';
 import type { BarTone } from '@/components/ui/Indicators';
 import {
   GLUCOSE_CHART_MAX,
@@ -31,7 +34,6 @@ import {
   timeText,
 } from '@/components/health/format';
 import { ValueTile } from '@/components/health/ValueTile';
-import { PREVIEW_LABEL } from '@/constants/features';
 import { formatRise, glucoseStatus } from '@/lib/health';
 import {
   latestBp,
@@ -50,6 +52,10 @@ export default function HealthScreen() {
   const { t } = useTranslation();
   const readings = useHealthStore((s) => s.readings);
   const meals = useHealthStore((s) => s.meals);
+  const consent = useHealthStore((s) => s.consent);
+  const grantConsent = useHealthStore((s) => s.grantConsent);
+  const eraseAll = useHealthStore((s) => s.eraseAll);
+  const withdrawConsent = useHealthStore((s) => s.withdrawConsent);
   const [period, setPeriod] = useState<HealthPeriod>('today');
   const now = useMemo(() => new Date(), []);
 
@@ -57,7 +63,6 @@ export default function HealthScreen() {
   const bp = useMemo(() => latestBp(readings), [readings]);
   const ldl = useMemo(() => latestLdl(readings), [readings]);
   const bars = useMemo(() => glucoseBars(readings, period, now), [readings, period, now]);
-  const hasSample = useMemo(() => readings.some((r) => r.source === 'sample'), [readings]);
 
   const periodMeals = useMemo(() => {
     const start = new Date(now);
@@ -91,7 +96,6 @@ export default function HealthScreen() {
         onBack={() => router.back()}
         right={
           <View className="flex-row items-center" style={{ gap: 8 }}>
-            {hasSample ? <Tag tone="o" label={PREVIEW_LABEL} /> : null}
             <UIconButton icon="share" label={t('health.doctorReport', 'Doctor report')} onPress={() => go('/health/report')} />
             <UIconButton
               icon="plus"
@@ -103,6 +107,19 @@ export default function HealthScreen() {
         }
       />
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
+        {apiEnabled() && consent === 'granted' ? <HealthSummaryCard /> : null}
+        {apiEnabled() && consent === 'needed' ? (
+          <UCard style={{ gap: 12, padding: 20 }}>
+            <H2>{t('health.consentTitle', 'Keep your health numbers safe')}</H2>
+            <Muted>
+              {t(
+                'health.consentBody',
+                'Your readings and meals are stored encrypted on our server, only you can see them, and you can export or delete them any time. They are numbers only: no advice. Agree to start saving them.',
+              )}
+            </Muted>
+            <UButton label={t('health.consentAgree', 'Agree and continue')} variant="accent" onPress={() => void grantConsent()} />
+          </UCard>
+        ) : null}
         <Segmented<HealthPeriod>
           value={period}
           onChange={setPeriod}
@@ -200,6 +217,12 @@ export default function HealthScreen() {
             })}
           </Rows>
         )}
+        {apiEnabled() && consent === 'granted' ? (
+          <Rows>
+            <ListRow title={t('health.stopSaving', 'Stop saving my health data')} subtitle={t('health.stopSavingSub', 'Hides it here and on the server. Delete it below if you want it gone.')} onPress={() => void withdrawConsent()} />
+            <ListRow title={t('health.deleteAll', 'Delete all my health data')} subtitle={t('health.deleteAllSub', 'Removes every reading and meal. This cannot be undone.')} onPress={() => void eraseAll()} />
+          </Rows>
+        ) : null}
       </ScrollView>
     </Screen>
   );

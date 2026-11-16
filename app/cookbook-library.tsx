@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
+import { Alert, Platform, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -240,7 +241,7 @@ export default function CookbookLibraryScreen() {
                   onLongPress={() => handleRemove(item)}
                 >
                   <BookCover
-                    source={coverPhoto(item)}
+                    source={coverPhoto(item) ?? undefined}
                     title={item.title}
                     kicker={kicker(item)}
                     width={COVER_WIDTH}

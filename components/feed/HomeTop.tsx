@@ -6,12 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Dot, Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, useTokens, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
-import { SAMPLE } from '@/assets/sample';
 import { useSocialStore } from '@/stores/socialStore';
-import { PREVIEW_LABEL } from '@/constants/features';
-
-/** The design shows no "Preview" tags; flip to true to label sample content again. */
-const SHOW_PREVIEW = false;
+import { useAuthStore } from '@/stores/authStore';
 import { DarkBar, BarText, GlassPill, photoOf } from './shared';
 
 interface HomeHeaderProps {
@@ -44,9 +40,6 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages }: Ho
         <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
         <View>
           <UIconButton icon="bell" label={t('home.notifications', 'Notifications')} onPress={onNotifications} />
-          <View pointerEvents="none" style={{ position: 'absolute', top: 11, right: 12 }}>
-            <Dot />
-          </View>
         </View>
         <View>
           <UIconButton
@@ -99,6 +92,7 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
   const stories = useSocialStore((s) => s.stories);
   const authors = useSocialStore((s) => s.authors);
   const viewed = useSocialStore((s) => s.viewedStoryIds);
+  const me = useAuthStore((s) => s.user);
   return (
     <ScrollView
       horizontal
@@ -106,7 +100,7 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
       style={{ flexGrow: 0, marginHorizontal: -20 }}
       contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
     >
-      <StoryRing source={SAMPLE.chef} name={t('home.yourPlate', 'Your plate')} seen add onPress={onAdd} />
+      <StoryRing source={me?.photoURL ? { uri: me.photoURL } : null} name={t('home.yourPlate', 'Your plate')} seen add onPress={onAdd} />
       {stories.map((story) => {
         const author = authors.find((a) => a.id === story.authorId);
         if (!author) return null;
@@ -127,13 +121,12 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
 interface TonightCardProps {
   title: string;
   sub: string;
-  photo: PhotoSource;
-  preview?: boolean;
+  photo?: PhotoSource | null;
   onPress: () => void;
 }
 
 /** Tonight's meal from the plan: photo card with a dark glass bar. */
-export function TonightCard({ title, sub, photo, preview, onPress }: TonightCardProps) {
+export function TonightCard({ title, sub, photo, onPress }: TonightCardProps) {
   const { t } = useTranslation();
   return (
     <PhotoCard
@@ -141,7 +134,6 @@ export function TonightCard({ title, sub, photo, preview, onPress }: TonightCard
       height={230}
       fade="both"
       topLeft={<Tag tone="glassDark" large label={t('home.tonight', 'Tonight · from your plan')} />}
-      topRight={SHOW_PREVIEW && preview ? <Tag tone="glassDark" label={PREVIEW_LABEL} /> : undefined}
       onPress={onPress}
       accessibilityLabel={title}
     >

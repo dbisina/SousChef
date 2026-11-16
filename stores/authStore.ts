@@ -16,6 +16,33 @@ import {
 } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
 import { getFriendlyAuthError } from '@/lib/utils';
+import { apiEnabled } from '@/lib/api';
+import {
+  apiDeleteAccount,
+  apiRequestPasswordReset,
+  apiRestoreSession,
+  apiSignIn,
+  apiSignOut,
+  apiSignUp,
+  apiUpdateProfile,
+  friendlyApiError,
+} from '@/services/authApi';
+
+/**
+ * With EXPO_PUBLIC_API_URL set, accounts live on the SousChef server; without it everything here still uses Firebase.
+ * Runs `work` against the server and turns any failure into the store's error message.
+ */
+async function viaApi<T>(set: (s: Partial<AuthState>) => void, work: () => Promise<T>): Promise<T> {
+  set({ isLoading: true, error: null });
+  try {
+    return await work();
+  } catch (error: unknown) {
+    set({ error: friendlyApiError(error), isLoading: false });
+    throw error;
+  }
+}
+
+let restoring: Promise<void> | null = null;
 
 interface AuthState {
   user: User | null;
@@ -36,8 +63,10 @@ interface AuthState {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   fetchUserData: (uid: string) => Promise<User | null>;
+  /** Server mode only: brings back the saved sign-in at launch. */
+  restoreSession: () => Promise<void>;
   updateUserProfile: (updates: Partial<User>) => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  deleteAccount: (password?: string) => Promise<void>;
   continueAsGuest: () => void;
 }
 
@@ -69,6 +98,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async (email, password, displayName) => {
+    if (apiEnabled()) {
+      const user = await viaApi(set, () => apiSignUp(email, password, displayName));
+      set({ user, isLoading: false });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -102,6 +136,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signIn: async (email, password) => {
+    if (apiEnabled()) {
+      const user = await viaApi(set, () => apiSignIn(email, password));
+      set({ user, isLoading: false });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -134,6 +173,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    if (apiEnabled()) {
+      await apiSignOut();
+      set({ user: null, isLoading: false, error: null });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       await firebaseSignOut(auth);
@@ -146,6 +190,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   resetPassword: async (email) => {
+    if (apiEnabled()) {
+      await viaApi(set, () => apiRequestPasswordReset(email));
+      set({ isLoading: false });
+      return;
+    }
     set({ isLoading: true, error: null });
     try {
       await sendPasswordResetEmail(auth, email);
@@ -155,6 +204,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ error: message, isLoading: false });
       throw error;
     }
+  },
+
+  restoreSession: async () => {
+    // Several screens use the auth hook; the work is done once, however many ask (and not again once the app knows).
+    if (get().isInitialized) return;
+    restoring ??= (async () => {
+      try {
+        set({ user: await apiRestoreSession(), isGuest: false });
+      } catch {
+        // Offline at launch: keep whatever we have; the next request tries again.
+      } finally {
+        set({ isInitialized: true });
+        restoring = null;
+      }
+    })();
+    await restoring;
   },
 
   fetchUserData: async (uid) => {
@@ -176,6 +241,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       throw new Error('No user logged in');
     }
 
+    if (apiEnabled()) {
+      const updated = await viaApi(set, () => apiUpdateProfile(updates));
+      // Only what the server owns; lists the server does not send yet (saved recipes and the like) stay as they are.
+      set({
+        user: { ...user, displayName: updated.displayName, bio: updated.bio, photoURL: updated.photoURL, bannerURL: updated.bannerURL, role: updated.role, isVerifiedChef: updated.isVerifiedChef },
+        isLoading: false,
+      });
+      return;
+    }
+
     set({ isLoading: true, error: null });
     try {
       const userRef = doc(db, 'users', user.id);
@@ -195,8 +270,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  deleteAccount: async () => {
+  deleteAccount: async (password) => {
     const { user } = get();
+    if (apiEnabled()) {
+      if (!user) throw new Error('No user logged in');
+      await viaApi(set, () => apiDeleteAccount(password));
+      set({ user: null, isLoading: false });
+      return;
+    }
     if (!user || !auth.currentUser) {
       throw new Error('No user logged in');
     }

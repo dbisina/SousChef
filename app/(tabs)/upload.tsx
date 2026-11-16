@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as ImagePicker from 'expo-image-picker';
+import { apiEnabled } from '@/lib/api';
 import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -83,6 +84,12 @@ const CUISINES = [
   { label: 'Mediterranean', value: 'mediterranean' },
   { label: 'Korean', value: 'korean' },
   { label: 'Vietnamese', value: 'vietnamese' },
+
+  { label: 'Nigerian', value: 'nigerian' },
+
+  { label: 'West African', value: 'west-african' },
+
+  { label: 'African', value: 'african' },
   { label: 'Other', value: 'other' },
 ];
 
@@ -195,7 +202,8 @@ export default function UploadScreen() {
     setIsSubmitting(true);
     try {
       // Upload image to Cloudinary
-      const uploadedImageUrl = await uploadImage(imageUri, `souschef/recipes/${user.id}`);
+      // (With the server on, createRecipe uploads the photo itself.)
+      const uploadedImageUrl = apiEnabled() ? imageUri : await uploadImage(imageUri, `souschef/recipes/${user.id}`);
 
       // Create recipe
       await createRecipe(

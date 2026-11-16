@@ -16,6 +16,7 @@ export type ErrorCode =
   | 'provider_rejected'
   | 'limit_reached'
   | 'upgrade_required'
+  | 'ai_unavailable'
   | 'internal';
 
 /** Every error response from the API has this body. */
