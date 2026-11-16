@@ -97,11 +97,15 @@ export interface MkRoomView {
   twist: string | null;
   /** The hints this player has bought so far. */
   hints: string[];
+  /** How to cook it, step by step, without naming the dish. Empty until the game starts. */
+  steps: string[];
   hintsLeft: number;
   /** Has this player handed in a plate? */
   submitted: boolean;
   canStart: boolean;
   /** Only once the game is over. */
   dish: string | null;
+  /** A real photo of the intended dish, once the game is over (the plate is judged against it). */
+  dishPhotoUrl: string | null;
   results: MkResult[] | null;
 }

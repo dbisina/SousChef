@@ -176,10 +176,10 @@ export class GamePoolService {
       {
         task: 'game_content',
         system: `You write secret dishes for a cooking party game. Players get only a basket of ingredients and must cook something that fits it; the dish is revealed at the end. Write ${count} different dishes from around the world.
-Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"hard", "basket": [5 to 8 plain ingredient names], "hints": [three hints, each warmer than the last, none containing the dish name]}]}. Easy = familiar everyday dishes; hard = techniques or dishes that need thought. Every ingredient must really belong in the dish.`,
+Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"hard", "basket": [5 to 8 plain ingredient names], "hints": [three hints, each warmer than the last, none containing the dish name], "steps": [6 to 9 short cooking steps in order, using only the basket ingredients, each with the heat, the time or the sign it is done; they must NEVER name the dish], "photo": the exact title of the English Wikipedia article about the finished dish}]}. Easy = familiar everyday dishes; hard = techniques or dishes that need thought. Every ingredient must really belong in the dish.`,
         prompt: `Write ${count} new dishes with a spread of difficulties.`,
         json: true,
-        maxOutputTokens: 4000,
+        maxOutputTokens: 6000,
         temperature: 0.9,
       },
       z.object({ dishes: z.array(z.unknown()).min(1) }),
@@ -189,14 +189,19 @@ Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"ha
       difficulty: z.enum(['easy', 'medium', 'hard']),
       basket: z.array(z.string().trim().min(2).max(40)).min(5).max(8),
       hints: z.array(z.string().trim().min(8).max(160)).length(3),
+      steps: z.array(z.string().trim().min(12).max(260)).min(5).max(10).optional().catch(undefined),
+      photo: z.string().trim().max(80).optional().catch(undefined),
     });
     const rows = [];
+    const cache = new Map<string, string | null>();
     for (const candidate of raw.dishes) {
       const p = schema.safeParse(candidate);
       if (!p.success) continue;
-      const { name, difficulty, basket, hints } = p.data;
+      const { name, difficulty, basket, hints, photo } = p.data;
       if (hints.some((h) => h.toLowerCase().includes(name.toLowerCase()))) continue;
-      rows.push({ game: 'mk', prompt: name, correct: difficulty, wrong: basket, note: hints.join('\n'), hash: itemHash('mk', name, difficulty), source: 'ai', createdAt: this.now() });
+      const steps = (p.data.steps ?? []).filter((x) => !x.toLowerCase().includes(name.toLowerCase()));
+      const imageUrl = photo ? await this.photoFor(photo, cache) : null;
+      rows.push({ game: 'mk', prompt: name, correct: difficulty, wrong: basket, note: hints.join('\n'), steps: steps.length >= 5 ? steps : [], imageUrl, photoTitle: photo ?? null, photoTried: !!photo, hash: itemHash('mk', name, difficulty), source: 'ai', createdAt: this.now() });
     }
     if (rows.length === 0) throw errors.aiUnavailable('The dish writer gave nothing usable');
     return (await this.db.gamePoolItem.createMany({ data: rows, skipDuplicates: true })).count;
@@ -212,7 +217,46 @@ Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"ha
     const row = await this.db.gamePoolItem.findFirst({ where: { game: 'mk', correct: difficulty }, skip: Math.floor(this.random() * count), orderBy: { id: 'asc' } });
     const hints = (row?.note ?? '').split('\n');
     if (!row || hints.length !== 3) return null;
-    return { name: row.prompt, difficulty, basket: row.wrong, hints: hints as [string, string, string] };
+    return { name: row.prompt, difficulty, basket: row.wrong, hints: hints as [string, string, string], steps: row.steps, photoUrl: row.imageUrl, poolId: row.id };
+  }
+
+  /**
+   * Makes sure a dish has what a game needs: cooking steps that never name it, and a real photo of it (the plate is judged
+   * against that photo). Anything missing is written or found now, and kept on the pool row so it is only done once.
+   * A dish that cannot be completed comes back as it was.
+   */
+  async completeDish(dish: MkDish): Promise<MkDish> {
+    let steps = dish.steps ?? [];
+    if (steps.length < 5) {
+      try {
+        const raw = await this.ai.runJson(
+          {
+            task: 'game_content',
+            system: 'You write the cooking steps for a secret-dish party game. Players know only the basket of ingredients, never the dish name. Write 6 to 9 short steps in order using only the basket ingredients, each with the heat, the time or the sign that it is done. The steps must NEVER name the dish or give away its famous name. Return only JSON: {"steps": [string]}',
+            prompt: `Secret dish: ${dish.name}\nBasket: ${dish.basket.join(', ')}`,
+            json: true,
+            maxOutputTokens: 900,
+            temperature: 0.4,
+          },
+          z.object({ steps: z.array(z.string().trim().min(12).max(260)).min(5).max(10) }),
+        );
+        const clean = raw.steps.filter((x) => !x.toLowerCase().includes(dish.name.toLowerCase()));
+        if (clean.length >= 5) steps = clean;
+      } catch {
+        steps = [];
+      }
+    }
+    let photoUrl = dish.photoUrl;
+    if (photoUrl === undefined || photoUrl === null) {
+      const found = await this.photoFor(dish.name, new Map());
+      photoUrl = found ?? dish.photoUrl ?? null;
+    }
+    if (dish.poolId) {
+      await this.db.gamePoolItem
+        .update({ where: { id: dish.poolId }, data: { ...(steps.length >= 5 ? { steps } : {}), imageUrl: photoUrl ?? null, photoTried: true } })
+        .catch(() => undefined);
+    }
+    return { ...dish, steps, photoUrl };
   }
 
   /**

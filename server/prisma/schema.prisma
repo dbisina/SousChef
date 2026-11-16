@@ -1200,6 +1200,10 @@ model GameRoom {
   basket      String[]
   twist       String?
   hints       String[]
+  /// Cooking steps that never name the dish, shown while cooking (like Cook mode)
+  steps       String[]  @default([])
+  /// A real photo of the intended dish, shown at the end and handed to the judge to compare with the plate
+  dishPhotoUrl String?
   createdAt   DateTime  @default(now())
 
   host        User             @relation(fields: [hostId], references: [id], onDelete: Cascade)
@@ -1347,6 +1351,8 @@ model GamePoolItem {
   hash      String   @unique
   source    String   @default("ai")
   /// A real, licence-checked photo of what the question is about (stored on our own file store), when there is one.
+  /// Mystery Kitchen dishes: cooking steps that never name the dish.
+  steps      String[]  @default([])
   imageUrl   String?
   /// The Wikipedia article the photo comes from, kept so it can be found again.
   photoTitle String?

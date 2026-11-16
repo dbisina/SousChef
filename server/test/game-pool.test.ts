@@ -155,4 +155,34 @@ describe('Mystery Kitchen dishes from the pool', () => {
     expect(easy?.hints).toHaveLength(3);
     expect(await service.randomDish('hard')).toBeNull(); // none of that difficulty: the built-in list is used
   });
+
+  const steps = ['Heat the oil in a heavy pot over medium heat for two minutes', 'Soften the onion and garlic until golden, about six minutes', 'Stir in the tomato and thyme and cook until it darkens', 'Add the rice and stir for a minute so every grain is coated', 'Pour in water, cover and simmer on low until the rice is tender', 'Rest the pot off the heat for ten minutes, then fluff and serve'];
+
+  it('keeps the cooking steps the model writes with a dish, and drops steps that name it', async () => {
+    const { service } = pool(() => JSON.stringify({ dishes: [{ ...dish('Jollof Rice'), steps }, { ...dish('Pilau', 'medium'), steps: [...steps.slice(0, 4), 'Add stock to the pilau pot and simmer', 'Serve the pilau hot with a side salad'] }] }));
+    expect(await service.refillDishes()).toBe(2);
+    const jollof = await service.randomDish('easy');
+    expect(jollof?.steps).toEqual(steps);
+    const pilau = await service.randomDish('medium');
+    expect(pilau?.steps).toEqual([]); // two steps named the dish, leaving too few to use
+  });
+
+  it('writes steps for a dish that has none, keeps them on its pool row, and never keeps a step that names the dish', async () => {
+    const { service } = pool((system) => (system.includes('write the cooking steps') ? JSON.stringify({ steps: [...steps, 'Finish the Jollof Rice with butter'] }) : JSON.stringify({ dishes: [dish('Jollof Rice')] })));
+    await service.refillDishes();
+    const bare = await service.randomDish('easy');
+    expect(bare?.steps).toEqual([]);
+    const done = await service.completeDish(bare as NonNullable<typeof bare>);
+    expect(done.steps).toEqual(steps);
+    const kept = await t.db.gamePoolItem.findFirst({ where: { game: 'mk' } });
+    expect(kept?.steps).toEqual(steps);
+    // the next game gets them straight away
+    expect((await service.randomDish('easy'))?.steps).toEqual(steps);
+  });
+
+  it('leaves a dish as it was when the steps cannot be written', async () => {
+    const { service } = pool(() => 'not json');
+    const out = await service.completeDish({ name: 'Plain Rice', difficulty: 'easy', basket: ['rice', 'water', 'salt', 'oil', 'pot'], hints: ['a', 'b', 'c'] });
+    expect(out).toMatchObject({ name: 'Plain Rice', steps: [] });
+  });
 });
