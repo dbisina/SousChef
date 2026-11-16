@@ -59,6 +59,7 @@ export const updateProfileSchema = z.object({
   handle: handleSchema.optional(),
   bio: z.string().trim().max(280).optional(),
   photoUrl: z.url({ protocol: /^https$/ }).max(500).nullable().optional(),
+  bannerUrl: z.url({ protocol: /^https$/ }).max(500).nullable().optional(),
   isChef: z.boolean().optional(),
 }) satisfies z.ZodType<UpdateProfileRequest>;
 
