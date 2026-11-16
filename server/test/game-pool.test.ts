@@ -136,3 +136,23 @@ describe('the generated games through the API', () => {
     expect(round.items).toHaveLength(10);
   });
 });
+
+describe('Mystery Kitchen dishes from the pool', () => {
+  const dish = (name: string, difficulty = 'easy', hints?: string[]) => ({
+    name,
+    difficulty,
+    basket: ['rice', 'onion', 'garlic', 'tomato', 'thyme'],
+    hints: hints ?? ['Cooked in one pot', 'Popular at parties', 'Red and smoky'],
+  });
+
+  it('keeps good dishes, drops ones that name themselves in a hint, and hands one out by difficulty', async () => {
+    const { service } = pool(() =>
+      JSON.stringify({ dishes: [dish('Jollof Rice'), dish('Ratatouille', 'hard', ['Ratatouille is French', 'b'.repeat(10), 'c'.repeat(10)]), { name: 'x' }, dish('Pilau', 'medium')] }),
+    );
+    expect(await service.refillDishes()).toBe(2);
+    const easy = await service.randomDish('easy');
+    expect(easy).toMatchObject({ name: 'Jollof Rice', difficulty: 'easy', basket: ['rice', 'onion', 'garlic', 'tomato', 'thyme'] });
+    expect(easy?.hints).toHaveLength(3);
+    expect(await service.randomDish('hard')).toBeNull(); // none of that difficulty: the built-in list is used
+  });
+});

@@ -204,9 +204,9 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     config,
   );
   playRoutes(app, new DailyDishService(db, options.now), auth);
-  const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now);
-  mysteryKitchenRoutes(app, games, auth);
   const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test');
+  const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now, undefined, pool);
+  mysteryKitchenRoutes(app, games, auth);
   soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now, undefined, pool), auth);
   vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);

@@ -3,7 +3,9 @@ import { z } from 'zod';
 import type { AiRouter } from '../ai/router';
 import type { Db } from '../db';
 import { errors } from '../errors';
+import type { MkDifficulty } from '@shared';
 import { TRIVIA } from './trivia';
+import type { MkDish } from './dishes';
 
 /** The games whose questions are written by a model and kept in a pool, so they do not repeat. */
 export const POOL_GAMES = ['trivia', 'myth', 'cuisine', 'odd', 'technique', 'pairing'] as const;
@@ -132,6 +134,55 @@ export class GamePoolService {
     return picked.map((p) => ({ id: p.id, prompt: p.prompt, correct: p.correct, wrong: p.wrong, note: p.note }));
   }
 
+  /**
+   * Secret dishes for Mystery Kitchen, written by the model: a name, how hard it is to guess, a basket of ingredients and three
+   * hints getting warmer. Stored in the same pool (game "mk"): prompt = the dish, correct = the difficulty, wrong = the basket,
+   * note = the three hints on separate lines.
+   */
+  async refillDishes(count = 15): Promise<number> {
+    const raw = await this.ai.runJson(
+      {
+        task: 'game_content',
+        system: `You write secret dishes for a cooking party game. Players get only a basket of ingredients and must cook something that fits it; the dish is revealed at the end. Write ${count} different dishes from around the world.
+Return only JSON: {"dishes": [{"name": string, "difficulty": "easy"|"medium"|"hard", "basket": [5 to 8 plain ingredient names], "hints": [three hints, each warmer than the last, none containing the dish name]}]}. Easy = familiar everyday dishes; hard = techniques or dishes that need thought. Every ingredient must really belong in the dish.`,
+        prompt: `Write ${count} new dishes with a spread of difficulties.`,
+        json: true,
+        maxOutputTokens: 4000,
+        temperature: 0.9,
+      },
+      z.object({ dishes: z.array(z.unknown()).min(1) }),
+    );
+    const schema = z.object({
+      name: z.string().trim().min(3).max(60),
+      difficulty: z.enum(['easy', 'medium', 'hard']),
+      basket: z.array(z.string().trim().min(2).max(40)).min(5).max(8),
+      hints: z.array(z.string().trim().min(8).max(160)).length(3),
+    });
+    const rows = [];
+    for (const candidate of raw.dishes) {
+      const p = schema.safeParse(candidate);
+      if (!p.success) continue;
+      const { name, difficulty, basket, hints } = p.data;
+      if (hints.some((h) => h.toLowerCase().includes(name.toLowerCase()))) continue;
+      rows.push({ game: 'mk', prompt: name, correct: difficulty, wrong: basket, note: hints.join('\n'), hash: itemHash('mk', name, difficulty), source: 'ai', createdAt: this.now() });
+    }
+    if (rows.length === 0) throw errors.aiUnavailable('The dish writer gave nothing usable');
+    return (await this.db.gamePoolItem.createMany({ data: rows, skipDuplicates: true })).count;
+  }
+
+  /** A random generated dish of this difficulty, or null when there are none (the built-in list is used then). */
+  async randomDish(difficulty: MkDifficulty): Promise<MkDish | null> {
+    const count = await this.db.gamePoolItem.count({ where: { game: 'mk', correct: difficulty } });
+    if (count === 0) {
+      if (this.autoRefill) void this.refillDishes().catch(() => undefined);
+      return null;
+    }
+    const row = await this.db.gamePoolItem.findFirst({ where: { game: 'mk', correct: difficulty }, skip: Math.floor(this.random() * count), orderBy: { id: 'asc' } });
+    const hints = (row?.note ?? '').split('\n');
+    if (!row || hints.length !== 3) return null;
+    return { name: row.prompt, difficulty, basket: row.wrong, hints: hints as [string, string, string] };
+  }
+
   /** Keeps every generated game stocked (the background job). */
   async topUp(minimum = 80): Promise<Record<string, number>> {
     const out: Record<string, number> = {};
@@ -142,6 +193,13 @@ export class GamePoolService {
         out[game] = await this.refill(game);
       } catch {
         out[game] = 0;
+      }
+    }
+    if ((await this.db.gamePoolItem.count({ where: { game: 'mk' } })) < 40) {
+      try {
+        out['mk'] = await this.refillDishes();
+      } catch {
+        out['mk'] = 0;
       }
     }
     return out;
