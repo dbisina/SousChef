@@ -157,6 +157,11 @@ export default function UserProfileScreen() {
         <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
       </View>
       <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 6 }}>
+        {(profileUser as User & { handle?: string }).handle ? (
+          <RNText className="text-paper" style={{ fontFamily: FONT.sansMedium, fontSize: 13, opacity: 0.85 }}>
+            @{(profileUser as User & { handle?: string }).handle}
+          </RNText>
+        ) : null}
         {profileUser.isVerifiedChef ? (
           <View style={{ alignSelf: 'flex-start' }}>
             <Tag tone="glass" icon="check" label={t('cookbooks.profile.verified', 'Verified chef')} />

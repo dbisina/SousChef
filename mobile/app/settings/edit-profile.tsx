@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { apiHandleAvailable } from '@/services/socialApi';
 import { Alert, Platform, ScrollView, Text, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
@@ -40,6 +41,26 @@ export default function EditProfileScreen() {
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
   const [bannerURL, setBannerURL] = useState(user?.bannerURL || '');
   const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [handle, setHandle] = useState(user?.handle || '');
+  const [handleState, setHandleState] = useState<'ok' | 'checking' | 'taken' | 'invalid'>('ok');
+  // Check the username as it is typed (after a short pause); keeping your own name is always fine.
+  useEffect(() => {
+    if (!apiEnabled() || !handle || handle === user?.handle) {
+      setHandleState('ok');
+      return;
+    }
+    setHandleState('checking');
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      apiHandleAvailable(handle)
+        .then((r) => !cancelled && setHandleState(r.available ? 'ok' : r.reason === 'taken' ? 'taken' : 'invalid'))
+        .catch(() => !cancelled && setHandleState('ok')); // offline: the server still checks on save
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [handle, user?.handle]);
   const [deleteSheet, setDeleteSheet] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -101,9 +122,15 @@ export default function EditProfileScreen() {
       return;
     }
 
+    if (apiEnabled() && (handleState === 'taken' || handleState === 'invalid' || handleState === 'checking')) {
+      showInfoToast(t('account.edit.usernameFix', 'Pick a free username first.'), t('account.edit.username', 'Username'));
+      return;
+    }
+
     try {
       await updateUserProfile({
         displayName: displayName.trim(),
+        ...(apiEnabled() && handle && handle !== user?.handle ? { handle } : {}),
         photoURL: photoURL || undefined,
         ...(apiEnabled() ? { bannerURL } : {}),
       });
@@ -227,6 +254,29 @@ export default function EditProfileScreen() {
             placeholder={t('account.edit.displayNamePlaceholder', 'Enter your name')}
             autoCapitalize="words"
           />
+
+          {apiEnabled() ? (
+            <View style={{ gap: 7 }}>
+              <Field
+                label={t('account.edit.username', 'Username')}
+                value={handle}
+                onChangeText={(v) => setHandle(v.replace(/^@/, '').toLowerCase())}
+                placeholder={t('account.edit.usernamePlaceholder', 'your_username')}
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={20}
+              />
+              <Muted small>
+                {handleState === 'checking'
+                  ? t('account.edit.usernameChecking', 'Checking…')
+                  : handleState === 'taken'
+                    ? t('account.edit.usernameTaken', 'That username is taken')
+                    : handleState === 'invalid'
+                      ? t('account.edit.usernameInvalid', 'Use 3 to 20 lowercase letters, numbers or underscores')
+                      : t('account.edit.usernameHint', 'People find and follow you by @{{handle}}', { handle: handle || 'username' })}
+              </Muted>
+            </View>
+          ) : null}
 
           <View style={{ gap: 7 }}>
             <Field

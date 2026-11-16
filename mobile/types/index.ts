@@ -55,6 +55,8 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
+  /** The unique username people use to find and follow each other (shown as @handle). */
+  handle?: string;
   photoURL?: string;
   /** The wide picture across the top of the profile. */
   bannerURL?: string;

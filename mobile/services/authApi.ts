@@ -16,6 +16,7 @@ export function meToUser(me: Me): User {
     id: me.id,
     email: me.email ?? '',
     displayName: me.displayName,
+    ...(me.handle ? { handle: me.handle } : {}),
     ...(me.photoUrl ? { photoURL: me.photoUrl } : {}),
     ...(me.bannerUrl ? { bannerURL: me.bannerUrl } : {}),
     bio: me.bio,
@@ -150,6 +151,7 @@ export async function apiRequestPasswordReset(email: string): Promise<void> {
 export async function apiUpdateProfile(updates: Partial<User>): Promise<User> {
   const body: UpdateProfileRequest = {
     ...(updates.displayName !== undefined ? { displayName: updates.displayName } : {}),
+    ...(updates.handle !== undefined ? { handle: updates.handle } : {}),
     ...(updates.bio !== undefined ? { bio: updates.bio } : {}),
     ...(updates.photoURL !== undefined ? { photoUrl: updates.photoURL || null } : {}),
     ...(updates.bannerURL !== undefined ? { bannerUrl: updates.bannerURL || null } : {}),

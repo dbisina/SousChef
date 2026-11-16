@@ -76,6 +76,17 @@ describe('profiles and following', () => {
     expect((await call(t, 'GET', `/v1/users/search?q=${encodeURIComponent('@' + a.user.handle)}`)).json<{ items: Participant[] }>().items.map((u) => u.id)).toEqual([a.user.id]);
     expect(b.user.id).toBeTruthy();
   });
+
+  it('says whether a username is free: taken by someone else, malformed, or already yours', async () => {
+    const me = await register(t, { displayName: 'Handle Checker' });
+    const other = await register(t, { displayName: 'Someone Else' });
+    const check = async (h: string, who?: Who) => (await call(t, 'GET', `/v1/users/handle-available?handle=${encodeURIComponent(h)}`, who)).json<{ available: boolean; reason?: string }>();
+    expect(await check('brand_new_name_1', me)).toMatchObject({ available: true });
+    expect(await check(other.user.handle, me)).toMatchObject({ available: false, reason: 'taken' });
+    expect(await check(`@${me.user.handle}`, me)).toMatchObject({ available: true }); // your own name is fine to keep
+    expect(await check('no', me)).toMatchObject({ available: false, reason: 'invalid' });
+    expect(await check('Has Spaces!', me)).toMatchObject({ available: false, reason: 'invalid' });
+  });
 });
 
 describe('posts', () => {

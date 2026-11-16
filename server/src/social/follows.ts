@@ -1,4 +1,5 @@
 import type { FollowToggle, Page, Participant, UserProfile } from '@shared';
+import { handleSchema } from '../auth/schemas';
 import type { Viewer } from '../auth/viewer';
 import type { Db } from '../db';
 import { errors } from '../errors';
@@ -77,6 +78,16 @@ export class FollowService {
     const hasMore = rows.length > limit;
     const page = rows.slice(0, limit);
     return { items: page.map((r) => toAuthor(r.following)), nextCursor: hasMore ? (page.at(-1)?.followingId ?? null) : null };
+  }
+
+  /** Whether a username is well formed and free; a name that is already yours counts as free. */
+  async handleAvailable(raw: string, viewer: Viewer | null): Promise<{ handle: string; available: boolean; reason?: 'invalid' | 'taken' }> {
+    const handle = raw.trim().replace(/^@/, '').toLowerCase();
+    const parsed = handleSchema.safeParse(handle);
+    if (!parsed.success) return { handle, available: false, reason: 'invalid' };
+    const row = await this.db.user.findUnique({ where: { handle: parsed.data }, select: { id: true } });
+    if (row && row.id !== viewer?.userId) return { handle: parsed.data, available: false, reason: 'taken' };
+    return { handle: parsed.data, available: true };
   }
 
   /** Finds people by part of a name or handle. Anyone blocked either way, and yourself, are left out. */

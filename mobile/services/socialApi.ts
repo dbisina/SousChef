@@ -108,3 +108,12 @@ export async function apiViewStory(id: string): Promise<void> {
 
 /** Reporting the same thing twice counts once; the server takes it down on its own once enough people report it. */
 export const apiReport = (request: CreateReportRequest): Promise<void> => api().post('/v1/reports', request);
+
+export interface HandleCheck {
+  handle: string;
+  available: boolean;
+  reason?: 'invalid' | 'taken';
+}
+/** Is a username well formed and free (or already yours)? */
+export const apiHandleAvailable = (handle: string): Promise<HandleCheck> =>
+  api().get<HandleCheck>(`/v1/users/handle-available?handle=${encodeURIComponent(handle)}`);

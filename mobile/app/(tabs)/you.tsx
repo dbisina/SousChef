@@ -26,6 +26,8 @@ import { latestGlucose, readingStatus, useHealthStore } from '@/stores/healthSto
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useSocialStore } from '@/stores/socialStore';
 import { compactCount } from '@/lib/timeAgo';
+import { apiEnabled } from '@/lib/api';
+import { apiProfile } from '@/services/socialApi';
 import { FEATURES } from '@/constants/features';
 import { photoOf, shareText } from '@/components/feed/shared';
 import type { Recipe } from '@/types';
@@ -92,6 +94,14 @@ export default function YouScreen() {
 
   const go = (href: string) => router.push(href as Href);
   const name = user?.displayName || t('you.guest', 'Guest');
+  // Follower and following counts live on the server (the legacy lists on the user are empty there).
+  const [counts, setCounts] = useState<{ followers: number; following: number } | null>(null);
+  useEffect(() => {
+    if (!apiEnabled() || !user?.id || user.id.startsWith('guest-')) return;
+    apiProfile(user.id)
+      .then((p) => setCounts({ followers: p.followerCount, following: p.followingCount }))
+      .catch(() => undefined);
+  }, [user?.id]);
   const handle = user?.email ? user.email.split('@')[0] : 'guest';
   const avatar: PhotoSource | undefined = user?.photoURL ? { uri: user.photoURL } : undefined;
   const recipeCount = Math.max(myRecipes.length, user?.recipeCount ?? 0);
@@ -197,13 +207,14 @@ export default function YouScreen() {
             <Display size={24} numberOfLines={1}>
               {name}
             </Display>
+            {user?.handle ? <Muted>@{user.handle}</Muted> : null}
             {user?.bio ? <Muted>{user.bio}</Muted> : null}
           </View>
 
           <View className="flex-row items-center justify-between" style={{ gap: 10 }}>
             <Stat value={compactCount(recipeCount)} label={t('you.recipes', 'recipes')} />
-            <Stat value={compactCount(user?.followers?.length ?? 0)} label={t('you.followers', 'followers')} />
-            <Stat value={compactCount(user?.following?.length ?? 0)} label={t('you.following', 'following')} />
+            <Stat value={compactCount(counts?.followers ?? user?.followers?.length ?? 0)} label={t('you.followers', 'followers')} />
+            <Stat value={compactCount(counts?.following ?? user?.following?.length ?? 0)} label={t('you.following', 'following')} />
             {streak > 0 ? <Tag tone="o" icon="flame" label={t('you.streak', '{{n}}-day streak', { n: streak })} /> : null}
           </View>
 
