@@ -32,6 +32,7 @@ const makePro = (who: Who) => t.db.subscription.create({ data: { userId: who.use
 const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
 const say = (answer: unknown) => {
   t.ai.deepseek.handler = () => JSON.stringify(answer);
+  t.ai.gemini.handler = () => JSON.stringify(answer);
 };
 
 describe('scaling and converting (no AI)', () => {
@@ -174,7 +175,7 @@ describe('the weekly health summary', () => {
     expect(out.facts.biggestRises[0]).toMatchObject({ title: 'Rice and stew', rise: 3 });
     expect(out.aiUsed).toBe(true);
     expect(out.summary).toContain('6.5');
-    expect(t.ai.deepseek.calls.at(-1)?.system).toContain('Do not give advice');
+    expect(t.ai.gemini.calls.at(-1)?.system).toContain('Do not give advice');
   });
 
   it('shows the plain version instead when the AI gives advice or a number we did not compute', async () => {
@@ -306,7 +307,7 @@ describe('chat help', () => {
     expect(out.replies).toHaveLength(3); // no repeats, trimmed, at most three
     expect(out.replies?.[1]).toBe('Brownies okay?');
     expect(out.replies?.every((r) => r.length <= 80)).toBe(true);
-    const prompt = t.ai.deepseek.calls.at(-1)?.prompt ?? '';
+    const prompt = t.ai.gemini.calls.at(-1)?.prompt ?? '';
     expect(prompt).toContain('Ben: Dinner Saturday at mine?');
     expect(prompt).toContain('Me: Yes! What should I bring?');
     expect((await assist(outsider, { conversationId: convo.id, mode: 'replies' })).statusCode).toBe(404);
@@ -318,7 +319,10 @@ describe('chat help', () => {
     say({ summary: 'Ben invited you to dinner on Saturday and you offered to bring something.' });
     const out = (await assist(ama, { conversationId: convo.id, mode: 'summary' })).json<ChatAssistResponse>();
     expect(out.summary).toContain('Saturday');
-    expect(t.ai.deepseek.calls.at(-1)?.prompt).not.toContain('Bring dessert'); // a deleted message is never sent
+    expect(t.ai.gemini.calls.at(-1)?.prompt).not.toContain('Bring dessert'); // a deleted message is never sent
+    say({ summary: ['Ben invited you to dinner on Saturday.', 'You offered to bring something.'] }); // a list of lines is fine too
+    const lines = (await assist(ama, { conversationId: convo.id, mode: 'summary' })).json<ChatAssistResponse>();
+    expect(lines.summary).toBe('Ben invited you to dinner on Saturday. You offered to bring something.');
     say({ summary: '' });
     expect((await assist(ama, { conversationId: convo.id, mode: 'summary' })).statusCode).toBe(503);
     expect((await assist(ama, { conversationId: convo.id, mode: 'poem' })).statusCode).toBe(400);

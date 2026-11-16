@@ -103,7 +103,7 @@ describe('the job runner', () => {
 
 describe('the real jobs', () => {
   it('are all there', () => {
-    expect(t.jobs.names).toEqual(['games', 'moderation', 'invites', 'stories', 'uploads', 'maintenance']);
+    expect(t.jobs.names).toEqual(['games', 'moderation', 'invites', 'stories', 'uploads', 'game-pool', 'maintenance']);
   });
 
   it('each run cleanly on an empty server', async () => {

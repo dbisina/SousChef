@@ -17,6 +17,8 @@ export interface RouterSettings {
   prices: Record<string, Price>;
   /** The most all AI calls together may cost in a calendar month (US dollars). When reached, calls are refused. */
   monthlyBudgetUsd: number;
+  /** Providers allowed to see private requests (health numbers, private chats, receipts). Default: only Gemini. */
+  privateProviders?: string[];
 }
 
 export interface RunOptions {
@@ -105,6 +107,19 @@ export class AiRouter {
     throw errors.aiUnavailable('The AI gave an answer that could not be used');
   }
 
+  /** The providers that are set up and what the staff dashboard may know about them (no secrets). */
+  providerStatus(): { name: string; model: string; details?: { funded: boolean; freeKeys: { key: string; resting: boolean }[] } }[] {
+    return this.settings.providers.map((p) => ({ name: p.name, model: p.model, ...(p.describe ? { details: p.describe() } : {}) }));
+  }
+
+  get monthlyBudgetUsd(): number {
+    return this.settings.monthlyBudgetUsd;
+  }
+
+  get privateProviders(): string[] {
+    return this.settings.privateProviders ?? ['gemini'];
+  }
+
   /** What has been spent this month, in US dollars (an estimate from token counts and configured prices). */
   async spentThisMonth(): Promise<number> {
     const row = await this.db.aiUsage.aggregate({ where: { createdAt: { gte: startOfMonth(this.now()) } }, _sum: { costMicros: true } });
@@ -115,7 +130,12 @@ export class AiRouter {
 
   private candidates(request: AiRequest): AiProvider[] {
     const byName = new Map(this.settings.providers.map((p) => [p.name, p]));
-    return (this.settings.routes[request.task] ?? []).map((n) => byName.get(n)).filter((p): p is AiProvider => p !== undefined && p.supports(request));
+    const privateOk = new Set(this.settings.privateProviders ?? ['gemini']);
+    return (this.settings.routes[request.task] ?? [])
+      .map((n) => byName.get(n))
+      .filter((p): p is AiProvider => p !== undefined && p.supports(request))
+      // Private content only goes to providers the owner has allowed, and only when they are ready for it.
+      .filter((p) => !request.private || (privateOk.has(p.name) && p.allowsPrivate !== false));
   }
 
   private async checkBudget(): Promise<void> {

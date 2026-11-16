@@ -1,4 +1,4 @@
-import { parseVideoLink, type VideoLink } from '@souschef/native';
+import { parseVideoLink, type VideoLink } from './native';
 
 export type { VideoLink };
 

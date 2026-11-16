@@ -70,6 +70,7 @@ export interface CreatePostCommentRequest {
 
 export interface UserProfile extends Participant {
   bio: string;
+  bannerUrl: string | null;
   followerCount: number;
   followingCount: number;
   recipeCount: number;

@@ -135,7 +135,7 @@ export class KitchenAiService {
   async pantryScan(userId: string, uploadIds: string[], kind: 'fridge' | 'receipt'): Promise<PantryScanResponse> {
     const images = await this.photos(userId, uploadIds, 'import_frame', true);
     const out = await this.ai.runJson(
-      { task: 'extract_recipe_from_frames', system: SCAN_SYSTEM, prompt: kind === 'receipt' ? 'These photos show a grocery receipt. List the food bought.' : 'These photos show the inside of a fridge or a food shelf. List the food you can see.', images, json: true, maxOutputTokens: 1500, temperature: 0.1 },
+      { task: 'extract_recipe_from_frames', private: true, system: SCAN_SYSTEM, prompt: kind === 'receipt' ? 'These photos show a grocery receipt. List the food bought.' : 'These photos show the inside of a fridge or a food shelf. List the food you can see.', images, json: true, maxOutputTokens: 1500, temperature: 0.1 },
       scanSchema,
       await this.limit(userId, 'pantry_scan'),
     );

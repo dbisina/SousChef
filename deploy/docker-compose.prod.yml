@@ -91,6 +91,8 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # The Cloudflare Origin certificate and key (origin.pem, origin.key). Not in git.
       - ./certs:/certs:ro
+      # The built staff dashboard (see docs/runbook.md, "Staff dashboard"). An empty folder just shows the sign-in page as missing.
+      - ./admin:/srv/admin:ro
       - caddydata:/data
     depends_on:
       api:
