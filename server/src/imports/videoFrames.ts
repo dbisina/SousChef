@@ -19,6 +19,8 @@ export interface FrameOptions {
   ffmpeg: string;
   /** Optional outbound proxy for platforms that block data-centre addresses. */
   proxy?: string;
+  /** A cookies file (Netscape format) from a logged-in account, for platforms that refuse anonymous downloads (Instagram). */
+  cookiesFile?: string;
   /** How many pictures to take (spread evenly through the video). */
   frames?: number;
   timeoutMs?: number;
@@ -66,6 +68,7 @@ export function ytDlpFrames(options: FrameOptions): VideoFrameSource {
           '-o',
           file,
           ...(options.proxy ? ['--proxy', options.proxy] : []),
+          ...(options.cookiesFile ? ['--cookies', options.cookiesFile] : []),
           '--',
           url,
         ],

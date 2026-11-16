@@ -103,6 +103,8 @@ const schema = z
     TAVILY_API_KEY: z.string().default(''),
     BRAVE_SEARCH_API_KEY: z.string().default(''),
     YT_DLP_PATH: z.string().default(''),
+    /** Path of a cookies file (Netscape format) from a logged-in account; lets yt-dlp read Instagram. Empty = anonymous. */
+    YT_DLP_COOKIES_PATH: z.string().default(''),
     /** ffmpeg, used with yt-dlp to take pictures from a video whose caption holds no recipe. */
     FFMPEG_PATH: z.string().default('ffmpeg'),
     /** Optional outbound proxy for yt-dlp, for platforms that block data-centre addresses. */
