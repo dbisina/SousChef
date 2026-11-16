@@ -107,6 +107,7 @@ model User {
   imports          Import[]
   dailyDishGames   DailyDishGame[]
   dailyDishStreak  DailyDishStreak?
+  soloScores       SoloGameScore[]
   hostedRooms      GameRoom[]
   gamePlayers      GamePlayer[]
   gameSubmissions  GameSubmission[]
@@ -1315,4 +1316,19 @@ model DailyDishStreak {
   lastSolvedDate String @default("")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// A person's results in one solo game (Kitchen Trivia, Step Sorter, Ingredient Match).
+model SoloGameScore {
+  userId    String   @db.Uuid
+  game      String
+  best      Int      @default(0)
+  last      Int      @default(0)
+  plays     Int      @default(0)
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, game])
+  @@index([game, best(sort: Desc)])
 }

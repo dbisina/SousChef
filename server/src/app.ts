@@ -38,6 +38,8 @@ import { DailyDishService } from './play/dailyDish';
 import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
+import { SoloGameService } from './play/solo';
+import { soloRoutes } from './play/soloRoutes';
 import { backgroundJobs } from './jobs';
 import { Maintenance } from './jobs/maintenance';
 import { JobRunner } from './jobs/runner';
@@ -200,6 +202,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   playRoutes(app, new DailyDishService(db, options.now), auth);
   const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now);
   mysteryKitchenRoutes(app, games, auth);
+  soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now), auth);
   vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);
   inviteRoutes(app, invites, new HouseService(db, options.now), auth, config);
