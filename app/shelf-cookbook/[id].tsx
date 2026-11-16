@@ -156,7 +156,7 @@ export default function ShelfCookbookDetailScreen() {
             style={{ position: 'absolute', left: 24, right: 24, bottom: 56, gap: 18 }}
           >
             <BookCover
-              source={photo}
+              source={photo ?? undefined}
               title={cookbook.title}
               kicker={t('cookbooks.shelfBook.coverKicker', 'Cookbook')}
               width={104}

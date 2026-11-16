@@ -225,20 +225,6 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
-          name="admin/add-recipe"
-          options={{
-            headerShown: false,
-            presentation: 'modal',
-          }}
-        />
-        <Stack.Screen
-          name="admin/seed"
-          options={{
-            headerShown: false,
-            presentation: 'card',
-          }}
-        />
-        <Stack.Screen
           name="settings/edit-profile"
           options={{
             headerShown: false,

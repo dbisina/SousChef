@@ -11,7 +11,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton } from '@/components/ui';
 import { FIXED, useThemeStore } from '@/stores/themeStore';
-import { SAMPLE } from '@/assets/sample';
 import {
   signInWithGoogle,
   signInWithApple,
@@ -133,7 +132,6 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <PhotoCard
-            source={SAMPLE.salmon}
             height={300}
             radius={0}
             style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}

@@ -3,7 +3,7 @@ import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { FONT } from '@/components/ui/fonts';
 import { useTranslation } from 'react-i18next';
-import { photoSource } from '@/assets/sample';
+import { photoSource } from '@/lib/photo';
 import { BarChart, Icon, Muted, PhotoCard, Tag, Title } from '@/components/ui';
 import type { ImageMessage, RecipeCardMessage, VoiceMessage } from '@/types/social';
 import { playVoiceNote } from '@/lib/voiceNote';

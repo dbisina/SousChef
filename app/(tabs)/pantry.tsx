@@ -23,7 +23,6 @@ import {
   UInput,
   useColor,
 } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
 
 export default function PantryScreen() {
   const router = useRouter();
@@ -125,7 +124,6 @@ export default function PantryScreen() {
 
         {hasAlerts ? (
           <PhotoCard
-            source={SAMPLE.spinach}
             height={168}
             accessibilityLabel={t('pantryUi.findRecipes', 'Find recipes')}
             onPress={() => router.push('/(tabs)/browse')}

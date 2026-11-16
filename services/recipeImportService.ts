@@ -582,45 +582,6 @@ If no recipe found, return: {"error": "no recipe", "confidence": 0}`;
   }
 };
 
-// Create mock recipe for development/testing
-const createMockRecipe = (sourceURL: string): ImportedRecipe => {
-  return {
-    id: generateId(),
-    title: 'Imported Recipe (Demo)',
-    description: 'This recipe was imported from ' + detectPlatform(sourceURL),
-    sourceURL,
-    sourcePlatform: detectPlatform(sourceURL),
-    ingredients: [
-      { name: 'Chicken breast', amount: 2, unit: 'pieces', calories: 165, optional: false },
-      { name: 'Olive oil', amount: 2, unit: 'tbsp', calories: 240, optional: false },
-      { name: 'Garlic', amount: 3, unit: 'cloves', calories: 15, optional: false },
-      { name: 'Lemon', amount: 1, unit: 'whole', calories: 20, optional: false },
-      { name: 'Fresh rosemary', amount: 2, unit: 'sprigs', calories: 5, optional: true },
-      { name: 'Salt', amount: 1, unit: 'tsp', calories: 0, optional: false },
-      { name: 'Black pepper', amount: 0.5, unit: 'tsp', calories: 0, optional: false },
-    ],
-    instructions: [
-      'Preheat oven to 400°F (200°C).',
-      'Season chicken breasts with salt and pepper.',
-      'Heat olive oil in an oven-safe skillet over medium-high heat.',
-      'Sear chicken for 3 minutes per side until golden.',
-      'Add garlic and rosemary to the pan.',
-      'Squeeze lemon juice over chicken.',
-      'Transfer to oven and bake for 15-20 minutes until cooked through.',
-      'Let rest for 5 minutes before serving.',
-    ],
-    servings: 2,
-    prepTime: 10,
-    cookTime: 25,
-    difficulty: 'easy',
-    cuisine: 'mediterranean',
-    category: 'dinner',
-    tags: ['chicken', 'healthy', 'quick', 'lemon'],
-    extractedAt: Timestamp.now(),
-    extractionConfidence: 0.95,
-  };
-};
-
 // Extract recipe from cookbook photo using Gemini Vision
 export const extractRecipeFromPhoto = async (
   imageUri: string,

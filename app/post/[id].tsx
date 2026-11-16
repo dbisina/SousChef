@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Divider, Icon, Muted, PhotoCard, Screen, SheetPanel, UAvatar, UButton, UIconButton, UInput, H2 } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
-import { CURRENT_USER } from '@/data/sample/social';
 import { SERVER_MODE } from '@/constants/features';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocialStore } from '@/stores/socialStore';
@@ -181,7 +180,7 @@ export default function PostDetailScreen() {
             </Pressable>
           ) : null}
           <View className="flex-row items-center" style={{ gap: 10 }}>
-            <UAvatar source={me?.photoURL ? { uri: me.photoURL } : SERVER_MODE ? undefined : photoOf(CURRENT_USER.avatar)} name={me?.displayName || CURRENT_USER.displayName} size={40} />
+            <UAvatar source={me?.photoURL ? { uri: me.photoURL } : undefined} name={me?.displayName || ''} size={40} />
             <View className="flex-1">
               <UInput
                 height={50}

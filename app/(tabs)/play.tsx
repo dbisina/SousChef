@@ -3,7 +3,6 @@ import { ScrollView, Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import {
   FONT,
   Glass,
@@ -21,17 +20,11 @@ import {
   UCard,
   UInput,
 } from '@/components/ui';
-import type { PhotoSource } from '@/components/ui';
-import { samplePhoto } from '@/components/play/samplePhoto';
-import { PREVIEW_LABEL, SERVER_MODE } from '@/constants/features';
 import { apiSoloGames } from '@/services/soloApi';
 import type { SoloGameInfo } from '../../shared/index';
 import { FIXED } from '@/stores/themeStore';
 import { puzzleNumberFor } from '@/lib/dailyDish';
-import { playService } from '@/services/playService';
 import { selectDailyStreak, usePlayStore } from '@/stores/playStore';
-
-const SOLO_PHOTO = { trivia: 'tomatoes', sorter: 'garlic', match: 'bowl' } as const;
 
 export default function PlayScreen() {
   const router = useRouter();
@@ -40,12 +33,10 @@ export default function PlayScreen() {
   const joinRound = usePlayStore((s) => s.joinRound);
   const puzzleNumber = usePlayStore((s) => s.daily?.puzzleNumber ?? puzzleNumberFor(new Date()));
   const streak = usePlayStore((s) => selectDailyStreak(s));
-  const { games, total } = playService.getGames();
   const [joinOpen, setJoinOpen] = useState(false);
   const [code, setCode] = useState('');
   const [solo, setSolo] = useState<SoloGameInfo[]>([]);
   useEffect(() => {
-    if (!SERVER_MODE) return;
     apiSoloGames().then(setSolo).catch(() => setSolo([]));
   }, []);
 
@@ -62,21 +53,12 @@ export default function PlayScreen() {
     go('/play/mystery/lobby');
   };
 
-  const feature = games.find((g) => g.featured) ?? games[0];
-  const more = games.filter((g) => g.id !== feature.id);
+  const feature = { name: t('play.mk.title', 'Mystery Kitchen'), tagline: t('play.mkTagline', 'Cook from ingredients alone, then see the real dish.'), minPlayers: 1, maxPlayers: 10 };
 
   return (
     <Screen bare>
       <TopBar
         title={t('play.title', 'Play')}
-        right={
-          SERVER_MODE ? undefined : (
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-              <Tag tone="o" label={PREVIEW_LABEL} />
-              <Tag tone="o" large icon="trophy" label={t('play.rank', 'Rank {{n}} · {{title}}', { n: 7, title: 'Sous' })} />
-            </View>
-          )
-        }
       />
       <ScrollView
         contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 130 }}
@@ -84,7 +66,6 @@ export default function PlayScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <PhotoCard
-          source={SAMPLE.friends as PhotoSource}
           height={290}
           fade="both"
           topLeft={
@@ -104,7 +85,7 @@ export default function PlayScreen() {
               {feature.name}
             </RNText>
             <RNText style={{ fontFamily: FONT.sans, fontSize: 12, color: FIXED.captionSub }}>
-              {t('play.mkTagline', feature.tagline)}
+              {feature.tagline}
             </RNText>
             <View className="flex-row" style={{ gap: 8, marginTop: 6, flexWrap: 'wrap' }}>
               <UButton
@@ -124,13 +105,11 @@ export default function PlayScreen() {
                   </RNText>
                 </Glass>
               </Pressable>
-              {SERVER_MODE ? (
-                <Pressable accessibilityRole="button" accessibilityLabel={t('play.solo', 'Play solo')} onPress={() => host('solo')}>
+                              <Pressable accessibilityRole="button" accessibilityLabel={t('play.solo', 'Play solo')} onPress={() => host('solo')}>
                   <Glass style={{ height: 44, borderRadius: 22, paddingHorizontal: 18, justifyContent: 'center' }}>
                     <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: FIXED.night }}>{t('play.solo', 'Play solo')}</RNText>
                   </Glass>
                 </Pressable>
-              ) : null}
             </View>
           </View>
         </PhotoCard>
@@ -154,53 +133,27 @@ export default function PlayScreen() {
           </View>
         </UCard>
 
-        {/* On the server: Mystery Kitchen and Daily Dish above, and the three solo games here. */}
-        {SERVER_MODE ? (
+        {solo.length > 0 ? (
           <>
-            <H2>{t('play.moreGames', 'More games')}</H2>
-            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-              {solo.map((g) => (
-                <PhotoCard
-                  key={g.id}
-                  source={samplePhoto(SOLO_PHOTO[g.id])}
-                  height={150}
-                  radius={24}
-                  width="47.5%"
-                  style={{ flexGrow: 1 }}
-                  title={g.name}
-                  titleSize={15}
-                  subtitle={g.best === null ? g.tagline : t('play.bestScore', 'Best {{n}}', { n: g.best })}
-                  captionInset={14}
-                  onPress={() => go(`/play/solo/${g.id}`)}
-                />
-              ))}
-            </View>
-          </>
-        ) : (
-        <>
-        <View className="flex-row items-center justify-between">
           <H2>{t('play.moreGames', 'More games')}</H2>
-          <LinkText onPress={() => go('/play/mystery/lobby')}>{t('play.allGames', 'All {{n}}', { n: total })}</LinkText>
-        </View>
-        <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-          {more.map((g) => (
-            <PhotoCard
-              key={g.id}
-              source={samplePhoto(g.photo)}
-              height={150}
-              radius={24}
-              width="47.5%"
-              style={{ flexGrow: 1 }}
-              title={g.name}
-              titleSize={15}
-              subtitle={g.tagline}
-              captionInset={14}
-              onPress={() => host()}
-            />
-          ))}
-        </View>
-        </>
-        )}
+          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+            {solo.map((g) => (
+              <PhotoCard
+                key={g.id}
+                height={150}
+                radius={24}
+                width="47.5%"
+                style={{ flexGrow: 1 }}
+                title={g.name}
+                titleSize={15}
+                subtitle={g.best === null ? g.tagline : t('play.bestScore', 'Best {{n}}', { n: g.best })}
+                captionInset={14}
+                onPress={() => go(`/play/solo/${g.id}`)}
+              />
+            ))}
+          </View>
+          </>
+        ) : null}
       </ScrollView>
 
       <Sheet visible={joinOpen} onClose={() => setJoinOpen(false)} title={t('play.joinWithCode', 'Join with code')}>

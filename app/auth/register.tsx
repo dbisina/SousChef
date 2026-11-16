@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { Field, FONT, H1, Dim, Icon, Muted, Screen, TopBar, UButton } from '@/components/ui';
-import { SAMPLE } from '@/assets/sample';
 
 const registerSchema = z
   .object({
@@ -24,8 +23,6 @@ const registerSchema = z
   });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
-
-const FACES = [SAMPLE.toast, SAMPLE.bowl, SAMPLE.pancakes];
 
 function EyeToggle({ shown, onPress, label }: { shown: boolean; onPress: () => void; label: string }) {
   return (
@@ -71,24 +68,10 @@ export default function RegisterScreen() {
     }
   };
 
-  const faces = (
-    <View className="flex-row items-center">
-      {FACES.map((src, i) => (
-        <Image
-          key={i}
-          source={src}
-          accessibilityLabel=""
-          className="border-ground"
-          style={{ width: 44, height: 44, borderRadius: 22, borderWidth: 3, marginLeft: i === 0 ? 0 : -2 }}
-        />
-      ))}
-    </View>
-  );
-
   return (
     <Screen bare>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <TopBar onBack={() => router.back()} backLabel={t('welcome.back', 'Back')} title={null} right={faces} />
+        <TopBar onBack={() => router.back()} backLabel={t('welcome.back', 'Back')} title={null} />
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, gap: 15, paddingBottom: Math.max(insets.bottom, 20) + 4 }}

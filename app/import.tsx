@@ -4,7 +4,6 @@ import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
-import { SAMPLE } from '@/assets/sample';
 import { ThinkingPhase } from '@/lib/gemini';
 import { detectPlatform } from '@/services/recipeImportService';
 import { useAuthStore } from '@/stores/authStore';
@@ -239,7 +238,6 @@ export default function ImportScreen() {
           showsVerticalScrollIndicator={false}
         >
           <PhotoCard
-            source={SAMPLE.phone}
             height={220}
             title={previewTitle}
             subtitle={previewSubtitle}

@@ -240,7 +240,7 @@ export default function CookbookLibraryScreen() {
                   onLongPress={() => handleRemove(item)}
                 >
                   <BookCover
-                    source={coverPhoto(item)}
+                    source={coverPhoto(item) ?? undefined}
                     title={item.title}
                     kicker={kicker(item)}
                     width={COVER_WIDTH}
