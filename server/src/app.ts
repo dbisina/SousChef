@@ -39,6 +39,7 @@ import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
 import { SoloGameService } from './play/solo';
+import { ytDlpSource, type VideoTextSource } from './imports/videoText';
 import { soloRoutes } from './play/soloRoutes';
 import { backgroundJobs } from './jobs';
 import { Maintenance } from './jobs/maintenance';
@@ -81,6 +82,8 @@ export interface BuildOptions {
   verifier?: IdTokenVerifier;
   /** How pages are fetched for importing. Tests pass a fake so nothing touches the network. */
   importRequester?: Requester;
+  /** Reads a video's caption and subtitles. Tests pass a fake; leave unset to use yt-dlp when YT_DLP_PATH is set. */
+  videoText?: VideoTextSource | null;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
   aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
@@ -187,7 +190,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   const postService = new PostService(db, uploads, options.now, moderation);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
-  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now), auth, config);
+  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText), auth, config);
   const insights = new InsightCache(db, options.now);
   const vitals = new VitalsService(db, HealthCipher.fromBase64(config.HEALTH_DATA_KEY), options.now);
   aiToolsRoutes(

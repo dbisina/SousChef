@@ -97,6 +97,10 @@ const schema = z
     AI_DEEPSEEK_BASE_URL: z.string().default('https://api.deepseek.com'),
     AI_NEBIUS_API_KEY: z.string().default(''),
     /** Nebius Token Factory (OpenAI-compatible). Text work and the moderation check. */
+    /** Path of the yt-dlp program (empty = off). Reads video captions and subtitles for link imports. */
+    YT_DLP_PATH: z.string().default(''),
+    /** Optional outbound proxy for yt-dlp, for platforms that block data-centre addresses. */
+    IMPORT_PROXY_URL: z.string().default(''),
     AI_NEBIUS_MODEL: z.string().default('Qwen/Qwen3-30B-A3B-Instruct-2507'),
     AI_NEBIUS_BASE_URL: z.string().default('https://api.tokenfactory.nebius.com/v1'),
     /** Photo jobs (fridge and receipt scans, plate checks, captions, cookbook pages, post photos). Chosen by trying the catalogue's vision models on real photos. Empty turns one off. */
