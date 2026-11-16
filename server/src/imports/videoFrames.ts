@@ -28,7 +28,7 @@ export interface FrameOptions {
 
 const exec = (bin: string, args: string[], timeoutMs: number) =>
   new Promise<{ stdout: string }>((resolve, reject) => {
-    execFile(bin, args, { timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024, windowsHide: true }, (err, stdout) => (err ? reject(err) : resolve({ stdout })));
+    execFile(bin, args, { timeout: timeoutMs, maxBuffer: 16 * 1024 * 1024, windowsHide: true }, (err, stdout, stderr) => (err ? reject(Object.assign(err, { stderr })) : resolve({ stdout })));
   });
 
 /** The seconds at which to take `count` pictures of a video `duration` seconds long: spread through the middle, not the very ends. */
@@ -49,7 +49,7 @@ export function ytDlpFrames(options: FrameOptions): VideoFrameSource {
   return async (url) => {
     const dir = await mkdtemp(path.join(tmpdir(), 'frames-'));
     try {
-      const file = path.join(dir, 'v.mp4');
+      const file = path.join(dir, 'v.%(ext)s');
       await run(
         options.ytDlp,
         [
@@ -59,11 +59,10 @@ export function ytDlpFrames(options: FrameOptions): VideoFrameSource {
           '15',
           '--max-filesize',
           '60M',
-          // The smallest picture that is still readable: text on screen has to survive.
+          // Pictures only (no sound is needed): small, but big enough that text on screen survives. Many sites serve picture
+          // and sound separately, and a "combined" format does not exist for them.
           '-f',
-          'worst[height>=480]/worst[height>=360]/worst/best',
-          '--merge-output-format',
-          'mp4',
+          'bv*[height<=720][height>=360]/bv*[height>=360]/b/bv*',
           '-o',
           file,
           ...(options.proxy ? ['--proxy', options.proxy] : []),
