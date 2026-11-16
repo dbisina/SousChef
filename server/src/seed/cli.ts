@@ -5,6 +5,7 @@
 //   npm run seed -- --admin me@example.com make an existing account staff (register in the app first)
 //   npm run seed -- --pro me@example.com   give an existing account a Pro plan for 30 days (test hosts only)
 //   npm run seed -- --reset-generated      delete the recipes (and their posts) that --generate wrote, to write them again
+//   npm run seed -- --puzzles N            write Daily Dish puzzles until there are N (and stock the generated games)
 //   npm run seed -- --generate [N]         write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
 // Uses DATABASE_URL. Safe to run again.
@@ -13,7 +14,8 @@ import { buildAiRouter } from '../ai/factory';
 import { loadConfig } from '../config';
 import { storageFromConfig } from '../storage/storage';
 import dishList from '../../seed/dishes.json';
-import { generateContent, type DishDef } from './generate';
+import { GamePoolService, POOL_GAMES } from '../play/pool';
+import { generateContent, generatePuzzles, type DishDef } from './generate';
 import { seedContent } from './run';
 
 async function main() {
@@ -31,6 +33,24 @@ async function main() {
   try {
     const report = await seedContent(db, { dryRun: args.includes('--dry-run'), ...(adminEmail ? { adminEmail } : {}), ...(proEmail ? { proEmail } : {}) }, (line) => process.stdout.write(`${line}\n`));
     process.stdout.write(`\n${JSON.stringify(report, null, 2)}\n`);
+    const puzzlesAt = args.indexOf('--puzzles');
+    if (puzzlesAt >= 0) {
+      const target = Number(args[puzzlesAt + 1]);
+      if (!Number.isFinite(target) || target < 1) throw new Error('--puzzles needs a number');
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      const ai = buildAiRouter(config, db, log);
+      const added = await generatePuzzles(db, ai, target, (line) => process.stdout.write(`${line}\n`));
+      process.stdout.write(`added ${added} puzzles\n`);
+      const pool = new GamePoolService(db, ai, undefined, undefined, false);
+      for (const game of POOL_GAMES) {
+        try {
+          process.stdout.write(`${game}: +${await pool.refill(game)} questions\n`);
+        } catch (err) {
+          process.stdout.write(`${game}: ${err instanceof Error ? err.message : String(err)}\n`);
+        }
+      }
+    }
     if (args.includes('--reset-generated')) {
       const titles = (dishList as DishDef[]).map((d) => d.title);
       const ids = (await db.recipe.findMany({ where: { title: { in: titles }, author: { kind: 'HOUSE' } }, select: { id: true } })).map((r) => r.id);

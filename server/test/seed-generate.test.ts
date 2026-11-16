@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AiRouter } from '../src/ai/router';
 import { routerSettings } from '../src/ai/factory';
-import { believableNutrition, findWikipediaPhoto, generateContent, type DishDef } from '../src/seed/generate';
+import { believableNutrition, findWikipediaPhoto, generateContent, generatePuzzles, type DishDef } from '../src/seed/generate';
 import { seedContent } from '../src/seed/run';
 import { FakeAiProvider } from './aiHelpers';
 import { FakeStorage, makeApp, testConfig, type TestApp } from './helpers';
@@ -143,5 +143,32 @@ describe('generating real content', () => {
   it('needs the file store', async () => {
     const { ai } = router();
     await expect(generateContent({ db: t.db, ai, storage: null }, dishes)).rejects.toThrow(/file store/);
+  });
+});
+
+describe('generating Daily Dish puzzles', () => {
+  const puzzle = (answer: string, clues?: string[]) => ({
+    answer,
+    aliases: [],
+    clues: clues ?? ['A dish with a long history', 'Eaten across a whole region', 'Built on one main grain', 'Seasoned with a signature spice', 'Often served at celebrations', 'Best known by this exact bowl'],
+  });
+
+  it('adds new dishes after the existing ones, never twice, never with the name in a clue', async () => {
+    const { ai, text } = router();
+    await new (await import('../src/play/dailyDish')).DailyDishService(t.db).setPuzzles([puzzle('Paella')]);
+    text.handler = () =>
+      JSON.stringify({
+        puzzles: [
+          puzzle('Biryani'),
+          puzzle('Paella'), // already there
+          puzzle('Pho', ['The pho of the north', 'x'.repeat(10), 'y'.repeat(10), 'z'.repeat(10), 'w'.repeat(10), 'v'.repeat(10)]), // names itself
+          { answer: 'Short', clues: ['too few clues'] },
+          puzzle('Moqueca'),
+        ],
+      });
+    const added = await generatePuzzles(t.db, ai, 3);
+    expect(added).toBe(2);
+    const all = await t.db.dailyPuzzle.findMany({ orderBy: { position: 'asc' } });
+    expect(all.map((p) => p.answer)).toEqual(['Paella', 'Biryani', 'Moqueca']);
   });
 });

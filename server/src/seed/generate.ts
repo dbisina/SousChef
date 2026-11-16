@@ -263,3 +263,49 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
   }
   return report;
 }
+
+const puzzleSchema = z.object({
+  answer: z.string().trim().min(3).max(60),
+  aliases: z.array(z.string().trim().min(2).max(60)).max(6).default([]),
+  clues: z.array(z.string().trim().min(8).max(160)).length(6),
+});
+
+const PUZZLE_SYSTEM = `You write the Daily Dish puzzle for a cooking app. Each puzzle is one well-known dish from around the world. It has six clues, hardest first: the first is vague (history, region or technique), the last nearly gives it away; no clue contains the dish's name; every clue is true.
+Return only JSON: {"puzzles": [{"answer": the dish name in its common English form, "aliases": other names people might type, "clues": [six strings]}]}`;
+
+/**
+ * More Daily Dish puzzles, written by the model and added after the ones already there (never the same dish twice), so the
+ * daily game does not run out or repeat. Returns how many were added.
+ */
+export async function generatePuzzles(db: Db, ai: AiRouter, target: number, say: (line: string) => void = () => undefined): Promise<number> {
+  const { DailyDishService } = await import('../play/dailyDish');
+  const service = new DailyDishService(db);
+  const existing = await service.listPuzzles();
+  const have = new Set(existing.map((p) => p.answer.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()));
+  const added: z.infer<typeof puzzleSchema>[] = [];
+  for (let round = 0; round < 8 && existing.length + added.length < target; round++) {
+    const asked = Math.min(25, target - existing.length - added.length + 5);
+    const raw = await ai.runJson(
+      { task: 'game_content', system: PUZZLE_SYSTEM, prompt: `Write ${asked} puzzles for dishes from many different countries. Do not use any of these dishes: ${[...have].slice(0, 120).join(', ')}.`, json: true, maxOutputTokens: 6000, temperature: 0.8 },
+      z.object({ puzzles: z.array(z.unknown()).min(1) }),
+    );
+    for (const candidate of raw.puzzles) {
+      const parsed = puzzleSchema.safeParse(candidate);
+      if (!parsed.success) continue;
+      const key = parsed.data.answer.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      if (have.has(key)) continue;
+      const name = parsed.data.answer.toLowerCase();
+      if (parsed.data.clues.some((c) => c.toLowerCase().includes(name))) continue; // a clue that names the dish gives it away
+      have.add(key);
+      added.push(parsed.data);
+    }
+    say(`puzzles: ${existing.length + added.length} of ${target}`);
+  }
+  if (added.length > 0) {
+    await service.setPuzzles([
+      ...existing.map((p) => ({ answer: p.answer, aliases: p.aliases, clues: p.clues, ...(p.photoUrl ? { photoUrl: p.photoUrl } : {}) })),
+      ...added,
+    ]);
+  }
+  return added.length;
+}
