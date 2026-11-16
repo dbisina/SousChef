@@ -117,7 +117,7 @@ export default function DailyDishScreen() {
           <Icon name={playing ? 'help' : daily.status === 'solved' ? 'check' : 'close'} size="lg" />
           {playing ? (
             <RNText className="text-ink text-center" style={{ fontFamily: FONT.sansMedium, fontSize: 14, paddingHorizontal: 32, lineHeight: 20 }}>
-              {t('play.daily.prompt', 'Guess the dish from its ingredients. Each wrong guess unlocks another.')}
+              {t('play.daily.prompt', 'Guess the dish from its clues. Stuck? Tap Next clue for another, at a small cost in points.')}
             </RNText>
           ) : null}
         </View>
