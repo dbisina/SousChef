@@ -16,7 +16,7 @@ import {
   TopBar,
 } from '@/components/ui';
 
-const SUPPORT_EMAIL = 'danbis664@gmail.com';
+const SUPPORT_EMAIL = 'danielbisina.t@gmail.com';
 
 interface LegalLayoutProps {
   active: 'terms' | 'privacy';

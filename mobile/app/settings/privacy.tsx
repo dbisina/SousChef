@@ -122,7 +122,7 @@ export default function PrivacyPolicyScreen() {
       </LegalSection>
 
       <LegalSection title="13. Contact Us">
-        For privacy-related questions or to exercise your rights:{'\n'}Email: danbis664@gmail.com
+        For privacy-related questions or to exercise your rights:{'\n'}Email: danielbisina.t@gmail.com
       </LegalSection>
     </LegalLayout>
   );

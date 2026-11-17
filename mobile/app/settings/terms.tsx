@@ -56,7 +56,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '14. Contact Us',
-    body: 'For questions about these Terms of Service, please contact us at:\nEmail: danbis664@gmail.com',
+    body: 'For questions about these Terms of Service, please contact us at:\nEmail: danielbisina.t@gmail.com',
   },
 ];
 

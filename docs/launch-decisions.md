@@ -8,7 +8,7 @@ Nothing here has been built for the stores. Order agreed: finish and test locall
 - Solo Mystery Kitchen starts straight away. Daily Dish shows a clear clue state instead of bare "?" chips.
 - Cooking "Back to Home" and the close X dismiss the cooking screen instead of stacking home on top; "Share your creation" is an in-screen overlay so its close button works.
 - Home header: plus (paste link) on the left, enplace centred, no logo; "What can I cook tonight?" sits mid-feed.
-- Settings icon is a gear; settings has Report a bug and Contact the developer (addresses `support@souschef.app` and `developers@souschef.app`: create these mailboxes).
+- Settings icon is a gear; settings has Report a bug and Contact the developer (address danielbisina.t@gmail.com (set through EXPO_PUBLIC_SUPPORT_EMAIL and EXPO_PUBLIC_DEVELOPER_EMAIL): create these mailboxes).
 - Usernames: `@handle` chosen in Edit profile with a live availability check; shown on profiles; follower and following counts come from the server (this fixed follows "not updating").
 - Imports: TikTok/Instagram/YouTube links with no recipe in the caption are read by downloading a small copy on the server (yt-dlp + ffmpeg) and having a vision model read pictures from it. The app no longer asks for screenshots. Typing what you want to cook searches the web (Tavily, then Brave); with neither key set, the model writes a standard recipe and the app says so.
 
