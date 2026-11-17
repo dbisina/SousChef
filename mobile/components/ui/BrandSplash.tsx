@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FONT } from '@/components/ui/fonts';
 
 interface BrandSplashProps {
@@ -12,10 +13,12 @@ const SIZE = 56;
 const INK = '#fafafa';
 const ACCENT = '#ff6b35';
 const GROUND = '#0b0b0b';
+const SEEN_KEY = '@enplace_splash_seen';
 
 /**
- * The opening screen. "mise en place" appears; "mise" and the spaces close up and what is left is the name, "enplace", with one
- * orange dot. About three seconds; with reduced motion it just shows the name. The last frame holds until the app is ready.
+ * The opening screen. The first time, "mise en place" appears; "mise" and the spaces close up and what is left is the name,
+ * "enplace", with one orange dot (about three seconds). Every launch after that is the short version: the name and the dot,
+ * about a second. With reduced motion it just shows the name. The last frame holds until the app is ready.
  */
 export function BrandSplash({ ready, onDone }: BrandSplashProps) {
   const appear = useRef(new Animated.Value(0)).current;
@@ -24,9 +27,24 @@ export function BrandSplash({ ready, onDone }: BrandSplashProps) {
   const dot = useRef(new Animated.Value(0)).current;
   const [width, setWidth] = useState<{ mise: number; space: number } | null>(null);
   const [played, setPlayed] = useState(false);
+  // 'full' on the very first launch, 'short' after that; null until the saved flag has been read.
+  const [mode, setMode] = useState<'full' | 'short' | null>(null);
 
   useEffect(() => {
-    if (!width) return undefined;
+    let live = true;
+    AsyncStorage.getItem(SEEN_KEY)
+      .then((v) => {
+        if (live) setMode(v === '1' ? 'short' : 'full');
+      })
+      .catch(() => live && setMode('short'));
+    AsyncStorage.setItem(SEEN_KEY, '1').catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!width || !mode) return undefined;
     let live = true;
     const run = async () => {
       const reduce = await AccessibilityInfo.isReduceMotionEnabled().catch(() => false);
@@ -37,6 +55,18 @@ export function BrandSplash({ ready, onDone }: BrandSplashProps) {
         spaceW.setValue(0);
         dot.setValue(1);
         setTimeout(() => live && setPlayed(true), 900);
+        return;
+      }
+      if (mode === 'short') {
+        miseW.setValue(0);
+        spaceW.setValue(0);
+        Animated.sequence([
+          Animated.timing(appear, { toValue: 1, duration: 260, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
+          Animated.spring(dot, { toValue: 1, friction: 6, tension: 220, useNativeDriver: false }),
+          Animated.delay(240),
+        ]).start(({ finished }) => {
+          if (finished && live) setPlayed(true);
+        });
         return;
       }
       Animated.sequence([
@@ -56,7 +86,7 @@ export function BrandSplash({ ready, onDone }: BrandSplashProps) {
     return () => {
       live = false;
     };
-  }, [width, appear, miseW, spaceW, dot]);
+  }, [width, mode, appear, miseW, spaceW, dot]);
 
   useEffect(() => {
     if (played && ready) {
