@@ -32,6 +32,17 @@ describe('cooked with another cook\'s recipe', () => {
     expect((await makePost(t, ama)).recipe).toBeNull();
   });
 
+  it('lists what people cooked with a recipe, newest first, leaving out private communities', async () => {
+    const [kemi, ama, tola] = [await register(t, { displayName: 'Kemi' }), await register(t, { displayName: 'Ama' }), await register(t, { displayName: 'Tola' })] as [Who, Who, Who];
+    const recipe = await createRecipe(t, kemi);
+    const first = await makePost(t, ama, { recipeId: recipe.id, title: 'Mine' });
+    const second = await makePost(t, tola, { recipeId: recipe.id, title: 'Tola dinner' });
+    await makePost(t, ama); // not about this recipe
+    const page = (await call(t, 'GET', `/v1/recipes/${recipe.id}/cooked`)).json<Page<Post>>();
+    expect(page.items.map((p) => p.id)).toEqual([second.id, first.id]);
+    expect(page.items.every((p) => p.recipe?.id === recipe.id)).toBe(true);
+  });
+
   it('tells the recipe writer, but not when they cook their own recipe', async () => {
     const [kemi, ama] = [await register(t, { displayName: 'Kemi' }), await register(t, { displayName: 'Ama' })] as [Who, Who];
     await call(t, 'PUT', '/v1/me/devices', kemi, { pushToken: token('kemi-phone'), platform: 'ios' });

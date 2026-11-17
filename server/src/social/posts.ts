@@ -14,7 +14,7 @@ import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
 import type { WriteGuard } from '../moderation/service';
 import type { UploadService } from '../uploads/service';
-import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank } from './forYou';
+import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank, spreadAuthors } from './forYou';
 
 const MAX_POSTS_PER_DAY = 20;
 const DAY_MS = 86_400_000;
@@ -126,6 +126,11 @@ export class PostService {
     return this.page({ authorId: target, ...(own ? {} : { status: 'PUBLISHED' }) }, viewer, limit, cursor);
   }
 
+  /** What people cooked with a recipe: the public posts that carry it, newest first (not from people the viewer has blocked). */
+  async byRecipe(recipeId: string, viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
+    return this.page({ recipeId, status: 'PUBLISHED', communityId: null, ...(viewer ? notBlocked(viewer.userId) : {}) }, viewer, limit, cursor);
+  }
+
   /** Posts from people you follow, and your own, newest first. */
   async followingFeed(viewer: Viewer, limit: number, cursor?: string): Promise<Page<Post>> {
     return this.page(
@@ -200,7 +205,8 @@ export class PostService {
       })),
       offset + limit,
     );
-    const pageIds = ranked.slice(offset, offset + limit);
+    const authorOf = new Map(rows.map((r) => [r.id, r.authorId]));
+    const pageIds = spreadAuthors(ranked, (id) => authorOf.get(id) ?? id).slice(offset, offset + limit);
     const byId = new Map(rows.map((r) => [r.id, r]));
     const items = await this.decorate(pageIds.map((id) => byId.get(id) as PostRow), viewer?.userId ?? null);
     // More to show when the candidates run past this page.

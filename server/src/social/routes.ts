@@ -77,6 +77,11 @@ export function socialRoutes(app: FastifyInstance, follows: FollowService, posts
     return posts.byUser(parse(idParam, request.params).id, await optionalViewer(request), n, cursor);
   });
 
+  app.get('/v1/recipes/:id/cooked', async (request) => {
+    const { limit: n, cursor } = parse(pageQuery, request.query);
+    return posts.byRecipe(parse(idParam, request.params).id, await optionalViewer(request), n, cursor);
+  });
+
   /* ---- feeds ---- */
 
   app.get('/v1/feed/following', async (request) => {

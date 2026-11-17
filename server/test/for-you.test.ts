@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { rankFeed, type FeedCandidate } from '@souschef/native';
+import { spreadAuthors } from '../src/social/forYou';
 import type { Page, Post } from '@shared';
 import { DAY_MS, makeApp, register, type TestApp } from './helpers';
 import { call, createRecipe } from './recipeHelpers';
@@ -144,5 +145,17 @@ describe('cursors', () => {
     for (const bad of ['', '!!!', Buffer.from('{}').toString('base64url'), Buffer.from('{"asOf":"2026-11-15","offset":1.5}').toString('base64url')]) {
       expect(decodeCursor(bad)).toBeNull();
     }
+  });
+});
+
+describe('spreading authors', () => {
+  const authorOf = (id: string) => id.split(':')[0] as string;
+  it('keeps the order but holds back a post whose author was just shown', () => {
+    expect(spreadAuthors(['a:1', 'a:2', 'a:3', 'b:1', 'c:1'], authorOf)).toEqual(['a:1', 'b:1', 'c:1', 'a:2', 'a:3']);
+  });
+  it('leaves a feed with no repeats alone, and a feed from one author as it was', () => {
+    expect(spreadAuthors(['a:1', 'b:1', 'c:1'], authorOf)).toEqual(['a:1', 'b:1', 'c:1']);
+    expect(spreadAuthors(['a:1', 'a:2', 'a:3'], authorOf)).toEqual(['a:1', 'a:2', 'a:3']);
+    expect(spreadAuthors([], authorOf)).toEqual([]);
   });
 });

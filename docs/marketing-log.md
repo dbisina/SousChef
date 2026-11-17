@@ -202,9 +202,9 @@ someone already imported costs nothing (it is cached).
 - **Build in public:** one honest engineering lesson per week (cost caps, tests, safety choices).
 
 # Build diary (newest first; append one line per shipped change)
-- 2026-11-17: Many more official accounts (32, each with 10+ real recipes and verified photos), so a new user's feed is never empty. Cook someone's recipe and share it: the post says "Cooked with <cook>'s <recipe>" and links back, and the recipe's writer gets a notification.
+- 2026-11-17: 32 official accounts are set up (recipes with verified photos are still being added to the new ones), so a new user's feed starts full. Cook someone's recipe and share it: the post says "Cooked with <cook>'s <recipe>" and links back, and the recipe's writer gets a notification.
 - 2026-11-17: Profile laid out the familiar way (photo on the left, posts / followers / following beside it, name and bio under, Edit and Share buttons), the same for everyone's profile.
-- 2026-11-17: "souschef" in a connected script on the home header, like the wordmark apps people already know. Reels are now **Spools** (a spool of film: the scrollable cooking videos).
+- 2026-11-17: The app is now **enplace** (always lowercase), with a connected-script wordmark on the home header and an opening animation ("mise en place" becomes "enplace"). Reels are now **Spools** (a spool of film: the scrollable cooking videos).
 - 2026-11-17: Restaurants and delivery are out for now (no delivery step in setup, no order screens, no grocery promo ad); pantry and the shopping list stay.
 - 2026-11-17: Cloudflare R2 holds the files and Cloudinary resizes the pictures for phones (smaller, faster images on mobile data).
 - 2026-11-15: Existing accounts keep working: sign in with Firebase as before and the server takes it from there (no password resets, no new accounts to make).

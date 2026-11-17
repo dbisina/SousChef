@@ -4,6 +4,7 @@ import type {
   CreateRecipeRequest,
   Page,
   MadePost,
+  Post as ApiPost,
   Recipe as ApiRecipe,
   RecipeComment as ApiRecipeComment,
   RateRecipeResponse,
@@ -193,9 +194,28 @@ export function toAppMadePost(p: MadePost): RecipeMadePost {
   };
 }
 
+/** A post that carries the recipe (shared from the cook screen) shown as one of the recipe's "I made this" photos. */
+export function postToMadePost(p: ApiPost): RecipeMadePost {
+  return {
+    id: p.id,
+    recipeId: p.recipeId ?? '',
+    authorId: p.author.id,
+    authorName: p.author.displayName,
+    ...(p.author.photoUrl ? { authorPhotoURL: p.author.photoUrl } : {}),
+    imageURL: p.photoUrl,
+    ...(p.caption ? { caption: p.caption } : {}),
+    likes: p.likeCount,
+    createdAt: Timestamp.fromDate(new Date(p.createdAt)),
+  };
+}
+
+/** Photos people added to the recipe plus the posts they shared after cooking it, newest first. */
 export async function apiMadePosts(recipeId: string): Promise<RecipeMadePost[]> {
-  const page = await api().get<Page<MadePost>>(`/v1/recipes/${recipeId}/made`, { query: { limit: 20 } });
-  return page.items.map(toAppMadePost);
+  const [made, cooked] = await Promise.all([
+    api().get<Page<MadePost>>(`/v1/recipes/${recipeId}/made`, { query: { limit: 20 } }),
+    api().get<Page<ApiPost>>(`/v1/recipes/${recipeId}/cooked`, { query: { limit: 20 } }).catch(() => ({ items: [] as ApiPost[] })),
+  ]);
+  return [...made.items.map(toAppMadePost), ...cooked.items.map(postToMadePost)].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
 }
 
 /** Uploads the photo from the phone, then adds it to the recipe's "I made this" photos. */

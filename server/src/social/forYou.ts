@@ -35,3 +35,19 @@ export const AFFINITY = { followed: 1, engaged: 0.5, self: 0.3, stranger: 0 } as
 export function rank(candidates: FeedCandidate[], want: number): string[] {
   return rankFeed(candidates, want);
 }
+
+/**
+ * Keeps one account from filling a stretch of the feed: the same order, but a post is held back while its author is one of
+ * the last two shown (and used as it comes round again, or when nothing else is left). Many posts from one account in a
+ * row would otherwise push everything else out of the first screen.
+ */
+export function spreadAuthors(ids: string[], authorOf: (id: string) => string): string[] {
+  const left = [...ids];
+  const out: string[] = [];
+  while (left.length > 0) {
+    const recent = new Set(out.slice(-2).map(authorOf));
+    const at = left.findIndex((id) => !recent.has(authorOf(id)));
+    out.push(left.splice(at === -1 ? 0 : at, 1)[0] as string);
+  }
+  return out;
+}
