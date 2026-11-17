@@ -5,8 +5,10 @@ const DAY_MS = 86_400_000;
 /** A person's likes fade: what they did three weeks ago counts half as much as what they did today. */
 const HALF_LIFE_DAYS = 21;
 const LOOKBACK_DAYS = 90;
-/** The profile is rebuilt when it is older than this, the next time the feed is asked for. */
+/** The profile is rebuilt when it is older than this, whatever happened. */
 const STALE_MS = 30 * 60_000;
+/** Inside this the saved profile is used as it is; after it, the profile is rebuilt as soon as the person has done something new. */
+const SETTLE_MS = 60_000;
 const PROFILE_TRAITS = 80;
 const RECENT = 200;
 const ITEM_TTL_MS = 10 * 60_000;
@@ -106,8 +108,27 @@ export class TasteService {
     const user = await this.db.user.findUnique({ where: { id: userId }, select: { feedPersonalised: true } });
     if (!user?.feedPersonalised) return null;
     const saved = await this.db.tasteProfile.findUnique({ where: { userId } });
-    if (saved && this.now().getTime() - saved.updatedAt.getTime() < STALE_MS) return { vector: saved.vector as Vec, signals: saved.signals };
+    if (saved) {
+      const age = this.now().getTime() - saved.updatedAt.getTime();
+      const current = { vector: saved.vector as Vec, signals: saved.signals };
+      if (age < SETTLE_MS) return current;
+      if (age < STALE_MS && !(await this.hasNewSignals(userId, saved.updatedAt))) return current;
+    }
     return this.refresh(userId);
+  }
+
+  /** Whether the person has liked, saved, cooked, rated or hidden anything since the profile was built (a few cheap counts). */
+  private async hasNewSignals(userId: string, since: Date): Promise<boolean> {
+    const after = { gt: since };
+    const counts = await Promise.all([
+      this.db.feedEvent.count({ where: { userId, createdAt: after, kind: { not: 'impression' } } }),
+      this.db.recipeSave.count({ where: { userId, createdAt: after } }),
+      this.db.recipeLike.count({ where: { userId, createdAt: after } }),
+      this.db.recipeRating.count({ where: { userId, updatedAt: after } }),
+      this.db.recipeMadePost.count({ where: { authorId: userId, createdAt: after } }),
+      this.db.post.count({ where: { authorId: userId, kind: 'made-this', recipeId: { not: null }, createdAt: after } }),
+    ]);
+    return counts.some((n) => n > 0);
   }
 
   /** Builds the profile from everything the person has done in the last 90 days and stores it. */

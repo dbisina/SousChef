@@ -108,6 +108,28 @@ describe('learning one person\'s taste', () => {
     expect(faded.signals).toBe(mine.signals);
   });
 
+  it('keeps a fresh profile for a minute, then picks up something new as soon as it is asked again, and otherwise leaves it alone', async () => {
+    const [chef, ama] = [await register(t), await register(t)] as [Who, Who];
+    const green = await createRecipe(t, chef, { ...thai, ingredients: [...thai.ingredients] });
+    let clock = Date.now();
+    const taste = new TasteService(t.db, () => new Date(clock));
+    expect((await taste.taste(ama.user.id))?.signals).toBe(0); // built now, from nothing
+    await call(t, 'PUT', `/v1/recipes/${green.id}/save`, ama);
+
+    clock += 30_000; // inside the minute: the saved profile is used as it is
+    expect((await taste.taste(ama.user.id))?.signals).toBe(0);
+    clock += 60_000; // after it, the new save is noticed straight away
+    expect((await taste.taste(ama.user.id))?.signals).toBe(1);
+
+    const builtAt = (await t.db.tasteProfile.findUniqueOrThrow({ where: { userId: ama.user.id } })).updatedAt.getTime();
+    clock += 5 * 60_000; // nothing new since: not rebuilt
+    await taste.taste(ama.user.id);
+    expect((await t.db.tasteProfile.findUniqueOrThrow({ where: { userId: ama.user.id } })).updatedAt.getTime()).toBe(builtAt);
+    clock += 40 * 60_000; // but never kept past half an hour
+    await taste.taste(ama.user.id);
+    expect((await t.db.tasteProfile.findUniqueOrThrow({ where: { userId: ama.user.id } })).updatedAt.getTime()).toBeGreaterThan(builtAt);
+  });
+
   it('builds nothing for someone who turned personalisation off', async () => {
     const [chef, ama] = [await register(t), await register(t)] as [Who, Who];
     const green = await createRecipe(t, chef, { ...thai, ingredients: [...thai.ingredients] });
