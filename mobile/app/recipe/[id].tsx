@@ -78,7 +78,7 @@ export default function RecipeDetailScreen() {
     if (!recipe) return;
     try {
       await Share.share({
-        message: `Check out this recipe: ${recipe.title}\n\nFrom SousChef App`,
+        message: `Check out this recipe: ${recipe.title}\n\nFrom enplace App`,
       });
     } catch (e) {
       console.error(e);

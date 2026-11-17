@@ -6,7 +6,7 @@ export default function PrivacyPolicyScreen() {
   return (
     <LegalLayout active="privacy" updated="February 2026">
       <Muted>
-        At SousChef, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use,
+        At enplace, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use,
         and safeguard your information when you use our mobile application.
       </Muted>
 
@@ -90,7 +90,7 @@ export default function PrivacyPolicyScreen() {
       </LegalSection>
 
       <LegalSection title="8. Children's Privacy">
-        SousChef is not intended for children under 13. We do not knowingly collect information from children under
+        enplace is not intended for children under 13. We do not knowingly collect information from children under
         13. If you believe we have collected such information, please contact us immediately.
       </LegalSection>
 

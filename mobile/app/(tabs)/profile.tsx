@@ -117,7 +117,7 @@ export default function ProfileScreen() {
     { id: 'voice', icon: 'mic', label: t('account.profile.voice', 'Voice Commands'), route: '/settings/voice' },
     { id: 'appearance', icon: 'moon', label: t('account.profile.appearance', 'Appearance'), route: '/settings/appearance' },
     { id: 'help', icon: 'help', label: t('account.profile.help', 'Help center'), route: '/settings/help' },
-    { id: 'advertise', icon: 'store', label: t('account.profile.advertise', 'Advertise on SousChef'), route: '/settings/advertise' },
+    { id: 'advertise', icon: 'store', label: t('account.profile.advertise', 'Advertise on enplace'), route: '/settings/advertise' },
     { id: 'terms', icon: 'book', label: t('account.profile.legal', 'Terms and privacy'), route: '/settings/terms' },
   ];
 
@@ -278,7 +278,7 @@ export default function ProfileScreen() {
           />
 
           <Muted small center>
-            SousChef v1.0.0
+            enplace v1.0.0
           </Muted>
         </View>
       </ScrollView>

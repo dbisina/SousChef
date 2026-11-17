@@ -246,7 +246,7 @@ export const Paywall: React.FC<PaywallProps> = ({
               {t('account.paywall.line2', 'limits')}
             </H1>
             {feature ? (
-              <Muted>{t('account.paywall.unlock', 'Unlock {{feature}} and get the most out of SousChef', { feature })}</Muted>
+              <Muted>{t('account.paywall.unlock', 'Unlock {{feature}} and get the most out of enplace', { feature })}</Muted>
             ) : null}
           </View>
 

@@ -21,7 +21,7 @@ const DAY_MS = 86_400_000;
 /** SousChef's own ad, shown when no campaign is running. Never counted. */
 export const FALLBACK_AD: PublicAd = {
   id: 'fallback',
-  advertiserName: 'SousChef',
+  advertiserName: 'enplace',
   advertiserLogoUrl: null,
   title: 'Import any recipe video',
   subtitle: 'Paste a TikTok, Instagram or YouTube link and cook it step by step.',

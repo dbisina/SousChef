@@ -32,8 +32,8 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAd
         <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
       </View>
       <View pointerEvents="none" style={{ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' }}>
-        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" accessibilityLabel="SousChef" style={{ fontFamily: FONT.script, fontSize: 30, lineHeight: 40, letterSpacing: 0, includeFontPadding: false }}>
-          souschef
+        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" accessibilityLabel="enplace" style={{ fontFamily: FONT.script, fontSize: 30, lineHeight: 40, letterSpacing: 0, includeFontPadding: false }}>
+          enplace
         </RNText>
       </View>
       <View className="flex-row items-center" style={{ gap: 6 }}>

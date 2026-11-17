@@ -36,7 +36,7 @@ export default function CookbookDetailScreen() {
     if (!cookbook) return;
     try {
       await Share.share({
-        message: t('cookbooks.curated.shareMessage', 'Check out this cookbook: {{title}}\n\nFrom SousChef App', {
+        message: t('cookbooks.curated.shareMessage', 'Check out this cookbook: {{title}}\n\nFrom enplace App', {
           title: cookbook.title,
         }),
       });

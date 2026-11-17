@@ -167,7 +167,7 @@ export default function NotificationsScreen() {
               </Text>
               <Muted small>
                 {settings.pushEnabled
-                  ?t('account.notif.pushBody', 'Allow SousChef to send alerts')
+                  ?t('account.notif.pushBody', 'Allow enplace to send alerts')
                   : t('account.notif.tapToEnable', 'Tap to enable')}
               </Muted>
             </View>

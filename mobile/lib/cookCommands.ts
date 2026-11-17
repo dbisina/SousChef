@@ -26,6 +26,7 @@ const clean = (text: string): string =>
   text
     .toLowerCase()
     .replace(/\b(hey|ok|okay)?\s*(sous|sue|sew)\s*(chef|chief|shef)\b[,.!?]?/g, ' ')
+    .replace(/\b(hey|ok|okay)?\s*(en|on|in)\s*(place|plays|plaice)\b[,.!?]?/g, ' ')
     .replace(/[.,!?]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

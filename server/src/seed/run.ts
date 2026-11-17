@@ -57,8 +57,12 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
   // 1. Official accounts
   const houseIds = new Map<HouseKey, string>();
   for (const [key, def] of Object.entries(HOUSES)) {
-    const found = await db.user.findFirst({ where: { handle: def.handle, kind: 'HOUSE' }, select: { id: true } });
+    const found = await db.user.findFirst({ where: { handle: { in: [def.handle, def.legacyHandle] }, kind: 'HOUSE' }, select: { id: true, handle: true, displayName: true, bio: true } });
     if (found) {
+      // An account made under the old name is renamed in place (same id, so followers and posts stay).
+      if (!dry && (found.handle !== def.handle || found.displayName !== def.displayName || found.bio !== def.bio)) {
+        await db.user.update({ where: { id: found.id }, data: { handle: def.handle, displayName: def.displayName, bio: def.bio } });
+      }
       houseIds.set(key, found.id);
       report.houses.existing++;
       continue;

@@ -4,11 +4,11 @@ import { LegalLayout, LegalSection } from '@/components/subscription/LegalLayout
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: '1. Acceptance of Terms',
-    body: 'By accessing or using SousChef, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our application.',
+    body: 'By accessing or using enplace, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our application.',
   },
   {
     title: '2. Description of Service',
-    body: 'SousChef is a mobile application that provides recipe management, meal planning, AI-powered cooking assistance, and related features. We reserve the right to modify, suspend, or discontinue any aspect of the service at any time.',
+    body: 'enplace is a mobile application that provides recipe management, meal planning, AI-powered cooking assistance, and related features. We reserve the right to modify, suspend, or discontinue any aspect of the service at any time.',
   },
   {
     title: '3. User Accounts',
@@ -16,7 +16,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '4. User Content',
-    body: 'You retain ownership of content you create, including recipes and photos. By posting content, you grant SousChef a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content within the application.',
+    body: 'You retain ownership of content you create, including recipes and photos. By posting content, you grant enplace a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content within the application.',
   },
   {
     title: '5. Subscription and Payments',
@@ -32,15 +32,15 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '8. Intellectual Property',
-    body: 'SousChef and its original content, features, and functionality are owned by SousChef and are protected by international copyright, trademark, and other intellectual property laws.',
+    body: 'enplace and its original content, features, and functionality are owned by enplace and are protected by international copyright, trademark, and other intellectual property laws.',
   },
   {
     title: '9. Limitation of Liability',
-    body: 'SousChef shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service. Our liability is limited to the amount you paid for the service in the past 12 months.',
+    body: 'enplace shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service. Our liability is limited to the amount you paid for the service in the past 12 months.',
   },
   {
     title: '10. Indemnification',
-    body: 'You agree to indemnify and hold SousChef harmless from any claims, damages, or expenses arising from your use of the service or violation of these terms.',
+    body: 'You agree to indemnify and hold enplace harmless from any claims, damages, or expenses arising from your use of the service or violation of these terms.',
   },
   {
     title: '11. Termination',

@@ -13,7 +13,7 @@ import { cleanCopy } from '@/lib/text';
 /**
  * AdMob-style banner ad component.
  *
- * Currently renders a native sponsored banner powered by the SousChef ad service.
+ * Currently renders a native sponsored banner powered by the enplace ad service.
  * When you're ready to integrate real AdMob (requires a custom dev build):
  *   1. `npm install react-native-google-mobile-ads`
  *   2. Add the plugin back to app.json

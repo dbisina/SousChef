@@ -114,7 +114,7 @@ export default function AdvertiseScreen() {
           <Muted center>
             {t(
               'account.advertise.sentBody',
-              "Thanks for your interest in advertising on SousChef. We'll review your inquiry and get back to you within 48 hours."
+              "Thanks for your interest in advertising on enplace. We'll review your inquiry and get back to you within 48 hours."
             )}
           </Muted>
         </View>

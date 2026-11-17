@@ -420,7 +420,7 @@ export class RecipeService {
 
   private requireAdminForFlags(viewer: Viewer, input: { isOfficial?: boolean | undefined; isExclusive?: boolean | undefined }): void {
     if ((input.isOfficial || input.isExclusive) && viewer.role !== 'admin') {
-      throw errors.forbidden('Only SousChef staff can mark a recipe official or exclusive');
+      throw errors.forbidden('Only enplace staff can mark a recipe official or exclusive');
     }
   }
 }

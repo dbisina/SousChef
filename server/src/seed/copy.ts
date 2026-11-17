@@ -6,21 +6,21 @@ import moreHouses from '../../seed/houses.json';
 /** Which official account owns a dish: the key of an entry in HOUSES. */
 export type HouseKey = string;
 
-const ORIGINAL_HOUSES: Record<string, { handle: string; displayName: string; bio: string }> = {
-  kitchen: { handle: 'souschef_kitchen', displayName: 'SousChef Kitchen', bio: 'Everyday dinners made properly. An official SousChef account.' },
-  baking: { handle: 'souschef_baking', displayName: 'SousChef Baking', bio: 'Cakes, bakes and breakfasts that work first time. An official SousChef account.' },
-  quick: { handle: 'souschef_quick', displayName: 'SousChef Quick Meals', bio: 'Good food in 30 minutes or less. An official SousChef account.' },
-  vegan: { handle: 'souschef_green', displayName: 'SousChef Green', bio: 'Plant-based cooking that never feels like a compromise. An official SousChef account.' },
-  street: { handle: 'souschef_street', displayName: 'SousChef Street Food', bio: 'Classics from the world’s markets and street stalls, made at home. An official SousChef account.' },
-  healthy: { handle: 'souschef_healthy', displayName: 'SousChef Healthy', bio: 'Balanced, easy and full of flavour. An official SousChef account.' },
-  family: { handle: 'souschef_family', displayName: 'SousChef Family Table', bio: 'Comfort food the whole table will eat. An official SousChef account.' },
-  desserts: { handle: 'souschef_sweet', displayName: 'SousChef Desserts', bio: 'Puddings, pastries and sweet endings. An official SousChef account.' },
+const ORIGINAL_HOUSES: Record<string, { handle: string; legacyHandle: string; displayName: string; bio: string }> = {
+  kitchen: { handle: 'enplace_kitchen', legacyHandle: 'souschef_kitchen', displayName: 'enplace Kitchen', bio: 'Everyday dinners made properly. An official enplace account.' },
+  baking: { handle: 'enplace_baking', legacyHandle: 'souschef_baking', displayName: 'enplace Baking', bio: 'Cakes, bakes and breakfasts that work first time. An official enplace account.' },
+  quick: { handle: 'enplace_quick', legacyHandle: 'souschef_quick', displayName: 'enplace Quick Meals', bio: 'Good food in 30 minutes or less. An official enplace account.' },
+  vegan: { handle: 'enplace_vegan', legacyHandle: 'souschef_green', displayName: 'enplace Green', bio: 'Plant-based cooking that never feels like a compromise. An official enplace account.' },
+  street: { handle: 'enplace_street', legacyHandle: 'souschef_street', displayName: 'enplace Street Food', bio: 'Classics from the world’s markets and street stalls, made at home. An official enplace account.' },
+  healthy: { handle: 'enplace_healthy', legacyHandle: 'souschef_healthy', displayName: 'enplace Healthy', bio: 'Balanced, easy and full of flavour. An official enplace account.' },
+  family: { handle: 'enplace_family', legacyHandle: 'souschef_family', displayName: 'enplace Family Table', bio: 'Comfort food the whole table will eat. An official enplace account.' },
+  desserts: { handle: 'enplace_desserts', legacyHandle: 'souschef_sweet', displayName: 'enplace Desserts', bio: 'Puddings, pastries and sweet endings. An official enplace account.' },
 };
 
-/** The eight first accounts above (their handles never change) plus the themed accounts in seed/houses.json. */
-export const HOUSES: Record<HouseKey, { handle: string; displayName: string; bio: string }> = {
+/** The eight first accounts above (their old souschef_ handles are renamed in place by the seed) plus the themed accounts in seed/houses.json. */
+export const HOUSES: Record<HouseKey, { handle: string; legacyHandle: string; displayName: string; bio: string }> = {
   ...ORIGINAL_HOUSES,
-  ...Object.fromEntries((moreHouses as { key: string; handle: string; displayName: string; bio: string }[]).map((h) => [h.key, { handle: h.handle, displayName: h.displayName, bio: h.bio }])),
+  ...Object.fromEntries((moreHouses as { key: string; handle: string; legacyHandle: string; displayName: string; bio: string }[]).map((h) => [h.key, { handle: h.handle, legacyHandle: h.legacyHandle, displayName: h.displayName, bio: h.bio }])),
 };
 
 /** What each official account says about a recipe it shares (by recipe title). */

@@ -147,7 +147,7 @@ export default function OnboardingScreen() {
       l2: t('welcome.s1.line2', 'from anywhere'),
       body: t(
         'welcome.s1.body',
-        'Paste a link or snap a cookbook page. SousChef turns it into ingredients, steps and timers.'
+        'Paste a link or snap a cookbook page. enplace turns it into ingredients, steps and timers.'
       ),
     },
     {
@@ -248,7 +248,7 @@ export default function OnboardingScreen() {
               accessibilityLabel=""
               style={{ width: 38, height: 38, borderRadius: 12 }}
             />
-            <RNText style={{ fontFamily: FONT.display, fontSize: 18, color: FIXED.paper }}>SousChef</RNText>
+            <RNText style={{ fontFamily: FONT.display, fontSize: 18, color: FIXED.paper }}>enplace</RNText>
           </View>
         ) : (
           <UIconButton

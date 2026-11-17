@@ -37,7 +37,7 @@ const pick = async (placement = 'home_feed') => (await call(t, 'GET', `/v1/ads?p
 describe('choosing the ad to show', () => {
   it('shows SousChef\'s own ad when no campaign is running', async () => {
     const ad = await pick();
-    expect(ad).toMatchObject({ id: 'fallback', isFallback: true, advertiserName: 'SousChef' });
+    expect(ad).toMatchObject({ id: 'fallback', isFallback: true, advertiserName: 'enplace' });
     expect((await call(t, 'GET', '/v1/ads?placement=nowhere')).statusCode).toBe(400);
     expect((await call(t, 'GET', '/v1/ads')).statusCode).toBe(400);
   });

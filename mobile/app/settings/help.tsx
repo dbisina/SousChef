@@ -32,7 +32,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How do voice commands work?',
-    a: 'In cooking mode, tap the microphone icon or enable hands-free mode. Say "SousChef" followed by commands like "next step" or "read ingredients".',
+    a: 'In cooking mode, tap the microphone icon or enable hands-free mode. Say "enplace" followed by commands like "next step" or "read ingredients".',
   },
   {
     q: "What's included in Premium?",

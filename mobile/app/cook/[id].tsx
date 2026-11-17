@@ -512,7 +512,7 @@ export default function CookingModeScreen() {
                       </Text>
                       <Muted small>
                         {isWakeWordMode
-                          ? t('cooking.sayWake', 'Say “SousChef” followed by a command')
+                          ? t('cooking.sayWake', 'Say “enplace” followed by a command')
                           : t('cooking.enableHandsFree', 'Enable hands-free or tap the mic to use voice')}
                       </Muted>
                     </View>
@@ -525,7 +525,7 @@ export default function CookingModeScreen() {
                   {isWakeWordListening ? (
                     <View className="flex-row items-center" style={{ gap: 8, marginTop: 12 }}>
                       <Dot />
-                      <Muted small>{t('cooking.listeningForWake', 'Listening for “SousChef”...')}</Muted>
+                      <Muted small>{t('cooking.listeningForWake', 'Listening for “enplace”...')}</Muted>
                     </View>
                   ) : null}
                 </UCard>
@@ -774,7 +774,7 @@ export default function CookingModeScreen() {
                   {geminiLive.lastResponse ? (
                     <UCard>
                       <View style={{ gap: 6 }}>
-                        <SectionLabel>{t('cooking.souschefAI', 'SousChef AI')}</SectionLabel>
+                        <SectionLabel>{t('cooking.souschefAI', 'enplace AI')}</SectionLabel>
                         <Text className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
                           {geminiLive.lastResponse}
                         </Text>
@@ -826,7 +826,7 @@ export default function CookingModeScreen() {
                     </View>
                     <Muted>
                       {isWakeWordMode
-                        ? t('cooking.sayWakeNext', 'Say “SousChef, next step”')
+                        ? t('cooking.sayWakeNext', 'Say “enplace, next step”')
                         : t('cooking.sayNext', 'Say “Next step”')}
                     </Muted>
                   </Pressable>

@@ -1,146 +1,170 @@
 [
   {
     "key": "italian",
-    "handle": "souschef_italian",
-    "displayName": "SousChef Italian",
-    "bio": "Nonna-style Italian cooking, from pasta to pizza. An official SousChef account."
+    "handle": "enplace_italian",
+    "displayName": "enplace Italian",
+    "bio": "Nonna-style Italian cooking, from pasta to pizza. An official enplace account.",
+    "legacyHandle": "souschef_italian"
   },
   {
     "key": "nigerian",
-    "handle": "souschef_nigerian",
-    "displayName": "SousChef Nigerian Kitchen",
-    "bio": "Proper Nigerian home cooking: stews, soups, rice and street snacks. An official SousChef account."
+    "handle": "enplace_nigerian",
+    "displayName": "enplace Nigerian Kitchen",
+    "bio": "Proper Nigerian home cooking: stews, soups, rice and street snacks. An official enplace account.",
+    "legacyHandle": "souschef_nigerian"
   },
   {
     "key": "mexican",
-    "handle": "souschef_mexican",
-    "displayName": "SousChef Mexican",
-    "bio": "Tacos, salsas and slow-cooked classics from across Mexico. An official SousChef account."
+    "handle": "enplace_mexican",
+    "displayName": "enplace Mexican",
+    "bio": "Tacos, salsas and slow-cooked classics from across Mexico. An official enplace account.",
+    "legacyHandle": "souschef_mexican"
   },
   {
     "key": "thai",
-    "handle": "souschef_thai",
-    "displayName": "SousChef Thai",
-    "bio": "Sweet, sour, salty and hot: Thai home cooking. An official SousChef account."
+    "handle": "enplace_thai",
+    "displayName": "enplace Thai",
+    "bio": "Sweet, sour, salty and hot: Thai home cooking. An official enplace account.",
+    "legacyHandle": "souschef_thai"
   },
   {
     "key": "indian",
-    "handle": "souschef_indian",
-    "displayName": "SousChef Indian",
-    "bio": "Curries, breads and snacks from every corner of India. An official SousChef account."
+    "handle": "enplace_indian",
+    "displayName": "enplace Indian",
+    "bio": "Curries, breads and snacks from every corner of India. An official enplace account.",
+    "legacyHandle": "souschef_indian"
   },
   {
     "key": "japanese",
-    "handle": "souschef_japanese",
-    "displayName": "SousChef Japanese",
-    "bio": "Everyday Japanese food: ramen, rice bowls, tempura and more. An official SousChef account."
+    "handle": "enplace_japanese",
+    "displayName": "enplace Japanese",
+    "bio": "Everyday Japanese food: ramen, rice bowls, tempura and more. An official enplace account.",
+    "legacyHandle": "souschef_japanese"
   },
   {
     "key": "korean",
-    "handle": "souschef_korean",
-    "displayName": "SousChef Korean",
-    "bio": "Bold, fermented and fiery: Korean favourites at home. An official SousChef account."
+    "handle": "enplace_korean",
+    "displayName": "enplace Korean",
+    "bio": "Bold, fermented and fiery: Korean favourites at home. An official enplace account.",
+    "legacyHandle": "souschef_korean"
   },
   {
     "key": "lebanese",
-    "handle": "souschef_lebanese",
-    "displayName": "SousChef Levant",
-    "bio": "Mezze, grills and sweets from Lebanon and the wider Levant. An official SousChef account."
+    "handle": "enplace_lebanese",
+    "displayName": "enplace Levant",
+    "bio": "Mezze, grills and sweets from Lebanon and the wider Levant. An official enplace account.",
+    "legacyHandle": "souschef_lebanese"
   },
   {
     "key": "french",
-    "handle": "souschef_french",
-    "displayName": "SousChef French",
-    "bio": "Bistro classics and patisserie, simplified. An official SousChef account."
+    "handle": "enplace_french",
+    "displayName": "enplace French",
+    "bio": "Bistro classics and patisserie, simplified. An official enplace account.",
+    "legacyHandle": "souschef_french"
   },
   {
     "key": "ethiopian",
-    "handle": "souschef_ethiopian",
-    "displayName": "SousChef Ethiopian",
-    "bio": "Stews, injera and spice blends from Ethiopia and Eritrea. An official SousChef account."
+    "handle": "enplace_ethiopian",
+    "displayName": "enplace Ethiopian",
+    "bio": "Stews, injera and spice blends from Ethiopia and Eritrea. An official enplace account.",
+    "legacyHandle": "souschef_ethiopian"
   },
   {
     "key": "bread",
-    "handle": "souschef_bread",
-    "displayName": "SousChef Bread",
-    "bio": "Loaves, flatbreads and rolls with real crumb. An official SousChef account."
+    "handle": "enplace_bread",
+    "displayName": "enplace Bread",
+    "bio": "Loaves, flatbreads and rolls with real crumb. An official enplace account.",
+    "legacyHandle": "souschef_bread"
   },
   {
     "key": "grill",
-    "handle": "souschef_grill",
-    "displayName": "SousChef Grill",
-    "bio": "BBQ, skewers and smoke: fire-cooked favourites. An official SousChef account."
+    "handle": "enplace_grill",
+    "displayName": "enplace Grill",
+    "bio": "BBQ, skewers and smoke: fire-cooked favourites. An official enplace account.",
+    "legacyHandle": "souschef_grill"
   },
   {
     "key": "soups",
-    "handle": "souschef_soups",
-    "displayName": "SousChef Soups",
-    "bio": "Bowls for every season: brothy, creamy and hearty. An official SousChef account."
+    "handle": "enplace_soups",
+    "displayName": "enplace Soups",
+    "bio": "Bowls for every season: brothy, creamy and hearty. An official enplace account.",
+    "legacyHandle": "souschef_soups"
   },
   {
     "key": "salads",
-    "handle": "souschef_salads",
-    "displayName": "SousChef Salads",
-    "bio": "Fresh, filling salads that are more than leaves. An official SousChef account."
+    "handle": "enplace_salads",
+    "displayName": "enplace Salads",
+    "bio": "Fresh, filling salads that are more than leaves. An official enplace account.",
+    "legacyHandle": "souschef_salads"
   },
   {
     "key": "breakfast",
-    "handle": "souschef_breakfast",
-    "displayName": "SousChef Breakfast",
-    "bio": "Start the day properly: eggs, griddle and granola. An official SousChef account."
+    "handle": "enplace_breakfast",
+    "displayName": "enplace Breakfast",
+    "bio": "Start the day properly: eggs, griddle and granola. An official enplace account.",
+    "legacyHandle": "souschef_breakfast"
   },
   {
     "key": "mealprep",
-    "handle": "souschef_mealprep",
-    "displayName": "SousChef Meal Prep",
-    "bio": "Cook once, eat all week: batch-friendly recipes. An official SousChef account."
+    "handle": "enplace_mealprep",
+    "displayName": "enplace Meal Prep",
+    "bio": "Cook once, eat all week: batch-friendly recipes. An official enplace account.",
+    "legacyHandle": "souschef_mealprep"
   },
   {
     "key": "budget",
-    "handle": "souschef_budget",
-    "displayName": "SousChef Budget",
-    "bio": "Good meals that cost very little. An official SousChef account."
+    "handle": "enplace_budget",
+    "displayName": "enplace Budget",
+    "bio": "Good meals that cost very little. An official enplace account.",
+    "legacyHandle": "souschef_budget"
   },
   {
     "key": "vegetarian",
-    "handle": "souschef_vegetarian",
-    "displayName": "SousChef Vegetarian",
-    "bio": "Meat-free meals that are satisfying in their own right. An official SousChef account."
+    "handle": "enplace_vegetarian",
+    "displayName": "enplace Vegetarian",
+    "bio": "Meat-free meals that are satisfying in their own right. An official enplace account.",
+    "legacyHandle": "souschef_vegetarian"
   },
   {
     "key": "seafood",
-    "handle": "souschef_seafood",
-    "displayName": "SousChef Seafood",
-    "bio": "Fish and shellfish, cooked simply and well. An official SousChef account."
+    "handle": "enplace_seafood",
+    "displayName": "enplace Seafood",
+    "bio": "Fish and shellfish, cooked simply and well. An official enplace account.",
+    "legacyHandle": "souschef_seafood"
   },
   {
     "key": "slowcooker",
-    "handle": "souschef_slowcooker",
-    "displayName": "SousChef Slow Cooker",
-    "bio": "Set it, forget it, come home to dinner. An official SousChef account."
+    "handle": "enplace_slowcooker",
+    "displayName": "enplace Slow Cooker",
+    "bio": "Set it, forget it, come home to dinner. An official enplace account.",
+    "legacyHandle": "souschef_slowcooker"
   },
   {
     "key": "airfryer",
-    "handle": "souschef_airfryer",
-    "displayName": "SousChef Air Fryer",
-    "bio": "Crisp results with a fraction of the oil. An official SousChef account."
+    "handle": "enplace_airfryer",
+    "displayName": "enplace Air Fryer",
+    "bio": "Crisp results with a fraction of the oil. An official enplace account.",
+    "legacyHandle": "souschef_airfryer"
   },
   {
     "key": "kids",
-    "handle": "souschef_kids",
-    "displayName": "SousChef Kids",
-    "bio": "Food children actually eat, with hidden vegetables. An official SousChef account."
+    "handle": "enplace_kids",
+    "displayName": "enplace Kids",
+    "bio": "Food children actually eat, with hidden vegetables. An official enplace account.",
+    "legacyHandle": "souschef_kids"
   },
   {
     "key": "sauces",
-    "handle": "souschef_sauces",
-    "displayName": "SousChef Sauces",
-    "bio": "Stocks, dressings and sauces that lift everything. An official SousChef account."
+    "handle": "enplace_sauces",
+    "displayName": "enplace Sauces",
+    "bio": "Stocks, dressings and sauces that lift everything. An official enplace account.",
+    "legacyHandle": "souschef_sauces"
   },
   {
     "key": "onepot",
-    "handle": "souschef_onepot",
-    "displayName": "SousChef One Pot",
-    "bio": "One pan, one pot, very little washing up. An official SousChef account."
+    "handle": "enplace_onepot",
+    "displayName": "enplace One Pot",
+    "bio": "One pan, one pot, very little washing up. An official enplace account.",
+    "legacyHandle": "souschef_onepot"
   }
 ]

@@ -59,7 +59,7 @@ function buildSystemPrompt(context: AppContext): string {
     : '';
 
   const parts: string[] = [
-    `You are SousChef AI, an intelligent cooking assistant embedded in a recipe app.`,
+    `You are enplace AI, an intelligent cooking assistant embedded in a recipe app.`,
     `You help users cook, manage their pantry, plan meals, and achieve health goals.`,
     `Respond conversationally but concisely. When an action is needed, include it in your JSON response.`,
     langInstruction,

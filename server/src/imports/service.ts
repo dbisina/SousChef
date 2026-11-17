@@ -178,7 +178,7 @@ export class ImportService {
     if (!recipe) throw errors.validation({ query: 'We could not find a recipe for that. Try a dish name or paste a link' });
     const target: Target = { platform: 'website', key: `query:${createHash('sha1').update(query.toLowerCase()).digest('hex').slice(0, 24)}`, url: link, videoId: null };
     const row = await this.finish(userId, target, recipe);
-    return this.result(row.id, 'done', 'website', recipe, false, 'Written by SousChef AI: no confirmed recipe page was found');
+    return this.result(row.id, 'done', 'website', recipe, false, 'Written by enplace AI: no confirmed recipe page was found');
   }
 
   /** Finishes an import that needed frames: the AI reads the recipe from the pictures. The frames are deleted afterwards. */

@@ -71,7 +71,7 @@ export default function SubscriptionScreen() {
       const result = await presentPaywall();
       if (result.status === 'purchased' || result.status === 'restored') {
         showSuccessToast(
-          t('account.sub.welcomeAboard', "Welcome aboard! Thank you for subscribing to SousChef. We're so excited to have you!"),
+          t('account.sub.welcomeAboard', "Welcome aboard! Thank you for subscribing to enplace. We're so excited to have you!"),
           t('account.sub.successTitle', 'Success!')
         );
       }
@@ -210,7 +210,7 @@ export default function SubscriptionScreen() {
         <UCard tone="black" style={{ gap: 8, borderRadius: 30, padding: 20 }}>
           <SectionLabel>{t('account.sub.currentPlan', 'Current plan')}</SectionLabel>
           <View className="flex-row items-center" style={{ gap: 10 }}>
-            <Display size={32} style={{ lineHeight: 46.4 }}>{subscriptionTier === 'free' ? t('account.sub.freePlan', 'SousChef Free') : tierName}</Display>
+            <Display size={32} style={{ lineHeight: 46.4 }}>{subscriptionTier === 'free' ? t('account.sub.freePlan', 'enplace Free') : tierName}</Display>
             {isSubscribed ? <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} /> : null}
           </View>
           <Muted small>{planNote}</Muted>

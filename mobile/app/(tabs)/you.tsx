@@ -184,7 +184,7 @@ export default function YouScreen() {
                 <UButton size="sm" variant="ghost" label={t('you.editProfile', 'Edit profile')} onPress={() => go('/settings/edit-profile')} />
               </View>
               <View style={{ flex: 1 }}>
-                <UButton size="sm" variant="ghost" label={t('you.shareProfile', 'Share profile')} onPress={() => shareText(`${name} on SousChef`)} />
+                <UButton size="sm" variant="ghost" label={t('you.shareProfile', 'Share profile')} onPress={() => shareText(`${name} on enplace`)} />
               </View>
             </>
           }

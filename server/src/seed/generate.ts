@@ -174,7 +174,7 @@ export async function pickDishPhoto(ai: AiRouter, dish: Pick<DishDef, 'title' | 
     candidates = [];
   }
   for (const c of candidates) if (await photoShows(ai, dish.title, c)) return { photo: c, reason: '' };
-  return { photo: null, reason: lead || candidates.length > 0 ? 'no photo clearly shows the dish' : 'no freely licensed photo found' };
+  return { photo: null, reason: lead || candidates.length > 0 ? 'the photo does not clearly show the dish' : 'no freely licensed photo found' };
 }
 
 /**
@@ -195,7 +195,7 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
   const cookbooks = new CookbookService(db);
   const ids = new Map<HouseKey, string>();
   for (const [key, account] of Object.entries(HOUSES)) {
-    const found = await db.user.findFirst({ where: { handle: account.handle, kind: 'HOUSE' }, select: { id: true } });
+    const found = await db.user.findFirst({ where: { handle: { in: [account.handle, account.legacyHandle] }, kind: 'HOUSE' }, select: { id: true } });
     if (found) ids.set(key, found.id);
   }
 
@@ -283,9 +283,9 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
         if (!account?.photoUrl && list[0]) await db.user.update({ where: { id: owner }, data: { photoUrl: list[0].imageUrl } });
       }
       if (!def) continue;
-      const title = `${def.displayName.replace(/^SousChef /, '')} Favourites`;
+      const title = `${def.displayName.replace(/^enplace /, '')} Favourites`;
       if (list.length >= 4 && !(await db.cookbook.findFirst({ where: { title }, select: { id: true } }))) {
-        await cookbooks.create({ title, description: def.bio.replace(' An official SousChef account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
+        await cookbooks.create({ title, description: def.bio.replace(' An official enplace account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
         report.cookbooks++;
       }
     }

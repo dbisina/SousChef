@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "SousChef",
+    "name": "enplace",
     "slug": "souschef",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,10 +17,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.lyon98.souschef",
       "infoPlist": {
-        "NSCameraUsageDescription": "SousChef needs camera access to analyze portion sizes and ingredients",
-        "NSPhotoLibraryUsageDescription": "SousChef needs photo library access to upload recipe images",
-        "NSSpeechRecognitionUsageDescription": "SousChef uses speech recognition for hands-free cooking commands",
-        "NSMicrophoneUsageDescription": "SousChef needs microphone access for voice commands during cooking",
+        "NSCameraUsageDescription": "enplace needs camera access to analyze portion sizes and ingredients",
+        "NSPhotoLibraryUsageDescription": "enplace needs photo library access to upload recipe images",
+        "NSSpeechRecognitionUsageDescription": "enplace uses speech recognition for hands-free cooking commands",
+        "NSMicrophoneUsageDescription": "enplace needs microphone access for voice commands during cooking",
         "ITSAppUsesNonExemptEncryption": false
       },
       "googleServicesFile": "./GoogleService-Info.plist"
@@ -73,13 +73,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow SousChef to access your camera for portion analysis"
+          "cameraPermission": "Allow enplace to access your camera for portion analysis"
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow SousChef to access your photos for recipe images"
+          "photosPermission": "Allow enplace to access your photos for recipe images"
         }
       ],
       [

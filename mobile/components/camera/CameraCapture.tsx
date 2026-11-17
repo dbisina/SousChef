@@ -103,7 +103,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               {t('cooking.cameraNeeded', 'Camera Access Needed')}
             </Text>
             <Text className="text-muted text-center" style={{ fontFamily: FONT.sans, fontSize: 14, marginBottom: 16 }}>
-              {t('cooking.cameraWhy', 'To analyze your ingredients or food, SousChef needs access to your camera.')}
+              {t('cooking.cameraWhy', 'To analyze your ingredients or food, enplace needs access to your camera.')}
             </Text>
             <View style={{ alignSelf: 'stretch' }}>
               <UButton label={t('cooking.continue', 'Continue')} variant="accent" onPress={requestPermission} />
