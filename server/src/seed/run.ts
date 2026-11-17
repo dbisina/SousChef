@@ -56,8 +56,7 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
 
   // 1. Official accounts
   const houseIds = new Map<HouseKey, string>();
-  for (const key of Object.keys(HOUSES) as HouseKey[]) {
-    const def = HOUSES[key];
+  for (const [key, def] of Object.entries(HOUSES)) {
     const found = await db.user.findFirst({ where: { handle: def.handle, kind: 'HOUSE' }, select: { id: true } });
     if (found) {
       houseIds.set(key, found.id);

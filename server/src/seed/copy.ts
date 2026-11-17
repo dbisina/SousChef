@@ -1,10 +1,12 @@
 // Hand-written starter content: the official SousChef accounts, what they post, and the first Daily Dish puzzles.
 // Nothing here names a real person. Photos reuse the recipe photos (web links); there is no upload involved.
 import type { DailyPuzzleInput } from '@shared';
+import moreHouses from '../../seed/houses.json';
 
-export type HouseKey = 'kitchen' | 'baking' | 'quick' | 'vegan' | 'street' | 'healthy' | 'family' | 'desserts';
+/** Which official account owns a dish: the key of an entry in HOUSES. */
+export type HouseKey = string;
 
-export const HOUSES: Record<HouseKey, { handle: string; displayName: string; bio: string }> = {
+const ORIGINAL_HOUSES: Record<string, { handle: string; displayName: string; bio: string }> = {
   kitchen: { handle: 'souschef_kitchen', displayName: 'SousChef Kitchen', bio: 'Everyday dinners made properly. An official SousChef account.' },
   baking: { handle: 'souschef_baking', displayName: 'SousChef Baking', bio: 'Cakes, bakes and breakfasts that work first time. An official SousChef account.' },
   quick: { handle: 'souschef_quick', displayName: 'SousChef Quick Meals', bio: 'Good food in 30 minutes or less. An official SousChef account.' },
@@ -13,6 +15,12 @@ export const HOUSES: Record<HouseKey, { handle: string; displayName: string; bio
   healthy: { handle: 'souschef_healthy', displayName: 'SousChef Healthy', bio: 'Balanced, easy and full of flavour. An official SousChef account.' },
   family: { handle: 'souschef_family', displayName: 'SousChef Family Table', bio: 'Comfort food the whole table will eat. An official SousChef account.' },
   desserts: { handle: 'souschef_sweet', displayName: 'SousChef Desserts', bio: 'Puddings, pastries and sweet endings. An official SousChef account.' },
+};
+
+/** The eight first accounts above (their handles never change) plus the themed accounts in seed/houses.json. */
+export const HOUSES: Record<HouseKey, { handle: string; displayName: string; bio: string }> = {
+  ...ORIGINAL_HOUSES,
+  ...Object.fromEntries((moreHouses as { key: string; handle: string; displayName: string; bio: string }[]).map((h) => [h.key, { handle: h.handle, displayName: h.displayName, bio: h.bio }])),
 };
 
 /** What each official account says about a recipe it shares (by recipe title). */

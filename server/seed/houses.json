@@ -1,0 +1,146 @@
+[
+  {
+    "key": "italian",
+    "handle": "souschef_italian",
+    "displayName": "SousChef Italian",
+    "bio": "Nonna-style Italian cooking, from pasta to pizza. An official SousChef account."
+  },
+  {
+    "key": "nigerian",
+    "handle": "souschef_nigerian",
+    "displayName": "SousChef Nigerian Kitchen",
+    "bio": "Proper Nigerian home cooking: stews, soups, rice and street snacks. An official SousChef account."
+  },
+  {
+    "key": "mexican",
+    "handle": "souschef_mexican",
+    "displayName": "SousChef Mexican",
+    "bio": "Tacos, salsas and slow-cooked classics from across Mexico. An official SousChef account."
+  },
+  {
+    "key": "thai",
+    "handle": "souschef_thai",
+    "displayName": "SousChef Thai",
+    "bio": "Sweet, sour, salty and hot: Thai home cooking. An official SousChef account."
+  },
+  {
+    "key": "indian",
+    "handle": "souschef_indian",
+    "displayName": "SousChef Indian",
+    "bio": "Curries, breads and snacks from every corner of India. An official SousChef account."
+  },
+  {
+    "key": "japanese",
+    "handle": "souschef_japanese",
+    "displayName": "SousChef Japanese",
+    "bio": "Everyday Japanese food: ramen, rice bowls, tempura and more. An official SousChef account."
+  },
+  {
+    "key": "korean",
+    "handle": "souschef_korean",
+    "displayName": "SousChef Korean",
+    "bio": "Bold, fermented and fiery: Korean favourites at home. An official SousChef account."
+  },
+  {
+    "key": "lebanese",
+    "handle": "souschef_lebanese",
+    "displayName": "SousChef Levant",
+    "bio": "Mezze, grills and sweets from Lebanon and the wider Levant. An official SousChef account."
+  },
+  {
+    "key": "french",
+    "handle": "souschef_french",
+    "displayName": "SousChef French",
+    "bio": "Bistro classics and patisserie, simplified. An official SousChef account."
+  },
+  {
+    "key": "ethiopian",
+    "handle": "souschef_ethiopian",
+    "displayName": "SousChef Ethiopian",
+    "bio": "Stews, injera and spice blends from Ethiopia and Eritrea. An official SousChef account."
+  },
+  {
+    "key": "bread",
+    "handle": "souschef_bread",
+    "displayName": "SousChef Bread",
+    "bio": "Loaves, flatbreads and rolls with real crumb. An official SousChef account."
+  },
+  {
+    "key": "grill",
+    "handle": "souschef_grill",
+    "displayName": "SousChef Grill",
+    "bio": "BBQ, skewers and smoke: fire-cooked favourites. An official SousChef account."
+  },
+  {
+    "key": "soups",
+    "handle": "souschef_soups",
+    "displayName": "SousChef Soups",
+    "bio": "Bowls for every season: brothy, creamy and hearty. An official SousChef account."
+  },
+  {
+    "key": "salads",
+    "handle": "souschef_salads",
+    "displayName": "SousChef Salads",
+    "bio": "Fresh, filling salads that are more than leaves. An official SousChef account."
+  },
+  {
+    "key": "breakfast",
+    "handle": "souschef_breakfast",
+    "displayName": "SousChef Breakfast",
+    "bio": "Start the day properly: eggs, griddle and granola. An official SousChef account."
+  },
+  {
+    "key": "mealprep",
+    "handle": "souschef_mealprep",
+    "displayName": "SousChef Meal Prep",
+    "bio": "Cook once, eat all week: batch-friendly recipes. An official SousChef account."
+  },
+  {
+    "key": "budget",
+    "handle": "souschef_budget",
+    "displayName": "SousChef Budget",
+    "bio": "Good meals that cost very little. An official SousChef account."
+  },
+  {
+    "key": "vegetarian",
+    "handle": "souschef_vegetarian",
+    "displayName": "SousChef Vegetarian",
+    "bio": "Meat-free meals that are satisfying in their own right. An official SousChef account."
+  },
+  {
+    "key": "seafood",
+    "handle": "souschef_seafood",
+    "displayName": "SousChef Seafood",
+    "bio": "Fish and shellfish, cooked simply and well. An official SousChef account."
+  },
+  {
+    "key": "slowcooker",
+    "handle": "souschef_slowcooker",
+    "displayName": "SousChef Slow Cooker",
+    "bio": "Set it, forget it, come home to dinner. An official SousChef account."
+  },
+  {
+    "key": "airfryer",
+    "handle": "souschef_airfryer",
+    "displayName": "SousChef Air Fryer",
+    "bio": "Crisp results with a fraction of the oil. An official SousChef account."
+  },
+  {
+    "key": "kids",
+    "handle": "souschef_kids",
+    "displayName": "SousChef Kids",
+    "bio": "Food children actually eat, with hidden vegetables. An official SousChef account."
+  },
+  {
+    "key": "sauces",
+    "handle": "souschef_sauces",
+    "displayName": "SousChef Sauces",
+    "bio": "Stocks, dressings and sauces that lift everything. An official SousChef account."
+  },
+  {
+    "key": "onepot",
+    "handle": "souschef_onepot",
+    "displayName": "SousChef One Pot",
+    "bio": "One pan, one pot, very little washing up. An official SousChef account."
+  }
+]

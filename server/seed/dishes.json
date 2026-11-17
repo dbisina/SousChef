@@ -1,73 +1,3026 @@
 [
-  { "title": "Spaghetti Carbonara", "house": "kitchen", "cuisine": "italian", "category": "dinner", "wiki": "Spaghetti alla carbonara" },
-  { "title": "Chicken Tikka Masala", "house": "kitchen", "cuisine": "indian", "category": "dinner", "wiki": "Chicken tikka masala" },
-  { "title": "Beef Bourguignon", "house": "kitchen", "cuisine": "french", "category": "dinner", "wiki": "Beef bourguignon" },
-  { "title": "Lamb Moussaka", "house": "kitchen", "cuisine": "mediterranean", "category": "dinner", "wiki": "Moussaka" },
-  { "title": "Roast Chicken with Lemon and Thyme", "house": "kitchen", "cuisine": "french", "category": "dinner", "wiki": "Roast chicken" },
-  { "title": "Chicken Parmigiana", "house": "kitchen", "cuisine": "italian", "category": "dinner", "wiki": "Chicken parmigiana" },
-  { "title": "Shepherd's Pie", "house": "kitchen", "cuisine": "other", "category": "dinner", "wiki": "Shepherd's pie" },
-  { "title": "Pad Thai", "house": "kitchen", "cuisine": "thai", "category": "dinner", "wiki": "Pad thai" },
-
-  { "title": "Classic Banana Bread", "house": "baking", "cuisine": "american", "category": "breakfast", "wiki": "Banana bread" },
-  { "title": "Sourdough-Style No-Knead Bread", "house": "baking", "cuisine": "french", "category": "side", "wiki": "No-knead bread" },
-  { "title": "Cinnamon Rolls", "house": "baking", "cuisine": "american", "category": "breakfast", "wiki": "Cinnamon roll" },
-  { "title": "Lemon Drizzle Cake", "house": "baking", "cuisine": "other", "category": "dessert", "wiki": "Lemon drizzle cake" },
-  { "title": "Chocolate Chip Cookies", "house": "baking", "cuisine": "american", "category": "dessert", "wiki": "Chocolate chip cookie" },
-  { "title": "Buttery Croissants", "house": "baking", "cuisine": "french", "category": "breakfast", "wiki": "Croissant" },
-  { "title": "Focaccia with Rosemary", "house": "baking", "cuisine": "italian", "category": "side", "wiki": "Focaccia" },
-  { "title": "Apple Pie", "house": "baking", "cuisine": "american", "category": "dessert", "wiki": "Apple pie" },
-
-  { "title": "Garlic Butter Shrimp", "house": "quick", "cuisine": "american", "category": "dinner", "wiki": "Shrimp scampi" },
-  { "title": "Egg Fried Rice", "house": "quick", "cuisine": "chinese", "category": "dinner", "wiki": "Egg fried rice" },
-  { "title": "Chicken Quesadillas", "house": "quick", "cuisine": "mexican", "category": "lunch", "wiki": "Quesadilla" },
-  { "title": "Shakshuka", "house": "quick", "cuisine": "mediterranean", "category": "breakfast", "wiki": "Shakshouka" },
-  { "title": "Tomato Basil Pasta", "house": "quick", "cuisine": "italian", "category": "dinner", "wiki": "Pasta al pomodoro" },
-  { "title": "Teriyaki Salmon Bowl", "house": "quick", "cuisine": "japanese", "category": "dinner", "wiki": "Teriyaki salmon" },
-  { "title": "Caprese Salad", "house": "quick", "cuisine": "italian", "category": "appetizer", "wiki": "Caprese salad" },
-  { "title": "Greek Salad", "house": "quick", "cuisine": "mediterranean", "category": "lunch", "wiki": "Greek salad" },
-
-  { "title": "Chickpea Curry", "house": "vegan", "cuisine": "indian", "category": "dinner", "wiki": "Chana masala" },
-  { "title": "Lentil Soup", "house": "vegan", "cuisine": "mediterranean", "category": "lunch", "wiki": "Lentil soup" },
-  { "title": "Vegetable Pad See Ew", "house": "vegan", "cuisine": "thai", "category": "dinner", "wiki": "Pad see ew" },
-  { "title": "Falafel with Tahini Sauce", "house": "vegan", "cuisine": "mediterranean", "category": "lunch", "wiki": "Falafel" },
-  { "title": "Black Bean Burgers", "house": "vegan", "cuisine": "american", "category": "dinner", "wiki": "Veggie burger" },
-  { "title": "Roasted Cauliflower Tacos", "house": "vegan", "cuisine": "mexican", "category": "dinner", "wiki": "Taco" },
-  { "title": "Hummus", "house": "vegan", "cuisine": "mediterranean", "category": "appetizer", "wiki": "Hummus" },
-  { "title": "Minestrone Soup", "house": "vegan", "cuisine": "italian", "category": "lunch", "wiki": "Minestrone" },
-
-  { "title": "Jollof Rice", "house": "street", "cuisine": "west-african", "category": "dinner", "wiki": "Jollof rice" },
-  { "title": "Egusi Soup", "house": "street", "cuisine": "nigerian", "category": "dinner", "wiki": "Egusi" },
-  { "title": "Suya Beef Skewers", "house": "street", "cuisine": "nigerian", "category": "appetizer", "wiki": "Suya" },
-  { "title": "Chicken Shawarma", "house": "street", "cuisine": "mediterranean", "category": "dinner", "wiki": "Shawarma" },
-  { "title": "Korean Bibimbap", "house": "street", "cuisine": "korean", "category": "dinner", "wiki": "Bibimbap" },
-  { "title": "Vietnamese Pho", "house": "street", "cuisine": "vietnamese", "category": "dinner", "wiki": "Phở" },
-  { "title": "Pani Puri", "house": "street", "cuisine": "indian", "category": "snack", "wiki": "Golgappa" },
-  { "title": "Takoyaki", "house": "street", "cuisine": "japanese", "category": "snack", "wiki": "Takoyaki" },
-
-  { "title": "Greek Yogurt Parfait", "house": "healthy", "cuisine": "american", "category": "breakfast", "wiki": "Parfait" },
-  { "title": "Quinoa Veggie Salad", "house": "healthy", "cuisine": "mediterranean", "category": "lunch", "wiki": "Quinoa salad" },
-  { "title": "Baked Cod with Vegetables", "house": "healthy", "cuisine": "mediterranean", "category": "dinner", "wiki": "Baked cod" },
-  { "title": "Overnight Oats", "house": "healthy", "cuisine": "american", "category": "breakfast", "wiki": "Overnight oats" },
-  { "title": "Chicken and Veggie Stir Fry Bowl", "house": "healthy", "cuisine": "chinese", "category": "dinner", "wiki": "Stir frying" },
-  { "title": "Sweet Potato and Black Bean Bowl", "house": "healthy", "cuisine": "mexican", "category": "lunch", "wiki": "Sweet potato" },
-  { "title": "Miso Soup", "house": "healthy", "cuisine": "japanese", "category": "appetizer", "wiki": "Miso soup" },
-  { "title": "Zucchini Noodles with Pesto", "house": "healthy", "cuisine": "italian", "category": "dinner", "wiki": "Pesto" },
-
-  { "title": "Spaghetti and Meatballs", "house": "family", "cuisine": "italian", "category": "dinner", "wiki": "Spaghetti with meatballs" },
-  { "title": "Mac and Cheese", "house": "family", "cuisine": "american", "category": "dinner", "wiki": "Macaroni and cheese" },
-  { "title": "Homemade Pizza Margherita", "house": "family", "cuisine": "italian", "category": "dinner", "wiki": "Pizza Margherita" },
-  { "title": "Chicken Noodle Soup", "house": "family", "cuisine": "american", "category": "lunch", "wiki": "Chicken soup" },
-  { "title": "Beef Chili", "house": "family", "cuisine": "american", "category": "dinner", "wiki": "Chili con carne" },
-  { "title": "Fish and Chips", "house": "family", "cuisine": "other", "category": "dinner", "wiki": "Fish and chips" },
-  { "title": "Pancakes with Maple Syrup", "house": "family", "cuisine": "american", "category": "breakfast", "wiki": "Pancake" },
-  { "title": "Baked Potato Wedges", "house": "family", "cuisine": "american", "category": "side", "wiki": "Potato wedges" },
-
-  { "title": "Classic Cheesecake", "house": "desserts", "cuisine": "american", "category": "dessert", "wiki": "Cheesecake" },
-  { "title": "Crème Brûlée", "house": "desserts", "cuisine": "french", "category": "dessert", "wiki": "Crème brûlée" },
-  { "title": "Fudgy Brownies", "house": "desserts", "cuisine": "american", "category": "dessert", "wiki": "Chocolate brownie" },
-  { "title": "Mango Sticky Rice", "house": "desserts", "cuisine": "thai", "category": "dessert", "wiki": "Mango sticky rice" },
-  { "title": "Panna Cotta", "house": "desserts", "cuisine": "italian", "category": "dessert", "wiki": "Panna cotta" },
-  { "title": "Churros with Chocolate Sauce", "house": "desserts", "cuisine": "mexican", "category": "dessert", "wiki": "Churro" },
-  { "title": "Baklava", "house": "desserts", "cuisine": "mediterranean", "category": "dessert", "wiki": "Baklava" },
-  { "title": "Gulab Jamun", "house": "desserts", "cuisine": "indian", "category": "dessert", "wiki": "Gulab jamun" }
+  {
+    "title": "Spaghetti Carbonara",
+    "house": "kitchen",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Spaghetti alla carbonara"
+  },
+  {
+    "title": "Chicken Tikka Masala",
+    "house": "kitchen",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Chicken tikka masala"
+  },
+  {
+    "title": "Beef Bourguignon",
+    "house": "kitchen",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Beef bourguignon"
+  },
+  {
+    "title": "Lamb Moussaka",
+    "house": "kitchen",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Moussaka"
+  },
+  {
+    "title": "Roast Chicken with Lemon and Thyme",
+    "house": "kitchen",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Roast chicken"
+  },
+  {
+    "title": "Chicken Parmigiana",
+    "house": "kitchen",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Chicken parmigiana"
+  },
+  {
+    "title": "Shepherd's Pie",
+    "house": "kitchen",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Shepherd's pie"
+  },
+  {
+    "title": "Pad Thai",
+    "house": "kitchen",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Pad thai"
+  },
+  {
+    "title": "Classic Banana Bread",
+    "house": "baking",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Banana bread"
+  },
+  {
+    "title": "Sourdough-Style No-Knead Bread",
+    "house": "baking",
+    "cuisine": "french",
+    "category": "side",
+    "wiki": "No-knead bread"
+  },
+  {
+    "title": "Cinnamon Rolls",
+    "house": "baking",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Cinnamon roll"
+  },
+  {
+    "title": "Lemon Drizzle Cake",
+    "house": "baking",
+    "cuisine": "other",
+    "category": "dessert",
+    "wiki": "Lemon drizzle cake"
+  },
+  {
+    "title": "Chocolate Chip Cookies",
+    "house": "baking",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Chocolate chip cookie"
+  },
+  {
+    "title": "Buttery Croissants",
+    "house": "baking",
+    "cuisine": "french",
+    "category": "breakfast",
+    "wiki": "Croissant"
+  },
+  {
+    "title": "Focaccia with Rosemary",
+    "house": "baking",
+    "cuisine": "italian",
+    "category": "side",
+    "wiki": "Focaccia"
+  },
+  {
+    "title": "Apple Pie",
+    "house": "baking",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Apple pie"
+  },
+  {
+    "title": "Garlic Butter Shrimp",
+    "house": "quick",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Shrimp scampi"
+  },
+  {
+    "title": "Egg Fried Rice",
+    "house": "quick",
+    "cuisine": "chinese",
+    "category": "dinner",
+    "wiki": "Egg fried rice"
+  },
+  {
+    "title": "Chicken Quesadillas",
+    "house": "quick",
+    "cuisine": "mexican",
+    "category": "lunch",
+    "wiki": "Quesadilla"
+  },
+  {
+    "title": "Shakshuka",
+    "house": "quick",
+    "cuisine": "mediterranean",
+    "category": "breakfast",
+    "wiki": "Shakshouka"
+  },
+  {
+    "title": "Tomato Basil Pasta",
+    "house": "quick",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pasta al pomodoro"
+  },
+  {
+    "title": "Teriyaki Salmon Bowl",
+    "house": "quick",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Teriyaki salmon"
+  },
+  {
+    "title": "Caprese Salad",
+    "house": "quick",
+    "cuisine": "italian",
+    "category": "appetizer",
+    "wiki": "Caprese salad"
+  },
+  {
+    "title": "Greek Salad",
+    "house": "quick",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Greek salad"
+  },
+  {
+    "title": "Chickpea Curry",
+    "house": "vegan",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Chana masala"
+  },
+  {
+    "title": "Lentil Soup",
+    "house": "vegan",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Lentil soup"
+  },
+  {
+    "title": "Vegetable Pad See Ew",
+    "house": "vegan",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Pad see ew"
+  },
+  {
+    "title": "Falafel with Tahini Sauce",
+    "house": "vegan",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Falafel"
+  },
+  {
+    "title": "Black Bean Burgers",
+    "house": "vegan",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Veggie burger"
+  },
+  {
+    "title": "Roasted Cauliflower Tacos",
+    "house": "vegan",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Taco"
+  },
+  {
+    "title": "Hummus",
+    "house": "vegan",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Hummus"
+  },
+  {
+    "title": "Minestrone Soup",
+    "house": "vegan",
+    "cuisine": "italian",
+    "category": "lunch",
+    "wiki": "Minestrone"
+  },
+  {
+    "title": "Jollof Rice",
+    "house": "street",
+    "cuisine": "west-african",
+    "category": "dinner",
+    "wiki": "Jollof rice"
+  },
+  {
+    "title": "Egusi Soup",
+    "house": "street",
+    "cuisine": "nigerian",
+    "category": "dinner",
+    "wiki": "Egusi"
+  },
+  {
+    "title": "Suya Beef Skewers",
+    "house": "street",
+    "cuisine": "nigerian",
+    "category": "appetizer",
+    "wiki": "Suya"
+  },
+  {
+    "title": "Chicken Shawarma",
+    "house": "street",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Shawarma"
+  },
+  {
+    "title": "Korean Bibimbap",
+    "house": "street",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Bibimbap"
+  },
+  {
+    "title": "Vietnamese Pho",
+    "house": "street",
+    "cuisine": "vietnamese",
+    "category": "dinner",
+    "wiki": "Phở"
+  },
+  {
+    "title": "Pani Puri",
+    "house": "street",
+    "cuisine": "indian",
+    "category": "snack",
+    "wiki": "Golgappa"
+  },
+  {
+    "title": "Takoyaki",
+    "house": "street",
+    "cuisine": "japanese",
+    "category": "snack",
+    "wiki": "Takoyaki"
+  },
+  {
+    "title": "Greek Yogurt Parfait",
+    "house": "healthy",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Parfait"
+  },
+  {
+    "title": "Quinoa Veggie Salad",
+    "house": "healthy",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Quinoa salad"
+  },
+  {
+    "title": "Baked Cod with Vegetables",
+    "house": "healthy",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Baked cod"
+  },
+  {
+    "title": "Overnight Oats",
+    "house": "healthy",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Overnight oats"
+  },
+  {
+    "title": "Chicken and Veggie Stir Fry Bowl",
+    "house": "healthy",
+    "cuisine": "chinese",
+    "category": "dinner",
+    "wiki": "Stir frying"
+  },
+  {
+    "title": "Sweet Potato and Black Bean Bowl",
+    "house": "healthy",
+    "cuisine": "mexican",
+    "category": "lunch",
+    "wiki": "Sweet potato"
+  },
+  {
+    "title": "Miso Soup",
+    "house": "healthy",
+    "cuisine": "japanese",
+    "category": "appetizer",
+    "wiki": "Miso soup"
+  },
+  {
+    "title": "Zucchini Noodles with Pesto",
+    "house": "healthy",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pesto"
+  },
+  {
+    "title": "Spaghetti and Meatballs",
+    "house": "family",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Spaghetti with meatballs"
+  },
+  {
+    "title": "Mac and Cheese",
+    "house": "family",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Macaroni and cheese"
+  },
+  {
+    "title": "Homemade Pizza Margherita",
+    "house": "family",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pizza Margherita"
+  },
+  {
+    "title": "Chicken Noodle Soup",
+    "house": "family",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Chicken soup"
+  },
+  {
+    "title": "Beef Chili",
+    "house": "family",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Chili con carne"
+  },
+  {
+    "title": "Fish and Chips",
+    "house": "family",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Fish and chips"
+  },
+  {
+    "title": "Pancakes with Maple Syrup",
+    "house": "family",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Pancake"
+  },
+  {
+    "title": "Baked Potato Wedges",
+    "house": "family",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Potato wedges"
+  },
+  {
+    "title": "Classic Cheesecake",
+    "house": "desserts",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Cheesecake"
+  },
+  {
+    "title": "Crème Brûlée",
+    "house": "desserts",
+    "cuisine": "french",
+    "category": "dessert",
+    "wiki": "Crème brûlée"
+  },
+  {
+    "title": "Fudgy Brownies",
+    "house": "desserts",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Chocolate brownie"
+  },
+  {
+    "title": "Mango Sticky Rice",
+    "house": "desserts",
+    "cuisine": "thai",
+    "category": "dessert",
+    "wiki": "Mango sticky rice"
+  },
+  {
+    "title": "Panna Cotta",
+    "house": "desserts",
+    "cuisine": "italian",
+    "category": "dessert",
+    "wiki": "Panna cotta"
+  },
+  {
+    "title": "Churros with Chocolate Sauce",
+    "house": "desserts",
+    "cuisine": "mexican",
+    "category": "dessert",
+    "wiki": "Churro"
+  },
+  {
+    "title": "Baklava",
+    "house": "desserts",
+    "cuisine": "mediterranean",
+    "category": "dessert",
+    "wiki": "Baklava"
+  },
+  {
+    "title": "Gulab Jamun",
+    "house": "desserts",
+    "cuisine": "indian",
+    "category": "dessert",
+    "wiki": "Gulab jamun"
+  },
+  {
+    "title": "Lasagne",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Lasagne"
+  },
+  {
+    "title": "Risotto alla Milanese",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Risotto alla milanese"
+  },
+  {
+    "title": "Osso Buco",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Ossobuco"
+  },
+  {
+    "title": "Eggplant Parmigiana",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Parmigiana"
+  },
+  {
+    "title": "Cacio e Pepe",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Cacio e pepe"
+  },
+  {
+    "title": "Gnocchi with Sage Butter",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Gnocchi"
+  },
+  {
+    "title": "Bruschetta",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "appetizer",
+    "wiki": "Bruschetta"
+  },
+  {
+    "title": "Arancini",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "appetizer",
+    "wiki": "Arancini"
+  },
+  {
+    "title": "Ribollita",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "lunch",
+    "wiki": "Ribollita"
+  },
+  {
+    "title": "Pasta alla Norma",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pasta alla Norma"
+  },
+  {
+    "title": "Chicken Piccata",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Piccata"
+  },
+  {
+    "title": "Vitello Tonnato",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "appetizer",
+    "wiki": "Vitello tonnato"
+  },
+  {
+    "title": "Cannoli",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dessert",
+    "wiki": "Cannoli"
+  },
+  {
+    "title": "Affogato",
+    "house": "italian",
+    "cuisine": "italian",
+    "category": "dessert",
+    "wiki": "Affogato"
+  },
+  {
+    "title": "Pounded Yam with Efo Riro",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "dinner",
+    "wiki": "Efo riro"
+  },
+  {
+    "title": "Moi Moi",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "side",
+    "wiki": "Moin moin"
+  },
+  {
+    "title": "Akara",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "breakfast",
+    "wiki": "Akara"
+  },
+  {
+    "title": "Puff Puff",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "snack",
+    "wiki": "Puff puff"
+  },
+  {
+    "title": "Pepper Soup",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "lunch",
+    "wiki": "Pepper soup"
+  },
+  {
+    "title": "Ofada Rice and Ayamase",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "dinner",
+    "wiki": "Ofada rice"
+  },
+  {
+    "title": "Fried Plantain",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "side",
+    "wiki": "Fried plantain"
+  },
+  {
+    "title": "Chin Chin",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "snack",
+    "wiki": "Chin chin"
+  },
+  {
+    "title": "Ogbono Soup",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "dinner",
+    "wiki": "Ogbono soup"
+  },
+  {
+    "title": "Nigerian Fried Rice",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "dinner",
+    "wiki": "Fried rice"
+  },
+  {
+    "title": "Gizdodo",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "appetizer",
+    "wiki": "Gizdodo"
+  },
+  {
+    "title": "Okra Soup",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "dinner",
+    "wiki": "Okra soup"
+  },
+  {
+    "title": "Meat Pie",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "snack",
+    "wiki": "Meat pie"
+  },
+  {
+    "title": "Zobo",
+    "house": "nigerian",
+    "cuisine": "nigerian",
+    "category": "beverage",
+    "wiki": "Zobo"
+  },
+  {
+    "title": "Chicken Enchiladas",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Enchilada"
+  },
+  {
+    "title": "Pozole",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Pozole"
+  },
+  {
+    "title": "Guacamole",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "appetizer",
+    "wiki": "Guacamole"
+  },
+  {
+    "title": "Chiles Rellenos",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Chile relleno"
+  },
+  {
+    "title": "Tamales",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Tamale"
+  },
+  {
+    "title": "Carnitas",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Carnitas"
+  },
+  {
+    "title": "Chilaquiles",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "breakfast",
+    "wiki": "Chilaquiles"
+  },
+  {
+    "title": "Huevos Rancheros",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "breakfast",
+    "wiki": "Huevos rancheros"
+  },
+  {
+    "title": "Elote",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "snack",
+    "wiki": "Elote"
+  },
+  {
+    "title": "Tacos al Pastor",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Al pastor"
+  },
+  {
+    "title": "Mole Poblano",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Mole poblano"
+  },
+  {
+    "title": "Tres Leches Cake",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dessert",
+    "wiki": "Tres leches cake"
+  },
+  {
+    "title": "Flan",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "dessert",
+    "wiki": "Flan"
+  },
+  {
+    "title": "Mexican Rice",
+    "house": "mexican",
+    "cuisine": "mexican",
+    "category": "side",
+    "wiki": "Mexican rice"
+  },
+  {
+    "title": "Green Curry",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Green curry"
+  },
+  {
+    "title": "Tom Yum Soup",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "lunch",
+    "wiki": "Tom yum"
+  },
+  {
+    "title": "Tom Kha Gai",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "lunch",
+    "wiki": "Tom kha kai"
+  },
+  {
+    "title": "Massaman Curry",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Massaman curry"
+  },
+  {
+    "title": "Som Tam",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "appetizer",
+    "wiki": "Som tam"
+  },
+  {
+    "title": "Pad Kra Pao",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Phat kaphrao"
+  },
+  {
+    "title": "Thai Basil Fried Rice",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Thai fried rice"
+  },
+  {
+    "title": "Larb",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Larb"
+  },
+  {
+    "title": "Satay with Peanut Sauce",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "appetizer",
+    "wiki": "Satay"
+  },
+  {
+    "title": "Red Curry",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Red curry"
+  },
+  {
+    "title": "Pad See Ew",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Phat si-io"
+  },
+  {
+    "title": "Thai Fish Cakes",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "appetizer",
+    "wiki": "Tod mun"
+  },
+  {
+    "title": "Khao Soi",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Khao soi"
+  },
+  {
+    "title": "Thai Iced Tea",
+    "house": "thai",
+    "cuisine": "thai",
+    "category": "beverage",
+    "wiki": "Thai tea"
+  },
+  {
+    "title": "Butter Chicken",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Butter chicken"
+  },
+  {
+    "title": "Palak Paneer",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Palak paneer"
+  },
+  {
+    "title": "Chana Masala",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Chana masala"
+  },
+  {
+    "title": "Biryani",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Biryani"
+  },
+  {
+    "title": "Dal Tadka",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Dal"
+  },
+  {
+    "title": "Samosa",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "snack",
+    "wiki": "Samosa"
+  },
+  {
+    "title": "Naan",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "side",
+    "wiki": "Naan"
+  },
+  {
+    "title": "Aloo Gobi",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Aloo gobi"
+  },
+  {
+    "title": "Masala Dosa",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "breakfast",
+    "wiki": "Masala dosa"
+  },
+  {
+    "title": "Rogan Josh",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Rogan josh"
+  },
+  {
+    "title": "Raita",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "side",
+    "wiki": "Raita"
+  },
+  {
+    "title": "Tandoori Chicken",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Tandoori chicken"
+  },
+  {
+    "title": "Kheer",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "dessert",
+    "wiki": "Kheer"
+  },
+  {
+    "title": "Mango Lassi",
+    "house": "indian",
+    "cuisine": "indian",
+    "category": "beverage",
+    "wiki": "Lassi"
+  },
+  {
+    "title": "Chicken Katsu Curry",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Katsu curry"
+  },
+  {
+    "title": "Tonkotsu Ramen",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Tonkotsu ramen"
+  },
+  {
+    "title": "Gyudon",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Gyūdon"
+  },
+  {
+    "title": "Okonomiyaki",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Okonomiyaki"
+  },
+  {
+    "title": "Chicken Karaage",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "appetizer",
+    "wiki": "Karaage"
+  },
+  {
+    "title": "Tempura",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "appetizer",
+    "wiki": "Tempura"
+  },
+  {
+    "title": "Oyakodon",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Oyakodon"
+  },
+  {
+    "title": "Chawanmushi",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "appetizer",
+    "wiki": "Chawanmushi"
+  },
+  {
+    "title": "Onigiri",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "snack",
+    "wiki": "Onigiri"
+  },
+  {
+    "title": "Yakitori",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "appetizer",
+    "wiki": "Yakitori"
+  },
+  {
+    "title": "Sukiyaki",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Sukiyaki"
+  },
+  {
+    "title": "Tamagoyaki",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "breakfast",
+    "wiki": "Tamagoyaki"
+  },
+  {
+    "title": "Matcha Tea Cake",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dessert",
+    "wiki": "Matcha"
+  },
+  {
+    "title": "Mochi",
+    "house": "japanese",
+    "cuisine": "japanese",
+    "category": "dessert",
+    "wiki": "Mochi"
+  },
+  {
+    "title": "Kimchi Jjigae",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Kimchi-jjigae"
+  },
+  {
+    "title": "Bulgogi",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Bulgogi"
+  },
+  {
+    "title": "Japchae",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Japchae"
+  },
+  {
+    "title": "Tteokbokki",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "snack",
+    "wiki": "Tteokbokki"
+  },
+  {
+    "title": "Korean Fried Chicken",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Korean fried chicken"
+  },
+  {
+    "title": "Kimchi Fried Rice",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Kimchi bokkeumbap"
+  },
+  {
+    "title": "Sundubu Jjigae",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Sundubu-jjigae"
+  },
+  {
+    "title": "Haemul Pajeon",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "appetizer",
+    "wiki": "Pajeon"
+  },
+  {
+    "title": "Gimbap",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "lunch",
+    "wiki": "Gimbap"
+  },
+  {
+    "title": "Galbi",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Galbi"
+  },
+  {
+    "title": "Doenjang Jjigae",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dinner",
+    "wiki": "Doenjang-jjigae"
+  },
+  {
+    "title": "Kimchi",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "side",
+    "wiki": "Kimchi"
+  },
+  {
+    "title": "Hotteok",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dessert",
+    "wiki": "Hotteok"
+  },
+  {
+    "title": "Bingsu",
+    "house": "korean",
+    "cuisine": "korean",
+    "category": "dessert",
+    "wiki": "Bingsu"
+  },
+  {
+    "title": "Tabbouleh",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "side",
+    "wiki": "Tabbouleh"
+  },
+  {
+    "title": "Fattoush",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "side",
+    "wiki": "Fattoush"
+  },
+  {
+    "title": "Baba Ganoush",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Baba ghanoush"
+  },
+  {
+    "title": "Kibbeh",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Kibbeh"
+  },
+  {
+    "title": "Manakish",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "breakfast",
+    "wiki": "Manakish"
+  },
+  {
+    "title": "Shish Taouk",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Shish taouk"
+  },
+  {
+    "title": "Mujaddara",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Mujaddara"
+  },
+  {
+    "title": "Kofta Kebab",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Kofta"
+  },
+  {
+    "title": "Labneh",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Labneh"
+  },
+  {
+    "title": "Stuffed Vine Leaves",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Dolma"
+  },
+  {
+    "title": "Maqluba",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Maqluba"
+  },
+  {
+    "title": "Knafeh",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dessert",
+    "wiki": "Knafeh"
+  },
+  {
+    "title": "Za’atar Flatbread",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "snack",
+    "wiki": "Zaatar"
+  },
+  {
+    "title": "Lebanese Rice Pudding",
+    "house": "lebanese",
+    "cuisine": "mediterranean",
+    "category": "dessert",
+    "wiki": "Meghli"
+  },
+  {
+    "title": "Coq au Vin",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Coq au vin"
+  },
+  {
+    "title": "Ratatouille",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Ratatouille"
+  },
+  {
+    "title": "French Onion Soup",
+    "house": "french",
+    "cuisine": "french",
+    "category": "lunch",
+    "wiki": "French onion soup"
+  },
+  {
+    "title": "Quiche Lorraine",
+    "house": "french",
+    "cuisine": "french",
+    "category": "lunch",
+    "wiki": "Quiche Lorraine"
+  },
+  {
+    "title": "Croque Monsieur",
+    "house": "french",
+    "cuisine": "french",
+    "category": "lunch",
+    "wiki": "Croque monsieur"
+  },
+  {
+    "title": "Cassoulet",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Cassoulet"
+  },
+  {
+    "title": "Bouillabaisse",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Bouillabaisse"
+  },
+  {
+    "title": "Salade Niçoise",
+    "house": "french",
+    "cuisine": "french",
+    "category": "lunch",
+    "wiki": "Niçoise salad"
+  },
+  {
+    "title": "Gratin Dauphinois",
+    "house": "french",
+    "cuisine": "french",
+    "category": "side",
+    "wiki": "Gratin dauphinois"
+  },
+  {
+    "title": "Steak Frites",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Steak frites"
+  },
+  {
+    "title": "Crêpes",
+    "house": "french",
+    "cuisine": "french",
+    "category": "breakfast",
+    "wiki": "Crêpe"
+  },
+  {
+    "title": "Tarte Tatin",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dessert",
+    "wiki": "Tarte Tatin"
+  },
+  {
+    "title": "Madeleines",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dessert",
+    "wiki": "Madeleine (cake)"
+  },
+  {
+    "title": "Chocolate Mousse",
+    "house": "french",
+    "cuisine": "french",
+    "category": "dessert",
+    "wiki": "Chocolate mousse"
+  },
+  {
+    "title": "Doro Wat",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dinner",
+    "wiki": "Doro wat"
+  },
+  {
+    "title": "Injera",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "side",
+    "wiki": "Injera"
+  },
+  {
+    "title": "Misir Wat",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dinner",
+    "wiki": "Misir wat"
+  },
+  {
+    "title": "Shiro",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dinner",
+    "wiki": "Shiro (food)"
+  },
+  {
+    "title": "Kitfo",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dinner",
+    "wiki": "Kitfo"
+  },
+  {
+    "title": "Tibs",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dinner",
+    "wiki": "Tibs"
+  },
+  {
+    "title": "Gomen",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "side",
+    "wiki": "Gomen"
+  },
+  {
+    "title": "Ful Medames",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "breakfast",
+    "wiki": "Ful medames"
+  },
+  {
+    "title": "Atkilt Wat",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "side",
+    "wiki": "Atkilt wat"
+  },
+  {
+    "title": "Ethiopian Spiced Tea",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "beverage",
+    "wiki": "Ethiopian cuisine"
+  },
+  {
+    "title": "Dabo Kolo",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "snack",
+    "wiki": "Dabo kolo"
+  },
+  {
+    "title": "Firfir",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "breakfast",
+    "wiki": "Fitfit"
+  },
+  {
+    "title": "Beyaynetu",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dinner",
+    "wiki": "Beyaynetu"
+  },
+  {
+    "title": "Ethiopian Honey Bread",
+    "house": "ethiopian",
+    "cuisine": "african",
+    "category": "dessert",
+    "wiki": "Dabo"
+  },
+  {
+    "title": "Brioche",
+    "house": "bread",
+    "cuisine": "french",
+    "category": "breakfast",
+    "wiki": "Brioche"
+  },
+  {
+    "title": "Pita Bread",
+    "house": "bread",
+    "cuisine": "mediterranean",
+    "category": "side",
+    "wiki": "Pita"
+  },
+  {
+    "title": "Soft Dinner Rolls",
+    "house": "bread",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Bread roll"
+  },
+  {
+    "title": "Cornbread",
+    "house": "bread",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Cornbread"
+  },
+  {
+    "title": "Irish Soda Bread",
+    "house": "bread",
+    "cuisine": "other",
+    "category": "side",
+    "wiki": "Irish soda bread"
+  },
+  {
+    "title": "Challah",
+    "house": "bread",
+    "cuisine": "other",
+    "category": "side",
+    "wiki": "Challah"
+  },
+  {
+    "title": "Ciabatta",
+    "house": "bread",
+    "cuisine": "italian",
+    "category": "side",
+    "wiki": "Ciabatta"
+  },
+  {
+    "title": "Pretzels",
+    "house": "bread",
+    "cuisine": "other",
+    "category": "snack",
+    "wiki": "Pretzel"
+  },
+  {
+    "title": "Bagels",
+    "house": "bread",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Bagel"
+  },
+  {
+    "title": "Garlic Bread",
+    "house": "bread",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Garlic bread"
+  },
+  {
+    "title": "Naan Bread",
+    "house": "bread",
+    "cuisine": "indian",
+    "category": "side",
+    "wiki": "Naan"
+  },
+  {
+    "title": "Flatbread Pizza",
+    "house": "bread",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Flatbread"
+  },
+  {
+    "title": "English Muffins",
+    "house": "bread",
+    "cuisine": "other",
+    "category": "breakfast",
+    "wiki": "English muffin"
+  },
+  {
+    "title": "Baguette",
+    "house": "bread",
+    "cuisine": "french",
+    "category": "side",
+    "wiki": "Baguette"
+  },
+  {
+    "title": "BBQ Pulled Pork",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Pulled pork"
+  },
+  {
+    "title": "Smash Burgers",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Hamburger"
+  },
+  {
+    "title": "Grilled Corn on the Cob",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Corn on the cob"
+  },
+  {
+    "title": "BBQ Ribs",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Spare ribs"
+  },
+  {
+    "title": "Beef Brisket",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Brisket"
+  },
+  {
+    "title": "Chicken Souvlaki",
+    "house": "grill",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Souvlaki"
+  },
+  {
+    "title": "Grilled Halloumi",
+    "house": "grill",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Halloumi"
+  },
+  {
+    "title": "Jerk Chicken",
+    "house": "grill",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Jerk (cooking)"
+  },
+  {
+    "title": "Chimichurri Steak",
+    "house": "grill",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Chimichurri"
+  },
+  {
+    "title": "Hot Dogs",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "snack",
+    "wiki": "Hot dog"
+  },
+  {
+    "title": "Grilled Vegetable Skewers",
+    "house": "grill",
+    "cuisine": "mediterranean",
+    "category": "side",
+    "wiki": "Skewer"
+  },
+  {
+    "title": "Lamb Kebabs",
+    "house": "grill",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Shish kebab"
+  },
+  {
+    "title": "Grilled Pineapple",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Pineapple"
+  },
+  {
+    "title": "Coleslaw",
+    "house": "grill",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Coleslaw"
+  },
+  {
+    "title": "Tomato Soup",
+    "house": "soups",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Tomato soup"
+  },
+  {
+    "title": "Clam Chowder",
+    "house": "soups",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Clam chowder"
+  },
+  {
+    "title": "Butternut Squash Soup",
+    "house": "soups",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Butternut squash"
+  },
+  {
+    "title": "Gazpacho",
+    "house": "soups",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Gazpacho"
+  },
+  {
+    "title": "Split Pea Soup",
+    "house": "soups",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Split pea soup"
+  },
+  {
+    "title": "Potato Leek Soup",
+    "house": "soups",
+    "cuisine": "french",
+    "category": "lunch",
+    "wiki": "Potato soup"
+  },
+  {
+    "title": "Borscht",
+    "house": "soups",
+    "cuisine": "other",
+    "category": "lunch",
+    "wiki": "Borscht"
+  },
+  {
+    "title": "Hot and Sour Soup",
+    "house": "soups",
+    "cuisine": "chinese",
+    "category": "lunch",
+    "wiki": "Hot and sour soup"
+  },
+  {
+    "title": "Wonton Soup",
+    "house": "soups",
+    "cuisine": "chinese",
+    "category": "lunch",
+    "wiki": "Wonton soup"
+  },
+  {
+    "title": "Mulligatawny",
+    "house": "soups",
+    "cuisine": "indian",
+    "category": "lunch",
+    "wiki": "Mulligatawny"
+  },
+  {
+    "title": "Laksa",
+    "house": "soups",
+    "cuisine": "other",
+    "category": "lunch",
+    "wiki": "Laksa"
+  },
+  {
+    "title": "Tortilla Soup",
+    "house": "soups",
+    "cuisine": "mexican",
+    "category": "lunch",
+    "wiki": "Tortilla soup"
+  },
+  {
+    "title": "Chicken Pot Pie Soup",
+    "house": "soups",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Chicken soup"
+  },
+  {
+    "title": "Avgolemono",
+    "house": "soups",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Avgolemono"
+  },
+  {
+    "title": "Caesar Salad",
+    "house": "salads",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Caesar salad"
+  },
+  {
+    "title": "Cobb Salad",
+    "house": "salads",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Cobb salad"
+  },
+  {
+    "title": "Waldorf Salad",
+    "house": "salads",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Waldorf salad"
+  },
+  {
+    "title": "Panzanella",
+    "house": "salads",
+    "cuisine": "italian",
+    "category": "lunch",
+    "wiki": "Panzanella"
+  },
+  {
+    "title": "Potato Salad",
+    "house": "salads",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Potato salad"
+  },
+  {
+    "title": "Tuna Salad",
+    "house": "salads",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Tuna salad"
+  },
+  {
+    "title": "Coronation Chicken Salad",
+    "house": "salads",
+    "cuisine": "other",
+    "category": "lunch",
+    "wiki": "Coronation chicken"
+  },
+  {
+    "title": "Pasta Salad",
+    "house": "salads",
+    "cuisine": "italian",
+    "category": "lunch",
+    "wiki": "Pasta salad"
+  },
+  {
+    "title": "Egg Salad",
+    "house": "salads",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Egg salad"
+  },
+  {
+    "title": "Kachumber Salad",
+    "house": "salads",
+    "cuisine": "indian",
+    "category": "side",
+    "wiki": "Kachumber"
+  },
+  {
+    "title": "Thai Beef Salad",
+    "house": "salads",
+    "cuisine": "thai",
+    "category": "lunch",
+    "wiki": "Yam nua"
+  },
+  {
+    "title": "Insalata Mista",
+    "house": "salads",
+    "cuisine": "italian",
+    "category": "side",
+    "wiki": "Salad"
+  },
+  {
+    "title": "Beetroot and Goat Cheese Salad",
+    "house": "salads",
+    "cuisine": "french",
+    "category": "lunch",
+    "wiki": "Beetroot"
+  },
+  {
+    "title": "Russian Salad",
+    "house": "salads",
+    "cuisine": "other",
+    "category": "side",
+    "wiki": "Olivier salad"
+  },
+  {
+    "title": "Eggs Benedict",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Eggs Benedict"
+  },
+  {
+    "title": "French Toast",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "French toast"
+  },
+  {
+    "title": "Full English Breakfast",
+    "house": "breakfast",
+    "cuisine": "other",
+    "category": "breakfast",
+    "wiki": "Full breakfast"
+  },
+  {
+    "title": "Belgian Waffles",
+    "house": "breakfast",
+    "cuisine": "other",
+    "category": "breakfast",
+    "wiki": "Waffle"
+  },
+  {
+    "title": "Granola",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Granola"
+  },
+  {
+    "title": "Omelette",
+    "house": "breakfast",
+    "cuisine": "french",
+    "category": "breakfast",
+    "wiki": "Omelette"
+  },
+  {
+    "title": "Breakfast Burrito",
+    "house": "breakfast",
+    "cuisine": "mexican",
+    "category": "breakfast",
+    "wiki": "Breakfast burrito"
+  },
+  {
+    "title": "Hash Browns",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Hash browns"
+  },
+  {
+    "title": "Scrambled Eggs on Toast",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Scrambled eggs"
+  },
+  {
+    "title": "Dutch Baby",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Dutch baby pancake"
+  },
+  {
+    "title": "Smoothie Bowl",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Smoothie"
+  },
+  {
+    "title": "Porridge",
+    "house": "breakfast",
+    "cuisine": "other",
+    "category": "breakfast",
+    "wiki": "Porridge"
+  },
+  {
+    "title": "Breakfast Sandwich",
+    "house": "breakfast",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Breakfast sandwich"
+  },
+  {
+    "title": "Shakshuka Eggs",
+    "house": "breakfast",
+    "cuisine": "mediterranean",
+    "category": "breakfast",
+    "wiki": "Shakshouka"
+  },
+  {
+    "title": "Chicken Burrito Bowls",
+    "house": "mealprep",
+    "cuisine": "mexican",
+    "category": "lunch",
+    "wiki": "Burrito"
+  },
+  {
+    "title": "Turkey Chili",
+    "house": "mealprep",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Chili con carne"
+  },
+  {
+    "title": "Sheet Pan Chicken and Vegetables",
+    "house": "mealprep",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Sheet pan"
+  },
+  {
+    "title": "Baked Ziti",
+    "house": "mealprep",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Baked ziti"
+  },
+  {
+    "title": "Egg Muffins",
+    "house": "mealprep",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Egg as food"
+  },
+  {
+    "title": "Stuffed Peppers",
+    "house": "mealprep",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Stuffed peppers"
+  },
+  {
+    "title": "Lentil Bolognese",
+    "house": "mealprep",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Bolognese sauce"
+  },
+  {
+    "title": "Teriyaki Chicken Bowls",
+    "house": "mealprep",
+    "cuisine": "japanese",
+    "category": "lunch",
+    "wiki": "Teriyaki"
+  },
+  {
+    "title": "Greek Chicken Bowls",
+    "house": "mealprep",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Gyro"
+  },
+  {
+    "title": "Frittata",
+    "house": "mealprep",
+    "cuisine": "italian",
+    "category": "breakfast",
+    "wiki": "Frittata"
+  },
+  {
+    "title": "Chickpea Salad Jars",
+    "house": "mealprep",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Chickpea"
+  },
+  {
+    "title": "Beef and Broccoli",
+    "house": "mealprep",
+    "cuisine": "chinese",
+    "category": "dinner",
+    "wiki": "Beef and broccoli"
+  },
+  {
+    "title": "Breakfast Burritos Freezer Batch",
+    "house": "mealprep",
+    "cuisine": "mexican",
+    "category": "breakfast",
+    "wiki": "Breakfast burrito"
+  },
+  {
+    "title": "Roasted Veg Couscous",
+    "house": "mealprep",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Couscous"
+  },
+  {
+    "title": "Rice and Beans",
+    "house": "budget",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Rice and beans"
+  },
+  {
+    "title": "Pasta e Fagioli",
+    "house": "budget",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pasta e fagioli"
+  },
+  {
+    "title": "Potato Soup",
+    "house": "budget",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Potato soup"
+  },
+  {
+    "title": "Egg Curry",
+    "house": "budget",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Egg curry"
+  },
+  {
+    "title": "Bean Burritos",
+    "house": "budget",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Burrito"
+  },
+  {
+    "title": "Spanish Omelette",
+    "house": "budget",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Spanish omelette"
+  },
+  {
+    "title": "Vegetable Fried Rice",
+    "house": "budget",
+    "cuisine": "chinese",
+    "category": "dinner",
+    "wiki": "Fried rice"
+  },
+  {
+    "title": "Sausage and Mash",
+    "house": "budget",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Bangers and mash"
+  },
+  {
+    "title": "Tuna Pasta Bake",
+    "house": "budget",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pasta bake"
+  },
+  {
+    "title": "Colcannon",
+    "house": "budget",
+    "cuisine": "other",
+    "category": "side",
+    "wiki": "Colcannon"
+  },
+  {
+    "title": "Pancakes from Scratch",
+    "house": "budget",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Pancake"
+  },
+  {
+    "title": "Bubble and Squeak",
+    "house": "budget",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Bubble and squeak"
+  },
+  {
+    "title": "Dal and Rice",
+    "house": "budget",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Dal bhat"
+  },
+  {
+    "title": "Frittata with Leftovers",
+    "house": "budget",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Frittata"
+  },
+  {
+    "title": "Spanakopita",
+    "house": "vegetarian",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Spanakopita"
+  },
+  {
+    "title": "Vegetable Lasagne",
+    "house": "vegetarian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Lasagne"
+  },
+  {
+    "title": "Paneer Tikka",
+    "house": "vegetarian",
+    "cuisine": "indian",
+    "category": "appetizer",
+    "wiki": "Paneer tikka"
+  },
+  {
+    "title": "Mushroom Stroganoff",
+    "house": "vegetarian",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Beef Stroganoff"
+  },
+  {
+    "title": "Halloumi Burger",
+    "house": "vegetarian",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Halloumi"
+  },
+  {
+    "title": "Eggplant Curry",
+    "house": "vegetarian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Brinjal curry"
+  },
+  {
+    "title": "Veggie Pizza",
+    "house": "vegetarian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pizza"
+  },
+  {
+    "title": "Gnocchi alla Sorrentina",
+    "house": "vegetarian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Gnocchi"
+  },
+  {
+    "title": "Vegetable Samosa Pie",
+    "house": "vegetarian",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Samosa"
+  },
+  {
+    "title": "Cheese Soufflé",
+    "house": "vegetarian",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Soufflé"
+  },
+  {
+    "title": "Veggie Spring Rolls",
+    "house": "vegetarian",
+    "cuisine": "chinese",
+    "category": "appetizer",
+    "wiki": "Spring roll"
+  },
+  {
+    "title": "Stuffed Mushrooms",
+    "house": "vegetarian",
+    "cuisine": "american",
+    "category": "appetizer",
+    "wiki": "Stuffed mushrooms"
+  },
+  {
+    "title": "Mushroom Risotto",
+    "house": "vegetarian",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Risotto"
+  },
+  {
+    "title": "Aloo Paratha",
+    "house": "vegetarian",
+    "cuisine": "indian",
+    "category": "breakfast",
+    "wiki": "Aloo paratha"
+  },
+  {
+    "title": "Paella",
+    "house": "seafood",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Paella"
+  },
+  {
+    "title": "Shrimp Scampi",
+    "house": "seafood",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Scampi"
+  },
+  {
+    "title": "Fish Tacos",
+    "house": "seafood",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Fish taco"
+  },
+  {
+    "title": "Salmon en Croûte",
+    "house": "seafood",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Salmon"
+  },
+  {
+    "title": "Crab Cakes",
+    "house": "seafood",
+    "cuisine": "american",
+    "category": "appetizer",
+    "wiki": "Crab cake"
+  },
+  {
+    "title": "Ceviche",
+    "house": "seafood",
+    "cuisine": "other",
+    "category": "appetizer",
+    "wiki": "Ceviche"
+  },
+  {
+    "title": "Lobster Roll",
+    "house": "seafood",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Lobster roll"
+  },
+  {
+    "title": "Moules Marinières",
+    "house": "seafood",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Moules-frites"
+  },
+  {
+    "title": "Cioppino",
+    "house": "seafood",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Cioppino"
+  },
+  {
+    "title": "Fish Pie",
+    "house": "seafood",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Fish pie"
+  },
+  {
+    "title": "Coconut Shrimp Curry",
+    "house": "seafood",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Shrimp"
+  },
+  {
+    "title": "Tuna Poke Bowl",
+    "house": "seafood",
+    "cuisine": "other",
+    "category": "lunch",
+    "wiki": "Poke (dish)"
+  },
+  {
+    "title": "Grilled Sardines",
+    "house": "seafood",
+    "cuisine": "mediterranean",
+    "category": "dinner",
+    "wiki": "Sardine"
+  },
+  {
+    "title": "Seafood Chowder",
+    "house": "seafood",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Chowder"
+  },
+  {
+    "title": "Pot Roast",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Pot roast"
+  },
+  {
+    "title": "Slow Cooker Chicken Curry",
+    "house": "slowcooker",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Curry"
+  },
+  {
+    "title": "Beef Stew",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Beef stew"
+  },
+  {
+    "title": "Pulled Chicken",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Pulled pork"
+  },
+  {
+    "title": "Slow Cooker Chili",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Chili con carne"
+  },
+  {
+    "title": "Lamb Tagine",
+    "house": "slowcooker",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Tagine"
+  },
+  {
+    "title": "Split Pea and Ham",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Split pea soup"
+  },
+  {
+    "title": "Ratatouille Slow Cooker",
+    "house": "slowcooker",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Ratatouille"
+  },
+  {
+    "title": "Chicken Cacciatore",
+    "house": "slowcooker",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Chicken cacciatore"
+  },
+  {
+    "title": "Short Rib Ragu",
+    "house": "slowcooker",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Ragù"
+  },
+  {
+    "title": "Slow Cooker Baked Beans",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Baked beans"
+  },
+  {
+    "title": "Beef Rendang",
+    "house": "slowcooker",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Rendang"
+  },
+  {
+    "title": "Corned Beef and Cabbage",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Corned beef"
+  },
+  {
+    "title": "Apple Cinnamon Oatmeal",
+    "house": "slowcooker",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Oatmeal"
+  },
+  {
+    "title": "Air Fryer Chicken Wings",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "appetizer",
+    "wiki": "Buffalo wing"
+  },
+  {
+    "title": "Air Fryer French Fries",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "French fries"
+  },
+  {
+    "title": "Air Fryer Salmon",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Salmon as food"
+  },
+  {
+    "title": "Air Fryer Falafel",
+    "house": "airfryer",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Falafel"
+  },
+  {
+    "title": "Air Fryer Onion Rings",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Onion ring"
+  },
+  {
+    "title": "Air Fryer Samosas",
+    "house": "airfryer",
+    "cuisine": "indian",
+    "category": "snack",
+    "wiki": "Samosa"
+  },
+  {
+    "title": "Air Fryer Chicken Tenders",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Chicken fingers"
+  },
+  {
+    "title": "Air Fryer Roast Potatoes",
+    "house": "airfryer",
+    "cuisine": "other",
+    "category": "side",
+    "wiki": "Roast potatoes"
+  },
+  {
+    "title": "Air Fryer Spring Rolls",
+    "house": "airfryer",
+    "cuisine": "chinese",
+    "category": "appetizer",
+    "wiki": "Spring roll"
+  },
+  {
+    "title": "Air Fryer Doughnuts",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Doughnut"
+  },
+  {
+    "title": "Air Fryer Fish and Chips",
+    "house": "airfryer",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Fish and chips"
+  },
+  {
+    "title": "Air Fryer Halloumi Fries",
+    "house": "airfryer",
+    "cuisine": "mediterranean",
+    "category": "snack",
+    "wiki": "Halloumi"
+  },
+  {
+    "title": "Air Fryer Brussels Sprouts",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Brussels sprout"
+  },
+  {
+    "title": "Air Fryer Apple Chips",
+    "house": "airfryer",
+    "cuisine": "american",
+    "category": "snack",
+    "wiki": "Apple"
+  },
+  {
+    "title": "Chicken Nuggets",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Chicken nugget"
+  },
+  {
+    "title": "Grilled Cheese Sandwich",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Grilled cheese"
+  },
+  {
+    "title": "Mini Pizzas",
+    "house": "kids",
+    "cuisine": "italian",
+    "category": "snack",
+    "wiki": "Pizza"
+  },
+  {
+    "title": "Spaghetti Hoops Bake",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Pasta bake"
+  },
+  {
+    "title": "Fish Fingers",
+    "house": "kids",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Fish finger"
+  },
+  {
+    "title": "Cheesy Quesadillas",
+    "house": "kids",
+    "cuisine": "mexican",
+    "category": "lunch",
+    "wiki": "Quesadilla"
+  },
+  {
+    "title": "Banana Pancakes",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Pancake"
+  },
+  {
+    "title": "Veggie Mac and Cheese",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Macaroni and cheese"
+  },
+  {
+    "title": "Sausage Rolls",
+    "house": "kids",
+    "cuisine": "other",
+    "category": "snack",
+    "wiki": "Sausage roll"
+  },
+  {
+    "title": "Fruit Kebabs",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "snack",
+    "wiki": "Fruit"
+  },
+  {
+    "title": "Pigs in Blankets",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "appetizer",
+    "wiki": "Pigs in blankets"
+  },
+  {
+    "title": "Oat Cookies",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Oatmeal raisin cookie"
+  },
+  {
+    "title": "Chicken Fried Rice for Kids",
+    "house": "kids",
+    "cuisine": "chinese",
+    "category": "dinner",
+    "wiki": "Fried rice"
+  },
+  {
+    "title": "Popsicles",
+    "house": "kids",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Ice pop"
+  },
+  {
+    "title": "Hollandaise Sauce",
+    "house": "sauces",
+    "cuisine": "french",
+    "category": "side",
+    "wiki": "Hollandaise sauce"
+  },
+  {
+    "title": "Béchamel",
+    "house": "sauces",
+    "cuisine": "french",
+    "category": "side",
+    "wiki": "Béchamel sauce"
+  },
+  {
+    "title": "Pesto Genovese",
+    "house": "sauces",
+    "cuisine": "italian",
+    "category": "side",
+    "wiki": "Pesto"
+  },
+  {
+    "title": "Tomato Sauce",
+    "house": "sauces",
+    "cuisine": "italian",
+    "category": "side",
+    "wiki": "Tomato sauce"
+  },
+  {
+    "title": "Salsa Verde",
+    "house": "sauces",
+    "cuisine": "mexican",
+    "category": "side",
+    "wiki": "Salsa verde"
+  },
+  {
+    "title": "Chimichurri",
+    "house": "sauces",
+    "cuisine": "other",
+    "category": "side",
+    "wiki": "Chimichurri"
+  },
+  {
+    "title": "Tzatziki",
+    "house": "sauces",
+    "cuisine": "mediterranean",
+    "category": "side",
+    "wiki": "Tzatziki"
+  },
+  {
+    "title": "Peanut Sauce",
+    "house": "sauces",
+    "cuisine": "thai",
+    "category": "side",
+    "wiki": "Peanut sauce"
+  },
+  {
+    "title": "Vinaigrette",
+    "house": "sauces",
+    "cuisine": "french",
+    "category": "side",
+    "wiki": "Vinaigrette"
+  },
+  {
+    "title": "Gravy",
+    "house": "sauces",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Gravy"
+  },
+  {
+    "title": "Hummus Dip",
+    "house": "sauces",
+    "cuisine": "mediterranean",
+    "category": "appetizer",
+    "wiki": "Hummus"
+  },
+  {
+    "title": "Barbecue Sauce",
+    "house": "sauces",
+    "cuisine": "american",
+    "category": "side",
+    "wiki": "Barbecue sauce"
+  },
+  {
+    "title": "Aioli",
+    "house": "sauces",
+    "cuisine": "mediterranean",
+    "category": "side",
+    "wiki": "Aioli"
+  },
+  {
+    "title": "Mint Chutney",
+    "house": "sauces",
+    "cuisine": "indian",
+    "category": "side",
+    "wiki": "Chutney"
+  },
+  {
+    "title": "One Pot Chicken and Rice",
+    "house": "onepot",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Arroz con pollo"
+  },
+  {
+    "title": "Jambalaya",
+    "house": "onepot",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Jambalaya"
+  },
+  {
+    "title": "One Pot Pasta",
+    "house": "onepot",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Pasta"
+  },
+  {
+    "title": "Chicken Casserole",
+    "house": "onepot",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Casserole"
+  },
+  {
+    "title": "Dal Makhani",
+    "house": "onepot",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Dal makhani"
+  },
+  {
+    "title": "Goulash",
+    "house": "onepot",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Goulash"
+  },
+  {
+    "title": "Beef Stroganoff",
+    "house": "onepot",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Beef Stroganoff"
+  },
+  {
+    "title": "Kedgeree",
+    "house": "onepot",
+    "cuisine": "other",
+    "category": "breakfast",
+    "wiki": "Kedgeree"
+  },
+  {
+    "title": "One Pan Sausage Bake",
+    "house": "onepot",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Sausage"
+  },
+  {
+    "title": "Chicken Tagine",
+    "house": "onepot",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Tagine"
+  },
+  {
+    "title": "Shrimp and Grits",
+    "house": "onepot",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Shrimp and grits"
+  },
+  {
+    "title": "Pilau Rice",
+    "house": "onepot",
+    "cuisine": "indian",
+    "category": "dinner",
+    "wiki": "Pilaf"
+  },
+  {
+    "title": "Vegetable Stew",
+    "house": "onepot",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Stew"
+  },
+  {
+    "title": "Cassoulet Simple",
+    "house": "onepot",
+    "cuisine": "french",
+    "category": "dinner",
+    "wiki": "Cassoulet"
+  },
+  {
+    "title": "Chicken Fajitas",
+    "house": "kitchen",
+    "cuisine": "mexican",
+    "category": "dinner",
+    "wiki": "Fajita"
+  },
+  {
+    "title": "Meatloaf",
+    "house": "kitchen",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Meatloaf"
+  },
+  {
+    "title": "Lamb Shanks",
+    "house": "kitchen",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Lamb and mutton"
+  },
+  {
+    "title": "Pork Chops with Apple",
+    "house": "kitchen",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Pork chop"
+  },
+  {
+    "title": "Victoria Sponge",
+    "house": "baking",
+    "cuisine": "other",
+    "category": "dessert",
+    "wiki": "Victoria sponge"
+  },
+  {
+    "title": "Scones",
+    "house": "baking",
+    "cuisine": "other",
+    "category": "breakfast",
+    "wiki": "Scone"
+  },
+  {
+    "title": "Carrot Cake",
+    "house": "baking",
+    "cuisine": "american",
+    "category": "dessert",
+    "wiki": "Carrot cake"
+  },
+  {
+    "title": "Shortbread",
+    "house": "baking",
+    "cuisine": "other",
+    "category": "dessert",
+    "wiki": "Shortbread"
+  },
+  {
+    "title": "Garlic Prawn Linguine",
+    "house": "quick",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Linguine"
+  },
+  {
+    "title": "Chicken Caesar Wrap",
+    "house": "quick",
+    "cuisine": "american",
+    "category": "lunch",
+    "wiki": "Wrap (food)"
+  },
+  {
+    "title": "Fried Egg Sandwich",
+    "house": "quick",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Fried egg"
+  },
+  {
+    "title": "Teriyaki Chicken",
+    "house": "quick",
+    "cuisine": "japanese",
+    "category": "dinner",
+    "wiki": "Teriyaki"
+  },
+  {
+    "title": "Vegan Chili",
+    "house": "vegan",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Chili sin carne"
+  },
+  {
+    "title": "Tofu Scramble",
+    "house": "vegan",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Tofu"
+  },
+  {
+    "title": "Vegan Pad Thai",
+    "house": "vegan",
+    "cuisine": "thai",
+    "category": "dinner",
+    "wiki": "Pad thai"
+  },
+  {
+    "title": "Dal Soup",
+    "house": "vegan",
+    "cuisine": "indian",
+    "category": "lunch",
+    "wiki": "Dal"
+  },
+  {
+    "title": "Banh Mi",
+    "house": "street",
+    "cuisine": "vietnamese",
+    "category": "lunch",
+    "wiki": "Bánh mì"
+  },
+  {
+    "title": "Empanadas",
+    "house": "street",
+    "cuisine": "other",
+    "category": "snack",
+    "wiki": "Empanada"
+  },
+  {
+    "title": "Pani Puri Chaat",
+    "house": "street",
+    "cuisine": "indian",
+    "category": "snack",
+    "wiki": "Chaat"
+  },
+  {
+    "title": "Gyros",
+    "house": "street",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Gyros"
+  },
+  {
+    "title": "Poached Salmon Bowl",
+    "house": "healthy",
+    "cuisine": "american",
+    "category": "dinner",
+    "wiki": "Poaching (cooking)"
+  },
+  {
+    "title": "Chicken and Lentil Soup",
+    "house": "healthy",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Lentil soup"
+  },
+  {
+    "title": "Veggie Omelette",
+    "house": "healthy",
+    "cuisine": "american",
+    "category": "breakfast",
+    "wiki": "Omelette"
+  },
+  {
+    "title": "Tabbouleh Bowl",
+    "house": "healthy",
+    "cuisine": "mediterranean",
+    "category": "lunch",
+    "wiki": "Tabbouleh"
+  },
+  {
+    "title": "Lasagne Family Bake",
+    "house": "family",
+    "cuisine": "italian",
+    "category": "dinner",
+    "wiki": "Lasagne"
+  },
+  {
+    "title": "Toad in the Hole",
+    "house": "family",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Toad in the hole"
+  },
+  {
+    "title": "Roast Dinner",
+    "house": "family",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Sunday roast"
+  },
+  {
+    "title": "Cottage Pie",
+    "house": "family",
+    "cuisine": "other",
+    "category": "dinner",
+    "wiki": "Cottage pie"
+  },
+  {
+    "title": "Sticky Toffee Pudding",
+    "house": "desserts",
+    "cuisine": "other",
+    "category": "dessert",
+    "wiki": "Sticky toffee pudding"
+  },
+  {
+    "title": "Eton Mess",
+    "house": "desserts",
+    "cuisine": "other",
+    "category": "dessert",
+    "wiki": "Eton mess"
+  },
+  {
+    "title": "Lemon Tart",
+    "house": "desserts",
+    "cuisine": "french",
+    "category": "dessert",
+    "wiki": "Lemon tart"
+  },
+  {
+    "title": "Rice Pudding",
+    "house": "desserts",
+    "cuisine": "other",
+    "category": "dessert",
+    "wiki": "Rice pudding"
+  }
 ]

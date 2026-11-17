@@ -19,7 +19,13 @@ import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDO
 const MAX_POSTS_PER_DAY = 20;
 const DAY_MS = 86_400_000;
 
-const withAuthor = { author: { select: authorSelect } } satisfies Prisma.PostInclude;
+const withAuthor = {
+  author: { select: authorSelect },
+  recipe: { select: { id: true, title: true, imageUrl: true, authorId: true, author: { select: authorSelect } } },
+} satisfies Prisma.PostInclude;
+
+/** Told when someone shares a post about another person's recipe, so that person can be notified. */
+export type CookedNotice = (n: { recipeAuthorId: string; cookName: string; recipeTitle: string; postId: string; recipeId: string }) => void;
 type PostRow = Prisma.PostGetPayload<{ include: typeof withAuthor }>;
 type CommentRow = Prisma.PostCommentGetPayload<{ include: { author: { select: typeof authorSelect } } }>;
 const commentInclude = { author: { select: authorSelect } } satisfies Prisma.PostCommentInclude;
@@ -35,6 +41,7 @@ export class PostService {
     private readonly uploads: UploadService,
     private readonly now: () => Date = () => new Date(),
     private readonly guard: WriteGuard | null = null,
+    private readonly onCooked: CookedNotice | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ posts */
@@ -87,7 +94,12 @@ export class PostService {
       },
       include: withAuthor,
     });
-    return this.toPost(row, { liked: false, saved: false });
+    const made = this.toPost(row, { liked: false, saved: false });
+    // Tell the recipe's writer someone cooked it (not when they cooked their own).
+    if (this.onCooked && row.recipe && row.recipe.authorId !== userId) {
+      this.onCooked({ recipeAuthorId: row.recipe.authorId, cookName: row.author.displayName, recipeTitle: row.recipe.title, postId: row.id, recipeId: row.recipe.id });
+    }
+    return made;
   }
 
   async get(id: string, viewer: Viewer | null): Promise<Post> {
@@ -405,6 +417,7 @@ export class PostService {
       photoUrl: r.photoUrl,
       videoUrl: r.videoUrl,
       recipeId: r.recipeId,
+      recipe: r.recipe ? { id: r.recipe.id, title: r.recipe.title, imageUrl: r.recipe.imageUrl || null, author: toAuthor(r.recipe.author) } : null,
       communityId: r.communityId,
       challengeId: r.challengeId,
       likeCount: r.likeCount,

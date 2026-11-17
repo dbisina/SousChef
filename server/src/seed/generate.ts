@@ -156,6 +156,28 @@ export async function store(storage: Storage, key: string, photo: Photo, fetchIm
 }
 
 /**
+ * A verified photo of the dish: the lead picture of its Wikipedia article if that shows the dish, otherwise the first
+ * Wikimedia Commons search result (free licence only) that a vision model confirms. Null with a reason when none passes.
+ */
+export async function pickDishPhoto(ai: AiRouter, dish: Pick<DishDef, 'title' | 'wiki'>, fetchImpl: typeof fetch): Promise<{ photo: Photo | null; reason: string }> {
+  let lead: Photo | null = null;
+  try {
+    lead = await findWikipediaPhoto(dish.wiki, fetchImpl);
+  } catch {
+    lead = null;
+  }
+  if (lead && (await photoShows(ai, dish.title, lead))) return { photo: lead, reason: '' };
+  let candidates: Photo[] = [];
+  try {
+    candidates = await findCommonsPhotos(`${dish.title} food dish`, fetchImpl, 3);
+  } catch {
+    candidates = [];
+  }
+  for (const c of candidates) if (await photoShows(ai, dish.title, c)) return { photo: c, reason: '' };
+  return { photo: null, reason: lead || candidates.length > 0 ? 'no photo clearly shows the dish' : 'no freely licensed photo found' };
+}
+
+/**
  * Real recipes from the dish list: one model-written recipe per dish (checked against the server's own recipe rules), with a
  * real photo of the dish from Wikipedia (free licences only, checked by a vision model, stored on our own file store so the link
  * never dies). A dish with no verified photo is skipped, never faked. Then a cookbook per official account, and a post for
@@ -172,8 +194,8 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
   const recipes = new RecipeService(db, new EntitlementService(db));
   const cookbooks = new CookbookService(db);
   const ids = new Map<HouseKey, string>();
-  for (const key of Object.keys(HOUSES) as HouseKey[]) {
-    const found = await db.user.findFirst({ where: { handle: HOUSES[key].handle, kind: 'HOUSE' }, select: { id: true } });
+  for (const [key, account] of Object.entries(HOUSES)) {
+    const found = await db.user.findFirst({ where: { handle: account.handle, kind: 'HOUSE' }, select: { id: true } });
     if (found) ids.set(key, found.id);
   }
 
@@ -198,15 +220,12 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
     }
     if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
     try {
-      const photo = await findWikipediaPhoto(dish.wiki, fetchImpl);
-      if (!photo) {
-        report.skipped.push({ title: dish.title, reason: 'no freely licensed photo found' });
+      const found = await pickDishPhoto(ai, dish, fetchImpl);
+      if (!found.photo) {
+        report.skipped.push({ title: dish.title, reason: found.reason });
         continue;
       }
-      if (!(await photoShows(ai, dish.title, photo))) {
-        report.skipped.push({ title: dish.title, reason: 'the photo does not clearly show the dish' });
-        continue;
-      }
+      const photo = found.photo;
       const draft = await ai.runJson(
         { task: 'extract_recipe', system: SYSTEM, prompt: `Dish: ${dish.title}\nCuisine: ${dish.cuisine}\nMeal: ${dish.category}`, json: true, maxOutputTokens: 2500, temperature: 0.3 },
         aiSchema,
@@ -263,6 +282,7 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
         const account = await db.user.findUnique({ where: { id: owner }, select: { photoUrl: true } });
         if (!account?.photoUrl && list[0]) await db.user.update({ where: { id: owner }, data: { photoUrl: list[0].imageUrl } });
       }
+      if (!def) continue;
       const title = `${def.displayName.replace(/^SousChef /, '')} Favourites`;
       if (list.length >= 4 && !(await db.cookbook.findFirst({ where: { title }, select: { id: true } }))) {
         await cookbooks.create({ title, description: def.bio.replace(' An official SousChef account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
