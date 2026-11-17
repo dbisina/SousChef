@@ -6,6 +6,7 @@ import type { AuthService } from '../auth/service';
 import { viewerResolvers } from '../auth/viewer';
 import type { Config } from '../config';
 import type { FeedEventService } from './events';
+import type { SimilarService } from './similar';
 
 const eventsSchema = z.object({
   events: z
@@ -22,7 +23,10 @@ const eventsSchema = z.object({
 
 const preferencesSchema = z.object({ personalised: z.boolean() });
 
-export function recommendRoutes(app: FastifyInstance, events: FeedEventService, auth: AuthService, config: Config): void {
+const rowQuery = z.object({ limit: z.coerce.number().int().min(1).max(20).default(8) });
+const idParam = z.object({ id: z.uuid() });
+
+export function recommendRoutes(app: FastifyInstance, events: FeedEventService, similar: SimilarService, auth: AuthService, config: Config): void {
   const { requireViewer } = viewerResolvers(auth);
   // The app reports in small batches in the background: generous, but a stuck loop cannot hammer the database.
   const batching = { config: { rateLimit: { max: Math.min(config.RATE_LIMIT_MAX, 30), timeWindow: '1 minute' } } };
@@ -30,6 +34,18 @@ export function recommendRoutes(app: FastifyInstance, events: FeedEventService, 
   app.post('/v1/feed/events', batching, async (request) => {
     const viewer = await requireViewer(request);
     return events.record(viewer.userId, parse(eventsSchema, request.body).events);
+  });
+
+  /** "More like this": works signed out too. */
+  app.get('/v1/recipes/:id/similar', async (request) => {
+    const { limit } = parse(rowQuery, request.query);
+    return { items: await similar.similar(parse(idParam, request.params).id, limit) };
+  });
+
+  /** "Because you cooked ...": recipes like the one this person cooked or saved last. */
+  app.get('/v1/feed/because-you-cooked', async (request) => {
+    const viewer = await requireViewer(request);
+    return similar.becauseYouCooked(viewer.userId, parse(rowQuery, request.query).limit);
   });
 
   app.get('/v1/me/feed-preferences', async (request) => events.preferences((await requireViewer(request)).userId));

@@ -1,4 +1,5 @@
-// What people do with the feed, reported by the app so the feed can learn what each person likes.
+// What people do with the feed, reported by the app so the feed can learn what each person likes, and the rows that come from it.
+import type { RecipeSummary } from './recipe';
 
 export const FEED_EVENT_KINDS = ['impression', 'view', 'open', 'like', 'save', 'share', 'cook_start', 'cook_finish', 'hide'] as const;
 export type FeedEventKind = (typeof FEED_EVENT_KINDS)[number];
@@ -25,4 +26,15 @@ export interface RecordFeedEventsResponse {
 export interface FeedPreferences {
   /** Whether the feed may learn from what this person does. */
   personalised: boolean;
+}
+
+/** Recipes like another one ("more like this"), most alike first. */
+export interface SimilarRecipes {
+  items: RecipeSummary[];
+}
+
+/** A row on Home: recipes like the one this person cooked or saved last. `basedOn` is null when they have not yet. */
+export interface BecauseYouCooked {
+  basedOn: { id: string; title: string } | null;
+  items: RecipeSummary[];
 }

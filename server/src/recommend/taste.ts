@@ -79,6 +79,28 @@ export class TasteService {
     return out;
   }
 
+  private catalogCache: { at: number; mark: string; items: Map<string, RecipeInfo> } | null = null;
+
+  /**
+   * The traits of the recipes worth recommending (the best-liked and the newest, up to 800). Kept for ten minutes, and rebuilt
+   * sooner whenever a recipe is added, changed or removed (one cheap count tells).
+   */
+  async catalog(): Promise<Map<string, RecipeInfo>> {
+    const now = this.now().getTime();
+    const seen = await this.db.recipe.aggregate({ where: { status: 'PUBLISHED' }, _count: { _all: true }, _max: { updatedAt: true } });
+    const mark = `${seen._count._all}:${seen._max.updatedAt?.toISOString() ?? ''}`;
+    if (this.catalogCache && this.catalogCache.mark === mark && now - this.catalogCache.at < ITEM_TTL_MS) return this.catalogCache.items;
+    const select = { id: true, cuisine: true, category: true, difficulty: true, prepTime: true, cookTime: true, dietaryFlags: true, tags: true, ingredientNames: true } as const;
+    const [popular, newest] = await Promise.all([
+      this.db.recipe.findMany({ where: { status: 'PUBLISHED' }, orderBy: [{ likeCount: 'desc' }, { id: 'desc' }], take: 500, select }),
+      this.db.recipe.findMany({ where: { status: 'PUBLISHED' }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 300, select }),
+    ]);
+    const items = new Map<string, RecipeInfo>();
+    for (const r of [...popular, ...newest]) if (!items.has(r.id)) items.set(r.id, { vec: recipeFeatures(r), cuisine: r.cuisine });
+    this.catalogCache = { at: now, mark, items };
+    return items;
+  }
+
   /** The person's taste, rebuilt first when it is missing or stale. Null when they have personalisation off. */
   async taste(userId: string): Promise<Taste | null> {
     const user = await this.db.user.findUnique({ where: { id: userId }, select: { feedPersonalised: true } });
