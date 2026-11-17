@@ -14,19 +14,8 @@ interface Props {
   showPresence?: boolean;
 }
 
-/** Avatar for a conversation: friend photo, two-photo stack for groups, store icon for orders, cover for communities. */
+/** Avatar for a conversation: friend photo, two-photo stack for groups, cover for communities. */
 export function ConversationAvatar({ conversation: c, size = 52, showPresence = true }: Props) {
-  if (c.kind === 'order') {
-    return (
-      <View
-        accessibilityLabel={c.title}
-        className="items-center justify-center bg-night"
-        style={{ width: size, height: size, borderRadius: size / 2 }}
-      >
-        <Icon name="store" color="paper" size={size >= 48 ? 'md' : 'sm'} />
-      </View>
-    );
-  }
   if (c.kind === 'group') {
     const people = c.participantIds.map(authorById).filter((a): a is Author => !!a).slice(0, 2);
     const small = Math.round(size * 0.7);

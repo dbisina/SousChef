@@ -144,7 +144,7 @@ export default function ImportedRecipeDetailScreen() {
       footer={
         <ActionBar>
           <UButton
-            label={t('cooking.shop', 'Shop')}
+            label={t('cooking.addToList', 'Add to list')}
             variant="ghost"
             icon="cart"
             onPress={handleAddToShoppingList}

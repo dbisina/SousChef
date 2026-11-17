@@ -24,7 +24,7 @@ import {
   MadeYourRecipe,
   MysteryCard,
   PlanShare,
-  ReelsRow,
+  SpoolsRow,
   type ImportedCardData,
   type PlanCardData,
 } from '@/components/feed/HomeFeed';
@@ -225,7 +225,7 @@ export default function HomeScreen() {
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
         {tonight ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} onPress={() => go(tonight.href)} /> : null}
         {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
-        {FEATURES.feed ? <ReelsRow /> : null}
+        {FEATURES.feed ? <SpoolsRow /> : null}
         {!isGuest ? <AiTonightCard /> : null}
         {imported ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
         {planIsReal ? <PlanShare cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}

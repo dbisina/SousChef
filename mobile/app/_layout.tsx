@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold } from '@expo-google-fonts/outfit';
+import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { onAuthStateChanged } from 'firebase/auth';
 import * as Linking from 'expo-linking';
@@ -56,6 +57,7 @@ export default function RootLayout() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
+    Pacifico_400Regular,
   });
   const fontsReady = fontsLoaded || !!fontError;
   const notificationListener = useRef<Notifications.EventSubscription>(null);
@@ -366,7 +368,7 @@ export default function RootLayout() {
           options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: '#0B0B0B' } }}
         />
         <Stack.Screen name="import" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="reels" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen name="spools" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen name="story/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen
           name="share"

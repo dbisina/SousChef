@@ -29,8 +29,8 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAd
     >
       <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
       <View pointerEvents="none" style={{ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' }}>
-        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" style={{ fontFamily: FONT.display, fontSize: 19, lineHeight: 24, letterSpacing: -0.38 }}>
-          SousChef
+        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" accessibilityLabel="SousChef" style={{ fontFamily: FONT.script, fontSize: 30, lineHeight: 44, letterSpacing: 0, includeFontPadding: false }}>
+          souschef
         </RNText>
       </View>
       <View className="flex-row items-center" style={{ gap: 6 }}>

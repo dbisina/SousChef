@@ -36,7 +36,7 @@ const remember = (m: { id: string; conversationId: string; seq: number }) => {
   lastSeq.set(m.conversationId, Math.max(lastSeq.get(m.conversationId) ?? 0, m.seq));
 };
 
-export type ConversationFilter = 'all' | 'friends' | 'groups' | 'orders';
+export type ConversationFilter = 'all' | 'friends' | 'groups';
 
 interface MessageState {
   conversations: Conversation[];
@@ -182,7 +182,6 @@ export const useMessageStore = create<MessageState>()(
 const KIND_FOR_FILTER: Record<Exclude<ConversationFilter, 'all'>, ConversationKind[]> = {
   friends: ['friend'],
   groups: ['group', 'community'],
-  orders: ['order'],
 };
 
 /** Newest first, optionally filtered by chip and search text. */

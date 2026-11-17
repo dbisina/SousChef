@@ -130,7 +130,7 @@ export interface ImageMessage extends MessageBase {
 }
 export type Message = TextMessage | RecipeCardMessage | VoiceMessage | ImageMessage;
 
-export type ConversationKind = 'friend' | 'group' | 'order' | 'community';
+export type ConversationKind = 'friend' | 'group' | 'community';
 
 export interface Conversation {
   id: string;

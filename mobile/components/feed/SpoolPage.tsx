@@ -14,7 +14,7 @@ import { BarText, photoOf, shareText } from './shared';
 
 const PLAY_MS = 12_000;
 
-interface ReelPageProps {
+interface SpoolPageProps {
   reel: Reel;
   height: number;
   active: boolean;
@@ -32,7 +32,7 @@ function Rail({ children, count }: { children: React.ReactNode; count: string })
 }
 
 /** One full-screen reel: photo, action rail, author + caption, recipe pill, progress strip. */
-export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageProps) {
+export function SpoolPage({ reel, height, active, onComments, onCook }: SpoolPageProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const author = useSocialStore(selectAuthor(reel.authorId));
@@ -63,27 +63,27 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
             tone="glassDark"
             icon="heart"
             filled={liked}
-            label={liked ? t('reels.unlike', 'Unlike') : t('reels.like', 'Like')}
+            label={liked ? t('spools.unlike', 'Unlike') : t('spools.like', 'Like')}
             onPress={() => toggleLike(reel.id)}
           />
         </Rail>
         <Rail count={compactCount(reel.commentCount)}>
-          <UIconButton tone="glassDark" icon="chat" label={t('reels.comments', 'Comments')} onPress={onComments} />
+          <UIconButton tone="glassDark" icon="chat" label={t('spools.comments', 'Comments')} onPress={onComments} />
         </Rail>
         <Rail count={compactCount(reel.saves)}>
           <UIconButton
             tone="glassDark"
             icon="bookmark"
             filled={saved}
-            label={saved ? t('reels.unsave', 'Remove from saved') : t('reels.save', 'Save')}
+            label={saved ? t('spools.unsave', 'Remove from saved') : t('spools.save', 'Save')}
             onPress={() => toggleSave(reel.id)}
           />
         </Rail>
-        <Rail count={t('reels.share', 'Share')}>
+        <Rail count={t('spools.share', 'Share')}>
           <UIconButton
             tone="glassDark"
             icon="send"
-            label={t('reels.share', 'Share')}
+            label={t('spools.share', 'Share')}
             onPress={() => shareText(`${reel.title} · ${reel.caption}`)}
           />
         </Rail>
@@ -98,7 +98,7 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
             </RNText>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={following ? t('reels.following', 'Following') : t('reels.follow', 'Follow')}
+              accessibilityLabel={following ? t('spools.following', 'Following') : t('spools.follow', 'Follow')}
               accessibilityState={{ selected: following }}
               onPress={() => toggleFollow(author.id)}
               hitSlop={6}
@@ -113,7 +113,7 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
                 }}
               >
                 <RNText style={{ fontFamily: FONT.sansMedium, fontSize: 13, color: following ? FIXED.night : FIXED.paper }}>
-                  {following ? t('reels.following', 'Following') : t('reels.follow', 'Follow')}
+                  {following ? t('spools.following', 'Following') : t('spools.follow', 'Follow')}
                 </RNText>
               </Glass>
             </Pressable>
@@ -141,7 +141,7 @@ export function ReelPage({ reel, height, active, onComments, onCook }: ReelPageP
       >
         <UAvatar source={photoOf(reel.recipePhoto)} name={reel.recipeTitle} size={52} square />
         <BarText title={reel.recipeTitle} sub={reel.recipeMeta} size={15} />
-        <UButton size="sm" variant="accent" label={t('reels.cookThis', 'Cook this')} onPress={onCook} />
+        <UButton size="sm" variant="accent" label={t('spools.cookThis', 'Cook this')} onPress={onCook} />
       </Glass>
 
       <View

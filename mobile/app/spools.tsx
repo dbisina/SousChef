@@ -8,12 +8,12 @@ import { Glass, Muted, Screen, TopBar, UIconButton } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { useSocialStore } from '@/stores/socialStore';
-import { ReelPage } from '@/components/feed/ReelPage';
+import { SpoolPage } from '@/components/feed/SpoolPage';
 import type { Reel } from '@/types/social';
 
 type Tab = 'forYou' | 'following';
 
-export default function ReelsScreen() {
+export default function SpoolsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { height } = useWindowDimensions();
@@ -43,7 +43,7 @@ export default function ReelsScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Reel }) => (
-      <ReelPage
+      <SpoolPage
         reel={item}
         height={height}
         active={item.id === current}
@@ -55,15 +55,15 @@ export default function ReelsScreen() {
   );
 
   const tabs: { value: Tab; label: string }[] = [
-    { value: 'forYou', label: t('reels.forYou', 'For You') },
-    { value: 'following', label: t('reels.followingTab', 'Following') },
+    { value: 'forYou', label: t('spools.forYou', 'For You') },
+    { value: 'following', label: t('spools.followingTab', 'Following') },
   ];
 
   return (
     <Screen tone="dark" bare>
       {list.length === 0 ? (
         <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: 40 }}>
-          <Muted center>{t('reels.emptyFollowing', 'Follow cooks to see their reels here.')}</Muted>
+          <Muted center>{t('spools.emptyFollowing', 'Follow cooks to see their spools here.')}</Muted>
         </View>
       ) : (
         <View style={{ flex: 1, overflow: 'hidden' }}>
@@ -112,7 +112,7 @@ export default function ReelsScreen() {
               })}
             </Glass>
           }
-          right={<UIconButton tone="glassDark" icon="camera" label={t('reels.camera', 'New post')} onPress={() => router.push('/post/new' as Href)} />}
+          right={<UIconButton tone="glassDark" icon="camera" label={t('spools.camera', 'New post')} onPress={() => router.push('/post/new' as Href)} />}
         />
       </View>
     </Screen>

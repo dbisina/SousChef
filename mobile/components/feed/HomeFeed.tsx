@@ -127,9 +127,9 @@ export function FriendPost({ postId }: { postId: string }) {
   );
 }
 
-/* ------------------------------------------------------------------ reels row */
+/* ------------------------------------------------------------------ spools row */
 
-export function ReelsRow() {
+export function SpoolsRow() {
   const { t } = useTranslation();
   const router = useRouter();
   const reels = useSocialStore((s) => s.reels);
@@ -139,9 +139,9 @@ export function ReelsRow() {
     <View style={{ gap: 12 }}>
       <View className="flex-row items-center justify-between" style={{ height: 24 }}>
         <View className="flex-row items-center" style={{ gap: 8 }}>
-          <H2>{t('home.reels', 'Reels')}</H2>
+          <H2>{t('home.spools', 'Spools')}</H2>
         </View>
-        <Pressable accessibilityRole="link" accessibilityLabel={t('home.seeAllReels', 'See all reels')} onPress={() => go(router, '/reels')} hitSlop={10}>
+        <Pressable accessibilityRole="link" accessibilityLabel={t('home.seeAllSpools', 'See all spools')} onPress={() => go(router, '/reels')} hitSlop={10}>
           <LinkText>{t('home.seeAll', 'See all')}</LinkText>
         </Pressable>
       </View>
@@ -158,7 +158,7 @@ export function ReelsRow() {
             width={132}
             height={228}
             radius={22}
-            onPress={() => router.push({ pathname: '/reels', params: { start: reel.id } })}
+            onPress={() => router.push({ pathname: '/spools', params: { start: reel.id } })}
             accessibilityLabel={reel.title}
           >
             <View pointerEvents="none" style={{ position: 'absolute', left: 12, right: 10, bottom: 10, gap: 2 }}>

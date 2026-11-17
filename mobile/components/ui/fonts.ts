@@ -6,4 +6,6 @@ export const FONT = {
   sans: 'Inter_400Regular',
   sansMedium: 'Inter_500Medium',
   sansSemi: 'Inter_600SemiBold',
+  /** Connected script, used only for the lowercase "souschef" wordmark. */
+  script: 'Pacifico_400Regular',
 } as const;

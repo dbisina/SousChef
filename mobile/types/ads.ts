@@ -18,7 +18,7 @@ export interface SponsoredAd {
     title: string;
     subtitle: string;
     imageURL: string;
-    ctaText: string; // "Shop Now", "Try Free", "Learn More"
+    ctaText: string; // "Try it", "Learn More"
     ctaURL: string; // Deep link or web URL
     // Targeting
     placements: AdPlacement[];
@@ -90,11 +90,11 @@ export interface AdMetrics {
 export const FALLBACK_AD: Omit<SponsoredAd, 'id' | 'createdAt' | 'updatedAt' | 'startDate' | 'endDate'> = {
     advertiserId: 'souschef',
     advertiserName: 'SousChef',
-    title: 'Fresh Ingredients Delivered',
-    subtitle: 'Get 20% off your first grocery order',
+    title: 'Import any recipe video',
+    subtitle: 'Paste a TikTok, Instagram or YouTube link and cook it step by step.',
     imageURL: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=80',
-    ctaText: 'Shop Now',
-    ctaURL: 'https://souschef.app/partners',
+    ctaText: 'Try it',
+    ctaURL: 'https://souschef.app',
     placements: ['welcome_modal', 'home_feed'],
     format: 'card',
     status: 'active',

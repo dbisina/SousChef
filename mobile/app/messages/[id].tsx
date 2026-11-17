@@ -85,9 +85,7 @@ export default function ChatScreen() {
       ? (conversation.online ?? author?.online)
         ? t('chat.online', 'online')
         : ''
-      : conversation.kind === 'order'
-        ? t('chat.orderUpdates', 'Order updates')
-        : t('chat.members', '{{count}} people', { count: conversation.participantIds.length + 1 });
+      : t('chat.members', '{{count}} people', { count: conversation.participantIds.length + 1 });
 
   const send = () => {
     if (!draft.trim()) return;
@@ -200,7 +198,7 @@ export default function ChatScreen() {
           {items.length ? items : <Muted center>{t('chat.noMessages', 'No messages yet. Say hello.')}</Muted>}
         </ScrollView>
 
-        {conversation.kind !== 'order' && items.length > 0 ? <ChatAssistBar conversationId={conversation.id} onPickReply={setDraft} /> : null}
+        {items.length > 0 ? <ChatAssistBar conversationId={conversation.id} onPickReply={setDraft} /> : null}
 
         <View
           className="flex-row items-center"
