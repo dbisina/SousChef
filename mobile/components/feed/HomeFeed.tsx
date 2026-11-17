@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Alert, ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -43,6 +43,7 @@ export function FriendPost({ postId }: { postId: string }) {
   const toggleLike = useSocialStore((s) => s.toggleLikePost);
   const toggleSave = useSocialStore((s) => s.toggleSavePost);
   const toggleFollow = useSocialStore((s) => s.toggleFollow);
+  const hidePost = useSocialStore((s) => s.hidePost);
   const [page, setPage] = useState(0);
 
   if (!post || !author) return null;
@@ -50,6 +51,11 @@ export function FriendPost({ postId }: { postId: string }) {
   const w = width - 40;
   const kindLabel = post.kind === 'recipe' ? t('home.kindRecipe', 'Recipe') : post.kind === 'plan' ? t('home.kindPlan', 'Plan') : t('home.kindPost', 'Post');
   const open = () => go(router, `/post/${post.id}`);
+  const confirmHide = () =>
+    Alert.alert(t('home.hideTitle', 'Not interested in this?'), t('home.hideBody', 'It leaves your feed, and you will see fewer posts like it.'), [
+      { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+      { text: t('home.hideConfirm', 'Not interested'), style: 'destructive', onPress: () => hidePost(post.id) },
+    ]);
 
   return (
     <View style={{ gap: 12 }}>
@@ -108,7 +114,10 @@ export function FriendPost({ postId }: { postId: string }) {
           <Action icon="chat" label={t('home.comments', 'Comments')} count={post.commentCount} onPress={open} />
           <Action icon="send" label={t('home.share', 'Share')} onPress={() => shareText(`${post.title} · ${post.caption}`)} />
         </View>
-        <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={() => toggleSave(post.id)} />
+        <View className="flex-row items-center" style={{ gap: 14 }}>
+          <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={() => toggleSave(post.id)} />
+          <Action icon="more" label={t('home.moreOptions', 'More options')} onPress={confirmHide} />
+        </View>
       </View>
 
       {post.cookedWith ? <CookedWith title={post.cookedWith.title} authorName={post.cookedWith.authorName} onPress={() => go(router, `/recipe/${post.cookedWith!.recipeId}`)} /> : null}
@@ -125,6 +134,27 @@ export function FriendPost({ postId }: { postId: string }) {
         />
         <UButton size="sm" variant="ghost" label={t('home.addToPlan', 'Add to plan')} onPress={() => go(router, '/(tabs)/mealplan')} />
       </View>
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ the ranked list */
+
+interface ForYouListProps {
+  postIds: string[];
+  /** A card was laid out inside this list (its place, so the screen can tell what is on screen). */
+  onCardLayout?: (postId: string, y: number, height: number) => void;
+}
+
+/** The posts picked for this person, in the order the server chose, each one a card they can say "not interested" to. */
+export function ForYouList({ postIds, onCardLayout }: ForYouListProps) {
+  return (
+    <View style={{ gap: 22 }}>
+      {postIds.map((id) => (
+        <View key={id} onLayout={(e) => onCardLayout?.(id, e.nativeEvent.layout.y, e.nativeEvent.layout.height)}>
+          <FriendPost postId={id} />
+        </View>
+      ))}
     </View>
   );
 }

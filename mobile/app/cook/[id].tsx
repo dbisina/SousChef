@@ -43,6 +43,7 @@ import { useCookAssistant } from '@/hooks/useCookAssistant';
 import { apiEnabled } from '@/lib/api';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { StepClip } from '@/components/cook/StepClip';
+import { reportFeedEvent } from '@/lib/feedEvents';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import type { ImportedRecipe } from '@/types/wantToCook';
 import { isDesignReview } from '@/lib/designReview';
@@ -341,6 +342,7 @@ export default function CookingModeScreen() {
         setCookedMinutes(Math.max(1, Math.round((Date.now() - startedAt.current) / 60000)));
       }
       setStage('done');
+      if (serverRecipeId) reportFeedEvent({ kind: 'cook_finish', recipeId: serverRecipeId });
       // Finishing a recipe from the want-to-cook list marks it cooked there too.
       if (imported) void markAsCooked(id).catch(() => undefined);
     }
@@ -356,6 +358,7 @@ export default function CookingModeScreen() {
     startedAt.current = Date.now();
     setStage('cooking');
     setCurrentStep(0);
+    if (serverRecipeId) reportFeedEvent({ kind: 'cook_start', recipeId: serverRecipeId });
   };
 
   // Handle voice command for reading step

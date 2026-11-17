@@ -10,6 +10,7 @@ import type {
   CreatePostRequest,
   CreateReportRequest,
   CreateStoryRequest,
+  FeedPreferences,
   FollowToggle,
   Page,
   Participant,
@@ -117,3 +118,9 @@ export interface HandleCheck {
 /** Is a username well formed and free (or already yours)? */
 export const apiHandleAvailable = (handle: string): Promise<HandleCheck> =>
   api().get<HandleCheck>(`/v1/users/handle-available?handle=${encodeURIComponent(handle)}`);
+
+/* ---------------------------------------------------------------- feed learning */
+
+/** Whether the feed may learn from what this person does. */
+export const apiFeedPreferences = (): Promise<FeedPreferences> => api().get<FeedPreferences>('/v1/me/feed-preferences');
+export const apiSetFeedPreferences = (personalised: boolean): Promise<FeedPreferences> => api().put<FeedPreferences>('/v1/me/feed-preferences', { personalised });

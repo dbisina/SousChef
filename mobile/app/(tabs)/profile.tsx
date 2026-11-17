@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { DEVELOPER_EMAIL, SUPPORT_EMAIL } from '@/lib/contact';
 import { SERVER_MODE } from '@/constants/features';
 import { Alert, Linking, Platform, ScrollView, Text, View } from 'react-native';
@@ -23,11 +23,15 @@ import {
   UButton,
   UCard,
   UIconButton,
+  USwitch,
   Title,
   Body,
   type IconName,
 } from '@/components/ui';
 import { getTierFeatures } from '@/services/subscriptionService';
+import { apiEnabled } from '@/lib/api';
+import { feedReporter } from '@/lib/feedEvents';
+import { apiFeedPreferences, apiSetFeedPreferences } from '@/services/socialApi';
 
 type SettingsRoute =
   | '/subscription'
@@ -59,6 +63,23 @@ export default function ProfileScreen() {
   const { recipes: myRecipes } = useMyRecipes();
   const { subscriptionTier, isSubscribed, tierName } = useSubscription();
   const adFree = isGuest ? false : getTierFeatures(subscriptionTier).adFree;
+
+  // Whether the feed may learn from what this person does (views, saves, "not interested"). On unless they turn it off.
+  const [personalised, setPersonalised] = useState(true);
+  useEffect(() => {
+    if (!apiEnabled() || isGuest) return;
+    apiFeedPreferences()
+      .then((p) => setPersonalised(p.personalised))
+      .catch(() => undefined);
+  }, [isGuest]);
+  const changePersonalised = (on: boolean) => {
+    setPersonalised(on);
+    feedReporter.setEnabled(on);
+    apiSetFeedPreferences(on).catch(() => {
+      setPersonalised(!on);
+      feedReporter.setEnabled(!on);
+    });
+  };
 
   const handleSignOut = () => {
     if (isGuest) {
@@ -234,7 +255,18 @@ export default function ProfileScreen() {
             return rows.length > 0 ? (
               <View key={group.key} style={{ gap: 8 }}>
                 <SectionLabel>{group.label}</SectionLabel>
-                <Rows>{rows.map(renderRow)}</Rows>
+                <Rows>
+                  {rows.map(renderRow)}
+                  {group.key === 'app' && apiEnabled() && !isGuest ? (
+                    <ListRow
+                      key="personalised"
+                      icon="star"
+                      title={t('account.profile.personalised', 'Personalised feed')}
+                      subtitle={t('account.profile.personalisedSub', 'Let your feed learn from what you view, save and cook. Off: nothing is recorded.')}
+                      right={<USwitch value={personalised} onValueChange={changePersonalised} label={t('account.profile.personalised', 'Personalised feed')} />}
+                    />
+                  ) : null}
+                </Rows>
               </View>
             ) : null;
           })}

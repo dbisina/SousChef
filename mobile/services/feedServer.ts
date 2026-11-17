@@ -112,6 +112,8 @@ export function toEvent(e: ApiEvent): CommunityEvent {
 }
 
 export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 'reels' | 'stories' | 'communities' | 'challenges' | 'events'> {
+  /** The posts picked for this person, best first (the server's own order: the list above is sorted by date). */
+  forYouIds: string[];
   joinedCommunityIds: string[];
   likedPostIds: string[];
   savedPostIds: string[];
@@ -160,6 +162,7 @@ export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
   return {
     authors: [...people.values()].map((p) => toAuthor(p, meId)),
     posts: posts.map((p) => toPost(p, meId)),
+    forYouIds: forYou.items.map((p) => p.id),
     reels: videos.map((p) => toReel(p, meId)),
     stories: toStories(tray, meId),
     communities: communities.map(toCommunity),

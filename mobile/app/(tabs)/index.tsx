@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState, RefreshControl, ScrollView, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, type Href } from 'expo-router';
+import { useFocusEffect, useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useMealPlanStore } from '@/stores/mealPlanStore';
@@ -18,7 +18,7 @@ import { isDesignReview } from '@/lib/designReview';
 import { HomeHeader, StoriesRow, TonightCard } from '@/components/feed/HomeTop';
 import {
   ChallengeCard,
-  FriendPost,
+  ForYouList,
   GlucoseReminder,
   ImportedCard,
   MadeYourRecipe,
@@ -33,6 +33,9 @@ import { ME_ID } from '@/types/social';
 import * as ImagePicker from 'expo-image-picker';
 import { TonightCard as AiTonightCard } from '@/components/ai/AiKitchen';
 import { apiEnabled } from '@/lib/api';
+import { feedReporter, reportFeedEvent } from '@/lib/feedEvents';
+import { ViewTracker } from '@/lib/viewTracker';
+import { apiFeedPreferences } from '@/services/socialApi';
 import { showErrorToast, showSuccessToast } from '@/stores/toastStore';
 
 const todayKey = () => {
@@ -190,8 +193,65 @@ export default function HomeScreen() {
   );
   const planIsReal = (currentPlan?.days ?? []).some((d) => d.breakfast || d.lunch || d.dinner);
 
-  const friendPost = posts.find((p) => p.kind === 'recipe');
+  const forYouIds = useSocialStore((st) => st.forYouIds);
   const madePost = posts.find((p) => p.kind === 'made-this' && !p.communityId && p.authorId !== ME_ID);
+  // The server's own order for this person (best first); without a server, or before it has answered, the newest recipe post.
+  const rankedIds = useMemo(() => {
+    const byId = new Map(posts.map((p) => [p.id, p]));
+    const picked = forYouIds.filter((id) => {
+      const p = byId.get(id);
+      return !!p && p.id !== madePost?.id && !p.communityId && p.authorId !== ME_ID;
+    });
+    if (picked.length > 0) return picked.slice(0, 12);
+    const newest = posts.find((p) => p.kind === 'recipe');
+    return newest ? [newest.id] : [];
+  }, [forYouIds, posts, madePost?.id]);
+
+  // What was on screen and for how long, reported in the background so the feed can learn.
+  const tracker = useRef(new ViewTracker(reportFeedEvent)).current;
+  const scrollState = useRef({ offset: 0, viewport: 0 });
+  const listTop = useRef(0);
+  const cards = useRef(new Map<string, { y: number; h: number }>());
+  const placeCards = useCallback(() => {
+    for (const [id, c] of cards.current) tracker.layout(id, listTop.current + c.y, c.h);
+    if (scrollState.current.viewport > 0) tracker.update(scrollState.current.offset, scrollState.current.viewport, Date.now());
+  }, [tracker]);
+  const onCardLayout = useCallback(
+    (id: string, y: number, h: number) => {
+      cards.current.set(id, { y, h });
+      placeCards();
+    },
+    [placeCards],
+  );
+  const onScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      scrollState.current = { offset: e.nativeEvent.contentOffset.y, viewport: e.nativeEvent.layoutMeasurement.height };
+      tracker.update(scrollState.current.offset, scrollState.current.viewport, Date.now());
+    },
+    [tracker],
+  );
+  const closeOut = useCallback(() => {
+    tracker.stop(Date.now());
+    void feedReporter.flush();
+  }, [tracker]);
+  useFocusEffect(useCallback(() => closeOut, [closeOut]));
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') closeOut();
+    });
+    return () => sub.remove();
+  }, [closeOut]);
+  // Learning is on unless the person turned it off in settings.
+  useEffect(() => {
+    if (!apiEnabled()) return;
+    if (isGuest) {
+      feedReporter.setEnabled(false); // nothing to learn from without an account
+      return;
+    }
+    apiFeedPreferences()
+      .then((p) => feedReporter.setEnabled(p.personalised))
+      .catch(() => undefined);
+  }, [isGuest]);
 
   const latest = useMemo(() => latestGlucose(readings), [readings]);
   const latestLine = latest
@@ -220,11 +280,18 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingHorizontal: 20, gap: 22, paddingBottom: 130 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        onScroll={onScroll}
+        scrollEventThrottle={120}
+        onLayout={(e) => { scrollState.current.viewport = e.nativeEvent.layout.height; placeCards(); }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accent} />}
       >
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
         {tonight ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} onPress={() => go(tonight.href)} /> : null}
-        {FEATURES.feed && friendPost ? <FriendPost postId={friendPost.id} /> : null}
+        {FEATURES.feed && rankedIds.length > 0 ? (
+          <View onLayout={(e) => { listTop.current = e.nativeEvent.layout.y; placeCards(); }}>
+            <ForYouList postIds={rankedIds} onCardLayout={onCardLayout} />
+          </View>
+        ) : null}
         {FEATURES.feed ? <SpoolsRow /> : null}
         {!isGuest ? <AiTonightCard /> : null}
         {imported ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}

@@ -9,6 +9,7 @@ import { apiEnabled } from '@/lib/api';
 import { currentUserId } from '@/lib/session';
 import { uploadFile } from '@/lib/upload';
 import { fetchServerFeed, toComment, toPost, toStories } from '@/services/feedServer';
+import { feedReporter, reportFeedEvent } from '@/lib/feedEvents';
 import {
   apiAddComment,
   apiCreatePost,
@@ -25,6 +26,8 @@ import {
 const EMPTY_FEED = { authors: [], posts: [], reels: [], stories: [], comments: [], communities: [], challenges: [], events: [] };
 
 interface SocialState extends FeedSnapshot {
+  /** Posts picked for this person, best first. Empty without a server. */
+  forYouIds: string[];
   likedPostIds: string[];
   savedPostIds: string[];
   likedReelIds: string[];
@@ -35,6 +38,8 @@ interface SocialState extends FeedSnapshot {
   viewedStoryIds: string[];
 
   toggleLikePost: (id: string) => void;
+  /** "Not interested": the post leaves the feed now, and the server is told so it stays out and the feed learns. */
+  hidePost: (id: string) => void;
   toggleSavePost: (id: string) => void;
   toggleLikeReel: (id: string) => void;
   toggleSaveReel: (id: string) => void;
@@ -62,6 +67,7 @@ export const useSocialStore = create<SocialState>()(
   persist(
     (set, get) => ({
       ...(apiEnabled() ? EMPTY_FEED : feedService.seed()),
+      forYouIds: [],
       likedPostIds: [],
       savedPostIds: [],
       likedReelIds: [],
@@ -71,8 +77,14 @@ export const useSocialStore = create<SocialState>()(
       joinedCommunityIds: [],
       viewedStoryIds: [],
 
+      hidePost: (id) => {
+        reportFeedEvent({ kind: 'hide', postId: id });
+        void feedReporter.flush();
+        set((s) => ({ posts: s.posts.filter((p) => p.id !== id), forYouIds: s.forYouIds.filter((x) => x !== id) }));
+      },
       toggleLikePost: (id) => {
         const wantOn = !get().likedPostIds.includes(id);
+        if (wantOn) reportFeedEvent({ kind: 'like', postId: id });
         if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, likes: count } : p)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.likedPostIds, id);
@@ -84,6 +96,7 @@ export const useSocialStore = create<SocialState>()(
       },
       toggleSavePost: (id) => {
         const wantOn = !get().savedPostIds.includes(id);
+        if (wantOn) reportFeedEvent({ kind: 'save', postId: id });
         if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, saves: count } : p)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.savedPostIds, id);
@@ -234,6 +247,7 @@ export const useSocialStore = create<SocialState>()(
       resetSample: () =>
         set({
           ...feedService.seed(),
+          forYouIds: [],
           likedPostIds: [],
           savedPostIds: [],
           likedReelIds: [],
