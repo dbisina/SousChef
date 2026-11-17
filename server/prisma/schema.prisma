@@ -56,6 +56,8 @@ model User {
   /// Set by staff when an account is suspended: no sign-in, no new content. Cleared to lift it.
   suspendedAt     DateTime?
   suspendedReason String    @default("")
+  /// Whether the feed may learn from what this person does (views, saves, hides). Off: nothing is recorded and nothing is used.
+  feedPersonalised Boolean  @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -118,6 +120,7 @@ model User {
   chefVerifications ChefVerification[]
   aiInsights       AiInsight[]
   scaleNotes       RecipeScaleNote[]
+  feedEvents       FeedEvent[]
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1399,4 +1402,24 @@ model StepImageUse {
   count  Int    @default(0)
 
   @@id([userId, day])
+}
+
+/// One thing a person did with the feed: the raw signal the taste profile learns from. Kept for 30 days (the profile keeps the
+/// lesson), deleted with the account. `kind` is impression, view, open, like, save, share, cook_start, cook_finish or hide.
+model FeedEvent {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  kind      String
+  postId    String?  @db.Uuid
+  recipeId  String?  @db.Uuid
+  authorId  String?  @db.Uuid
+  /// How long it stayed on screen, in milliseconds (view events).
+  dwellMs   Int?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, kind, postId])
+  @@index([createdAt])
 }

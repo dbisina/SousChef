@@ -156,9 +156,12 @@ export class PostService {
     const asOf = state ? new Date(state.asOf) : this.now();
     const offset = state?.offset ?? 0;
 
+    // Posts this person marked "not interested" stay out of their feed.
+    const hidden = viewer ? (await this.db.feedEvent.findMany({ where: { userId: viewer.userId, kind: 'hide', postId: { not: null } }, select: { postId: true } })).map((h) => h.postId as string) : [];
     const where: Prisma.PostWhereInput = {
       status: 'PUBLISHED',
       createdAt: { gte: new Date(asOf.getTime() - FOR_YOU_WINDOW_MS), lte: asOf },
+      ...(hidden.length > 0 ? { id: { notIn: hidden } } : {}),
       ...(viewer ? notBlocked(viewer.userId) : {}),
     };
     const rows = await this.db.post.findMany({

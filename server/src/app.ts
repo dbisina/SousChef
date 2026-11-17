@@ -21,6 +21,8 @@ import websocket from '@fastify/websocket';
 import { noEvents, type ChatEvents } from './chat/events';
 import { ChatHub, defaultHubOptions, tee, type HubOptions } from './chat/hub';
 import { ExpoPushSender, PushNotifier, type PushSender } from './chat/push';
+import { FeedEventService } from './recommend/events';
+import { recommendRoutes } from './recommend/routes';
 import { chatRoutes } from './chat/routes';
 import { ChatService } from './chat/service';
 import { communityRoutes } from './communities/routes';
@@ -205,6 +207,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   if (config.ADMIN_DIR) registerAdminSite(app, config.ADMIN_DIR);
   const postService = new PostService(db, uploads, options.now, moderation, notifier ? (n) => void notifier.recipeCooked(n).catch((err) => app.log.warn({ err }, 'could not notify a recipe writer')) : null);
   socialRoutes(app, new FollowService(db), postService, auth, config);
+  recommendRoutes(app, new FeedEventService(db, options.now), auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
   importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}), ...(config.YT_DLP_COOKIES_PATH ? { cookiesFile: config.YT_DLP_COOKIES_PATH } : {}) }) : null) : options.videoText, options.videoFrames === undefined ? (config.YT_DLP_PATH ? ytDlpWatch({ ytDlp: config.YT_DLP_PATH, ffmpeg: config.FFMPEG_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}), ...(config.YT_DLP_COOKIES_PATH ? { cookiesFile: config.YT_DLP_COOKIES_PATH } : {}) }) : null) : options.videoFrames, options.webSearch === undefined ? webSearchFromConfig(config) : options.webSearch, options.phoneVideo === undefined ? (config.YT_DLP_PATH ? { download: (url, cookie) => downloadVideo(url, cookie), frames: (bytes) => watchBytes(bytes, { ffmpeg: config.FFMPEG_PATH }) } : null) : options.phoneVideo), auth, config);
   const insights = new InsightCache(db, options.now);

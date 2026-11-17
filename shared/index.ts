@@ -10,6 +10,7 @@ export * from './tiers';
 export * from './uploads';
 export * from './chat';
 export * from './social';
+export * from './feed';
 export * from './community';
 export * from './invites';
 export * from './imports';

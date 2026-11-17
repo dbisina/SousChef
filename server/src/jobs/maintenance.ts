@@ -9,6 +9,7 @@ export interface PurgeCounts {
   importCache: number;
   aiUsage: number;
   aiInsights: number;
+  feedEvents: number;
 }
 
 /** Clears out old rows nobody needs, so tables stay small and the database stays cheap. */
@@ -20,7 +21,7 @@ export class Maintenance {
 
   async purge(): Promise<PurgeCounts> {
     const ago = (days: number) => new Date(this.now().getTime() - days * DAY_MS);
-    const [sessions, passwordResets, webhookEvents, importCache, aiUsage, aiInsights] = await Promise.all([
+    const [sessions, passwordResets, webhookEvents, importCache, aiUsage, aiInsights, feedEvents] = await Promise.all([
       // Expired a week ago, or ended (signed out, rotated or revoked) a month ago. Newer ones are kept for reuse detection.
       this.db.session.deleteMany({ where: { OR: [{ expiresAt: { lt: ago(7) } }, { revokedAt: { lt: ago(30) } }, { rotatedAt: { lt: ago(30) } }] } }),
       this.db.passwordReset.deleteMany({ where: { OR: [{ expiresAt: { lt: ago(1) } }, { usedAt: { lt: ago(7) } }] } }),
@@ -32,7 +33,9 @@ export class Maintenance {
       this.db.aiUsage.deleteMany({ where: { createdAt: { lt: ago(400) } } }),
       // Cached answers are only useful for days.
       this.db.aiInsight.deleteMany({ where: { createdAt: { lt: ago(45) } } }),
+      // The taste profile keeps what it learned; the raw events are only needed for a month.
+      this.db.feedEvent.deleteMany({ where: { createdAt: { lt: ago(30) } } }),
     ]);
-    return { sessions: sessions.count, passwordResets: passwordResets.count, webhookEvents: webhookEvents.count, importCache: importCache.count, aiUsage: aiUsage.count, aiInsights: aiInsights.count };
+    return { sessions: sessions.count, passwordResets: passwordResets.count, webhookEvents: webhookEvents.count, importCache: importCache.count, aiUsage: aiUsage.count, aiInsights: aiInsights.count, feedEvents: feedEvents.count };
   }
 }
