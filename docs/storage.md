@@ -18,18 +18,19 @@ The database keeps the plain R2 address of each file (never the Cloudinary one),
 without touching any data. The app turns a stored address into a Cloudinary one at display time (`mobile/lib/mediaUrl.ts`, used
 by photo cards and avatars). Files on the phone, other sites' pictures and bundled images are never changed.
 
+## Status (2026-11-17)
+- **R2: live.** Bucket `souschef-media`, public address `https://pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev` (Cloudflare's development address: fine for now, but rate-limited; attach a custom domain such as `media.souschef.app` before launch and change `STORAGE_PUBLIC_URL`). A bucket-only read/write access key was created and set on the Railway API service. A real avatar upload through the server was checked end to end (upload link, file in R2, public read).
+- **Previous settings** (to roll back): `S3_ENDPOINT=https://s3store-production.up.railway.app`, `S3_BUCKET=souschef`, `S3_REGION=us-east-1`, `STORAGE_PUBLIC_URL=https://s3store-production.up.railway.app/souschef` (with that service's own key and secret).
+- **Cloudinary: not connected yet** (needs your account: cloud name, and the R2 host added under Allowed fetch domains).
+
 ## What exists
 - Bucket `souschef-media` (Cloudflare account, location ENAM, standard storage). Created.
-- Server: nothing to change. It uses R2 as soon as the `S3_*` settings below are set.
+- Server: nothing to change in code; it uses R2 now that the `S3_*` settings below are set on Railway.
 - App: `lib/mediaUrl.ts` + `PhotoCard` and `UAvatar` use it. With no Cloudinary name set, behaviour is exactly as before.
 
-## What still needs your account (these are secrets or dashboard switches I cannot make from code)
-1. **R2 API token** (Cloudflare dashboard > R2 > Manage R2 API tokens > Create, permission "Object Read & Write", limited to
-   `souschef-media`). You get an Access Key ID and a Secret Access Key. Your account ID is in the dashboard URL.
-2. **Public address for the bucket:** bucket > Settings > either "Public Development URL" (`https://pub-xxxx.r2.dev`, fine to start;
-   rate-limited, not for production traffic) or **Custom Domain** (recommended for launch, e.g. `media.souschef.app`).
-3. **Cloudinary** (free plan is enough to start): note the **cloud name**; Settings > Security > **Allowed fetch domains**: add the R2 public
-   host (and the old bucket host while old files still live there). Without this Cloudinary refuses to fetch (`401`).
+## What still needs your account
+1. **Cloudinary** (the free plan is enough to start): sign up, note the **cloud name**, then Settings > Security > **Allowed fetch domains**: add `pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev` (and `s3store-production.up.railway.app` while old files still live there). Without this Cloudinary refuses to fetch (`401`). Then set `EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME` and `EXPO_PUBLIC_MEDIA_HOSTS` (below) in the app build settings.
+2. Before launch: attach a **custom domain** to the bucket (Cloudflare > R2 > souschef-media > Settings > Custom Domains) and change `STORAGE_PUBLIC_URL` to it. The `r2.dev` address is rate-limited and Cloudflare asks that it not be used for production.
 
 ## Settings
 Server (Railway `souschef-api` variables, and `server/.env.example`):
