@@ -33,6 +33,7 @@ import { ME_ID } from '@/types/social';
 import * as ImagePicker from 'expo-image-picker';
 import { TonightCard as AiTonightCard } from '@/components/ai/AiKitchen';
 import { apiEnabled } from '@/lib/api';
+import { BecauseYouCooked } from '@/components/recipe/BecauseYouCooked';
 import { feedReporter, reportFeedEvent } from '@/lib/feedEvents';
 import { ViewTracker } from '@/lib/viewTracker';
 import { apiFeedPreferences } from '@/services/socialApi';
@@ -293,6 +294,7 @@ export default function HomeScreen() {
           </View>
         ) : null}
         {FEATURES.feed ? <SpoolsRow /> : null}
+        {FEATURES.feed ? <BecauseYouCooked signedIn={!isGuest} /> : null}
         {!isGuest ? <AiTonightCard /> : null}
         {imported ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
         {planIsReal ? <PlanShare cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}

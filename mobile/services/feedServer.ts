@@ -158,7 +158,11 @@ export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
   for (const g of tray) people.set(g.author.id, g.author);
   for (const f of follows.items) people.set(f.id, f);
 
-  const videos = posts.filter((p) => p.videoUrl);
+  // Videos picked for this person come first, in the server's order; the rest follow, newest first.
+  const rank = new Map(forYou.items.map((p, i) => [p.id, i]));
+  const videos = posts
+    .filter((p) => p.videoUrl)
+    .sort((a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER) || b.createdAt.localeCompare(a.createdAt));
   return {
     authors: [...people.values()].map((p) => toAuthor(p, meId)),
     posts: posts.map((p) => toPost(p, meId)),

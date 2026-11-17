@@ -10,6 +10,8 @@ import type {
   RateRecipeResponse,
   RecipeMatch,
   RecipeSummary,
+  BecauseYouCooked as ApiBecauseYouCooked,
+  SimilarRecipes,
   ToggleResponse,
   UpdateRecipeRequest,
 } from '@shared/index';
@@ -252,3 +254,17 @@ export async function apiRecipeComments(id: string): Promise<RecipeComment[]> {
 export const apiAddRecipeComment = (id: string, text: string): Promise<ApiRecipeComment> => api().post<ApiRecipeComment>(`/v1/recipes/${id}/comments`, { text });
 
 export const apiFlagRecipe = (id: string, reason: string): Promise<void> => api().post<unknown>(`/v1/recipes/${id}/flag`, { reason }).then(() => undefined);
+
+/* ---------------------------------------------------------------- recommendations */
+
+/** Dishes made of similar things, for the recipe being looked at. */
+export async function apiSimilarRecipes(recipeId: string, limit = 8): Promise<Recipe[]> {
+  const res = await api().get<SimilarRecipes>(`/v1/recipes/${recipeId}/similar`, { query: { limit } });
+  return res.items.map(toAppRecipe);
+}
+
+/** Dishes like the one this person cooked or saved last (`basedOn` null until they have). */
+export async function apiBecauseYouCooked(limit = 8): Promise<{ basedOn: { id: string; title: string } | null; items: Recipe[] }> {
+  const res = await api().get<ApiBecauseYouCooked>('/v1/feed/because-you-cooked', { query: { limit } });
+  return { basedOn: res.basedOn, items: res.items.map(toAppRecipe) };
+}
