@@ -22,6 +22,7 @@ import { noEvents, type ChatEvents } from './chat/events';
 import { ChatHub, defaultHubOptions, tee, type HubOptions } from './chat/hub';
 import { ExpoPushSender, PushNotifier, type PushSender } from './chat/push';
 import { FeedEventService } from './recommend/events';
+import { TasteService } from './recommend/taste';
 import { recommendRoutes } from './recommend/routes';
 import { chatRoutes } from './chat/routes';
 import { ChatService } from './chat/service';
@@ -205,7 +206,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
   adminRoutes(app, new AdminService(db, ai, options.now), auth);
   if (config.ADMIN_DIR) registerAdminSite(app, config.ADMIN_DIR);
-  const postService = new PostService(db, uploads, options.now, moderation, notifier ? (n) => void notifier.recipeCooked(n).catch((err) => app.log.warn({ err }, 'could not notify a recipe writer')) : null);
+  const postService = new PostService(db, uploads, options.now, moderation, notifier ? (n) => void notifier.recipeCooked(n).catch((err) => app.log.warn({ err }, 'could not notify a recipe writer')) : null, config.FEED_RANKER === 'v2' ? new TasteService(db, options.now) : null);
   socialRoutes(app, new FollowService(db), postService, auth, config);
   recommendRoutes(app, new FeedEventService(db, options.now), auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);

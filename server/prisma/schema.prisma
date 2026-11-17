@@ -121,6 +121,7 @@ model User {
   aiInsights       AiInsight[]
   scaleNotes       RecipeScaleNote[]
   feedEvents       FeedEvent[]
+  tasteProfile     TasteProfile?
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1422,4 +1423,16 @@ model FeedEvent {
   @@index([userId, createdAt(sort: Desc)])
   @@index([userId, kind, postId])
   @@index([createdAt])
+}
+
+/// What the feed has learned about one person's taste: a short list of traits (cuisine:thai, ing:chicken, time:quick, ...) with
+/// how much they like each, rebuilt from what they like, save, cook and hide. Deleted with the account.
+model TasteProfile {
+  userId    String   @id @db.Uuid
+  vector    Json
+  /// How many signals it was built from. 0: nothing is known yet.
+  signals   Int      @default(0)
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

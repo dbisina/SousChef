@@ -14,6 +14,7 @@ import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
 import type { WriteGuard } from '../moderation/service';
 import type { UploadService } from '../uploads/service';
+import type { TasteService } from '../recommend/taste';
 import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank, spreadAuthors } from './forYou';
 
 const MAX_POSTS_PER_DAY = 20;
@@ -42,6 +43,8 @@ export class PostService {
     private readonly now: () => Date = () => new Date(),
     private readonly guard: WriteGuard | null = null,
     private readonly onCooked: CookedNotice | null = null,
+    /** When set, the For You feed also learns from each person's taste (FEED_RANKER=v2). */
+    private readonly taste: TasteService | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ posts */
@@ -194,6 +197,11 @@ export class PostService {
     const affinity = (authorId: string): number =>
       viewer && authorId === viewer.userId ? AFFINITY.self : followedIds.has(authorId) ? AFFINITY.followed : engagedIds.has(authorId) ? AFFINITY.engaged : AFFINITY.stranger;
 
+    // v2: what this person likes (by dish), what they have already scrolled past and who they pushed away.
+    const profile = viewer && this.taste ? await this.taste.taste(viewer.userId) : null;
+    const recipeInfo = this.taste ? await this.taste.recipes(rows.map((r) => r.recipeId).filter((x): x is string => !!x)) : new Map();
+    const fatigue = viewer && this.taste && profile ? await this.taste.fatigue(viewer.userId, rows.map((r) => r.id), authors) : null;
+
     const ranked = rank(
       rows.map((r) => ({
         id: r.id,
@@ -205,6 +213,14 @@ export class PostService {
         views: r.viewCount,
         authorAffinity: affinity(r.authorId),
         hasRecipe: r.recipeId !== null,
+        ...(this.taste
+          ? {
+              taste: this.taste.match(profile, r.recipeId ? recipeInfo.get(r.recipeId) : undefined),
+              avoid: fatigue?.avoid.get(r.authorId) ?? 0,
+              seen: fatigue?.seen.get(r.id) ?? 0,
+              group: (r.recipeId ? recipeInfo.get(r.recipeId)?.cuisine : undefined) ?? '',
+            }
+          : {}),
       })),
       offset + limit,
     );
