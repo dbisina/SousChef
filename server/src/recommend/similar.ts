@@ -26,7 +26,17 @@ export class SimilarService {
       if (score > MIN_ALIKE) scored.push({ id, score });
     }
     scored.sort((a, b) => b.score - a.score || (a.id < b.id ? -1 : 1));
-    const top = scored.slice(0, limit).map((s) => s.id);
+    // One of each name: a second recipe with the same title (a copy, a re-post) is not "more" anything.
+    const catalog = await this.taste.catalog();
+    const names = new Set([base.title.trim().toLowerCase()]);
+    const top: string[] = [];
+    for (const s of scored) {
+      const name = (catalog.get(s.id)?.title ?? '').trim().toLowerCase();
+      if (name && names.has(name)) continue;
+      names.add(name);
+      top.push(s.id);
+      if (top.length >= limit) break;
+    }
     if (top.length === 0) return [];
     const rows = await this.db.recipe.findMany({ where: { id: { in: top }, status: 'PUBLISHED' }, include: withAuthor });
     const byId = new Map(rows.map((r) => [r.id, r]));

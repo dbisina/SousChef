@@ -6,6 +6,8 @@ export type { FeedCandidate };
 export const FOR_YOU_WINDOW_MS = 7 * 24 * 3_600_000;
 /** Most posts handed to the ranker per request. */
 export const FOR_YOU_CANDIDATES = 300;
+/** When the last week holds fewer posts than this, older ones fill the feed (a quiet week must not leave it empty). */
+export const FOR_YOU_MIN_CANDIDATES = 40;
 
 /** Which part of the ranked feed the next page starts at, and the moment the candidate set was fixed at. */
 export interface ForYouCursor {

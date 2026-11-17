@@ -45,14 +45,15 @@ fn freshness(age_hours: f64) -> f64 {
 /// The score before any author spreading. Always finite and never negative.
 pub fn score(c: &Candidate) -> f64 {
     let affinity = if c.author_affinity.is_finite() { c.author_affinity.clamp(0.0, 1.0) } else { 0.0 };
-    // The constant lets a post nobody has reacted to yet still reach the top while it is new.
-    let base = (engagement(c) + 0.3) * freshness(c.age_hours);
+    // The constant keeps engagement from deciding everything: in a young app a few likes are noise, so a post nobody has reacted to
+    // yet still competes while it is new, and a dish that suits this person can outrank a mildly popular one.
+    let base = (engagement(c) + 1.0) * freshness(c.age_hours);
     let recipe = if c.has_recipe { 1.15 } else { 1.0 };
-    // Taste can lift a post to about 2.2 times; avoid can take away up to 70%; each time it was shown and ignored costs 40%.
+    // Taste can lift a post to 3 times; avoid can take away up to 70%; each time it was shown and ignored costs 40%.
     let taste = if c.taste.is_finite() { c.taste.clamp(0.0, 1.0) } else { 0.0 };
     let avoid = if c.avoid.is_finite() { c.avoid.clamp(0.0, 1.0) } else { 0.0 };
     let stale = SEEN_FALLOFF.powi(c.seen.min(6) as i32);
-    base * (1.0 + 1.5 * affinity) * recipe * (1.0 + 1.2 * taste) * (1.0 - 0.7 * avoid) * stale
+    base * (1.0 + 1.5 * affinity) * recipe * (1.0 + 2.0 * taste) * (1.0 - 0.7 * avoid) * stale
 }
 
 /// Each time a post was shown and ignored, it counts for this much of what it did before.

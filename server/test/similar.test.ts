@@ -35,6 +35,16 @@ describe('more like this', () => {
     expect(res.json<SimilarRecipes>().items[0]).toMatchObject({ title: 'Red Curry', author: { id: chef.user.id } });
   });
 
+  it('lists one of each name, so a copy of a recipe is not "more like this"', async () => {
+    const chef = await register(t);
+    const { greenCurry } = await menu(chef);
+    await createRecipe(t, chef, { title: 'Red Curry', cuisine: 'thai', ingredients: ing('coconut milk', 'red curry paste', 'chicken', 'bamboo shoots') });
+    await createRecipe(t, chef, { title: 'Green Curry', cuisine: 'thai', ingredients: ing('coconut milk', 'green curry paste', 'chicken', 'basil') });
+    const titles = (await call(t, 'GET', `/v1/recipes/${greenCurry.id}/similar`)).json<SimilarRecipes>().items.map((r) => r.title);
+    expect(titles.filter((x) => x === 'Red Curry')).toHaveLength(1);
+    expect(titles).not.toContain('Green Curry'); // the same name as the recipe being looked at
+  });
+
   it('gives nothing for a recipe that does not exist, and respects the limit', async () => {
     const chef = await register(t);
     const { greenCurry } = await menu(chef);

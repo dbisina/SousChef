@@ -32,6 +32,8 @@ export const SIGNAL_WEIGHT = {
 export interface RecipeInfo {
   vec: Vec;
   cuisine: string;
+  /** For leaving out a second recipe with the very same name. */
+  title: string;
 }
 
 export interface Taste {
@@ -69,10 +71,10 @@ export class TasteService {
     if (missing.length > 0) {
       const rows = await this.db.recipe.findMany({
         where: { id: { in: missing }, status: 'PUBLISHED' },
-        select: { id: true, cuisine: true, category: true, difficulty: true, prepTime: true, cookTime: true, dietaryFlags: true, tags: true, ingredientNames: true },
+        select: { id: true, title: true, cuisine: true, category: true, difficulty: true, prepTime: true, cookTime: true, dietaryFlags: true, tags: true, ingredientNames: true },
       });
       for (const r of rows) {
-        const info: RecipeInfo = { vec: recipeFeatures(r), cuisine: r.cuisine };
+        const info: RecipeInfo = { vec: recipeFeatures(r), cuisine: r.cuisine, title: r.title };
         this.items.set(r.id, { info, at: now });
         out.set(r.id, info);
       }
@@ -92,13 +94,13 @@ export class TasteService {
     const seen = await this.db.recipe.aggregate({ where: { status: 'PUBLISHED' }, _count: { _all: true }, _max: { updatedAt: true } });
     const mark = `${seen._count._all}:${seen._max.updatedAt?.toISOString() ?? ''}`;
     if (this.catalogCache && this.catalogCache.mark === mark && now - this.catalogCache.at < ITEM_TTL_MS) return this.catalogCache.items;
-    const select = { id: true, cuisine: true, category: true, difficulty: true, prepTime: true, cookTime: true, dietaryFlags: true, tags: true, ingredientNames: true } as const;
+    const select = { id: true, title: true, cuisine: true, category: true, difficulty: true, prepTime: true, cookTime: true, dietaryFlags: true, tags: true, ingredientNames: true } as const;
     const [popular, newest] = await Promise.all([
       this.db.recipe.findMany({ where: { status: 'PUBLISHED' }, orderBy: [{ likeCount: 'desc' }, { id: 'desc' }], take: 500, select }),
       this.db.recipe.findMany({ where: { status: 'PUBLISHED' }, orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 300, select }),
     ]);
     const items = new Map<string, RecipeInfo>();
-    for (const r of [...popular, ...newest]) if (!items.has(r.id)) items.set(r.id, { vec: recipeFeatures(r), cuisine: r.cuisine });
+    for (const r of [...popular, ...newest]) if (!items.has(r.id)) items.set(r.id, { vec: recipeFeatures(r), cuisine: r.cuisine, title: r.title });
     this.catalogCache = { at: now, mark, items };
     return items;
   }

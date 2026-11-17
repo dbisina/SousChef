@@ -23,13 +23,17 @@ how much people engaged with it and how new it is, whether the viewer follows th
 
 | Number | Meaning | Effect |
 |---|---|---|
-| `taste` | how close the dish is to this person's profile (0 to 1) | lifts a post by up to 2.2 times |
+| `taste` | how close the dish is to this person's profile (0 to 1) | lifts a post by up to 3 times |
 | `seen` | times it was shown and ignored | each time costs 40 percent (it sinks, never vanishes) |
 | `avoid` | how much they pushed this author away | takes away up to 70 percent |
 | `group` | the cuisine | each further post of a cuisine already placed counts 15 percent less, so one cuisine cannot fill the page |
 
-The ranker also pushes down a second post from the same author (45 percent each). A person with nothing recorded gets exactly the
-older ranking (popularity, freshness, who they follow). "Not interested" removes that post from their feed at once.
+The ranker also pushes down a second post from the same author (45 percent each). A person with nothing recorded gets the plain
+ranking (popularity, freshness, who they follow). "Not interested" removes that post from their feed at once.
+
+Engagement is deliberately gentle (a post nobody has reacted to still competes while it is new): with a few hundred people a handful
+of likes is noise, and a dish that suits you should be able to beat a mildly popular one. When the last week holds fewer than 40
+posts, older posts fill in behind the new ones, so a quiet week never leaves the feed empty.
 
 ## Privacy
 

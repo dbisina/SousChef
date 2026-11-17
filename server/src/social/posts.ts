@@ -15,7 +15,7 @@ import { authorSelect, toAuthor } from '../recipes/mappers';
 import type { WriteGuard } from '../moderation/service';
 import type { UploadService } from '../uploads/service';
 import type { TasteService } from '../recommend/taste';
-import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank, spreadAuthors } from './forYou';
+import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_MIN_CANDIDATES, FOR_YOU_WINDOW_MS, rank, spreadAuthors } from './forYou';
 
 const MAX_POSTS_PER_DAY = 20;
 const DAY_MS = 86_400_000;
@@ -167,12 +167,19 @@ export class PostService {
       ...(hidden.length > 0 ? { id: { notIn: hidden } } : {}),
       ...(viewer ? notBlocked(viewer.userId) : {}),
     };
-    const rows = await this.db.post.findMany({
-      where: viewer?.role === 'admin' ? where : { AND: [where, this.communityGate(viewer?.userId ?? null)] },
-      include: withAuthor,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: FOR_YOU_CANDIDATES,
-    });
+    const gated = (w: Prisma.PostWhereInput): Prisma.PostWhereInput => (viewer?.role === 'admin' ? w : { AND: [w, this.communityGate(viewer?.userId ?? null)] });
+    const newest = { orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }] };
+    let rows = await this.db.post.findMany({ where: gated(where), include: withAuthor, ...newest, take: FOR_YOU_CANDIDATES });
+    // A quiet week (few people post yet) must not leave the feed empty: older posts fill it, and the freshness term keeps them below new ones.
+    if (rows.length < FOR_YOU_MIN_CANDIDATES) {
+      const older = await this.db.post.findMany({
+        where: gated({ ...where, createdAt: { lt: new Date(asOf.getTime() - FOR_YOU_WINDOW_MS) } }),
+        include: withAuthor,
+        ...newest,
+        take: FOR_YOU_CANDIDATES - rows.length,
+      });
+      rows = [...rows, ...older];
+    }
     if (rows.length === 0) return { items: [], nextCursor: null };
 
     const authors = [...new Set(rows.map((r) => r.authorId))];

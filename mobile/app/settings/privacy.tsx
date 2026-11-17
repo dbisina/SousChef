@@ -4,7 +4,7 @@ import { LegalBullets, LegalLayout, LegalSection } from '@/components/subscripti
 
 export default function PrivacyPolicyScreen() {
   return (
-    <LegalLayout active="privacy" updated="February 2026">
+    <LegalLayout active="privacy" updated="November 2026">
       <Muted>
         At enplace, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use,
         and safeguard your information when you use our mobile application.
@@ -121,7 +121,11 @@ export default function PrivacyPolicyScreen() {
         via email. Continued use after changes constitutes acceptance.
       </LegalSection>
 
-      <LegalSection title="13. Contact Us">
+      <LegalSection title="13. How Your Feed Learns">
+        To choose what to show you, enplace records what you do with the feed: which posts were on screen and for how long, and what you like, save, share, cook or mark “not interested”. We use it only to personalise your own feed, to suggest recipes (“More like this”, “Because of ...”) and to order videos. The raw records are deleted after 30 days. A short taste profile (cuisines, ingredients and similar traits of dishes you like) is kept while your account exists and is deleted with it. We do not use health information for this, we do not sell it and other people never see it. You can turn this off in Settings, Personalised feed: nothing more is recorded, what was recorded is deleted, and only your “not interested” choices are kept so those posts stay out of your feed.
+      </LegalSection>
+
+      <LegalSection title="14. Contact Us">
         For privacy-related questions or to exercise your rights:{'\n'}Email: danielbisina.t@gmail.com
       </LegalSection>
     </LegalLayout>
