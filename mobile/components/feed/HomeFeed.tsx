@@ -24,7 +24,7 @@ import { puzzleNumberFor } from '@/lib/dailyDish';
 import { selectAuthor, selectIsFollowing, selectIsPostLiked, selectIsPostSaved, useSocialStore } from '@/stores/socialStore';
 import { compactCount, timeAgo } from '@/lib/timeAgo';
 import type { PhotoRef } from '@/types/social';
-import { Action, AuthorRow, BarText, DarkBar, photoOf, shareText } from './shared';
+import { Action, AuthorRow, BarText, CookedWith, DarkBar, photoOf, shareText } from './shared';
 
 const go = (router: ReturnType<typeof useRouter>, href: string) => router.push(href as Href);
 
@@ -110,6 +110,8 @@ export function FriendPost({ postId }: { postId: string }) {
         </View>
         <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={() => toggleSave(post.id)} />
       </View>
+
+      {post.cookedWith ? <CookedWith title={post.cookedWith.title} authorName={post.cookedWith.authorName} onPress={() => go(router, `/recipe/${post.cookedWith!.recipeId}`)} /> : null}
 
       <Body>
         <RNText style={{ fontFamily: FONT.sansSemi }}>{author.handle}</RNText> {post.caption}

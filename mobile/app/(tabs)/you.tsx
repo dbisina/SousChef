@@ -2,17 +2,14 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import {
-  Display,
   Icon,
   Muted,
   PhotoCard,
   Screen,
   Segmented,
   Tag,
-  UAvatar,
   UButton,
   UIconButton,
   useTokens,
@@ -25,11 +22,11 @@ import { useGamificationStore } from '@/stores/gamificationStore';
 import { latestGlucose, readingStatus, useHealthStore } from '@/stores/healthStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useSocialStore } from '@/stores/socialStore';
-import { compactCount } from '@/lib/timeAgo';
 import { apiEnabled } from '@/lib/api';
 import { apiProfile } from '@/services/socialApi';
 import { FEATURES } from '@/constants/features';
 import { photoOf, shareText } from '@/components/feed/shared';
+import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import type { Recipe } from '@/types';
 import { ME_ID } from '@/types/social';
 
@@ -43,24 +40,10 @@ interface Quick {
   onPress: () => void;
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <View>
-      <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20 }}>
-        {value}
-      </RNText>
-      <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, marginTop: 2 }}>
-        {label}
-      </RNText>
-    </View>
-  );
-}
-
 export default function YouScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const tokens = useTokens();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const user = useAuthStore((s) => s.user);
   const fetchUserRecipes = useRecipeStore((s) => s.fetchUserRecipes);
@@ -95,11 +78,11 @@ export default function YouScreen() {
   const go = (href: string) => router.push(href as Href);
   const name = user?.displayName || t('you.guest', 'Guest');
   // Follower and following counts live on the server (the legacy lists on the user are empty there).
-  const [counts, setCounts] = useState<{ followers: number; following: number } | null>(null);
+  const [counts, setCounts] = useState<{ followers: number; following: number; posts: number } | null>(null);
   useEffect(() => {
     if (!apiEnabled() || !user?.id || user.id.startsWith('guest-')) return;
     apiProfile(user.id)
-      .then((p) => setCounts({ followers: p.followerCount, following: p.followingCount }))
+      .then((p) => setCounts({ followers: p.followerCount, following: p.followingCount, posts: p.postCount }))
       .catch(() => undefined);
   }, [user?.id]);
   const handle = user?.handle ?? (user?.email ? user.email.split('@')[0] : 'guest');
@@ -179,45 +162,39 @@ export default function YouScreen() {
   return (
     <Screen bare>
       <ScrollView contentContainerStyle={{ paddingBottom: 130 }} showsVerticalScrollIndicator={false}>
-        <PhotoCard source={user?.bannerURL ? { uri: user.bannerURL } : null} height={200} radius={0} fade="both">
-          <View
-            className="flex-row items-center justify-between"
-            style={{ position: 'absolute', top: Math.max(insets.top, 20) + 14, left: 20, right: 20 }}
-          >
-            <Tag tone="glassDark" large label={`@${handle}`} />
-            <View className="flex-row" style={{ gap: 8 }}>
-              <UIconButton tone="glassDark" icon="send" label={t('you.messages', 'Messages')} onPress={() => go('/messages')} />
-              <UIconButton tone="glassDark" icon="settings" label={t('you.settings', 'Settings')} onPress={() => go('/(tabs)/profile')} />
-            </View>
-          </View>
-        </PhotoCard>
-
-        <View style={{ paddingHorizontal: 20, gap: 14, marginTop: -46 }}>
-          <View className="flex-row justify-between" style={{ alignItems: 'flex-end' }}>
-            <View className="border-ground bg-ground overflow-hidden" style={{ width: 92, height: 92, borderRadius: 46, borderWidth: 4 }}>
-              <UAvatar source={avatar} name={name} size={84} />
-            </View>
-            <View className="flex-row items-center" style={{ gap: 8 }}>
-              <UButton size="sm" variant="ghost" label={t('you.editProfile', 'Edit profile')} onPress={() => go('/settings/edit-profile')} />
-              <UIconButton icon="share" label={t('you.shareProfile', 'Share profile')} onPress={() => shareText(`${name} on SousChef`)} />
-            </View>
-          </View>
-
-          <View style={{ gap: 5, paddingTop: 5 }}>
-            <Display size={24} numberOfLines={1}>
-              {name}
-            </Display>
-            {user?.handle ? <Muted>@{user.handle}</Muted> : null}
-            {user?.bio ? <Muted>{user.bio}</Muted> : null}
-          </View>
-
-          <View className="flex-row items-center justify-between" style={{ gap: 10 }}>
-            <Stat value={compactCount(recipeCount)} label={t('you.recipes', 'recipes')} />
-            <Stat value={compactCount(counts?.followers ?? user?.followers?.length ?? 0)} label={t('you.followers', 'followers')} />
-            <Stat value={compactCount(counts?.following ?? user?.following?.length ?? 0)} label={t('you.following', 'following')} />
-            {streak > 0 ? <Tag tone="o" icon="flame" label={t('you.streak', '{{n}}-day streak', { n: streak })} /> : null}
-          </View>
-
+        <ProfileHeader
+          handle={handle}
+          name={name}
+          bio={user?.bio}
+          avatar={avatar}
+          topRight={
+            <>
+              <UIconButton icon="send" label={t('you.messages', 'Messages')} onPress={() => go('/messages')} />
+              <UIconButton icon="settings" label={t('you.settings', 'Settings')} onPress={() => go('/(tabs)/profile')} />
+            </>
+          }
+          stats={[
+            { value: Math.max(counts?.posts ?? 0, myPosts.length), label: t('you.posts', 'posts') },
+            { value: counts?.followers ?? user?.followers?.length ?? 0, label: t('you.followers', 'followers') },
+            { value: counts?.following ?? user?.following?.length ?? 0, label: t('you.following', 'following') },
+          ]}
+          actions={
+            <>
+              <View style={{ flex: 1 }}>
+                <UButton size="sm" variant="ghost" label={t('you.editProfile', 'Edit profile')} onPress={() => go('/settings/edit-profile')} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <UButton size="sm" variant="ghost" label={t('you.shareProfile', 'Share profile')} onPress={() => shareText(`${name} on SousChef`)} />
+              </View>
+            </>
+          }
+          extra={
+            <>
+              {streak > 0 ? (
+                <View className="flex-row">
+                  <Tag tone="o" icon="flame" label={t('you.streak', '{{n}}-day streak', { n: streak })} />
+                </View>
+              ) : null}
           {quick.length > 0 ? (
             <ScrollView
               horizontal
@@ -248,7 +225,11 @@ export default function YouScreen() {
               ))}
             </ScrollView>
           ) : null}
+            </>
+          }
+        />
 
+        <View style={{ paddingHorizontal: 20, marginTop: 14 }}>
           <Segmented<ProfileTab>
             value={tab}
             onChange={setTab}
@@ -272,7 +253,7 @@ export default function YouScreen() {
                 key={g.key}
                 source={g.source}
                 width={tile}
-                height={130}
+                height={tile}
                 radius={0}
                 fade="none"
                 onPress={() => go(g.href)}

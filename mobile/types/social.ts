@@ -22,6 +22,8 @@ export interface Post {
   /** e.g. "35 min · Easy" */
   meta?: string;
   recipeId?: string;
+  /** Whose recipe this was cooked with (set when the post is about a recipe). */
+  cookedWith?: { recipeId: string; title: string; authorId: string; authorHandle: string; authorName: string };
   communityId?: string;
   likes: number;
   commentCount: number;

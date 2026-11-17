@@ -39,6 +39,7 @@ export function toPost(p: ApiPost, meId: string): Post {
     caption: p.caption,
     ...(p.meta ? { meta: p.meta } : {}),
     ...(p.recipeId ? { recipeId: p.recipeId } : {}),
+    ...(p.recipe ? { cookedWith: { recipeId: p.recipe.id, title: p.recipe.title, authorId: localId(p.recipe.author.id, meId), authorHandle: p.recipe.author.handle ?? '', authorName: p.recipe.author.displayName } } : {}),
     ...(p.communityId ? { communityId: p.communityId } : {}),
     likes: p.likeCount,
     commentCount: p.commentCount,

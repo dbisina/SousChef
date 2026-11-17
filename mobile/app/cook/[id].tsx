@@ -168,6 +168,13 @@ export default function CookingModeScreen() {
     };
   }, [storeRecipe, shelfRecipe, id]);
   const isLoading = !recipe && storeLoading;
+  // Only a recipe the server knows can be linked from a post (it rejects unknown ids). Imported and cookbook-shelf recipes post without the link.
+  const serverRecipeId = storeRecipe && storeRecipe.id === id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id : null;
+  /** Share Your Creation: close this screen, then open the post composer with the recipe filled in. */
+  const shareCreation = () => {
+    if (router.canDismiss()) router.dismissAll();
+    router.push({ pathname: '/post/new', params: { kind: 'made-this', recipeTitle: recipe?.title ?? '', ...(serverRecipeId ? { recipeId: serverRecipeId } : {}) } });
+  };
   const { tips, fetchTips } = useCookingTips();
   const { result: portionResult, isAnalyzing, analyzeImage, clear: clearPortionResult, accessDenied } = usePortionAnalysis();
   const { remainingPortion } = useRemainingUsage();
@@ -914,8 +921,9 @@ export default function CookingModeScreen() {
               label={t('cooking.shareCreation', 'Share Your Creation')}
               variant="accent"
               icon="camera"
-              onPress={() => setShowCamera(true)}
+              onPress={shareCreation}
             />
+            <UButton label={t('cooking.checkPortion', 'Check my portion')} variant="ghost" onPress={() => setShowCamera(true)} />
             <UButton label={t('cooking.backHome', 'Back to Home')} variant="ghost" onPress={goHome} />
           </ActionBar>
         </>

@@ -10,9 +10,9 @@ import { FONT } from '@/components/ui/fonts';
 import { SERVER_MODE } from '@/constants/features';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocialStore } from '@/stores/socialStore';
-import { Action, AuthorRow, photoOf, shareText } from '@/components/feed/shared';
+import { Action, AuthorRow, CookedWith, photoOf, shareText } from '@/components/feed/shared';
 import { CommentItem } from '@/components/feed/CommentItem';
-import type { Comment, PhotoRef } from '@/types/social';
+import type { Comment, PhotoRef, Post } from '@/types/social';
 
 interface Item {
   source: 'post' | 'reel';
@@ -22,6 +22,7 @@ interface Item {
   title: string;
   caption: string;
   recipeId?: string;
+  cookedWith?: NonNullable<Post['cookedWith']>;
   likes: number;
   commentCount: number;
   saves: number;
@@ -54,7 +55,7 @@ export default function PostDetailScreen() {
 
   const item: Item | undefined = useMemo(() => {
     const p = posts.find((x) => x.id === id);
-    if (p) return { source: 'post', id: p.id, authorId: p.authorId, photo: p.photo, title: p.title, caption: p.caption, recipeId: p.recipeId, likes: p.likes, commentCount: p.commentCount, saves: p.saves, createdAt: p.createdAt };
+    if (p) return { source: 'post', id: p.id, authorId: p.authorId, photo: p.photo, title: p.title, caption: p.caption, recipeId: p.recipeId, cookedWith: p.cookedWith, likes: p.likes, commentCount: p.commentCount, saves: p.saves, createdAt: p.createdAt };
     const r = reels.find((x) => x.id === id);
     if (r) return { source: 'reel', id: r.id, authorId: r.authorId, photo: r.photo, title: r.title, caption: r.caption, likes: r.likes, commentCount: r.commentCount, saves: r.saves, createdAt: r.createdAt };
     return undefined;
@@ -129,6 +130,7 @@ export default function PostDetailScreen() {
               }
             />
           ) : null}
+          {item.cookedWith ? <CookedWith title={item.cookedWith.title} authorName={item.cookedWith.authorName} onPress={() => router.push(`/recipe/${item.cookedWith!.recipeId}` as Href)} /> : null}
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center" style={{ gap: 18 }}>
               <Action
