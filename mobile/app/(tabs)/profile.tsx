@@ -1,4 +1,5 @@
 import React from 'react';
+import { DEVELOPER_EMAIL, SUPPORT_EMAIL } from '@/lib/contact';
 import { SERVER_MODE } from '@/constants/features';
 import { Alert, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import Constants from 'expo-constants';
@@ -241,24 +242,28 @@ export default function ProfileScreen() {
           <SectionLabel>{t('account.profile.groupSupport', 'Help and about')}</SectionLabel>
           <Rows>
           {items.filter((i) => ['help', 'advertise', 'terms'].includes(i.id)).map(renderRow)}
+          {SUPPORT_EMAIL ? (
           <ListRow
             icon="warning"
             title={t('account.profile.reportBug', 'Report a bug')}
             subtitle={t('account.profile.reportBugSub', 'Tell us what went wrong')}
             onPress={() =>
               void Linking.openURL(
-                `mailto:support@souschef.app?subject=${encodeURIComponent('SousChef bug report')}&body=${encodeURIComponent(
+                `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Bug report')}&body=${encodeURIComponent(
                   `What happened:\n\nWhat I expected:\n\nSteps to reproduce:\n\n---\nApp ${Constants.expoConfig?.version ?? ''} · ${Platform.OS} ${Platform.Version}`,
                 )}`,
               )
             }
           />
+          ) : null}
+          {DEVELOPER_EMAIL ? (
           <ListRow
             icon="mail"
             title={t('account.profile.contactDev', 'Contact the developer')}
             subtitle={t('account.profile.contactDevSub', 'Building your own app? Get in touch')}
-            onPress={() => void Linking.openURL(`mailto:developers@souschef.app?subject=${encodeURIComponent('SousChef developer enquiry')}`)}
+            onPress={() => void Linking.openURL(`mailto:${DEVELOPER_EMAIL}?subject=${encodeURIComponent('Developer enquiry')}`)}
           />
+          ) : null}
           </Rows>
           </View>
 

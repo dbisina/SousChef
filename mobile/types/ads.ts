@@ -94,7 +94,7 @@ export const FALLBACK_AD: Omit<SponsoredAd, 'id' | 'createdAt' | 'updatedAt' | '
     subtitle: 'Paste a TikTok, Instagram or YouTube link and cook it step by step.',
     imageURL: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=80',
     ctaText: 'Try it',
-    ctaURL: 'https://souschef.app',
+    ctaURL: '',
     placements: ['welcome_modal', 'home_feed'],
     format: 'card',
     status: 'active',

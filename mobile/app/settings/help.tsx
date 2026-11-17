@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SITE_URL, SUPPORT_EMAIL } from '@/lib/contact';
 import { Linking, Text, View } from 'react-native';
 import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
@@ -76,11 +77,11 @@ export default function HelpCenterScreen() {
   );
 
   const handleContactSupport = () => {
-    Linking.openURL('mailto:support@souschef.app?subject=SousChef Support Request');
+    if (SUPPORT_EMAIL) Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Support request`);
   };
 
   const handleVisitWebsite = () => {
-    Linking.openURL('https://souschef.app/help');
+    if (SITE_URL) Linking.openURL(`${SITE_URL}/help`);
   };
 
   return (
@@ -88,7 +89,7 @@ export default function HelpCenterScreen() {
       bare
       footer={
         <CtaBar fade>
-          <UButton icon="mail" label={t('account.help.contact', 'Contact Support')} onPress={handleContactSupport} />
+          {SUPPORT_EMAIL ? <UButton icon="mail" label={t('account.help.contact', 'Contact Support')} onPress={handleContactSupport} /> : null}
         </CtaBar>
       }
     >
@@ -152,6 +153,7 @@ export default function HelpCenterScreen() {
           </View>
         )}
 
+        {SITE_URL ? (
         <Rows>
           <ListRow
             icon="globe"
@@ -160,6 +162,7 @@ export default function HelpCenterScreen() {
             onPress={handleVisitWebsite}
           />
         </Rows>
+        ) : null}
       </ScrollView>
     </Screen>
   );
