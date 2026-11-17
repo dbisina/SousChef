@@ -9,6 +9,13 @@ describe('cook voice commands', () => {
     expect(parseCookCommand('stop')).toEqual({ type: 'stop' });
   });
 
+  it('hears the app name as the wake word, the way speech recognition writes it', () => {
+    expect(parseCookCommand('enplace next step')).toEqual({ type: 'next' });
+    expect(parseCookCommand('En place, next step')).toEqual({ type: 'next' });
+    expect(parseCookCommand('hey on place go back')).toEqual({ type: 'previous' });
+    expect(parseCookCommand('okay enplace')).toBeNull();
+  });
+
   it('sets timers from digits, words, hours and seconds', () => {
     expect(parseCookCommand('set a timer for 10 minutes')).toEqual({ type: 'timer', minutes: 10, label: 'Timer' });
     expect(parseCookCommand('start a timer for fifteen minutes')).toEqual({ type: 'timer', minutes: 15, label: 'Timer' });

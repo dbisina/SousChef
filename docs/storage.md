@@ -19,7 +19,7 @@ without touching any data. The app turns a stored address into a Cloudinary one 
 by photo cards and avatars). Files on the phone, other sites' pictures and bundled images are never changed.
 
 ## Status (2026-11-17)
-- **R2: live.** Bucket `souschef-media`, public address `https://pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev` (Cloudflare's development address: fine for now, but rate-limited; attach a custom domain such as `media.souschef.app` before launch and change `STORAGE_PUBLIC_URL`). A bucket-only read/write access key was created and set on the Railway API service. A real avatar upload through the server was checked end to end (upload link, file in R2, public read).
+- **R2: live.** Bucket `souschef-media`, public address `https://pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev` (Cloudflare's development address: fine for now, but rate-limited; attach a custom domain on a domain you own before launch and change `STORAGE_PUBLIC_URL`). A bucket-only read/write access key was created and set on the Railway API service. A real avatar upload through the server was checked end to end (upload link, file in R2, public read).
 - **Previous settings** (to roll back): `S3_ENDPOINT=https://s3store-production.up.railway.app`, `S3_BUCKET=souschef`, `S3_REGION=us-east-1`, `STORAGE_PUBLIC_URL=https://s3store-production.up.railway.app/souschef` (with that service's own key and secret).
 - **Cloudinary: live.** Cloud `drk6rje53`; fetch checked end to end (an R2 image returns 200 through Cloudinary, other hosts are refused). Allowed fetch domains: the R2 public host and the old Railway bucket host; "Fetched URL" is no longer a restricted type. App env is in `mobile/eas.json` (`EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME`, `EXPO_PUBLIC_MEDIA_HOSTS`).
 

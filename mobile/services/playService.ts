@@ -12,7 +12,7 @@ export interface PlayService {
 export const MK_TOTAL_SEC = 45 * 60;
 
 const needsServer = (): never => {
-  throw new Error('Games need a connection to SousChef');
+  throw new Error('Games need a connection to enplace');
 };
 
 export const localPlayService: PlayService = {

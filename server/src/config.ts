@@ -153,7 +153,7 @@ const schema = z
     S3_ACCESS_KEY_ID: z.string().default(''),
     S3_SECRET_ACCESS_KEY: z.string().default(''),
     S3_REGION: z.string().default('auto'),
-    /** The public address of the bucket, e.g. https://media.souschef.app (no trailing slash). */
+    /** The public address of the bucket, e.g. https://media.your-domain.example (no trailing slash). */
     STORAGE_PUBLIC_URL: z.string().default(''),
 
     /**

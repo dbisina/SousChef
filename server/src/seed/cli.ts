@@ -36,6 +36,18 @@ async function main() {
   try {
     const report = await seedContent(db, { dryRun: args.includes('--dry-run'), ...(adminEmail ? { adminEmail } : {}), ...(proEmail ? { proEmail } : {}) }, (line) => process.stdout.write(`${line}\n`));
     process.stdout.write(`\n${JSON.stringify(report, null, 2)}\n`);
+    if (args.includes('--report')) {
+      // Where the content stands: recipes per official account (fewest first) and what the AI has cost this month.
+      const accounts = await db.user.findMany({ where: { kind: 'HOUSE' }, select: { id: true, handle: true } });
+      const counts = await db.recipe.groupBy({ by: ['authorId'], where: { author: { kind: 'HOUSE' } }, _count: { _all: true } });
+      const per = new Map(counts.map((c) => [c.authorId, c._count._all]));
+      const rows = accounts.map((a) => ({ handle: a.handle, recipes: per.get(a.id) ?? 0 })).sort((a, b) => a.recipes - b.recipes);
+      const spent = await db.aiUsage.aggregate({ where: { createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } }, _sum: { costMicros: true } });
+      const config = loadConfig(process.env);
+      process.stdout.write(`accounts: ${rows.length}, recipes: ${rows.reduce((s, r) => s + r.recipes, 0)}, under 10: ${rows.filter((r) => r.recipes < 10).length}\n`);
+      for (const r of rows) process.stdout.write(`${String(r.recipes).padStart(3)}  ${r.handle}\n`);
+      process.stdout.write(`AI spent this month: $${((spent._sum.costMicros ?? 0) / 1_000_000).toFixed(2)} of $${config.AI_MONTHLY_BUDGET_USD}\n`);
+    }
     const puzzlesAt = args.indexOf('--puzzles');
     if (puzzlesAt >= 0) {
       const target = Number(args[puzzlesAt + 1]);
