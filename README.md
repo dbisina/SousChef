@@ -794,9 +794,6 @@ SOFTWARE.
 **Project Maintainer**: [@dbisina](https://github.com/dbisina)
 
 - **Email**: danielbisina.t@gmail.com
-- **Website**: [souschefapp.com](https://souschefapp.com)
-- **Twitter**: [@SousChefApp](https://twitter.com/SousChefApp)
-- **Discord**: [Join our community](https://discord.gg/souschef)
 
 ---
 
