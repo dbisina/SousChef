@@ -1,4 +1,4 @@
-// The feed from the SousChef server, shaped the way the feed screens already read it. Used by socialStore when
+// The feed from the enplace server, shaped the way the feed screens already read it. Used by socialStore when
 // EXPO_PUBLIC_API_URL is set.
 //
 // Two ids need care. The signed-in person is "me" (ME_ID) everywhere in the screens, so their server id is swapped for it

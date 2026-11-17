@@ -10,7 +10,7 @@ export interface PublicProfile {
   isChef: boolean;
   /** Paid and checked: shows the badge. */
   isVerifiedChef: boolean;
-  /** `house` is an official SousChef account: the app shows a badge. */
+  /** `house` is an official enplace account: the app shows a badge. */
   kind: 'person' | 'house';
 }
 

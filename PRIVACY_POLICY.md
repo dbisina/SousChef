@@ -1,12 +1,12 @@
-# Privacy Policy for SousChef
+# Privacy Policy for enplace
 
 **Last updated:** February 10, 2026
 
 ## Introduction
 
-Daniel Bisina ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by SousChef.
+Daniel Bisina ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how your personal information is collected, used, and disclosed by enplace.
 
-This Privacy Policy applies to our website, and its associated subdomains (collectively, our "Service") alongside our application, SousChef. By accessing or using our Service, you signify that you have read, understood, and agree to our collection, storage, use, and disclosure of your personal information as described in this Privacy Policy and our Terms of Service.
+This Privacy Policy applies to our website, and its associated subdomains (collectively, our "Service") alongside our application, enplace. By accessing or using our Service, you signify that you have read, understood, and agree to our collection, storage, use, and disclosure of your personal information as described in this Privacy Policy and our Terms of Service.
 
 ## Information We Collect and Use
 

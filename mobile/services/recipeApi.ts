@@ -1,4 +1,4 @@
-// Recipes against the SousChef server. Used by recipeService when EXPO_PUBLIC_API_URL is set.
+// Recipes against the enplace server. Used by recipeService when EXPO_PUBLIC_API_URL is set.
 import { Timestamp } from '@/lib/firebase';
 import type {
   CreateRecipeRequest,

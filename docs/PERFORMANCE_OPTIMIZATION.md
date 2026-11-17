@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the performance optimizations implemented in SousChef to ensure smooth scrolling, efficient rendering, and minimal memory usage across iOS and Android devices.
+This document outlines the performance optimizations implemented in enplace to ensure smooth scrolling, efficient rendering, and minimal memory usage across iOS and Android devices.
 
 ## Table of Contents
 

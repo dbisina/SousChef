@@ -1,4 +1,4 @@
-// Games from the SousChef server, shaped the way the game screens already read them.
+// Games from the enplace server, shaped the way the game screens already read them.
 import type { DailyDishView, MkRoomView } from '@shared/index';
 import { toDateKey } from '@/lib/dailyDish';
 import type { DailyDishPuzzle, DailyDishState, DailyDishStreak, MKDifficulty, MKPhase, MysteryKitchenRound } from '@/types/play';

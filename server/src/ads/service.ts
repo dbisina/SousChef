@@ -18,7 +18,7 @@ import { errors } from '../errors';
 
 const DAY_MS = 86_400_000;
 
-/** SousChef's own ad, shown when no campaign is running. Never counted. */
+/** enplace's own ad, shown when no campaign is running. Never counted. */
 export const FALLBACK_AD: PublicAd = {
   id: 'fallback',
   advertiserName: 'enplace',
@@ -93,7 +93,7 @@ export class AdService {
 
   /**
    * The ad to show in a place: the most recently started campaign that is active, in its dates, includes the place and
-   * still has budget left. SousChef's own ad when there is none.
+   * still has budget left. enplace's own ad when there is none.
    */
   async forPlacement(placement: AdPlacement): Promise<PublicAd> {
     const now = this.now();

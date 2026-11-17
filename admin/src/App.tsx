@@ -44,7 +44,7 @@ export function App({ api: injected }: { api?: AdminApi }) {
     <ApiContext.Provider value={api}>
       <div className="shell">
         <nav aria-label="Sections">
-          <strong className="brand">SousChef staff</strong>
+          <strong className="brand">enplace staff</strong>
           {ROUTES.map((r) => (
             <a key={r.path} href={`#/${r.path}`} aria-current={route === r.path ? 'page' : undefined}>
               {r.label}

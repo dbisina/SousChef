@@ -1,4 +1,4 @@
-# SousChef marketing log
+# enplace marketing log
 - 2026-11-16: Recipes imported from TikTok, Instagram and YouTube are now read by watching the video itself on the server (no screenshots), and typing what you want to cook searches the web for a real recipe.
 - 2026-11-16: Game questions come with real, licence-checked photos of the dish; solo Mystery Kitchen starts straight away; people pick their own @username and follower counts are real.
 - 2026-11-16: Home header redone (plus button, centred name), proper settings icon, bug report and developer contact, back-to-home from cooking fixed, the app's own food photos are back on Meal Plan, Pantry and Shopping.
@@ -13,7 +13,7 @@ we must not overclaim.
 **Status words:** `built` (code written), `tested` (automated tests pass), `device-check` (still needs a real phone before
 we film it), `needs-keys` (needs a real AI/payment account to work for real).
 
-**Voice:** warm, plain, cook-first. SousChef helps you waste less, spend less and cook more. Never pretend official
+**Voice:** warm, plain, cook-first. enplace helps you waste less, spend less and cook more. Never pretend official
 accounts are people. Health content is numbers only, never advice.
 
 ---
@@ -115,15 +115,15 @@ someone already imported costs nothing (it is cached).
 **Post ideas:** 1. Chef spotlight series. 2. Carousel: "What staff look for." 3. Outreach post to cooks with a portfolio.
 **Careful:** the badge needs a paid plan and review; do not imply paying buys trust. `built, tested`.
 
-## 15. Official SousChef accounts (clearly labelled)
-**What:** SousChef can post as a labelled official account (never pretending to be a person) so the feed is not empty on day one.
+## 15. Official enplace accounts (clearly labelled)
+**What:** enplace can post as a labelled official account (never pretending to be a person) so the feed is not empty on day one.
 **Hook (careful tone):** "New here? These are our official kitchens."
 **Careful:** always labelled official. No fake people, no fake reviews. `built, tested`.
 
 ## 16. Safety by design
 **What:** two layers: quick rules (spam links, banned words) when you post, then an AI check after publishing that hides clear problems for staff to review. Staff can suspend accounts; people can report anything.
 **Hook:** "A kitchen community that stays kind."
-**Post ideas:** 1. Trust carousel: "How we keep SousChef friendly." 2. Reel: report a post, see it handled. 3. Build-in-public: "Post first, check after: why."
+**Post ideas:** 1. Trust carousel: "How we keep enplace friendly." 2. Reel: report a post, see it handled. 3. Build-in-public: "Post first, check after: why."
 `built, tested`.
 
 ## 17. Swap an ingredient with AI
@@ -208,7 +208,7 @@ someone already imported costs nothing (it is cached).
 - 2026-11-17: Restaurants and delivery are out for now (no delivery step in setup, no order screens, no grocery promo ad); pantry and the shopping list stay.
 - 2026-11-17: Cloudflare R2 holds the files and Cloudinary resizes the pictures for phones (smaller, faster images on mobile data).
 - 2026-11-15: Existing accounts keep working: sign in with Firebase as before and the server takes it from there (no password resets, no new accounts to make).
-- 2026-11-15: Starter content for a fresh server: official SousChef accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
+- 2026-11-15: Starter content for a fresh server: official enplace accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
 - 2026-11-15: App screens for every AI helper: tonight card, pantry photo scan, waste coach, health summary, cook-along chat, recipe rewriter, plate check, caption helper, smart search, shop-order list, chat reply/summary, scaling notes while posting.
 - 2026-11-15: Cook-to-scale for any headcount: Gemini estimates, creators' notes teach it, the app labels where numbers came from.
 - 2026-11-15: AI substitutions, AI meal plans and cookbook-page scanning moved to the server (allergy rules enforced in code). PR #25.

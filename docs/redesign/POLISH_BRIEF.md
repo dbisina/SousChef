@@ -1,14 +1,14 @@
-# Screen polish brief (SousChef 2.0)
+# Screen polish brief (enplace 2.0)
 
 Goal: make each assigned screen match its design file in sizing, spacing, alignment, type and colour. The user's complaint: "you didn't match the sizing, spacing and neatness of the design".
 
-## Setup (fresh clone per agent, never touch X:\GitHub\SousChef)
+## Setup (fresh clone per agent, never touch X:\GitHub\enplace)
 ```
 git clone --branch redesign/v2 --single-branch X:/GitHub/SousChef  <scratchpad>\<yourname>
 cd <yourname>; git remote set-url origin https://github.com/dbisina/SousChef.git; git pull origin redesign/v2
 NPM_CONFIG_LEGACY_PEER_DEPS=true npm ci --ignore-scripts
 (cd tools/fidelity && npm install && npx playwright install chromium)
-copy X:\GitHub\SousChef\.redesign-assets to .\.redesign-assets
+copy X:\GitHub\enplace\.redesign-assets to .\.redesign-assets
 ```
 Read tools/fidelity/README.md. Run only YOUR screens: `node tools/fidelity/run.mjs <Names> --rebuild` (never `--all`; other agents are using the machine). Outputs in tools/fidelity/out/: `<Name>.side.jpg` (design | app | diff; READ it with the Read tool), `<Name>.report.json` (per-element deltas sorted by severity).
 

@@ -33,7 +33,7 @@ export function Login({ api, onSignedIn }: { api: AdminApi; onSignedIn: (name: s
   return (
     <main className="login">
       <form onSubmit={submit} className="card" aria-label="Sign in">
-        <h1>SousChef staff</h1>
+        <h1>enplace staff</h1>
         <label>
           Email
           <input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />

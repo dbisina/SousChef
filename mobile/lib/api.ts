@@ -1,4 +1,4 @@
-// The one place the app talks to the SousChef server. Everything else (stores, services) calls this, never `fetch`.
+// The one place the app talks to the enplace server. Everything else (stores, services) calls this, never `fetch`.
 //
 //  - Turned on by EXPO_PUBLIC_API_URL. Without it the app keeps using Firebase, so nothing changes until the server is live.
 //  - Keeps the sign-in tokens in secure storage and refreshes the short-lived one by itself. Many requests that notice

@@ -35,7 +35,7 @@ const createAd = async (admin: Who, overrides: Record<string, unknown> = {}) => 
 const pick = async (placement = 'home_feed') => (await call(t, 'GET', `/v1/ads?placement=${placement}`)).json<{ ad: PublicAd }>().ad;
 
 describe('choosing the ad to show', () => {
-  it('shows SousChef\'s own ad when no campaign is running', async () => {
+  it('shows enplace\'s own ad when no campaign is running', async () => {
     const ad = await pick();
     expect(ad).toMatchObject({ id: 'fallback', isFallback: true, advertiserName: 'enplace' });
     expect((await call(t, 'GET', '/v1/ads?placement=nowhere')).statusCode).toBe(400);

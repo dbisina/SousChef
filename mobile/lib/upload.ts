@@ -1,4 +1,4 @@
-// Sending a photo or voice note to the SousChef server's file store (replaces Cloudinary when EXPO_PUBLIC_API_URL is set).
+// Sending a photo or voice note to the enplace server's file store (replaces Cloudinary when EXPO_PUBLIC_API_URL is set).
 // Three steps: ask the server for a short-lived upload link, send the bytes straight there, then tell the server it is done.
 import type { CreateUploadRequest, UploadPurpose, UploadTicket, Upload } from '@shared/index';
 import { api } from '@/lib/api';

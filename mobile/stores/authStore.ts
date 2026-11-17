@@ -29,7 +29,7 @@ import {
 } from '@/services/authApi';
 
 /**
- * With EXPO_PUBLIC_API_URL set, accounts live on the SousChef server; without it everything here still uses Firebase.
+ * With EXPO_PUBLIC_API_URL set, accounts live on the enplace server; without it everything here still uses Firebase.
  * Runs `work` against the server and turns any failure into the store's error message.
  */
 async function viaApi<T>(set: (s: Partial<AuthState>) => void, work: () => Promise<T>): Promise<T> {

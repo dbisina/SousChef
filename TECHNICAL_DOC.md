@@ -1,6 +1,6 @@
-  # Technical Documentation: SousChef
+  # Technical Documentation: enplace
 
-**Project Name:** SousChef
+**Project Name:** enplace
 **Devpost Submission:** RevenueCat Shipyard (Creator Contest)
 **Repository:** [https://github.com/dbisina/SousChef](https://github.com/dbisina/SousChef)
 
@@ -8,7 +8,7 @@
 
 ## 🏗️ Architecture Overview
 
-SousChef is designed as a modern, AI-first culinary assistant. The architecture prioritizes offline-first capabilities where possible, real-time synchronization, and low-latency interaction for voice commands.
+enplace is designed as a modern, AI-first culinary assistant. The architecture prioritizes offline-first capabilities where possible, real-time synchronization, and low-latency interaction for voice commands.
 
 ### High-Level Components
 
@@ -36,7 +36,7 @@ SousChef is designed as a modern, AI-first culinary assistant. The architecture 
 
 ## 💰 Implementation: RevenueCat
 
-The core monetization strategy relies on the **SousChef Pro** subscription, which unlocks unlimited AI imports and advanced cloud features. RevenueCat is the backbone of this system, abstracting the complexities of StoreKit and Google Play Billing.
+The core monetization strategy relies on the **enplace Pro** subscription, which unlocks unlimited AI imports and advanced cloud features. RevenueCat is the backbone of this system, abstracting the complexities of StoreKit and Google Play Billing.
 
 ### Integration Details
 
@@ -66,7 +66,7 @@ Our extraction engine leverages **Gemini 3.0 Flash Preview** for its superior sp
 
 ## 🎤 Hands-Free Interface
 
-To ensure safety and cleanliness in the kitchen, SousChef implements a dual-layer voice recognition system:
+To ensure safety and cleanliness in the kitchen, enplace implements a dual-layer voice recognition system:
 - **Layer 1 (Local)**: High-confidence pattern matching for simple commands (Next, Back, Stop).
 - **Layer 2 (AI Fallback)**: For complex queries ("What can I use instead of eggs?"), we use Gemini to parse the user's intent.
 

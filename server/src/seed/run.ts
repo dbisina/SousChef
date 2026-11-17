@@ -41,7 +41,7 @@ export interface SeedReport {
 const tally = () => ({ created: 0, existing: 0 });
 
 /**
- * Starter content for a fresh server: the official SousChef accounts, the recipes and cookbooks that used to live in
+ * Starter content for a fresh server: the official enplace accounts, the recipes and cookbooks that used to live in
  * Firestore (once each, under those accounts), a few posts, and the first Daily Dish puzzles. Safe to run again: it only
  * adds what is missing and never touches puzzles staff have already set.
  */

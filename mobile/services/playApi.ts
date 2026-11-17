@@ -1,4 +1,4 @@
-// Games against the SousChef server: Daily Dish and Mystery Kitchen. The server keeps the answers, the clock and the
+// Games against the enplace server: Daily Dish and Mystery Kitchen. The server keeps the answers, the clock and the
 // scores, so the phone only shows what it is told. Used by the games screens when EXPO_PUBLIC_API_URL is set.
 import type {
   CreateRoomRequest,

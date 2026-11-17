@@ -21,7 +21,7 @@ const toNumber = (raw: string): number | null => {
   return WORDS[t] ?? null;
 };
 
-/** Takes the wake word ("enplace", "en place", the old "sous chef") and filler off the front. */
+/** Takes the wake word ("enplace", "en place", the old "enplace") and filler off the front. */
 const clean = (text: string): string =>
   text
     .toLowerCase()

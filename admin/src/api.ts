@@ -1,4 +1,4 @@
-// The one place the dashboard talks to the SousChef server. Everything else calls this, never `fetch`.
+// The one place the dashboard talks to the enplace server. Everything else calls this, never `fetch`.
 //  - Only staff may sign in: an ordinary account is signed straight back out.
 //  - Tokens live in sessionStorage (gone when the tab closes), never in localStorage.
 //  - Many requests that notice the token ran out at once share ONE refresh (a refresh token works only once).

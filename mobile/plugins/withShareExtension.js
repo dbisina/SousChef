@@ -1,7 +1,7 @@
 /**
- * Expo Config Plugin: iOS Share Extension for SousChef
+ * Expo Config Plugin: iOS Share Extension for enplace
  * 
- * Adds a native iOS Share Extension target so SousChef appears in the
+ * Adds a native iOS Share Extension target so enplace appears in the
  * iOS share sheet when users share URLs, videos, or images from any app.
  *
  * Supported content: web URLs, video files, image files, and plain text.
@@ -232,7 +232,7 @@ const SHARE_EXT_PLIST = `<?xml version="1.0" encoding="UTF-8"?>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Import to SousChef</string>
+    <string>Import to enplace</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>

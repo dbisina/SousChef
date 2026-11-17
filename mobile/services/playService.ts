@@ -1,6 +1,6 @@
 import type { DailyDishPuzzle, Game, MKSubmission, MysteryKitchenRound } from '@/types/play';
 
-/** The games live on the SousChef server (daily puzzle, rooms, judging, scores). This stays as the shape the store expects. */
+/** The games live on the enplace server (daily puzzle, rooms, judging, scores). This stays as the shape the store expects. */
 export interface PlayService {
   getGames(): { games: Game[]; total: number };
   getDailyPuzzles(): DailyDishPuzzle[];

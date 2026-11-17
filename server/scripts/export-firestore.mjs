@@ -4,7 +4,7 @@
 //   node server/scripts/export-firestore.mjs [projectId]
 //
 // What it keeps: the recipes and cookbooks themselves. What it drops on purpose: authors and their names (the seed puts
-// every recipe under a neutral official SousChef account), users, emails, push tokens, counters and anything personal.
+// every recipe under a neutral official enplace account), users, emails, push tokens, counters and anything personal.
 // Recipes that were stored twice are kept once. The output is committed, so nobody needs Firestore access again.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -36,7 +36,7 @@ async function all(collection) {
   return out;
 }
 
-/** Which official SousChef account a recipe goes under (decided by the old author, which is then thrown away). */
+/** Which official enplace account a recipe goes under (decided by the old author, which is then thrown away). */
 const houseFor = (authorName) => (/julia/i.test(authorName) ? 'baking' : /jamie/i.test(authorName) ? 'quick' : 'kitchen');
 
 /** Photos whose old links no longer exist (found 2026-11-15), swapped for working ones. */

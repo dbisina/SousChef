@@ -15,7 +15,7 @@ const handleOf = (name: string): string =>
     .slice(0, 20);
 
 /**
- * SousChef's own labeled accounts, run by staff to keep the app lively before there are many people. They always show
+ * enplace's own labeled accounts, run by staff to keep the app lively before there are many people. They always show
  * as official (`kind: house`), cannot sign in (no email, password or provider), and one switch takes all their posts
  * out of sight at once and puts them back.
  */

@@ -34,7 +34,7 @@ export interface GenerateDeps {
   say?: (line: string) => void;
 }
 
-const UA = 'SousChefSeed/1.0 (recipe app content seeding)';
+const UA = 'enplaceSeed/1.0 (recipe app content seeding)';
 const FREE_LICENSE = /^(cc0|public domain|pd\b|cc[- ]by(?![- ]n[cd])|cc[- ]by[- ]sa)/i;
 const NEEDS_CREDIT = /^cc[- ]by/i;
 

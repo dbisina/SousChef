@@ -1,8 +1,8 @@
-# 🍳 SousChef
+# 🍳 enplace
 
 > **AI-Powered Culinary Assistant for Modern Cooks**
 
-Transform social media recipe videos into structured, actionable recipes with the power of AI. SousChef helps you discover, organize, and execute recipes with voice-guided cooking assistance, smart shopping lists, and cloud synchronization.
+Transform social media recipe videos into structured, actionable recipes with the power of AI. enplace helps you discover, organize, and execute recipes with voice-guided cooking assistance, smart shopping lists, and cloud synchronization.
 
 [![React Native](https://img.shields.io/badge/React%20Native-0.73+-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-SDK%2050+-000020?style=for-the-badge&logo=expo&logoColor=white)](https://expo.dev/)
@@ -14,7 +14,7 @@ Transform social media recipe videos into structured, actionable recipes with th
 
 ## 📱 About The Project
 
-**SousChef** is a React Native mobile application that revolutionizes recipe management by leveraging AI to extract structured recipes from TikTok, Instagram, and YouTube cooking videos. Built for the [RevenueCat Shipyard Creator Contest](https://revenuecat-shipyard.devpost.com/), SousChef demonstrates seamless subscription management and monetization through RevenueCat's powerful SDK.
+**enplace** is a React Native mobile application that revolutionizes recipe management by leveraging AI to extract structured recipes from TikTok, Instagram, and YouTube cooking videos. Built for the [RevenueCat Shipyard Creator Contest](https://revenuecat-shipyard.devpost.com/), enplace demonstrates seamless subscription management and monetization through RevenueCat's powerful SDK.
 
 ### 🎯 Core Problems Solved
 
@@ -69,7 +69,7 @@ Transform social media recipe videos into structured, actionable recipes with th
 
 #### 💎 Premium Subscriptions (RevenueCat)
 - Free tier: 5 AI imports per month
-- **SousChef Pro**: Unlimited imports, cloud sync, advanced features
+- **enplace Pro**: Unlimited imports, cloud sync, advanced features
 - Seamless iOS and Android subscription management
 - Cross-platform purchase restoration
 
@@ -121,7 +121,7 @@ Transform social media recipe videos into structured, actionable recipes with th
 
 ```bash
 git clone https://github.com/dbisina/SousChef.git
-cd SousChef
+cd enplace
 ```
 
 ### 2. Install Dependencies
@@ -196,7 +196,7 @@ npx expo run:android
 
 ### Importing Recipes from Videos
 
-1. **Open SousChef** and navigate to the Cookbook screen
+1. **Open enplace** and navigate to the Cookbook screen
 2. **Tap the "+" button** in the top right
 3. **Select "Import from URL"**
 4. **Paste a recipe video URL** (TikTok, Instagram, YouTube)
@@ -234,7 +234,7 @@ npx expo run:android
 - Local-only storage (no cloud sync)
 - Basic timers
 
-**SousChef Pro ($4.99/month or $39.99/year):**
+**enplace Pro ($4.99/month or $39.99/year):**
 - Unlimited AI imports
 - Cloud synchronization across devices
 - Advanced multi-timer management
@@ -310,7 +310,7 @@ sequenceDiagram
 ### Project Structure
 
 ```
-SousChef/
+enplace/
 ├── packages/
 │   ├── mobile/                  # React Native app
 │   │   ├── src/
@@ -346,7 +346,7 @@ SousChef/
 
 ### Why RevenueCat?
 
-SousChef uses **RevenueCat** as the backbone of its monetization strategy to abstract the complexity of iOS and Android in-app purchases. Key benefits:
+enplace uses **RevenueCat** as the backbone of its monetization strategy to abstract the complexity of iOS and Android in-app purchases. Key benefits:
 
 - **Cross-platform subscription management** - Single SDK for iOS and Android
 - **Entitlement system** - Feature flags based on subscription status
@@ -397,7 +397,7 @@ const handlePurchase = async (pkg: PurchasesPackage) => {
 
     if (customerInfo.entitlements.active['pro_access']) {
       navigation.goBack();
-      showSuccessToast('Welcome to SousChef Pro! 🎉');
+      showSuccessToast('Welcome to enplace Pro! 🎉');
     }
   } catch (error) {
     if (!error.userCancelled) {
@@ -757,7 +757,7 @@ Distributed under the **MIT License**. See [LICENSE](LICENSE) for more informati
 ```
 MIT License
 
-Copyright (c) 2026 SousChef
+Copyright (c) 2026 enplace
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -853,7 +853,7 @@ SOFTWARE.
 
 ## 🎥 Demo Video
 
-[![SousChef Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
+[![enplace Demo](https://img.youtube.com/vi/YOUR_VIDEO_ID/maxresdefault.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
 ---
 
@@ -873,7 +873,7 @@ SOFTWARE.
 
 <div align="center">
 
-Made with ❤️ by the SousChef Team
+Made with ❤️ by the enplace Team
 
 **⭐ Star this repo if you find it helpful!**
 

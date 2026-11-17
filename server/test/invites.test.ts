@@ -241,18 +241,18 @@ describe('earned time and a subscription together', () => {
       const grant = (userId: string, days: number) =>
         withWebhook.db.promoGrant.create({ data: { userId, tier: 'pro', key: `test:${Math.random()}`, startsAt: new Date(Date.now() - 1000), endsAt: new Date(Date.now() + days * DAY_MS) } });
 
-      await hook(ama, 'premium_monthly', 'Souschef Premium', 20);
+      await hook(ama, 'premium_monthly', 'enplace Premium', 20);
       expect((await plan2(ama)).tier).toBe('premium');
       await grant(ama.user.id, 30);
       expect(await plan2(ama)).toMatchObject({ tier: 'pro', source: 'promo' }); // earned Pro beats paid Premium
 
       const bee = await register(withWebhook);
-      await hook(bee, 'pro_monthly', 'Souschef Pro', 60);
+      await hook(bee, 'pro_monthly', 'enplace Pro', 60);
       await grant(bee.user.id, 30);
       expect(await plan2(bee)).toMatchObject({ tier: 'pro', source: 'paid' }); // paid Pro lasts longer
 
       const cee = await register(withWebhook);
-      await hook(cee, 'pro_monthly', 'Souschef Pro', 10);
+      await hook(cee, 'pro_monthly', 'enplace Pro', 10);
       await grant(cee.user.id, 30);
       expect(await plan2(cee)).toMatchObject({ tier: 'pro', source: 'promo' }); // earned time lasts longer
     } finally {
@@ -264,7 +264,7 @@ describe('earned time and a subscription together', () => {
 describe('house accounts', () => {
   async function setup() {
     const admin = await makeAdmin(t);
-    const res = await call(t, 'POST', '/v1/admin/house-accounts', admin, { displayName: 'SousChef Kitchen', bio: 'Official recipes from the SousChef team' });
+    const res = await call(t, 'POST', '/v1/admin/house-accounts', admin, { displayName: 'enplace Kitchen', bio: 'Official recipes from the enplace team' });
     return { admin, account: res.json<HouseAccount>() };
   }
 
@@ -278,18 +278,18 @@ describe('house accounts', () => {
 
   it('makes an account that is plainly official and cannot be signed in to', async () => {
     const { account } = await setup();
-    expect(account.user).toMatchObject({ displayName: 'SousChef Kitchen', handle: 'souschef_kitchen', kind: 'house' });
+    expect(account.user).toMatchObject({ displayName: 'enplace Kitchen', handle: 'enplace_kitchen', kind: 'house' });
     const row = await t.db.user.findUniqueOrThrow({ where: { id: account.user.id } });
     expect(row).toMatchObject({ email: null, passwordHash: null, kind: 'HOUSE' });
     expect(await t.db.authIdentity.count({ where: { userId: row.id } })).toBe(0);
     expect(await t.db.session.count({ where: { userId: row.id } })).toBe(0);
-    expect((await call(t, 'POST', '/v1/auth/login', undefined, { email: 'souschef_kitchen', password: 'whatever12345' })).statusCode).toBe(400);
+    expect((await call(t, 'POST', '/v1/auth/login', undefined, { email: 'enplace_kitchen', password: 'whatever12345' })).statusCode).toBe(400);
     expect((await call(t, 'GET', `/v1/users/${account.user.id}`)).json<{ kind: string }>().kind).toBe('house');
   });
 
   it('refuses a taken or too-short handle', async () => {
     const { admin } = await setup();
-    expect((await call(t, 'POST', '/v1/admin/house-accounts', admin, { displayName: 'SousChef Kitchen' })).statusCode).toBe(409);
+    expect((await call(t, 'POST', '/v1/admin/house-accounts', admin, { displayName: 'enplace Kitchen' })).statusCode).toBe(409);
     expect((await call(t, 'POST', '/v1/admin/house-accounts', admin, { displayName: '!!' })).statusCode).toBe(400);
     expect((await call(t, 'POST', '/v1/admin/house-accounts', admin, { displayName: 'Valid name', handle: 'NO' })).statusCode).toBe(400);
   });
@@ -305,7 +305,7 @@ describe('house accounts', () => {
 
     const feed = (await call(t, 'GET', '/v1/feed/discover')).json<Page<Post>>().items;
     expect(feed).toHaveLength(2);
-    expect(feed.every((p) => p.author.kind === 'house' && p.author.displayName === 'SousChef Kitchen')).toBe(true);
+    expect(feed.every((p) => p.author.kind === 'house' && p.author.displayName === 'enplace Kitchen')).toBe(true);
     expect((await call(t, 'GET', '/v1/admin/house-accounts', admin)).json<{ items: HouseAccount[] }>().items[0]?.postCount).toBe(2);
   });
 

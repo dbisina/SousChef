@@ -1,4 +1,4 @@
-// Curated cookbooks against the SousChef server. Used by cookbookStore when EXPO_PUBLIC_API_URL is set.
+// Curated cookbooks against the enplace server. Used by cookbookStore when EXPO_PUBLIC_API_URL is set.
 import { Timestamp } from '@/lib/firebase';
 import type { Cookbook as ApiCookbook, CookbookSummary, Page, RecipeSummary, ToggleResponse } from '@shared/index';
 import { api } from '@/lib/api';

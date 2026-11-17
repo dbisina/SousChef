@@ -2,8 +2,8 @@
 
 // RevenueCat entitlement identifiers.
 export const ENTITLEMENTS = {
-  PREMIUM: 'Souschef Premium',
-  PRO: 'Souschef Pro',
+  PREMIUM: 'enplace Premium',
+  PRO: 'enplace Pro',
 } as const;
 export type EntitlementId = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
 

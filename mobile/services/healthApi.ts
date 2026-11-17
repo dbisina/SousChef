@@ -1,4 +1,4 @@
-// Health readings and meals against the SousChef server. Needs the person's health consent first: every call except
+// Health readings and meals against the enplace server. Needs the person's health consent first: every call except
 // reading the consent, granting it and erasing answers "forbidden" with `details.consent = "health"` until then.
 import type {
   CreateMealRequest,

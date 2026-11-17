@@ -1,4 +1,4 @@
-// Hand-written starter content: the official SousChef accounts, what they post, and the first Daily Dish puzzles.
+// Hand-written starter content: the official enplace accounts, what they post, and the first Daily Dish puzzles.
 // Nothing here names a real person. Photos reuse the recipe photos (web links); there is no upload involved.
 import type { DailyPuzzleInput } from '@shared';
 import moreHouses from '../../seed/houses.json';

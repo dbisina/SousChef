@@ -1,4 +1,4 @@
-# SousChef backend runbook
+# enplace backend runbook
 
 How the server is set up, how to put a new version live, and what to do when something goes wrong.
 Everything in `deploy/` was written and checked by reading and by syntax checks, **not run on a real server**. The first
@@ -78,7 +78,7 @@ By hand: `cd /opt/souschef && ./deploy.sh <tag>`. See what is live: `cat .curren
 
 ## Starter content (official accounts, recipes, puzzles)
 
-A fresh server is empty. `npm run seed` adds the official SousChef accounts (Kitchen, Baking, Quick Meals), the 10 starter recipes and 3 cookbooks that used to live in Firestore (once each, under those accounts), 9 official posts and 14 Daily Dish puzzles. It only adds what is missing, never changes puzzles staff have set, and is safe to run again.
+A fresh server is empty. `npm run seed` adds the official enplace accounts (Kitchen, Baking, Quick Meals), the 10 starter recipes and 3 cookbooks that used to live in Firestore (once each, under those accounts), 9 official posts and 14 Daily Dish puzzles. It only adds what is missing, never changes puzzles staff have set, and is safe to run again.
 
 ```bash
 npm run seed -- --dry-run                      # say what would be added

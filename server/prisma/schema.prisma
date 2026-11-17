@@ -1,4 +1,4 @@
-// SousChef database. Every change to this file needs a migration in the same commit
+// enplace database. Every change to this file needs a migration in the same commit
 // (npm run db:migrate -- --name what_changed).
 
 generator client {
@@ -15,7 +15,7 @@ enum UserRole {
   ADMIN
 }
 
-/// PERSON is a real user. HOUSE is an official SousChef account (shown with a badge), never passed off as a person.
+/// PERSON is a real user. HOUSE is an official enplace account (shown with a badge), never passed off as a person.
 enum AccountKind {
   PERSON
   HOUSE

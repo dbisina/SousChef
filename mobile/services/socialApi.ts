@@ -1,4 +1,4 @@
-// Feeds, posts, comments, follows, stories and reports against the SousChef server. The feed screens use these when
+// Feeds, posts, comments, follows, stories and reports against the enplace server. The feed screens use these when
 // EXPO_PUBLIC_API_URL is set. Every list comes back in pages: pass `nextCursor` as `cursor` for the next one.
 import type {
   Challenge as ApiChallenge,

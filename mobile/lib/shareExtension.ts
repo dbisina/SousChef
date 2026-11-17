@@ -4,7 +4,7 @@
  * The Share Extension writes URLs to App Group UserDefaults.
  * This module reads them from the React Native side, enabling
  * the full share sheet workflow:
- *   User shares URL → iOS Share Sheet → SousChef Share Extension → Main App
+ *   User shares URL → iOS Share Sheet → enplace Share Extension → Main App
  */
 
 import { Platform, Linking } from 'react-native';

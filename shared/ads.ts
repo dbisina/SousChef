@@ -10,7 +10,7 @@ export type AdStatus = 'active' | 'paused' | 'pending_review';
 
 /** What the app needs to show an ad. Nothing about money or targeting. */
 export interface PublicAd {
-  /** `fallback` for SousChef's own ad, shown when no campaign is running. */
+  /** `fallback` for enplace's own ad, shown when no campaign is running. */
   id: string;
   advertiserName: string;
   advertiserLogoUrl: string | null;

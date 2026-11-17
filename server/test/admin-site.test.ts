@@ -15,7 +15,7 @@ beforeAll(async () => {
   dir = path.join(sandbox, 'dist');
   outside = path.join(sandbox, 'secret.txt');
   mkdirSync(path.join(dir, 'assets'), { recursive: true });
-  writeFileSync(path.join(dir, 'index.html'), '<!doctype html><title>SousChef staff</title><div id="root"></div>');
+  writeFileSync(path.join(dir, 'index.html'), '<!doctype html><title>enplace staff</title><div id="root"></div>');
   writeFileSync(path.join(dir, 'assets', 'index-abc123.js'), 'console.log("hi")');
   writeFileSync(path.join(dir, 'assets', 'index-abc123.css'), 'body{margin:0}');
   writeFileSync(path.join(dir, 'favicon.svg'), '<svg xmlns="http://www.w3.org/2000/svg"/>');
@@ -36,7 +36,7 @@ describe('the staff dashboard served by the API', () => {
     const page = await get(on, '/admin/');
     expect(page.statusCode).toBe(200);
     expect(page.headers['content-type']).toContain('text/html');
-    expect(page.body).toContain('SousChef staff');
+    expect(page.body).toContain('enplace staff');
     const bare = await get(on, '/admin');
     expect(bare.statusCode).toBe(301);
     expect(bare.headers['location']).toBe('/admin/');
@@ -65,10 +65,10 @@ describe('the staff dashboard served by the API', () => {
   it('gives the page for an address the browser handles itself, and a plain 404 for a missing file', async () => {
     const route = await get(on, '/admin/reports');
     expect(route.statusCode).toBe(200);
-    expect(route.body).toContain('SousChef staff');
+    expect(route.body).toContain('enplace staff');
     const missing = await get(on, '/admin/assets/gone-1.js');
     expect(missing.statusCode).toBe(404);
-    expect(missing.body).not.toContain('SousChef staff');
+    expect(missing.body).not.toContain('enplace staff');
   });
 
   it('cannot be tricked into reading anything outside its folder', async () => {
@@ -77,7 +77,7 @@ describe('the staff dashboard served by the API', () => {
       const res = await get(on, url);
       expect(res.body, url).not.toContain('do not serve me');
       expect([200, 400, 404], url).toContain(res.statusCode);
-      if (res.statusCode === 200) expect(res.body, url).toContain('SousChef staff'); // only the app shell, never the file
+      if (res.statusCode === 200) expect(res.body, url).toContain('enplace staff'); // only the app shell, never the file
     }
     expect((await get(on, '/admin/%2e%2e/secret.txt')).statusCode).toBe(404);
   });

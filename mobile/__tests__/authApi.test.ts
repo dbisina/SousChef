@@ -1,4 +1,4 @@
-// The auth store against a pretend server: the same screens, with accounts living on the SousChef server.
+// The auth store against a pretend server: the same screens, with accounts living on the enplace server.
 const mockMemory = new Map<string, string>();
 jest.mock('expo-secure-store', () => ({
   getItemAsync: async (k: string) => mockMemory.get(k) ?? null,
