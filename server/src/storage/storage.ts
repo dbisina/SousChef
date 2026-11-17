@@ -9,6 +9,8 @@ export interface Storage {
   head(key: string): Promise<{ size: number; contentType: string } | null>;
   /** The stored bytes, or null if there is no such file. For files the server itself has to read (frames for the AI). */
   read(key: string): Promise<Buffer | null>;
+  /** Stores a file the server itself made (a clip cut from a video). Throws when the store refuses it. */
+  write(key: string, bytes: Buffer, contentType: string): Promise<void>;
   /** Removes a file. Removing one that is already gone is not an error. */
   delete(key: string): Promise<void>;
   /** The address the file is served from once it exists. */
@@ -81,6 +83,12 @@ export class S3Storage implements Storage {
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`storage GET failed with ${res.status}`);
     return Buffer.from(await res.arrayBuffer());
+  }
+
+  async write(key: string, bytes: Buffer, contentType: string) {
+    const signed = await this.presignUpload({ key, contentType, expiresSeconds: 300 });
+    const res = await this.request(signed.url, { method: 'PUT', headers: signed.headers, body: new Uint8Array(bytes) });
+    if (!res.ok) throw new Error(`storage PUT failed with ${res.status}`);
   }
 
   async delete(key: string) {

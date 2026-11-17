@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { ImportResult } from '@shared';
 import { captionsToText, instagramCaptionFromEmbed, tiktokFromPage, ytDlpSource, type VideoText } from '../src/imports/videoText';
-import { downloadVideo, frameTimes, isAllowedVideoUrl, ytDlpFrames } from '../src/imports/videoFrames';
+import { downloadVideo, frameTimes, isAllowedVideoUrl, ytDlpFrames, type WatchedVideo } from '../src/imports/videoFrames';
 import { makeApp, register, type TestApp } from './helpers';
 import { call } from './recipeHelpers';
 
@@ -196,6 +196,81 @@ describe('reading a video from its pictures', () => {
     };
     const body = (await call(w, 'POST', '/v1/imports', ama, { url: 'https://www.tiktok.com/@a/video/7234567890123456798' })).json<ImportResult>();
     expect(body.status).toBe('needs_frames');
+  });
+});
+
+describe('step clips from a watched video', () => {
+  let w: TestApp;
+  let released = 0;
+  const watched = (): WatchedVideo => ({
+    frames: [{ base64: Buffer.alloc(8, 1).toString('base64'), mimeType: 'image/jpeg' }],
+    times: [10],
+    duration: 90,
+    cut: async (ranges) => ranges.map((r) => (r ? Buffer.alloc(3000, 5) : null)),
+    release: async () => {
+      released++;
+    },
+  });
+  const withTimes = JSON.stringify({ ...JSON.parse(recipeJson), stepTimes: [{ start: 5, end: 15 }, null, { start: 40, end: 52 }] });
+  const link = (id: string) => `https://www.tiktok.com/@a/video/${id}`;
+  beforeAll(async () => {
+    w = await makeApp({ IMPORT_RATE_LIMIT_MAX: '100000' }, { videoFrames: async () => watched() });
+  });
+  afterAll(() => w.close());
+  beforeEach(async () => {
+    await w.reset();
+    released = 0;
+    w.ai.gemini.handler = () => withTimes;
+    w.ai.nebius.handler = () => withTimes;
+  });
+
+  it('cuts a clip for each step the model could place, stores them under the importer, and deletes the downloaded copy', async () => {
+    const ama = await register(w);
+    const body = (await call(w, 'POST', '/v1/imports', ama, { url: link('7234567890123456711') })).json<ImportResult>();
+    expect(body.status).toBe('done');
+    expect(body.recipe?.stepClips).toEqual([expect.stringMatching(/^https:\/\/media\.test\/import-clips\/.+\/0\.mp4$/), null, expect.stringMatching(/\/2\.mp4$/)]);
+    expect(released).toBe(1);
+    const mine = [...w.storage.files.keys()].filter((k) => k.startsWith(`import-clips/${ama.user.id}/`));
+    expect(mine).toHaveLength(2);
+    expect(w.storage.files.get(mine[0] as string)?.contentType).toBe('video/mp4');
+  });
+
+  it('keeps the clips out of what other people get from the shared import cache', async () => {
+    const [ama, kemi] = [await register(w), await register(w)];
+    const url = link('7234567890123456712');
+    await call(w, 'POST', '/v1/imports', ama, { url });
+    const again = (await call(w, 'POST', '/v1/imports', kemi, { url })).json<ImportResult>();
+    expect(again.recipe?.title).toBe('Garlic Butter Pasta');
+    expect(again.recipe?.stepClips).toBeUndefined();
+    const cached = await w.db.importCache.findFirstOrThrow({ where: { sourceUrl: url } });
+    expect(JSON.stringify(cached.recipe)).not.toContain('stepClips');
+  });
+
+  it('still imports the recipe when the store refuses the clips, or the model gave no times', async () => {
+    const ama = await register(w);
+    const refuse = w.storage.write.bind(w.storage);
+    w.storage.write = async () => {
+      throw new Error('storage unavailable');
+    };
+    const refused = (await call(w, 'POST', '/v1/imports', ama, { url: link('7234567890123456713') })).json<ImportResult>();
+    w.storage.write = refuse;
+    expect(refused).toMatchObject({ status: 'done', recipe: { title: 'Garlic Butter Pasta' } });
+    expect(refused.recipe?.stepClips).toBeUndefined();
+
+    w.ai.gemini.handler = () => recipeJson;
+    w.ai.nebius.handler = () => recipeJson;
+    const plain = (await call(w, 'POST', '/v1/imports', ama, { url: link('7234567890123456714') })).json<ImportResult>();
+    expect(plain.recipe?.stepClips).toBeUndefined();
+    expect(released).toBe(2);
+  });
+
+  it('keeps clips on a saved want-to-cook item', async () => {
+    const ama = await register(w);
+    const body = (await call(w, 'POST', '/v1/imports', ama, { url: link('7234567890123456715') })).json<ImportResult>();
+    const saved = await call(w, 'POST', '/v1/me/want-to-cook', ama, { imported: body.recipe });
+    expect(saved.statusCode).toBe(201);
+    const list = (await call(w, 'GET', '/v1/me/want-to-cook', ama)).json<{ items: { imported?: { stepClips?: (string | null)[] } }[] }>();
+    expect(list.items[0]?.imported?.stepClips?.[0]).toMatch(/0\.mp4$/);
   });
 });
 

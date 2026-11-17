@@ -87,6 +87,12 @@ export class FakeStorage implements Storage {
   async head(key: string) {
     return this.files.get(key) ?? null;
   }
+  /** Keys a test wants the store to refuse. */
+  readonly failWrite = new Set<string>();
+  async write(key: string, bytes: Buffer, contentType: string) {
+    if (this.failWrite.has(key)) throw new Error('storage unavailable');
+    this.put(key, bytes.byteLength, contentType, bytes);
+  }
   async delete(key: string) {
     if (this.failDelete.has(key)) throw new Error('storage unavailable');
     this.files.delete(key);
@@ -184,6 +190,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
+    storage.failWrite.clear();
     offset = 0;
     mail.resets.length = 0;
   };
