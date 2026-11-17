@@ -25,7 +25,9 @@
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "EXPO_PUBLIC_API_URL": "https://souschef-api-production.up.railway.app",
-        "EXPO_PUBLIC_AUTH_VIA": "firebase"
+        "EXPO_PUBLIC_AUTH_VIA": "firebase",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "drk6rje53",
+        "EXPO_PUBLIC_MEDIA_HOSTS": "pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev,s3store-production.up.railway.app"
       }
     },
     "production": {
@@ -39,7 +41,9 @@
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "EXPO_PUBLIC_API_URL": "https://souschef-api-production.up.railway.app",
-        "EXPO_PUBLIC_AUTH_VIA": "firebase"
+        "EXPO_PUBLIC_AUTH_VIA": "firebase",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "drk6rje53",
+        "EXPO_PUBLIC_MEDIA_HOSTS": "pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev,s3store-production.up.railway.app"
       }
     }
   },
