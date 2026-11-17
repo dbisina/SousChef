@@ -6,7 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold } from '@expo-google-fonts/outfit';
-import { Pacifico_400Regular } from '@expo-google-fonts/pacifico';
+import { Satisfy_400Regular } from '@expo-google-fonts/satisfy';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { onAuthStateChanged } from 'firebase/auth';
 import * as Linking from 'expo-linking';
@@ -57,7 +57,7 @@ export default function RootLayout() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
-    Pacifico_400Regular,
+    Satisfy_400Regular,
   });
   const fontsReady = fontsLoaded || !!fontError;
   const notificationListener = useRef<Notifications.EventSubscription>(null);

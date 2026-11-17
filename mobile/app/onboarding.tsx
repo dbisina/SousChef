@@ -20,9 +20,9 @@ import {
   UIconButton,
   type IconName,
 } from '@/components/ui';
-import { Backdrop } from '@/components/ui/Backdrop';
 import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
 import { isDesignReview } from '@/lib/designReview';
+import { PHOTOS, type PhotoName } from '@/assets/photos';
 
 const ONBOARDING_KEY = '@souschef_onboarding_complete';
 
@@ -61,6 +61,7 @@ interface Chip {
 interface Slide {
   id: string;
   alt: string;
+  photo: PhotoName;
   chips: Chip[];
 }
 
@@ -68,6 +69,7 @@ const SLIDES: Slide[] = [
   {
     id: '1',
     alt: 'A bowl of tagliatelle on a wooden table',
+    photo: 'pasta',
     chips: [
       { icon: 'play', key: 'tiktok', text: 'TikTok', top: 170, left: 22 },
       { icon: 'link', key: 'youtube', text: 'YouTube link', top: 250, right: 22 },
@@ -77,6 +79,7 @@ const SLIDES: Slide[] = [
   {
     id: '2',
     alt: 'A mesh bag of fresh produce',
+    photo: 'grocery',
     chips: [
       { icon: 'cart', key: 'shopping', text: 'Auto shopping list', top: 180, right: 22 },
       { icon: 'check', key: 'pantry', text: 'Pantry match', top: 262, left: 22 },
@@ -85,7 +88,8 @@ const SLIDES: Slide[] = [
   },
   {
     id: '3',
-    alt: 'A woman cooking at a kitchen island',
+    alt: 'A dish being plated in a kitchen',
+    photo: 'plating',
     chips: [
       { icon: 'mic', key: 'next', text: '“Next step”', top: 170, left: 22 },
       { icon: 'clock', key: 'timer', text: 'Set a 5 min timer', top: 262, right: 22 },
@@ -183,7 +187,7 @@ export default function OnboardingScreen() {
     <View style={{ width, flex: 1 }}>
       <View style={{ height: HERO_HEIGHT, backgroundColor: tokens.ground }}>
         <View accessible accessibilityLabel={item.alt} style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
-            <Backdrop />
+            <Image source={PHOTOS[item.photo]} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
           </View>
         <LinearGradient
           pointerEvents="none"

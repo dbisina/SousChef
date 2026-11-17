@@ -202,6 +202,11 @@ someone already imported costs nothing (it is cached).
 - **Build in public:** one honest engineering lesson per week (cost caps, tests, safety choices).
 
 # Build diary (newest first; append one line per shipped change)
+- 2026-11-17: Many more official accounts (32, each with 10+ real recipes and verified photos), so a new user's feed is never empty. Cook someone's recipe and share it: the post says "Cooked with <cook>'s <recipe>" and links back, and the recipe's writer gets a notification.
+- 2026-11-17: Profile laid out the familiar way (photo on the left, posts / followers / following beside it, name and bio under, Edit and Share buttons), the same for everyone's profile.
+- 2026-11-17: "souschef" in a connected script on the home header, like the wordmark apps people already know. Reels are now **Spools** (a spool of film: the scrollable cooking videos).
+- 2026-11-17: Restaurants and delivery are out for now (no delivery step in setup, no order screens, no grocery promo ad); pantry and the shopping list stay.
+- 2026-11-17: Cloudflare R2 holds the files and Cloudinary resizes the pictures for phones (smaller, faster images on mobile data).
 - 2026-11-15: Existing accounts keep working: sign in with Firebase as before and the server takes it from there (no password resets, no new accounts to make).
 - 2026-11-15: Starter content for a fresh server: official SousChef accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
 - 2026-11-15: App screens for every AI helper: tonight card, pantry photo scan, waste coach, health summary, cook-along chat, recipe rewriter, plate check, caption helper, smart search, shop-order list, chat reply/summary, scaling notes while posting.

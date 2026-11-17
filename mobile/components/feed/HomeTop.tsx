@@ -27,14 +27,16 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAd
       className="flex-row items-center justify-between"
       style={{ paddingTop: Math.max(insets.top, 20) + 14, paddingBottom: 10, paddingHorizontal: 20, gap: 12 }}
     >
-      <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
+      <View className="flex-row items-center" style={{ gap: 6 }}>
+        <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
+        <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
+      </View>
       <View pointerEvents="none" style={{ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' }}>
-        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" accessibilityLabel="SousChef" style={{ fontFamily: FONT.script, fontSize: 30, lineHeight: 44, letterSpacing: 0, includeFontPadding: false }}>
+        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" accessibilityLabel="SousChef" style={{ fontFamily: FONT.script, fontSize: 30, lineHeight: 40, letterSpacing: 0, includeFontPadding: false }}>
           souschef
         </RNText>
       </View>
       <View className="flex-row items-center" style={{ gap: 6 }}>
-        <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
         <View>
           <UIconButton icon="bell" label={t('home.notifications', 'Notifications')} onPress={onNotifications} />
         </View>
