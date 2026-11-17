@@ -4,7 +4,7 @@ import { isUniqueViolation } from '../db';
 import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
 
-const MAX_HOUSE_ACCOUNTS = 25;
+const MAX_HOUSE_ACCOUNTS = 60;
 const handleOf = (name: string): string =>
   name
     .normalize('NFKD')
