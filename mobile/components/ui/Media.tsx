@@ -1,4 +1,5 @@
 import React from 'react';
+import { optimizedSource } from '@/lib/mediaUrl';
 import { StyleSheet, Text as RNText, View, type ViewStyle } from 'react-native';
 import { Pressable } from './Pressable';
 import { Image } from 'expo-image';
@@ -30,7 +31,7 @@ export function UAvatar({ source, name, size = 44, square }: UAvatarProps) {
       style={{ width: size, height: size, borderRadius: radius }}
     >
       {source ? (
-        <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
+        <Image source={optimizedSource(source, size)} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
       ) : (
         <RNText className="text-muted" style={{ fontFamily: FONT.display, fontSize: size * 0.36 }}>
           {initials}
