@@ -202,6 +202,8 @@ someone already imported costs nothing (it is cached).
 - **Build in public:** one honest engineering lesson per week (cost caps, tests, safety choices).
 
 # Build diary (newest first; append one line per shipped change)
+- 2026-11-17: **A feed that learns you.** What you like, save, cook and say "not interested" to shapes your feed within a minute, and one cuisine or one account cannot fill it. Every recipe page has "More like this", Home has "Because of <what you cooked>", and Spools come in your own order. A switch in settings turns learning off and forgets it (docs/recommender.md).
+- 2026-11-17: **Step-by-step video clips.** Import a cooking video and each step plays its own short clip in cook mode (private to you, never shared).
 - 2026-11-17: 32 official accounts are set up (recipes with verified photos are still being added to the new ones), so a new user's feed starts full. Cook someone's recipe and share it: the post says "Cooked with <cook>'s <recipe>" and links back, and the recipe's writer gets a notification.
 - 2026-11-17: Profile laid out the familiar way (photo on the left, posts / followers / following beside it, name and bio under, Edit and Share buttons), the same for everyone's profile.
 - 2026-11-17: The app is now **enplace** (always lowercase), with a connected-script wordmark on the home header and an opening animation ("mise en place" becomes "enplace"). Reels are now **Spools** (a spool of film: the scrollable cooking videos).
