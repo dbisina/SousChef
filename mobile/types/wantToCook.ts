@@ -30,6 +30,8 @@ export interface ImportedRecipe {
   extractedAt: Timestamp;
   extractionConfidence: number; // 0-1 confidence score
   rawContent?: string; // Original extracted text for debugging
+  /** One short silent clip per instruction (same order; null where there is none), cut from the video this person imported. */
+  stepClips?: (string | null)[];
 }
 
 // "Want to Cook" item - a recipe the user wants to make

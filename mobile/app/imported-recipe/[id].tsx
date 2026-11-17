@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Share, Alert, Linking } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
@@ -152,8 +152,10 @@ export default function ImportedRecipeDetailScreen() {
           />
           {!cooked ? (
             <UButton
-              label={t('cooking.markCooked', 'Mark as Cooked')}
-              onPress={handleMarkCooked}
+              label={t('cooking.startCooking', 'Start cooking')}
+              variant="accent"
+              icon="play"
+              onPress={() => router.push(`/cook/${item.id}` as Href)}
               style={{ flex: 1 }}
             />
           ) : (
@@ -305,6 +307,8 @@ export default function ImportedRecipeDetailScreen() {
               ) : (
                 <Muted>{t('cooking.noTags', 'No tags on this recipe.')}</Muted>
               )}
+
+              {!cooked ? <UButton variant="ghost" label={t('cooking.markCooked', 'Mark as Cooked')} onPress={handleMarkCooked} /> : null}
 
               {recipe.sourceURL ? (
                 <Rows box>

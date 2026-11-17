@@ -40,6 +40,7 @@ export function importedFromApi(r: ApiImported, id: string): ImportedRecipe {
     tags: r.tags,
     extractedAt: Timestamp.now(),
     extractionConfidence: r.extractionConfidence,
+    ...(r.stepClips && r.stepClips.some(Boolean) ? { stepClips: r.stepClips } : {}),
   };
 }
 
@@ -61,6 +62,7 @@ export function importedToApi(r: ImportedRecipe): ApiImported {
     ...(r.category ? { category: r.category } : {}),
     tags: r.tags,
     extractionConfidence: r.extractionConfidence,
+    ...(r.stepClips && r.stepClips.some(Boolean) ? { stepClips: r.stepClips } : {}),
   };
 }
 
