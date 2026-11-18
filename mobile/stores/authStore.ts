@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email, password, displayName) => {
     if (apiEnabled()) {
       const user = await viaApi(set, () => apiSignUp(email, password, displayName));
-      set({ user, isLoading: false });
+      set({ user, isGuest: false, isLoading: false });
       return;
     }
     set({ isLoading: true, error: null });
@@ -127,7 +127,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       };
 
       await setDoc(doc(db, 'users', uid), userData);
-      set({ user: userData, isLoading: false });
+      set({ user: userData, isGuest: false, isLoading: false });
     } catch (error: unknown) {
       const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
@@ -138,7 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signIn: async (email, password) => {
     if (apiEnabled()) {
       const user = await viaApi(set, () => apiSignIn(email, password));
-      set({ user, isLoading: false });
+      set({ user, isGuest: false, isLoading: false });
       return;
     }
     set({ isLoading: true, error: null });
@@ -164,7 +164,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await setDoc(doc(db, 'users', userCredential.user.uid), userData);
       }
 
-      set({ user: userData, isLoading: false });
+      set({ user: userData, isGuest: false, isLoading: false });
     } catch (error: unknown) {
       const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });

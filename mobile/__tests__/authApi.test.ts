@@ -113,6 +113,18 @@ describe('signing up, in and out', () => {
     expect(mockFirebaseTouched).not.toHaveBeenCalled();
   });
 
+  it('stops being a guest once someone signs in or up (likes, reports and follows depend on it)', async () => {
+    useAuthStore.setState({ isGuest: true });
+    server.mockResolvedValueOnce(reply(200, { user: me(), tokens }));
+    await useAuthStore.getState().signIn('ama@example.com', 'right password');
+    expect(useAuthStore.getState().isGuest).toBe(false);
+
+    useAuthStore.setState({ isGuest: true, user: null });
+    server.mockResolvedValueOnce(reply(201, { user: me(), tokens }));
+    await useAuthStore.getState().signUp('ama@example.com', 'correct horse battery', 'Ama Okafor');
+    expect(useAuthStore.getState().isGuest).toBe(false);
+  });
+
   it('shows a friendly message when sign-in fails, and signs in on the next try', async () => {
     server.mockResolvedValueOnce(reply(401, { error: { code: 'invalid_credentials', message: 'Email or password is not right' } }));
     await expect(useAuthStore.getState().signIn('ama@example.com', 'wrong')).rejects.toBeInstanceOf(ApiError);

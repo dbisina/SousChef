@@ -107,7 +107,11 @@ export function BrandSplash({ ready, onDone }: BrandSplashProps) {
         <View style={{ position: 'absolute', opacity: 0 }} pointerEvents="none">
           <Text
             style={style}
-            onLayout={(e) => setWidth((w) => ({ mise: e.nativeEvent.layout.width, space: w?.space ?? SIZE * 0.3 }))}
+            onLayout={(e) => {
+              // Read the width now: the event is gone by the time a state updater function runs.
+              const mise = e.nativeEvent.layout.width;
+              setWidth((w) => ({ mise, space: w?.space ?? SIZE * 0.3 }));
+            }}
           >
             mise
           </Text>
