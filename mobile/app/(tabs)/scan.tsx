@@ -165,7 +165,7 @@ export default function ScanScreen() {
   if (portionResult && capturedImage) {
     const items = portionResult.detectedItems ?? [];
     const avgConfidence =
-      items.length > 0 ? Math.round((items.reduce((s, i) => s + (i.confidence ?? 0), 0) / items.length) * 100) : 0;
+      items.length > 0 ? Math.min(100, Math.round((items.reduce((s, i) => s + ((i.confidence ?? 0) > 1 ? (i.confidence ?? 0) / 100 : (i.confidence ?? 0)), 0) / items.length) * 100)) : 0;
     const servings = portionResult.suggestedServings;
 
     return (
@@ -238,6 +238,33 @@ export default function ScanScreen() {
               </RNText>
             </View>
 
+            {portionResult.totalNutrition ? (
+              <View style={{ gap: 10 }}>
+                <View className="flex-row" style={{ gap: 10 }}>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.proteinG} g`} label={t('foodScan.protein', 'Protein')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.carbsG} g`} label={t('foodScan.carbs', 'Carbs')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.fatG} g`} label={t('foodScan.fat', 'Fat')} />
+                  </View>
+                </View>
+                <View className="flex-row" style={{ gap: 10 }}>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.fiberG} g`} label={t('foodScan.fiber', 'Fibre')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.sugarG} g`} label={t('foodScan.sugar', 'Sugar')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.sodiumMg} mg`} label={t('foodScan.sodium', 'Sodium')} />
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
             <View className="flex-row" style={{ gap: 10 }}>
               <View className="flex-1">
                 <Tile value={items.length} label={t('foodScan.items', 'Items')} />
@@ -258,6 +285,8 @@ export default function ScanScreen() {
               </View>
             ) : null}
 
+            {portionResult.note ? <Muted small>{portionResult.note}</Muted> : null}
+
             {items.length > 0 ? (
               <Rows>
                 {items.map((item, i) => (
@@ -268,6 +297,11 @@ export default function ScanScreen() {
                       <Muted small numberOfLines={1}>
                         {`${item.estimatedAmount} ${item.unit}`}
                       </Muted>
+                      {item.nutrition ? (
+                        <Muted small numberOfLines={1}>
+                          {t('foodScan.itemMacros', 'P {{p}} g · C {{c}} g · F {{f}} g', { p: item.nutrition.proteinG, c: item.nutrition.carbsG, f: item.nutrition.fatG })}
+                        </Muted>
+                      ) : null}
                     </View>
                     <Muted>{`${item.estimatedCalories} kcal`}</Muted>
                   </View>

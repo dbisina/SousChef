@@ -14,6 +14,7 @@ import type {
   PantryScanRequest,
   PantryScanResponse,
   PlateCheckResponse,
+  PlateNutritionResponse,
   RewriteRecipeRequest,
   RewriteRecipeResponse,
   ScaleNote,
@@ -147,6 +148,12 @@ export async function apiPantryScan(imageUris: string[], kind: PantryScanRequest
 export async function apiPlateCheck(imageUri: string, recipeId?: string): Promise<PlateCheckResponse> {
   const up = await uploadFile(imageUri, 'made_post');
   return api().post<PlateCheckResponse>('/v1/ai/plate-check', { uploadId: up.id, ...(recipeId ? { recipeId } : {}) }, { timeoutMs: 60_000 });
+}
+
+/** Calories and estimated nutrition from a photo of a plate. The server deletes the photo after reading it. */
+export async function apiPlateNutrition(imageUri: string, hints: string[] = []): Promise<PlateNutritionResponse> {
+  const up = await uploadFile(imageUri, 'made_post');
+  return api().post<PlateNutritionResponse>('/v1/ai/plate-nutrition', { uploadId: up.id, ...(hints.length ? { hints } : {}) }, { timeoutMs: 90_000 });
 }
 
 export async function apiSuggestCaption(imageUri: string): Promise<CaptionResponse> {
