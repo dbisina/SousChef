@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,6 +9,8 @@ import { FONT } from '@/components/ui/fonts';
 import { FIXED } from '@/stores/themeStore';
 import { selectAuthor, selectIsFollowing, selectIsReelLiked, selectIsReelSaved, useSocialStore } from '@/stores/socialStore';
 import { compactCount } from '@/lib/timeAgo';
+import { SafetySheet } from '@/components/moderation/SafetySheet';
+import { useAuthStore } from '@/stores/authStore';
 import type { Reel } from '@/types/social';
 import { BarText, photoOf, shareText } from './shared';
 
@@ -43,6 +45,8 @@ export function SpoolPage({ reel, height, active, onComments, onCook }: SpoolPag
   const toggleSave = useSocialStore((s) => s.toggleSaveReel);
   const toggleFollow = useSocialStore((s) => s.toggleFollow);
 
+  const myId = useAuthStore((s) => s.user?.id);
+  const [safety, setSafety] = useState(false);
   const progress = useSharedValue(0);
   useEffect(() => {
     cancelAnimation(progress);
@@ -87,7 +91,13 @@ export function SpoolPage({ reel, height, active, onComments, onCook }: SpoolPag
             onPress={() => shareText(`${reel.title} · ${reel.caption}`)}
           />
         </Rail>
+        {reel.authorId !== myId ? (
+          <Rail count={t('safety.reportShort', 'Report')}>
+            <UIconButton tone="glassDark" icon="more" label={t('safety.title', 'Report or block')} onPress={() => setSafety(true)} />
+          </Rail>
+        ) : null}
       </View>
+      <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="post" targetId={reel.id} personId={reel.authorId} personName={author?.handle} />
 
       <View style={{ position: 'absolute', left: 20, right: 84, bottom: base + 84, gap: 10, zIndex: 2 }}>
         {author ? (

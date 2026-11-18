@@ -239,7 +239,7 @@ export default function EditProfileScreen() {
               label={t('account.edit.email', 'Email')}
               value={user?.email ?? ''}
               editable={false}
-              placeholder="you@example.com"
+              placeholder="Email address"
             />
             <View className="flex-row items-center" style={{ gap: 6, paddingStart: 4 }}>
               <Icon name="lock" size="sm" color="muted" />

@@ -13,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { messagesFor, useMessageStore } from '@/stores/messageStore';
 import { useToastStore } from '@/stores/toastStore';
 import { ME_ID, type Message } from '@/types/social';
+import { SafetySheet } from '@/components/moderation/SafetySheet';
 import { VoiceRecorder } from '@/lib/voiceNote';
 import { apiEnabled } from '@/lib/api';
 
@@ -65,6 +66,7 @@ export default function ChatScreen() {
     if (id && unread > 0) markRead(id);
   }, [id, unread, markRead]);
 
+  const [safety, setSafety] = useState(false);
   const soon = () => showToast(t('chat.comingSoon', 'Coming soon'), { type: 'info' });
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/messages'));
 
@@ -184,6 +186,9 @@ export default function ChatScreen() {
               ) : null}
             </View>
           </View>
+          {conversation.kind === 'friend' && author ? (
+            <UIconButton icon="more" label={t('safety.title', 'Report or block')} onPress={() => setSafety(true)} />
+          ) : null}
           <UIconButton icon="camera" label={t('chat.videoCall', 'Video call')} onPress={soon} />
         </View>
 
@@ -231,6 +236,9 @@ export default function ChatScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
+      {author ? (
+        <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="user" targetId={author.id} personId={author.id} personName={author.displayName} onBlocked={goBack} />
+      ) : null}
     </Screen>
   );
 }

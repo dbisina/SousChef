@@ -24,7 +24,11 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '6. Prohibited Conduct',
-    body: "You agree not to:\n• Use the service for unlawful purposes\n• Upload harmful, offensive, or infringing content\n• Attempt to access other users' accounts\n• Interfere with the service's operation\n• Scrape or collect user data without permission",
+    body: "You agree not to:\n• Use the service for unlawful purposes\n• Post objectionable content: hate, harassment, threats, sexual or violent material, or content that endangers children\n• Post spam, scams or dangerous cooking or health advice\n• Upload infringing content\n• Attempt to access other users' accounts\n• Interfere with the service's operation\n• Scrape or collect user data without permission",
+  },
+  {
+    title: '6a. Reports, Blocking and Enforcement',
+    body: 'There is no tolerance for objectionable content or abusive people. Use the more button on any post, comment, profile or chat to report it or block the person. We review reports, usually within 24 hours, remove content that breaks these terms and may suspend or remove accounts that do so.',
   },
   {
     title: '7. AI Features Disclaimer',

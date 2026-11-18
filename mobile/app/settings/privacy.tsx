@@ -18,8 +18,12 @@ export default function PrivacyPolicyScreen() {
             'Pantry Information: Items you add to your pantry',
             'Usage Data: How you interact with the app, features used, time spent',
             'Device Information: Device type, operating system, app version',
-            'Photos: Images you capture for portion analysis (processed but not stored)',
-            'Voice Data: Voice commands (processed in real-time, not stored)',
+            'Photos: Images you pick or take for portion analysis, recipe photos, posts and your profile',
+            'Voice: Voice commands while you cook, and voice notes you send in chat',
+            'Health and diet details you choose to enter (dietary needs, weight goals, health logs). These are used only to give you features you asked for',
+            'Things you post: posts, comments, stories and messages, and your reports and blocks',
+            'Purchases: whether you have a subscription (handled by the App Store or Google Play and RevenueCat; we never see your card)',
+            'Push token: so we can send notifications you allow',
           ]}
         />
       </LegalSection>
@@ -40,15 +44,14 @@ export default function PrivacyPolicyScreen() {
 
       <LegalSection title="3. AI Processing">
         When you use AI-powered features (portion analysis, voice commands, substitutions), your data is processed by
-        our AI partners (Google Gemini). This processing happens in real-time and images/voice data are not
-        permanently stored. Results may be cached temporarily to improve performance.
+        our AI provider, currently Google Gemini. What you scan, say or type for that feature is sent to the provider to produce the result. It is not used for advertising, and we do not send your name or email with it. Results may be cached temporarily to improve performance. AI results can be wrong; they are not medical advice, so check allergies and health needs yourself.
       </LegalSection>
 
       <LegalSection title="4. Data Sharing">
         <Muted>We do not sell your personal information. We may share data with:</Muted>
         <LegalBullets
           items={[
-            'Service Providers: Cloud hosting (Firebase), payment processing (RevenueCat), AI services (Google)',
+            'Service Providers: hosting (Railway), file storage (Cloudflare R2, Cloudinary), sign-in (Firebase), subscriptions (RevenueCat), push notifications (Expo), AI services (Google Gemini)',
             'Legal Requirements: When required by law or to protect our rights',
             'Business Transfers: In the event of a merger or acquisition',
           ]}
@@ -57,7 +60,7 @@ export default function PrivacyPolicyScreen() {
 
       <LegalSection title="5. Data Storage and Security">
         <Muted>
-          Your data is stored securely using Firebase services with encryption at rest and in transit. We implement
+          Your data is stored with our hosting providers, encrypted in transit and at rest where they offer it. We implement
           industry-standard security measures including:
         </Muted>
         <LegalBullets
@@ -98,17 +101,18 @@ export default function PrivacyPolicyScreen() {
         <Muted>Our app integrates with third-party services that have their own privacy policies:</Muted>
         <LegalBullets
           items={[
-            'Firebase (Google) - Authentication and database',
+            'Firebase (Google) - Sign-in',
+            'Railway - Hosting and database',
+            'Cloudflare R2 and Cloudinary - Image and video storage',
             'RevenueCat - Subscription management',
+            'Expo - Push notifications',
             'Google Gemini - AI processing',
-            'Cloudinary - Image hosting',
           ]}
         />
       </LegalSection>
 
       <LegalSection title="10. Cookies and Tracking">
-        We use local storage and analytics to improve your experience. You can disable analytics in the app settings.
-        We do not use third-party advertising cookies.
+        We keep settings on your device. We do not use third-party advertising SDKs, we do not track you across other apps or websites, and we do not read your advertising ID. Adverts shown in the app are chosen by enplace.
       </LegalSection>
 
       <LegalSection title="11. International Transfers">
@@ -125,7 +129,11 @@ export default function PrivacyPolicyScreen() {
         To choose what to show you, enplace records what you do with the feed: which posts were on screen and for how long, and what you like, save, share, cook or mark “not interested”. We use it only to personalise your own feed, to suggest recipes (“More like this”, “Because of ...”) and to order videos. The raw records are deleted after 30 days. A short taste profile (cuisines, ingredients and similar traits of dishes you like) is kept while your account exists and is deleted with it. We do not use health information for this, we do not sell it and other people never see it. You can turn this off in Settings, Personalised feed: nothing more is recorded, what was recorded is deleted, and only your “not interested” choices are kept so those posts stay out of your feed.
       </LegalSection>
 
-      <LegalSection title="14. Contact Us">
+      <LegalSection title="14. Reporting and Blocking">
+        You can report any post, comment or person from the more button and block people so you no longer see each other. Reports are read by our team, who remove content that breaks the rules, usually within a day. A report includes what you reported and the reason, and is visible only to our team.
+      </LegalSection>
+
+      <LegalSection title="15. Contact Us">
         For privacy-related questions or to exercise your rights:{'\n'}Email: danielbisina.t@gmail.com
       </LegalSection>
     </LegalLayout>

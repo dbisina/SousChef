@@ -15,6 +15,7 @@ import {
   UButton,
   UIconButton,
 } from '@/components/ui';
+import { SafetySheet } from '@/components/moderation/SafetySheet';
 import { FONT } from '@/components/ui/fonts';
 import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { db, doc, getDoc } from '@/lib/firebase';
@@ -30,6 +31,7 @@ export default function UserProfileScreen() {
   const { user: currentUser } = useAuthStore();
   const { fetchUserRecipes, followUser, unfollowUser } = useRecipeStore();
 
+  const [safety, setSafety] = useState(false);
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -147,6 +149,7 @@ export default function UserProfileScreen() {
           avatar={profileUser.photoURL ? { uri: profileUser.photoURL } : undefined}
           verified={Boolean(profileUser.isVerifiedChef)}
           topLeft={<UIconButton icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />}
+          topRight={!isOwnProfile ? <UIconButton icon="more" label={t('safety.title', 'Report or block')} onPress={() => setSafety(true)} /> : undefined}
           stats={[
             { value: Math.max(postCount, 0), label: t('cookbooks.profile.posts', 'posts') },
             { value: followerCount, label: t('cookbooks.profile.followers', 'followers') },
@@ -196,6 +199,7 @@ export default function UserProfileScreen() {
           )}
         </View>
       </ScrollView>
+      <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="user" targetId={id} personId={id} personName={profileUser.displayName} onBlocked={() => router.back()} />
     </Screen>
   );
 }

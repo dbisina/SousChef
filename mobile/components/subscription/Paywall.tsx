@@ -334,6 +334,14 @@ export const Paywall: React.FC<PaywallProps> = ({
           ) : (
             <UButton variant="accent" label={t('account.paywall.selectPlan', 'Select a plan')} disabled />
           )}
+          {selectedPackage ? (
+            <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 11, textAlign: 'center' }}>
+              {t('account.paywall.renewal', '{{price}} {{period}}. Renews automatically until you cancel in your App Store or Google Play subscriptions. Payment is charged to your store account.', {
+                price: selectedPackage.product.priceString,
+                period: periodWord,
+              })}
+            </Text>
+          ) : null}
           <View className="flex-row flex-wrap items-center justify-center" style={{ gap: 4 }}>
             <Text className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12 }}>
               {t('account.paywall.cancelAnytime', 'Cancel anytime')} {'·'}
