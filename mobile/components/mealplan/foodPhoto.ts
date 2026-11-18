@@ -17,7 +17,7 @@ const KEYWORDS: [RegExp, PhotoName][] = [
   [/rice|quinoa|grain/i, 'ricebowl'],
   [/bread|toast|bagel/i, 'toast'],
   [/pancake|waffle/i, 'pancakes'],
-  [/pepper|carrot|zucchini|cucumber|vegetable|veg\b/i, 'veg'],
+  [/pepper|carrot|zucchini|cucumber|vegetable|veg\b/i, 'greens'],
 ];
 
 /** The app's photo for an ingredient name, or null when nothing matches (the row then shows its initial). */

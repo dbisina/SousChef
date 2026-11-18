@@ -127,7 +127,7 @@ export default function PantryScreen() {
 
         {hasAlerts ? (
           <PhotoCard
-            source={PHOTOS.veg as PhotoSource}
+            source={PHOTOS.greens as PhotoSource}
             fade="both"
             height={168}
             accessibilityLabel={t('pantryUi.findRecipes', 'Find recipes')}

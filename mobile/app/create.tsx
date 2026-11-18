@@ -18,7 +18,7 @@ interface Row {
 
 const TILES: (Tile & { photo: PhotoName; art?: GameArtName })[] = [
   { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href, photo: 'tacos' },
-  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'burger' },
+  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'plating' },
   { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href, photo: 'pizza', art: 'mystery_kitchen' },
   { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href, photo: 'cookbook' },
 ];

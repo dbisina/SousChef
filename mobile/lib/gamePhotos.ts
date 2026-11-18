@@ -6,7 +6,7 @@ const KEYWORDS: [RegExp, PhotoName][] = [
   [/carbonara|spaghetti|pasta|lasagn|macaroni|penne|noodle dough|al dente/i, 'pasta'],
   [/gnocchi/i, 'gnocchi'],
   [/pizza|neapolitan/i, 'pizza'],
-  [/burger|patty|bun\b/i, 'burger'],
+  [/burger|patty|bun\b/i, 'beef'],
   [/taco|tortilla|mexic|salsa|guacamole|nixtamal/i, 'tacos'],
   [/ramen|miso|dashi|japan|soba|udon|pho\b|broth/i, 'ramen'],
   [/risotto|rice|paella|jollof|biryani|pilaf|sushi|congee/i, 'ricebowl'],
@@ -26,12 +26,12 @@ const KEYWORDS: [RegExp, PhotoName][] = [
   [/curry|spice|cumin|turmeric|chili|chilli|pepper|pepper/i, 'powerbowl'],
   [/cheese|dairy|milk|butter|yogh?urt/i, 'plating'],
   [/soup|stew|simmer|stock/i, 'bowl'],
-  [/knife|cut|chop|slice|dice|julienne|mise/i, 'veg'],
+  [/knife|cut|chop|slice|dice|julienne|mise/i, 'greens'],
   [/shop|pantry|ingredient|store|market|season|salt/i, 'grocery'],
 ];
 
 // Anything that matches nothing still gets a dish photo: picked from the text so the same question always shows the same one.
-const GENERIC: PhotoName[] = ['plating', 'bowl', 'powerbowl', 'salad', 'veg', 'grocery', 'ricebowl', 'toast'];
+const GENERIC: PhotoName[] = ['plating', 'bowl', 'powerbowl', 'salad', 'greens', 'grocery', 'ricebowl', 'toast'];
 
 const hash = (text: string): number => {
   let h = 0;
