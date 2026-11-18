@@ -42,6 +42,7 @@ type SettingsRoute =
   | '/settings/appearance'
   | '/settings/help'
   | '/settings/advertise'
+  | '/settings/chef-verification'
   | '/settings/terms'
   | '/settings/analytics';
 
@@ -138,6 +139,10 @@ export default function ProfileScreen() {
     { id: 'voice', icon: 'mic', label: t('account.profile.voice', 'Voice Commands'), route: '/settings/voice' },
     { id: 'appearance', icon: 'moon', label: t('account.profile.appearance', 'Appearance'), route: '/settings/appearance' },
     { id: 'help', icon: 'help', label: t('account.profile.help', 'Help center'), route: '/settings/help' },
+    // The badge is a server thing: without a server there is nobody to ask.
+    ...(apiEnabled() && !user.isVerifiedChef
+      ? [{ id: 'chef', icon: 'check' as const, label: t('account.profile.chefVerify', 'Apply to be a verified chef'), subtitle: t('account.profile.chefVerifyBody', 'Get the badge on your recipes'), route: '/settings/chef-verification' as const }]
+      : []),
     { id: 'advertise', icon: 'store', label: t('account.profile.advertise', 'Advertise on enplace'), route: '/settings/advertise' },
     { id: 'terms', icon: 'book', label: t('account.profile.legal', 'Terms and privacy'), route: '/settings/terms' },
   ];
