@@ -199,7 +199,7 @@ export default function UserProfileScreen() {
           )}
         </View>
       </ScrollView>
-      <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="user" targetId={id} personId={id} personName={profileUser.displayName} onBlocked={() => router.back()} />
+      <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="user" targetId={id} personId={id} personName={profileUser.displayName} onBlocked={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
     </Screen>
   );
 }

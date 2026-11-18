@@ -213,7 +213,7 @@ export default function PostDetailScreen() {
         targetId={item.id}
         personId={author?.id}
         personName={author?.handle}
-        onBlocked={() => router.back()}
+        onBlocked={() => (router.canGoBack() ? router.back() : router.replace('/'))}
       />
     </Screen>
   );
