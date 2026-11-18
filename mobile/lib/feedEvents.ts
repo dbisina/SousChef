@@ -1,5 +1,6 @@
 import type { FeedEventInput, RecordFeedEventsRequest, RecordFeedEventsResponse } from '@shared/index';
 import { api, apiEnabled } from '@/lib/api';
+import { isGuestSession } from '@/lib/session';
 
 /** The server takes at most this many events in one go. */
 export const MAX_BATCH = 50;
@@ -82,5 +83,6 @@ export const feedReporter = createFeedReporter({
 });
 
 export const reportFeedEvent = (event: FeedEventInput): void => {
-  if (apiEnabled()) feedReporter.report(event);
+  // A guest has no account on the server: their events would be refused and retried for nothing.
+  if (apiEnabled() && !isGuestSession()) feedReporter.report(event);
 };

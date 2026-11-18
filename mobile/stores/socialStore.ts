@@ -10,6 +10,7 @@ import { currentUserId, isGuestSession } from '@/lib/session';
 import { uploadFile } from '@/lib/upload';
 import { fetchServerFeed, toComment, toPost, toStories } from '@/services/feedServer';
 import { feedReporter, reportFeedEvent } from '@/lib/feedEvents';
+import { guestBlocked } from '@/lib/guestPrompt';
 import {
   apiAddComment,
   apiCreatePost,
@@ -83,6 +84,7 @@ export const useSocialStore = create<SocialState>()(
         set((s) => ({ posts: s.posts.filter((p) => p.id !== id), forYouIds: s.forYouIds.filter((x) => x !== id) }));
       },
       toggleLikePost: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().likedPostIds.includes(id);
         if (wantOn) reportFeedEvent({ kind: 'like', postId: id });
         if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, likes: count } : p)) })), () => void get().loadFromServer());
@@ -95,6 +97,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleSavePost: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().savedPostIds.includes(id);
         if (wantOn) reportFeedEvent({ kind: 'save', postId: id });
         if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, saves: count } : p)) })), () => void get().loadFromServer());
@@ -107,6 +110,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleLikeReel: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().likedReelIds.includes(id);
         if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ reels: s.reels.map((r) => (r.id === id ? { ...r, likes: count } : r)) })), () => void get().loadFromServer());
         set((s) => {
@@ -118,6 +122,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleSaveReel: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().savedReelIds.includes(id);
         if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ reels: s.reels.map((r) => (r.id === id ? { ...r, saves: count } : r)) })), () => void get().loadFromServer());
         set((s) => {
@@ -129,6 +134,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleLikeComment: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().likedCommentIds.includes(id);
         const postId = get().comments.find((c) => c.id === id)?.postId;
         if (apiEnabled() && postId) syncToggle(() => apiSetCommentLiked(postId, id, wantOn), (count) => set((s) => ({ comments: s.comments.map((c) => (c.id === id ? { ...c, likes: count } : c)) })), () => void get().loadFromServer());
@@ -141,6 +147,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleFollow: (authorId) => {
+        if (guestBlocked()) return;
         if (apiEnabled() && authorId !== ME_ID) {
           const wantOn = !get().followingIds.includes(authorId);
           apiSetFollowing(authorId, wantOn).catch(() => void get().loadFromServer());
@@ -148,6 +155,7 @@ export const useSocialStore = create<SocialState>()(
         set((s) => ({ followingIds: flip(s.followingIds, authorId).next }));
       },
       toggleJoinCommunity: (id) => {
+        if (guestBlocked()) return;
         if (apiEnabled()) {
           const wantOn = !get().joinedCommunityIds.includes(id);
           // A private community may only answer "pending" until an admin approves; the reload then shows the truth.
@@ -164,12 +172,13 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       markStoryViewed: (id) => {
-        if (apiEnabled() && !get().viewedStoryIds.includes(id)) void apiViewStory(id);
+        if (apiEnabled() && !isGuestSession() && !get().viewedStoryIds.includes(id)) void apiViewStory(id);
         set((s) => (s.viewedStoryIds.includes(id) ? s : { viewedStoryIds: [...s.viewedStoryIds, id] }));
       },
 
       addComment: (postId, text, parentId) => {
         if (!text.trim()) return null;
+        if (guestBlocked()) return null;
         const comment = feedService.buildComment(postId, text, parentId);
         if (apiEnabled()) {
           // Shown at once; swapped for the server's copy (with its real id) when it answers.

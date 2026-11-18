@@ -9,6 +9,12 @@
     "profile": "Profile",
     "upload": "Upload"
   },
+  "guestGate": {
+    "title": "Create an account",
+    "body": "Likes, saves, comments and follows need an account, so they stay with you on every device.",
+    "later": "Not now",
+    "signUp": "Sign up"
+  },
   "home": {
     "goodMorning": "Good morning",
     "goodAfternoon": "Good afternoon",
