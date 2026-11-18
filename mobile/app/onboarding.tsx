@@ -22,6 +22,7 @@ import {
 } from '@/components/ui';
 import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
 import { isDesignReview } from '@/lib/designReview';
+import { Wordmark } from '@/components/brand/Wordmark';
 import { PHOTOS, type PhotoName } from '@/assets/photos';
 
 const ONBOARDING_KEY = '@souschef_onboarding_complete';
@@ -242,14 +243,7 @@ export default function OnboardingScreen() {
         }}
       >
         {index === 0 ? (
-          <View className="flex-row items-center" style={{ gap: 10 }}>
-            <Image
-              source={require('../assets/icon.png')}
-              accessibilityLabel=""
-              style={{ width: 38, height: 38, borderRadius: 12 }}
-            />
-            <RNText style={{ fontFamily: FONT.display, fontSize: 18, color: FIXED.paper }}>enplace</RNText>
-          </View>
+          <Wordmark width={104} ink="light" />
         ) : (
           <UIconButton
             icon="back"

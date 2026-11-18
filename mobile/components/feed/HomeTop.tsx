@@ -1,13 +1,13 @@
 import React from 'react';
 import { ScrollView, Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Dot, Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, useTokens, type PhotoSource } from '@/components/ui';
+import { Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, useTokens, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { useSocialStore } from '@/stores/socialStore';
 import { useAuthStore } from '@/stores/authStore';
+import { Wordmark } from '@/components/brand/Wordmark';
 import { DarkBar, BarText, GlassPill, photoOf } from './shared';
 
 interface HomeHeaderProps {
@@ -32,9 +32,7 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAd
         <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
       </View>
       <View pointerEvents="none" style={{ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' }}>
-        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" accessibilityLabel="enplace" style={{ fontFamily: FONT.script, fontSize: 30, lineHeight: 40, letterSpacing: 0, includeFontPadding: false }}>
-          enplace
-        </RNText>
+        <Wordmark width={112} />
       </View>
       <View className="flex-row items-center" style={{ gap: 6 }}>
         <View>

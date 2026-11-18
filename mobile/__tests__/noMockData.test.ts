@@ -35,7 +35,7 @@ describe('no sample content in the app', () => {
       .filter((f) => /\.(jpe?g)$/i.test(f))
       .map(rel)
       .filter((f) => !/(^|\/)(icon|adaptive-icon|splash-icon)\.jpg$/.test(f)) // the app's own icon and splash picture
-      .filter((f) => !/^assets\/(photos|games)\//.test(f)); // the app's own fixed imagery: food photography and game card art
+      .filter((f) => !/^assets\/(photos|games|enplace-brand-assets|brand)\//.test(f)); // the app's own fixed imagery: food photography, game card art and the brand kit
     expect(assets).toEqual([]);
   });
 

@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFF7ED"
+      "backgroundColor": "#0b0b0b"
     },
     "ios": {
       "supportsTablet": true,
@@ -28,7 +28,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F97316"
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png",
+        "backgroundColor": "#0b0b0b"
       },
       "package": "com.lyon98.souschef",
       "permissions": [
@@ -65,7 +66,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "backgroundColor": "#0b0b0b",
+      "themeColor": "#0b0b0b"
     },
     "plugins": [
       "expo-router",
@@ -98,8 +101,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
-          "color": "#FF6B35"
+          "icon": "./assets/notification-icon.png",
+          "color": "#ff6b35"
         }
       ],
       "./plugins/withDisableBundleSigning",
