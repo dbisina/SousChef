@@ -21,11 +21,24 @@ export interface RouterSettings {
   privateProviders?: string[];
 }
 
+/** One allowance shared by several kinds of call: the account's intensive AI. */
+export interface Pool {
+  keys: readonly string[];
+  max: number;
+  /** 1 counts the UTC day; more counts the last that many days. */
+  windowDays: number;
+}
+
 export interface RunOptions {
   userId?: string | undefined;
-  /** At most this many calls of `key` (default: the task) per person per UTC day. */
-  dailyLimit?: { perDay: number; key?: string };
+  /**
+   * At most `perDay` calls of `key` (default: the task) per person per UTC day, or per `windowDays` days when that is more than
+   * one. `pool` adds an allowance shared with other kinds of call.
+   */
+  dailyLimit?: { perDay: number; key?: string; windowDays?: number; pool?: Pool };
 }
+
+const DAY_MS = 86_400_000;
 
 const startOfMonth = (d: Date): Date => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
 const startOfDay = (d: Date): Date => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
@@ -72,7 +85,11 @@ export class AiRouter {
     const providers = this.candidates(request);
     if (providers.length === 0) throw errors.aiUnavailable('This feature is not set up on this server');
     await this.checkBudget();
-    if (options.userId && options.dailyLimit) await this.checkDaily(options.userId, options.dailyLimit.key ?? request.task, options.dailyLimit.perDay);
+    if (options.userId && options.dailyLimit) {
+      const { perDay, key, windowDays, pool } = options.dailyLimit;
+      await this.checkDaily(options.userId, key ?? request.task, perDay, windowDays ?? 1);
+      if (pool) await this.checkPool(options.userId, pool);
+    }
 
     let lastError: unknown;
     for (const provider of providers) {
@@ -145,9 +162,37 @@ export class AiRouter {
     }
   }
 
-  private async checkDaily(userId: string, key: string, perDay: number): Promise<void> {
-    const used = await this.db.aiUsage.count({ where: { userId, task: key, createdAt: { gte: startOfDay(this.now()) } } });
-    if (used >= perDay) throw errors.limitReached(`You have used today's ${perDay} AI helps. They refresh tomorrow`);
+  /** Where a window starts: the UTC day for one day, else that many days back. */
+  private windowStart(windowDays: number): Date {
+    return windowDays <= 1 ? startOfDay(this.now()) : new Date(this.now().getTime() - windowDays * DAY_MS);
+  }
+
+  /** How many calls of these kinds this person made in the window, and when the oldest one stops counting. */
+  async usage(userId: string, keys: readonly string[], windowDays: number): Promise<{ used: number; resetsAt: Date | null }> {
+    const where = { userId, task: { in: [...keys] }, createdAt: { gte: this.windowStart(windowDays) } };
+    const used = await this.db.aiUsage.count({ where });
+    if (used === 0) return { used, resetsAt: null };
+    const oldest = await this.db.aiUsage.findFirst({ where, orderBy: { createdAt: 'asc' }, select: { createdAt: true } });
+    const from = oldest?.createdAt ?? this.now();
+    return { used, resetsAt: windowDays <= 1 ? new Date(startOfDay(this.now()).getTime() + DAY_MS) : new Date(from.getTime() + windowDays * DAY_MS) };
+  }
+
+  private async checkDaily(userId: string, key: string, perDay: number, windowDays: number): Promise<void> {
+    const { used, resetsAt } = await this.usage(userId, [key], windowDays);
+    if (used >= perDay) {
+      throw errors.limitReached(windowDays <= 1 ? `You have used today's ${perDay}. They refresh tomorrow` : `You have used this week's ${perDay}. They free up again from ${resetsAt?.toISOString().slice(0, 10) ?? 'soon'}`);
+    }
+  }
+
+  private async checkPool(userId: string, pool: Pool): Promise<void> {
+    const { used, resetsAt } = await this.usage(userId, pool.keys, pool.windowDays);
+    if (used >= pool.max) {
+      throw errors.limitReached(
+        pool.windowDays <= 1
+          ? `You have used today's ${pool.max} photo and plan helps. They refresh tomorrow`
+          : `You have used this week's ${pool.max} photo and plan helps. The next one frees up on ${resetsAt?.toISOString().slice(0, 10) ?? 'soon'}`,
+      );
+    }
   }
 
   private async record(result: AiResult, task: string, userId: string | undefined): Promise<void> {

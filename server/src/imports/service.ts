@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { CUISINES, DIFFICULTIES, RECIPE_CATEGORIES, type ImportedRecipe, type ImportPlatform, type ImportResult, type SubscriptionTier } from '@shared';
 import type { AiRequest } from '../ai/types';
+import { IMPORT_DAILY, IMPORT_FRAMES_KEY, intensivePool } from '../ai/limits';
 import type { AiRouter } from '../ai/router';
 import type { Prisma } from '../../generated/prisma/client';
 import type { Db } from '../db';
@@ -18,7 +19,7 @@ import { cleanText, jsonLdRecipes, pageMeta, recipeFromJsonLd, visibleText, type
 import { FetchError, httpsRequester, resolveRedirects, safeGet, type Requester } from './net';
 
 /** Imports that call the AI, per person per day. A link someone already imported is free and does not count. */
-export const IMPORT_DAILY_LIMIT: Record<SubscriptionTier, number> = { free: 5, premium: 20, pro: 50 };
+export const IMPORT_DAILY_LIMIT: Record<SubscriptionTier, number> = IMPORT_DAILY;
 const MAX_FRAMES = 8;
 const MAX_FRAME_BYTES_TOTAL = 12 * 1024 * 1024;
 /** A recipe needs at least this much to count as found. */
@@ -134,7 +135,7 @@ export class ImportService {
     };
     let recipe: ImportedRecipe | null;
     try {
-      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: await this.dailyLimit(userId) } });
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: await this.framesLimit(userId) });
       recipe = toImported(parsed, { sourceUrl: row.url, platform, videoUrl: row.url, fallbackConfidence: 0.5 });
       if (recipe && isWatched(watched)) await this.attachClips(userId, recipe, parsed.stepTimes, watched);
     } finally {
@@ -226,7 +227,7 @@ export class ImportService {
         maxOutputTokens: 2500,
         temperature: 0.1,
       };
-      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: IMPORT_DAILY_LIMIT[await this.tier(userId)] } });
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: await this.framesLimit(userId) });
       const recipe = toImported(parsed, { sourceUrl: row.url, platform, videoUrl: row.url, fallbackConfidence: 0.5 });
       if (!recipe) throw errors.validation({ uploadIds: 'No recipe could be read from those frames' });
       const target: Target = { platform, key: row.key, url: row.url, videoId: row.key.split(':')[1] ?? null };
@@ -266,7 +267,7 @@ export class ImportService {
         maxOutputTokens: 2500,
         temperature: 0.1,
       };
-      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: IMPORT_DAILY_LIMIT[await this.tier(userId)] } });
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: await this.framesLimit(userId) });
       const recipe = toImported(parsed, { sourceUrl: `scan:${(bookName ?? 'photo').slice(0, 80)}`, platform: 'website', fallbackConfidence: 0.5 });
       if (!recipe) throw errors.validation({ uploadIds: 'No recipe could be read from those photos' });
       return recipe;
@@ -421,7 +422,7 @@ These pictures were taken at even intervals from the video itself. Read the reci
         temperature: 0.1,
       };
       if (!this.ai.canServe(request)) return null;
-      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: { perDay: dailyLimit } });
+      const parsed = await this.ai.runJson(request, aiRecipeSchema, { userId, dailyLimit: await this.framesLimit(userId) });
       const recipe = toImported(parsed, { sourceUrl: target.url, platform: target.platform, imageUrl: image ?? undefined, videoUrl: target.url, fallbackConfidence: 0.5 });
       if (recipe && isWatched(watched)) await this.attachClips(userId, recipe, parsed.stepTimes, watched);
       return recipe;
@@ -558,6 +559,12 @@ These pictures were taken at even intervals from the video itself. Read the reci
 
   private async dailyLimit(userId: string): Promise<number> {
     return IMPORT_DAILY_LIMIT[await this.tier(userId)];
+  }
+
+  /** Reading photos or video frames is intensive AI: its own daily cap, and a share of the account's pool. */
+  private async framesLimit(userId: string): Promise<{ perDay: number; key: string; pool: ReturnType<typeof intensivePool> }> {
+    const tier = await this.tier(userId);
+    return { perDay: IMPORT_DAILY_LIMIT[tier], key: IMPORT_FRAMES_KEY, pool: intensivePool(tier) };
   }
 
   private result(id: string, status: ImportResult['status'], platform: ImportPlatform, recipe: ImportedRecipe | null, cached: boolean, message: string | null): ImportResult {

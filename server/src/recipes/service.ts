@@ -95,7 +95,6 @@ export class RecipeService {
 
   async get(id: string, viewer: Viewer | null): Promise<Recipe> {
     const row = await this.visibleRow(id, viewer);
-    await this.requireExclusiveAccess(row, viewer);
     if (!viewer) return toRecipe(row, null);
     const [like, save, rating] = await Promise.all([
       this.db.recipeLike.findUnique({ where: { userId_recipeId: { userId: viewer.userId, recipeId: id } }, select: { userId: true } }),
@@ -408,14 +407,6 @@ export class RecipeService {
     const mine = viewer !== null && (row?.authorId === viewer.userId || viewer.role === 'admin');
     if (!row || (row.status !== 'PUBLISHED' && !mine)) throw errors.notFound('Recipe not found');
     return row;
-  }
-
-  /** Pro-only recipes open for the author, staff and people on a plan that includes them. */
-  private async requireExclusiveAccess(row: RecipeRow, viewer: Viewer | null): Promise<void> {
-    if (!row.isExclusive) return;
-    if (viewer && (viewer.userId === row.authorId || viewer.role === 'admin')) return;
-    if (viewer && (await this.entitlements.forUser(viewer.userId)).features.exclusiveRecipes) return;
-    throw errors.upgradeRequired('pro');
   }
 
   private requireAdminForFlags(viewer: Viewer, input: { isOfficial?: boolean | undefined; isExclusive?: boolean | undefined }): void {

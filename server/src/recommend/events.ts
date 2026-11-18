@@ -59,6 +59,7 @@ export class FeedEventService {
     const recipeById = new Map(recipes.map((r) => [r.id, r]));
 
     const seenImpression = new Set<string>();
+    const startedAt = this.now().getTime();
     const rows: { userId: string; kind: string; postId: string | null; recipeId: string | null; authorId: string | null; dwellMs: number | null; createdAt: Date }[] = [];
     for (const e of events) {
       if (rows.length >= room) break;
@@ -77,7 +78,7 @@ export class FeedEventService {
         recipeId: post?.recipeId ?? recipe?.id ?? null,
         authorId: post?.authorId ?? recipe?.authorId ?? null,
         dwellMs: dwell,
-        createdAt: this.now(),
+        createdAt: new Date(startedAt + rows.length), // one millisecond apart, so a batch keeps its order
       });
     }
     if (rows.length > 0) await this.db.feedEvent.createMany({ data: rows });

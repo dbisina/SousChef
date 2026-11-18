@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   AISLE_ORDER,
   sortByAisle,
+  type AiAllowance,
   type ApiErrorBody,
   type CaptionResponse,
   type LeftoversResponse,
@@ -332,5 +333,51 @@ describe('search that understands a sentence', () => {
     expect(blocked.statusCode).toBe(409);
     expect(code(blocked)).toBe('limit_reached');
     expect((await ask(undefined, 'soup')).statusCode).toBe(401);
+  });
+});
+
+describe('the account pool for intensive AI, and the meter', () => {
+  const allowance = (who: Who | undefined) => call(t, 'GET', '/v1/ai/allowance', who);
+  const rice = { name: 'Jollof rice', estimatedAmount: 1, unit: 'cup', confidence: 0.8, calories: 300, proteinG: 6, carbsG: 55, fatG: 6, fiberG: 2, sugarG: 2, sodiumMg: 400 };
+  // One reply that fits every photo helper, so the test can mix them.
+  const reply = () => JSON.stringify({ items: [rice], doneness: 'good', praise: 'Lovely.', tip: 'Nice.', title: 'Dinner', caption: 'Tasty.', tags: ['dinner'] });
+
+  it('shares 3 a week between the photo features for a free account, then says when it frees up', async () => {
+    const ama = await register(t);
+    t.ai.gemini.handler = reply;
+    const photo = async () => (await finishedUpload(t, ama, 'made_post', 'image/jpeg')).id;
+    expect((await call(t, 'POST', '/v1/ai/plate-nutrition', ama, { uploadId: await photo() })).statusCode).toBe(200);
+    expect((await call(t, 'POST', '/v1/ai/plate-check', ama, { uploadId: await photo() })).statusCode).toBe(200);
+    expect((await call(t, 'POST', '/v1/ai/caption', ama, { uploadId: await photo() })).statusCode).toBe(200);
+    // Each feature has room left on its own (3 a day), but the account's pool is spent.
+    const blocked = await call(t, 'POST', '/v1/ai/plate-nutrition', ama, { uploadId: await photo() });
+    expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
+    expect((blocked.json() as ApiErrorBody).error.message).toContain('week');
+    // A week later the first use no longer counts.
+    t.advance(8 * DAY_MS);
+    expect((await call(t, 'POST', '/v1/ai/plate-nutrition', ama, { uploadId: await photo() })).statusCode).toBe(200);
+  });
+
+  it('keeps light AI free of the pool: a search or a question while cooking never uses it up', async () => {
+    const ama = await register(t);
+    t.ai.gemini.handler = () => JSON.stringify({ text: 'rice', ingredients: [] });
+    t.ai.deepseek.handler = () => JSON.stringify({ text: 'rice', ingredients: [] });
+    for (let i = 0; i < 3; i++) await call(t, 'POST', '/v1/ai/search-intent', ama, { q: `quick rice dinner ${i}` });
+    const meter = (await allowance(ama)).json<AiAllowance>();
+    expect(meter.intensive.used).toBe(0);
+  });
+
+  it('reports what is left, per account, for the meter on the screens', async () => {
+    const ama = await register(t);
+    expect((await allowance(undefined)).statusCode).toBe(401);
+    const fresh = (await allowance(ama)).json<AiAllowance>();
+    expect(fresh).toMatchObject({ tier: 'free', intensive: { used: 0, max: 3, windowDays: 7, resetsAt: null }, mealPlans: { used: 0, max: 1, windowDays: 7 } });
+    t.ai.gemini.handler = reply;
+    const p = await finishedUpload(t, ama, 'made_post', 'image/jpeg');
+    await call(t, 'POST', '/v1/ai/plate-nutrition', ama, { uploadId: p.id });
+    const after = (await allowance(ama)).json<AiAllowance>();
+    expect(after.intensive).toMatchObject({ used: 1, max: 3 });
+    expect(after.intensive.resetsAt).not.toBeNull();
   });
 });

@@ -20,7 +20,7 @@ import { errors } from '../errors';
 import type { EntitlementService } from '../subscriptions/service';
 import type { VitalsService } from '../vitals/service';
 import type { InsightCache } from './insights';
-import { aiLimit, type AiFeature } from './limits';
+import { limitFor, type AiFeature } from './limits';
 import type { AiRouter } from './router';
 import { ingredientsOf } from './tools';
 
@@ -111,9 +111,9 @@ export class InsightAiService {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  private async limit(userId: string, feature: AiFeature): Promise<{ userId: string; dailyLimit: { perDay: number; key: string } }> {
+  private async limit(userId: string, feature: AiFeature): Promise<{ userId: string; dailyLimit: ReturnType<typeof limitFor> }> {
     const tier: SubscriptionTier = (await this.entitlements.forUser(userId)).tier;
-    return { userId, dailyLimit: { perDay: aiLimit(feature, tier), key: feature } };
+    return { userId, dailyLimit: limitFor(feature, tier) };
   }
 
   /* ------------------------------------------------------------------ waste coach */

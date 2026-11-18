@@ -198,12 +198,12 @@ describe('the reward', () => {
   });
 
   it('turns into an unlock of the Pro features while it lasts', async () => {
-    const [ama, admin] = [await register(t), await makeAdmin(t)] as [Who, Who];
-    const secret = await createRecipe(t, admin, { title: 'Chef Special', isExclusive: true });
-    expect((await call(t, 'GET', `/v1/recipes/${secret.id}`, ama)).statusCode).toBe(403);
+    const ama = await register(t);
+    const tier = async () => (await call(t, 'GET', '/v1/ai/allowance', ama)).json<{ tier: string; intensive: { max: number } }>();
+    expect(await tier()).toMatchObject({ tier: 'free', intensive: { max: 3 } });
     await inviteMany(ama, 10);
     await status(ama); // opening the invite screen settles it; otherwise the background job does within minutes
-    expect((await call(t, 'GET', `/v1/recipes/${secret.id}`, ama)).statusCode).toBe(200);
+    expect(await tier()).toMatchObject({ tier: 'pro', intensive: { max: 30 } });
     expect((await call(t, 'GET', '/v1/ads?placement=home_feed', ama)).json<{ ad: PublicAd | null }>().ad).toBeNull();
   }, 120_000);
 

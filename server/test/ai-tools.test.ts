@@ -66,7 +66,7 @@ describe('substitutions', () => {
   it('keeps to the plan\'s daily allowance', async () => {
     const ama = await register(t);
     answer([{ substitute: 'oat milk', ratio: '1:1', notes: '', impact: 'minimal' }]);
-    for (let i = 0; i < 3; i++) expect((await ask(ama, { ingredient: `milk ${i}` })).statusCode).toBe(200);
+    for (let i = 0; i < 5; i++) expect((await ask(ama, { ingredient: `milk ${i}` })).statusCode).toBe(200);
     const blocked = await ask(ama, { ingredient: 'milk again' });
     expect(blocked.statusCode).toBe(409);
     expect(code(blocked)).toBe('limit_reached');
@@ -108,11 +108,19 @@ describe('a planned week', () => {
       });
   };
 
-  it('needs a Pro plan', async () => {
+  it('lets a free account try one a week, then says when it frees up (never a locked screen)', async () => {
+    const chef = await register(t);
+    const [rice] = await recipes(chef);
     const ama = await register(t);
-    const res = await plan(ama);
-    expect(res.statusCode).toBe(403);
-    expect(code(res)).toBe('upgrade_required');
+    planFor({ '2026-11-16': { dinner: rice!.id } });
+    expect((await plan(ama)).statusCode).toBe(200);
+    const blocked = await plan(ama);
+    expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
+    expect(blocked.json<ApiErrorBody>().error.message).toContain('week');
+    // After a week the allowance frees up again.
+    t.advance(8 * DAY_MS);
+    expect((await plan(ama)).statusCode).toBe(200);
   });
 
   it('plans the days asked for from real recipes, and works out the shopping list itself', async () => {
@@ -195,7 +203,7 @@ describe('a planned week', () => {
     expect((await plan(ama, { restrictions: ['vegetarian', 'vegan'] })).statusCode).toBe(409); // under three left
   });
 
-  it('checks the request and keeps to the daily allowance', async () => {
+  it('checks the request and keeps to the weekly allowance', async () => {
     const chef = await register(t);
     const [rice] = await recipes(chef);
     const ama = await register(t);
@@ -205,7 +213,7 @@ describe('a planned week', () => {
     expect((await plan(ama, { mealTypes: ['brunch'] })).statusCode).toBe(400);
     expect((await plan(undefined)).statusCode).toBe(401);
     planFor({ '2026-11-16': { dinner: rice!.id } });
-    for (let i = 0; i < 5; i++) expect((await plan(ama)).statusCode).toBe(200);
+    for (let i = 0; i < 10; i++) expect((await plan(ama)).statusCode).toBe(200);
     const blocked = await plan(ama);
     expect(blocked.statusCode).toBe(409);
     expect(code(blocked)).toBe('limit_reached');
@@ -252,12 +260,13 @@ describe('reading a cookbook page', () => {
     expect((await scan(undefined, { uploadIds: [mine.id] })).statusCode).toBe(401);
   });
 
-  it('counts against the same daily allowance as importing a link', async () => {
+  it('counts in the account pool for intensive AI (3 a week free), not the link-import allowance', async () => {
     const ama = await register(t);
     t.ai.gemini.handler = () => aiRecipe();
-    for (let i = 0; i < 5; i++) expect((await scan(ama, { uploadIds: [(await photo(ama)).id] })).statusCode).toBe(200);
+    for (let i = 0; i < 3; i++) expect((await scan(ama, { uploadIds: [(await photo(ama)).id] })).statusCode).toBe(200);
     const blocked = await scan(ama, { uploadIds: [(await photo(ama)).id] });
     expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
   });
 });
 

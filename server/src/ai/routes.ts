@@ -104,6 +104,9 @@ export function aiToolsRoutes(app: FastifyInstance, tools: AiToolsService, kitch
     return kitchen.plateCheck(userId, body.uploadId, body.recipeId);
   });
 
+  /** What is left of the intensive-AI pool and meal plans: the screens show it as a quiet meter. */
+  app.get('/v1/ai/allowance', async (request) => kitchen.allowance((await requireViewer(request)).userId));
+
   /** Calories and estimated nutrition from a photo of a plate. The photo is deleted after reading. */
   app.post('/v1/ai/plate-nutrition', limited, async (request) => {
     const { userId } = await requireViewer(request);

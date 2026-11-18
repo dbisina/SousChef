@@ -176,38 +176,18 @@ describe('what a plan unlocks', () => {
   const grant = (who: Who, tier: 'premium' | 'pro') =>
     send(rcEvent(who, tier === 'pro' ? {} : { product_id: 'premium_monthly', entitlement_ids: [ENTITLEMENTS.PREMIUM] }));
 
-  it('keeps Pro-only recipes for Pro, the author and staff, but still lists them', async () => {
+  it('opens a chef special for everyone, signed in or not, and still labels it', async () => {
     const admin = await makeAdmin(t);
     const free = await register(t);
-    const premium = await register(t);
-    const pro = await register(t);
-    await grant(premium, 'premium');
-    await grant(pro, 'pro');
     const secret = await createRecipe(t, admin, { title: 'Chef Special', isExclusive: true });
 
     const open = (who?: Who) => call(t, 'GET', `/v1/recipes/${secret.id}`, who);
-    const locked = await open();
-    expect(locked.statusCode).toBe(403);
-    expect(locked.json<ApiErrorBody>().error).toMatchObject({ code: 'upgrade_required', details: { requiredTier: 'pro' } });
-    expect((await open(free)).statusCode).toBe(403);
-    expect((await open(premium)).statusCode).toBe(403);
-    expect((await open(pro)).statusCode).toBe(200);
-    expect((await open(pro)).json<Recipe>().ingredients.length).toBeGreaterThan(0);
-    expect((await open(admin)).statusCode).toBe(200);
+    expect((await open()).statusCode).toBe(200); // no wall, not even for a visitor
+    expect((await open(free)).statusCode).toBe(200);
+    expect((await open(free)).json<Recipe>().ingredients.length).toBeGreaterThan(0);
 
-    // The card still shows in lists, so the app can offer the upgrade.
     const listed = (await call(t, 'GET', '/v1/recipes')).json<Page<RecipeSummary>>().items;
     expect(listed.map((r) => [r.title, r.isExclusive])).toEqual([['Chef Special', true]]);
-  });
-
-  it('loses the Pro recipe when the plan lapses', async () => {
-    const admin = await makeAdmin(t);
-    const pro = await register(t);
-    await send(rcEvent(pro, { expiration_at_ms: Date.now() + 5 * DAY_MS }));
-    const secret = await createRecipe(t, admin, { isExclusive: true });
-    expect((await call(t, 'GET', `/v1/recipes/${secret.id}`, pro)).statusCode).toBe(200);
-    t.advance(6 * DAY_MS);
-    expect((await call(t, 'GET', `/v1/recipes/${secret.id}`, pro)).statusCode).toBe(403);
   });
 
   it('shows no ads to paying people', async () => {

@@ -6,6 +6,7 @@ import {
   nameKey,
   PANTRY_CATEGORIES,
   RECIPE_CATEGORIES,
+  type AiAllowance,
   type CaptionResponse,
   type LeftoverIdea,
   type LeftoversResponse,
@@ -26,7 +27,7 @@ import type { Storage } from '../storage/storage';
 import type { EntitlementService } from '../subscriptions/service';
 import type { UploadService } from '../uploads/service';
 import type { InsightCache } from './insights';
-import { aiLimit, type AiFeature } from './limits';
+import { intensivePool, limitFor, type AiFeature } from './limits';
 import type { AiRouter } from './router';
 import { allowedFor, ingredientsOf, shoppingCategory } from './tools';
 
@@ -119,9 +120,9 @@ export class KitchenAiService {
     private readonly now: () => Date = () => new Date(),
   ) {}
 
-  private async limit(userId: string, feature: AiFeature): Promise<{ userId: string; dailyLimit: { perDay: number; key: string } }> {
+  private async limit(userId: string, feature: AiFeature): Promise<{ userId: string; dailyLimit: ReturnType<typeof limitFor> }> {
     const tier: SubscriptionTier = (await this.entitlements.forUser(userId)).tier;
-    return { userId, dailyLimit: { perDay: aiLimit(feature, tier), key: feature } };
+    return { userId, dailyLimit: limitFor(feature, tier) };
   }
 
   /** Reads the photos (and always deletes them afterwards). */
@@ -330,6 +331,18 @@ export class KitchenAiService {
       suggestedServings: Math.min(20, Math.max(1, Math.round(out.suggestedServings || 1))),
       recommendations: out.recommendations.map((r) => clean(r, 160)).filter(Boolean).slice(0, 3),
       note: NOT_EXACT,
+    };
+  }
+
+  /** Where the person stands with the intensive AI and meal plans, for the meter on the screens. */
+  async allowance(userId: string): Promise<AiAllowance> {
+    const { tier, features } = await this.entitlements.forUser(userId);
+    const pool = intensivePool(tier);
+    const [intensive, plans] = await Promise.all([this.ai.usage(userId, pool.keys, pool.windowDays), this.ai.usage(userId, ['meal_plan'], 7)]);
+    return {
+      tier,
+      intensive: { used: intensive.used, max: pool.max, windowDays: pool.windowDays, resetsAt: intensive.resetsAt?.toISOString() ?? null },
+      mealPlans: { used: plans.used, max: features.mealPlanPerWeek, windowDays: 7, resetsAt: plans.resetsAt?.toISOString() ?? null },
     };
   }
 
