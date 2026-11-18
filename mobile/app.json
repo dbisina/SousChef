@@ -9,9 +9,9 @@
     "newArchEnabled": true,
     "scheme": "souschef",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-light.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0b0b0b"
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
@@ -78,6 +78,19 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-light.png",
+          "backgroundColor": "#ffffff",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "dark": {
+            "image": "./assets/splash-dark.png",
+            "backgroundColor": "#0b0b0b"
+          }
+        }
+      ],
       "expo-apple-authentication",
       [
         "expo-camera",
