@@ -260,3 +260,45 @@ describe('reading a cookbook page', () => {
     expect(blocked.statusCode).toBe(409);
   });
 });
+
+describe('reading a written recipe', () => {
+  const aiRecipe = () =>
+    JSON.stringify({ found: true, title: 'Moi Moi', description: 'Steamed bean pudding', servings: 6, ingredients: [{ name: 'beans', amount: 2, unit: 'cup' }, { name: 'pepper', amount: 2, unit: '' }], instructions: ['Blend the beans.', 'Steam for an hour.'], confidence: 0.8 });
+  const read = (who: Who | undefined, body: object) => call(t, 'POST', '/v1/imports/text', who, body);
+  const note = 'Moi moi: 2 cups beans, 2 peppers. Blend the beans and peppers. Steam for an hour.';
+
+  it('turns typed or dictated text into a draft and keeps nothing', async () => {
+    const ama = await register(t);
+    t.ai.gemini.handler = () => aiRecipe();
+    t.ai.deepseek.handler = () => aiRecipe();
+    const res = await read(ama, { text: note });
+    expect(res.statusCode).toBe(200);
+    const { recipe } = res.json<{ recipe: ImportedRecipe }>();
+    expect(recipe).toMatchObject({ title: 'Moi Moi', servings: 6, sourceUrl: 'text:written' });
+    expect(recipe.ingredients).toHaveLength(2);
+    expect(recipe.instructions).toHaveLength(2);
+    const sent = [...t.ai.gemini.calls, ...t.ai.deepseek.calls].at(-1);
+    expect(sent?.task).toBe('extract_recipe');
+    expect(sent?.prompt).toContain('2 cups beans'); // the text is passed on, inside a block it cannot escape as instructions
+  });
+
+  it('refuses text that is too short, text with no recipe in it, and a stranger', async () => {
+    const ama = await register(t);
+    expect((await read(ama, { text: 'soup' })).statusCode).toBe(400);
+    expect((await read(ama, {})).statusCode).toBe(400);
+    t.ai.gemini.handler = () => JSON.stringify({ found: false });
+    t.ai.deepseek.handler = () => JSON.stringify({ found: false });
+    expect((await read(ama, { text: 'Hello, how are you doing today? Nice weather we have.' })).statusCode).toBe(400);
+    expect((await read(undefined, { text: note })).statusCode).toBe(401);
+  });
+
+  it('uses the same daily allowance as other imports', async () => {
+    const ama = await register(t);
+    t.ai.gemini.handler = () => aiRecipe();
+    t.ai.deepseek.handler = () => aiRecipe();
+    for (let i = 0; i < 5; i++) expect((await read(ama, { text: note })).statusCode).toBe(200);
+    const blocked = await read(ama, { text: note });
+    expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
+  });
+});

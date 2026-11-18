@@ -275,6 +275,30 @@ export class ImportService {
     }
   }
 
+  /**
+   * Turns text the person typed, pasted or dictated into a recipe draft. Counts against the same daily allowance as other
+   * imports; nothing is cached or kept. Missing amounts, times and labels are left blank for the person to fill in.
+   */
+  async readText(userId: string, rawText: string): Promise<ImportedRecipe> {
+    const text = rawText.replace(/\r/g, '').trim();
+    if (text.length < 20 || text.length > 8000) throw errors.validation({ text: 'Paste or say the recipe: its ingredients and what to do' });
+    const parsed = await this.ai.runJson(
+      {
+        task: 'extract_recipe',
+        system: SYSTEM,
+        prompt: `This is a recipe the person wrote or dictated. Put it into the JSON shape. Keep their wording for steps; split run-on text into separate steps; turn each ingredient line into amount, unit and name (amount 0 and an empty unit when none is given). Do not add ingredients or steps they did not write.\n\n<recipe>\n${text}\n</recipe>`,
+        json: true,
+        maxOutputTokens: 2500,
+        temperature: 0.1,
+      },
+      aiRecipeSchema,
+      { userId, dailyLimit: { perDay: IMPORT_DAILY_LIMIT[await this.tier(userId)] } },
+    );
+    const recipe = toImported(parsed, { sourceUrl: 'text:written', platform: 'website', fallbackConfidence: 0.7 });
+    if (!recipe) throw errors.validation({ text: 'We could not find both ingredients and steps in that. Add them and try again' });
+    return recipe;
+  }
+
   async get(userId: string, id: string): Promise<ImportResult> {
     const row = await this.db.import.findFirst({ where: { id, userId } });
     if (!row) throw errors.notFound('Import not found');

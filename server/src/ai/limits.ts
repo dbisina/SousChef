@@ -6,6 +6,7 @@ export type AiFeature =
   | 'tonight'
   | 'leftovers'
   | 'plate_check'
+  | 'plate_nutrition'
   | 'caption'
   | 'search'
   | 'waste_coach'
@@ -24,6 +25,7 @@ export const AI_LIMITS: Record<AiFeature, Record<SubscriptionTier, number>> = {
   tonight: { free: 3, premium: 15, pro: 40 },
   leftovers: { free: 3, premium: 10, pro: 30 },
   plate_check: { free: 2, premium: 8, pro: 30 },
+  plate_nutrition: { free: 3, premium: 15, pro: 50 },
   caption: { free: 5, premium: 20, pro: 60 },
   search: { free: 20, premium: 60, pro: 200 },
   waste_coach: { free: 1, premium: 3, pro: 10 },

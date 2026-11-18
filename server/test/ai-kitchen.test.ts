@@ -7,6 +7,7 @@ import {
   type LeftoversResponse,
   type PantryScanResponse,
   type PlateCheckResponse,
+  type PlateNutritionResponse,
   type SearchIntentResponse,
   type TonightResponse,
 } from '@shared';
@@ -208,6 +209,58 @@ describe('leftover rescue', () => {
     expect((await ask(ama, { text: 'rice', restrictions: ['peanuts'] })).statusCode).toBe(503);
     expect((await ask(ama, { text: '' })).statusCode).toBe(400);
     expect((await ask(undefined, { text: 'rice' })).statusCode).toBe(401);
+  });
+});
+
+describe('calories and nutrition from a plate photo', () => {
+  const nutrition = (who: Who | undefined, body: object) => call(t, 'POST', '/v1/ai/plate-nutrition', who, body);
+  const rice = { name: 'Jollof rice', estimatedAmount: 1.5, unit: 'cup', confidence: 0.82, calories: 320, proteinG: 6.2, carbsG: 58, fatG: 7, fiberG: 2, sugarG: 3, sodiumMg: 540 };
+  const chicken = { name: 'Grilled chicken', estimatedAmount: 150, unit: 'g', confidence: 0.9, calories: 250, proteinG: 38, carbsG: 0, fatG: 10, fiberG: 0, sugarG: 0, sodiumMg: 300 };
+
+  it('lists each food with its numbers, adds the totals itself, and deletes the photo', async () => {
+    const ama = await register(t);
+    const p = await finishedUpload(t, ama, 'made_post', 'image/jpeg');
+    // The AI's own "total" is ignored: the server adds the items up.
+    t.ai.gemini.handler = () => JSON.stringify({ items: [rice, chicken], total: { calories: 99999 }, suggestedServings: 1, recommendations: ['Add some greens.'] });
+    const res = await nutrition(ama, { uploadId: p.id, hints: ['plantain'] });
+    expect(res.statusCode).toBe(200);
+    const out = res.json<PlateNutritionResponse>();
+    expect(out.items.map((i) => i.name)).toEqual(['Jollof rice', 'Grilled chicken']);
+    expect(out.total).toEqual({ calories: 570, proteinG: 44.2, carbsG: 58, fatG: 17, fiberG: 2, sugarG: 3, sodiumMg: 840 });
+    expect(out.recommendations).toEqual(['Add some greens.']);
+    expect(out.note).toContain('estimates');
+    expect(t.ai.gemini.calls.at(-1)?.prompt).toContain('plantain');
+    expect(t.storage.deleted).toHaveLength(1); // a plate scan is not kept
+  });
+
+  it('keeps wild numbers in range, reads a 0 to 100 confidence, and refuses a photo with no food', async () => {
+    const ama = await register(t);
+    await t.db.subscription.create({ data: { userId: ama.user.id, tier: 'pro', status: 'ACTIVE', expiresAt: new Date(Date.now() + 30 * DAY_MS), lastEventAt: new Date() } });
+    const p = await finishedUpload(t, ama, 'made_post', 'image/jpeg');
+    t.ai.gemini.handler = () => JSON.stringify({ items: [{ ...rice, calories: 900000, proteinG: -5, confidence: 82 }], suggestedServings: 0 });
+    const out = (await nutrition(ama, { uploadId: p.id })).json<PlateNutritionResponse>();
+    expect(out.items[0]).toMatchObject({ calories: 3000, proteinG: 0, confidence: 0.82 });
+    expect(out.suggestedServings).toBe(1);
+    const q = await finishedUpload(t, ama, 'made_post', 'image/jpeg');
+    t.ai.gemini.handler = () => JSON.stringify({ items: [] });
+    const none = await nutrition(ama, { uploadId: q.id });
+    expect(none.statusCode).toBe(400);
+  });
+
+  it('is for signed-in people, for their own photo, and shares the daily allowance', async () => {
+    const [ama, ben] = [await register(t), await register(t)] as [Who, Who];
+    const theirs = await finishedUpload(t, ben, 'made_post', 'image/jpeg');
+    expect((await nutrition(ama, { uploadId: theirs.id })).statusCode).toBe(400);
+    expect((await nutrition(undefined, { uploadId: theirs.id })).statusCode).toBe(401);
+    t.ai.gemini.handler = () => JSON.stringify({ items: [rice] });
+    for (let i = 0; i < AI_LIMITS.plate_nutrition.free; i++) {
+      const p = await finishedUpload(t, ama, 'made_post', 'image/jpeg');
+      expect((await nutrition(ama, { uploadId: p.id })).statusCode).toBe(200);
+    }
+    const extra = await finishedUpload(t, ama, 'made_post', 'image/jpeg');
+    const blocked = await nutrition(ama, { uploadId: extra.id });
+    expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
   });
 });
 
