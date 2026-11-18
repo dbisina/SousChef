@@ -9,8 +9,8 @@ Last checked 2026-11-18 against Apple App Review Guidelines, Google Play policy,
 | Apple: build with Xcode 26 / iOS 26 SDK | since 2026-04-28 | EAS image `sdk-54` (Expo SDK 54) builds with Xcode 26. Confirm in the build log. |
 | Apple: updated age-rating questions | answered by 2026-01-31 | Owner: answer in App Store Connect. |
 | Apple: new age-rating descriptors (incl. shares real-world location) | from 2026-11-16, all apps by 2027-01-12 | Owner: complete in App Store Connect. enplace does not share location. |
-| Google Play: target Android 16 (API 36) for new apps and updates | 2026-08-31 | Expo SDK 54 targets API 36. Confirm in the built manifest. |
-| Google Play: disclose user data sent to third-party AI | July 2026 policy update | Done below (Data safety). Confirm wording on Google's policy page before submitting. |
+| Google Play: target Android 16 (API 36) for new apps and updates | 2026-08-31 | Verified: prebuilt Android project uses React Native defaults targetSdk 36, compileSdk 36. Release manifest permissions checked: camera, microphone, internet, audio settings, vibrate only; storage and media permissions removed. |
+| Google Play: April 2026 policy update (contacts, location, photo/video permissions, age-restricted content) | 30 days from 2026-04-15 | Checked at support.google.com/googleplay/android-developer/answer/16926792: none of it applies; no contacts or location permission, system photo picker. Blog claims of a separate July 2026 AI-data rule are unconfirmed at the source. AI data sharing is disclosed anyway. |
 
 ## Permissions the app asks for, and why
 
@@ -43,7 +43,7 @@ Purposes: App functionality, personalisation. Not used for third-party advertisi
 - Collected: personal info (name, email, user IDs), photos and videos, audio files, health info (user-entered), messages, app activity, purchase history, device ID (push token).
 - Shared with third parties: yes. Service providers act on enplace's behalf: Google Gemini (AI features), Cloudflare and Cloudinary (storage), RevenueCat (subscriptions), Expo (push), Firebase (sign-in). Mark "processed on behalf of the developer" where the form offers it, and list AI processing as shared user data.
 - Encrypted in transit: yes. Deletion: yes, in app (More > Delete account) and by email request.
-- No data sold. No ads SDK. Account deletion URL: use the privacy page contact until a web page exists. Owner: add a public web URL for account deletion in Play Console.
+- No data sold. No ads SDK. Public pages served by the API: https://souschef-api-production.up.railway.app/privacy, /terms, /delete-account. Use the delete-account URL in Play Console and the privacy URL in both stores.
 
 ## User-generated content (Apple 1.2, Google UGC policy)
 
@@ -78,7 +78,7 @@ Purchases go through RevenueCat with the store billing system. Paywall shows pri
 - [ ] Put RevenueCat production API keys in EAS secrets (`EXPO_PUBLIC_REVENUECAT_IOS_API_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY`) and create products in both stores.
 - [ ] Create the demo account and fill in the review notes.
 - [ ] Fill in App Privacy and Data safety exactly as above; answer the age-rating questions (both the Jan 2026 set and the Nov 2026 descriptors).
-- [ ] Public privacy policy and account-deletion web URLs.
+- [ ] Enter the public URLs (privacy, terms, delete-account) in App Store Connect and Play Console. Optionally move them to your own domain.
 - [ ] Decide the bundle ID before first publish: it is `com.lyon98.souschef` and cannot change later.
 - [ ] Confirm which store builds use the Firebase config files (`GoogleService-Info.plist`, `google-services.json`) and that they belong to the production project.
 - [ ] Play: a new personal developer account needs a 12-tester, 14-day closed test.

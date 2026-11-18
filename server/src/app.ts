@@ -9,6 +9,7 @@ import type { Config } from './config';
 import { createDb, type Db } from './db';
 import { AppError } from './errors';
 import { healthRoutes } from './health';
+import { legalRoutes } from './legal';
 import { storageFromConfig, type Storage } from './storage/storage';
 import { uploadRoutes } from './uploads/routes';
 import { UploadService } from './uploads/service';
@@ -189,6 +190,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   app.setNotFoundHandler((_request, reply) => reply.code(404).send({ error: { code: 'not_found', message: 'Not found' } }));
 
   healthRoutes(app, db);
+  legalRoutes(app);
   authRoutes(app, auth, config);
   const entitlements = new EntitlementService(db, options.now);
   subscriptionRoutes(app, entitlements, auth, config);
