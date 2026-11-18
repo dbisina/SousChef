@@ -181,7 +181,7 @@ export async function pickDishPhoto(ai: AiRouter, dish: Pick<DishDef, 'title' | 
  * Gives an official recipe a new verified photo: the recipe, its posts, and any cookbook cover or account picture that used the
  * old one all move to it. For photos that turned out to show someone else's branding. Returns what happened, in words.
  */
-export async function rephotoDish(deps: GenerateDeps, dishes: DishDef[], title: string): Promise<string> {
+export async function rephotoDish(deps: GenerateDeps, dishes: DishDef[], title: string, commonsFile?: string): Promise<string> {
   const { db, ai, storage } = deps;
   if (!storage) throw new Error('Photos need the file store (S3_* settings).');
   const fetchImpl = deps.fetchImpl ?? fetch;
@@ -189,7 +189,14 @@ export async function rephotoDish(deps: GenerateDeps, dishes: DishDef[], title: 
   if (!dish) return `${title}: not in the dish list`;
   const recipes = await db.recipe.findMany({ where: { title, author: { kind: 'HOUSE' } }, select: { id: true, imageUrl: true, description: true } });
   if (recipes.length === 0) return `${title}: no such official recipe`;
-  const found = await pickDishPhoto(ai, dish, fetchImpl);
+  let found: { photo: Photo | null; reason: string };
+  if (commonsFile) {
+    // A file chosen by a person: still must be freely licensed and pass the same picture check.
+    const [candidate] = await findCommonsPhotos(commonsFile.replace(/^File:/i, ''), fetchImpl, 1);
+    found = candidate && (await photoShows(ai, dish.title, candidate)) ? { photo: candidate, reason: '' } : { photo: null, reason: `${commonsFile} is not free to use or does not pass the picture check` };
+  } else {
+    found = await pickDishPhoto(ai, dish, fetchImpl);
+  }
   if (!found.photo) return `${title}: kept the old photo (${found.reason})`;
   const photo = found.photo;
   const imageUrl = await store(storage, `seed/${slug(title)}-${Date.now().toString(36)}.${photo.mime === 'image/png' ? 'png' : 'jpg'}`, photo, fetchImpl);

@@ -9,7 +9,9 @@
 //   npm run seed -- --puzzle-photos [N]    give Daily Dish puzzles a real photo of the answer, N at a time (default 20)
 //   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch;
 //                                          add --retry to look again at questions that found none before)
-//   npm run seed -- --rephoto "Title"      give one official recipe a new checked photo (its posts and covers follow)
+//   npm run seed -- --rephoto "Title" ["File:Name.jpg"]
+//                                          give one official recipe a new checked photo (its posts and covers follow); name a
+//                                          Wikimedia Commons file to choose the picture yourself
 //   npm run seed -- --generate [N]        write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
 // Uses DATABASE_URL. Safe to run again.
@@ -102,7 +104,7 @@ async function main() {
       if (!title || title.startsWith('--')) throw new Error('--rephoto needs a recipe title in quotes');
       const config = loadConfig(process.env);
       const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
-      process.stdout.write(`${await rephotoDish({ db, ai: buildAiRouter(config, db, log), storage: storageFromConfig(config) }, dishList as DishDef[], title)}\n`);
+      process.stdout.write(`${await rephotoDish({ db, ai: buildAiRouter(config, db, log), storage: storageFromConfig(config) }, dishList as DishDef[], title, args[rephotoAt + 2]?.startsWith('--') ? undefined : args[rephotoAt + 2])}\n`);
     }
     const genAt = args.indexOf('--generate');
     if (genAt >= 0) {

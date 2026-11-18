@@ -155,6 +155,8 @@ describe('generating real content', () => {
     expect(await rephotoDish({ db: t.db, ai: strict, storage, fetchImpl: wikipedia({ licence: 'CC0' }) }, dishes, 'Onion Stew')).toContain('kept the old photo');
     expect((await t.db.recipe.findFirstOrThrow({ where: { title: 'Onion Stew' } })).imageUrl).toBe(after.imageUrl);
     expect(await rephotoDish({ db: t.db, ai, storage }, dishes, 'No Such Dish')).toContain('not in the dish list');
+    // A named file that Commons does not return (or that is not free) changes nothing.
+    expect(await rephotoDish({ db: t.db, ai, storage, fetchImpl: wikipedia({ licence: 'CC0' }) }, dishes, 'Onion Stew', 'File:Missing.jpg')).toContain('kept the old photo');
   });
 
   it('does not spend on a recipe when there is no usable photo, and honours the limit and dry run', async () => {
