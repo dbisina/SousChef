@@ -7,7 +7,8 @@
 //   assets/adaptive-icon.png          Android adaptive icon foreground: the artwork inside the central safe zone, transparent
 //   assets/adaptive-icon-monochrome.png   Android 13+ themed icon: the same artwork in one colour
 //   assets/notification-icon.png      Android status-bar icon: white artwork on transparent
-//   assets/splash-icon.png            the wordmark, centred on a transparent square (the splash background is set in app.json)
+//   assets/splash-icon.png            an empty transparent picture: the splash is just the near-black background (set in app.json),
+//                                     and the opening text (components/ui/BrandSplash.tsx) is what people see
 //   assets/favicon.png                web
 //   assets/brand/wordmark-*.svg       the wordmark as vector, for use inside the app, plus lib/brandWordmark.ts (its proportions)
 //
@@ -74,7 +75,6 @@ async function savePng(img, file, { opaque = false } = {}) {
 }
 
 const iconArt = kit('icon/enplace_icon_dark_transparent.png'); // light "en" and orange dot on transparent
-const wordmarkArt = kit('wordmark/enplace_wordmark_dark_transparent.png');
 
 // iOS: the artwork is about 62 percent of the width, on near-black, full square, no transparency.
 await savePng(centred(await artwork(iconArt, Math.round(1024 * 0.62), false), 1024, NEAR_BLACK), out('icon.png'), { opaque: true });
@@ -86,8 +86,9 @@ await savePng(centred(await artwork(iconArt, Math.round(1024 * 0.5), true), 1024
 // Android status bar: white on transparent, with room around it.
 await savePng(centred(await artwork(iconArt, 72, true), 96, null), out('notification-icon.png'));
 
-// Splash: the wordmark across a little over half of the width of a transparent square.
-await savePng(centred(await artwork(wordmarkArt, Math.round(1600 * 0.56), false), 1600, null), out('splash-icon.png'));
+// Splash: nothing but the background. The opening is text ("mise en place" in script, then "enplace."), not the logo files.
+const blank = new Jimp(64, 64, 0x00000000);
+await savePng(blank, out('splash-icon.png'));
 
 // Web.
 const fav = await Jimp.read(kit('icon/enplace_icon_dark_solid.png'));
