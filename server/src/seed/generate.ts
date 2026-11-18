@@ -131,7 +131,7 @@ export async function photoShows(ai: AiRouter, title: string, photo: Photo, mode
         system: 'You check food photos. Answer only with JSON.',
         prompt:
           mode === 'dish'
-            ? `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? Return {"match": true|false, "reason": "..."}.`
+            ? `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? It must also show no readable business names, shop or restaurant signs, menus, receipts, price tags, logos or brand text anywhere in the picture. Return {"match": true|false, "reason": "..."}.`
             : `Is this a clear, good photo of "${title}" (a food, ingredient, dish, drink, kitchen tool or cooking technique)? It must really show that subject, in focus, with no text overlays, logos, maps, diagrams or people's faces as the main subject. Return {"match": true|false, "reason": "..."}.`,
         images: [{ base64: photo.bytes.toString('base64'), mimeType: photo.mime }],
         json: true,
@@ -175,6 +175,32 @@ export async function pickDishPhoto(ai: AiRouter, dish: Pick<DishDef, 'title' | 
   }
   for (const c of candidates) if (await photoShows(ai, dish.title, c)) return { photo: c, reason: '' };
   return { photo: null, reason: lead || candidates.length > 0 ? 'the photo does not clearly show the dish' : 'no freely licensed photo found' };
+}
+
+/**
+ * Gives an official recipe a new verified photo: the recipe, its posts, and any cookbook cover or account picture that used the
+ * old one all move to it. For photos that turned out to show someone else's branding. Returns what happened, in words.
+ */
+export async function rephotoDish(deps: GenerateDeps, dishes: DishDef[], title: string): Promise<string> {
+  const { db, ai, storage } = deps;
+  if (!storage) throw new Error('Photos need the file store (S3_* settings).');
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const dish = dishes.find((d) => d.title === title);
+  if (!dish) return `${title}: not in the dish list`;
+  const recipes = await db.recipe.findMany({ where: { title, author: { kind: 'HOUSE' } }, select: { id: true, imageUrl: true, description: true } });
+  if (recipes.length === 0) return `${title}: no such official recipe`;
+  const found = await pickDishPhoto(ai, dish, fetchImpl);
+  if (!found.photo) return `${title}: kept the old photo (${found.reason})`;
+  const photo = found.photo;
+  const imageUrl = await store(storage, `seed/${slug(title)}-${Date.now().toString(36)}.${photo.mime === 'image/png' ? 'png' : 'jpg'}`, photo, fetchImpl);
+  for (const r of recipes) {
+    const base = (r.description ?? '').replace(/\n\nPhoto: [^\n]*$/, '');
+    await db.recipe.update({ where: { id: r.id }, data: { imageUrl, description: photo.credit ? `${base}\n\n${photo.credit}` : base } });
+    await db.post.updateMany({ where: { recipeId: r.id }, data: { photoUrl: imageUrl } });
+    await db.cookbook.updateMany({ where: { coverImageUrl: r.imageUrl }, data: { coverImageUrl: imageUrl } });
+    await db.user.updateMany({ where: { photoUrl: r.imageUrl, kind: 'HOUSE' }, data: { photoUrl: imageUrl } });
+  }
+  return `${title}: new photo ${imageUrl} (${photo.source})`;
 }
 
 /**

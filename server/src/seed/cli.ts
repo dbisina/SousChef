@@ -9,7 +9,8 @@
 //   npm run seed -- --puzzle-photos [N]    give Daily Dish puzzles a real photo of the answer, N at a time (default 20)
 //   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch;
 //                                          add --retry to look again at questions that found none before)
-//   npm run seed -- --generate [N]         write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
+//   npm run seed -- --rephoto "Title"      give one official recipe a new checked photo (its posts and covers follow)
+//   npm run seed -- --generate [N]        write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
 // Uses DATABASE_URL. Safe to run again.
 import { createDb } from '../db';
@@ -18,7 +19,7 @@ import { loadConfig } from '../config';
 import { storageFromConfig } from '../storage/storage';
 import dishList from '../../seed/dishes.json';
 import { GamePoolService, POOL_GAMES } from '../play/pool';
-import { backfillPuzzlePhotos, generateContent, generatePuzzles, type DishDef } from './generate';
+import { backfillPuzzlePhotos, generateContent, generatePuzzles, rephotoDish, type DishDef } from './generate';
 import { seedContent } from './run';
 
 async function main() {
@@ -94,6 +95,14 @@ async function main() {
       await db.cookbook.deleteMany({ where: { title: { endsWith: ' Favourites' } } });
       const gone = await db.recipe.deleteMany({ where: { id: { in: ids } } });
       process.stdout.write(`removed ${gone.count} generated recipes\n`);
+    }
+    const rephotoAt = args.indexOf('--rephoto');
+    if (rephotoAt >= 0) {
+      const title = args[rephotoAt + 1];
+      if (!title || title.startsWith('--')) throw new Error('--rephoto needs a recipe title in quotes');
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      process.stdout.write(`${await rephotoDish({ db, ai: buildAiRouter(config, db, log), storage: storageFromConfig(config) }, dishList as DishDef[], title)}\n`);
     }
     const genAt = args.indexOf('--generate');
     if (genAt >= 0) {
