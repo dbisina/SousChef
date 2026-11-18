@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SITE_URL, SUPPORT_EMAIL } from '@/lib/contact';
+import { openStoreReviewPage } from '@/lib/reviewPrompt';
 import { Linking, Text, View } from 'react-native';
 import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
@@ -152,6 +153,15 @@ export default function HelpCenterScreen() {
             <Muted small>{t('account.help.tryDifferent', 'Try a different search term')}</Muted>
           </View>
         )}
+
+        <Rows>
+          <ListRow
+            icon="star"
+            title={t('account.help.rate', 'Rate enplace')}
+            subtitle={t('account.help.rateBody', 'A rating helps other cooks find us')}
+            onPress={() => void openStoreReviewPage()}
+          />
+        </Rows>
 
         {SITE_URL ? (
         <Rows>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +44,8 @@ import { apiEnabled } from '@/lib/api';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { StepClip } from '@/components/cook/StepClip';
 import { reportFeedEvent } from '@/lib/feedEvents';
+import { recordCookFinished } from '@/lib/engagement';
+import { askForStoreReview } from '@/lib/reviewPrompt';
 import { useWantToCookStore } from '@/stores/wantToCookStore';
 import type { ImportedRecipe } from '@/types/wantToCook';
 import { isDesignReview } from '@/lib/designReview';
@@ -343,6 +345,12 @@ export default function CookingModeScreen() {
       }
       setStage('done');
       if (serverRecipeId) reportFeedEvent({ kind: 'cook_finish', recipeId: serverRecipeId });
+      // Count it, and (rarely, after a few cooks) ask for a store rating once they have had a moment on the Done screen.
+      void recordCookFinished()
+        .then((r) => {
+          if (r.askForReview) setTimeout(() => void askForStoreReview(), 1800);
+        })
+        .catch(() => undefined);
       // Finishing a recipe from the want-to-cook list marks it cooked there too.
       if (imported) void markAsCooked(id).catch(() => undefined);
     }
@@ -969,6 +977,7 @@ export default function CookingModeScreen() {
             />
             <UButton label={t('cooking.checkPortion', 'Check my portion')} variant="ghost" onPress={() => setShowCamera(true)} />
             <UButton label={t('cooking.backHome', 'Back to Home')} variant="ghost" onPress={goHome} />
+            <UButton label={t('cooking.sendFeedback', 'Send feedback')} variant="ghost" size="sm" onPress={() => router.push('/settings/help' as Href)} />
           </ActionBar>
         </>
       )}

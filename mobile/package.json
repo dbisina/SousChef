@@ -51,6 +51,7 @@
     "expo-speech": "~14.0.0",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.0",
+    "expo-store-review": "~9.0.9",
     "expo-video": "~3.0.15",
     "expo-web-browser": "~15.0.0",
     "firebase": "^12.8.0",

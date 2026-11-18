@@ -17,16 +17,16 @@ interface Row {
 }
 
 const TILES: (Tile & { photo: PhotoName; art?: GameArtName })[] = [
+  { title: 'Write a recipe', subtitle: 'Paste, say or type it', href: '/recipe/new' as Href, photo: 'greens' },
   { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href, photo: 'tacos' },
-  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'plating' },
-  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href, photo: 'pizza', art: 'mystery_kitchen' },
   { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href, photo: 'cookbook' },
+  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'plating' },
 ];
 
 const ROWS: Row[] = [
   { title: 'Scan my plate', icon: 'scan', href: '/(tabs)/scan' as Href },
   { title: 'Log a reading', icon: 'drop', href: '/health/log' as Href },
-  { title: 'Write a recipe', icon: 'edit', href: '/(tabs)/upload' as Href },
+  { title: 'Start a game', icon: 'gamepad', href: '/play/mystery/lobby' as Href },
 ];
 
 export default function CreateScreen() {
