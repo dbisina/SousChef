@@ -6,7 +6,7 @@ import type { FeedSnapshot, NewPostInput } from '@/services/feedService';
 import type { Author, Comment, Post } from '@/types/social';
 import { ME_ID } from '@/types/social';
 import { apiEnabled } from '@/lib/api';
-import { currentUserId } from '@/lib/session';
+import { currentUserId, isGuestSession } from '@/lib/session';
 import { uploadFile } from '@/lib/upload';
 import { fetchServerFeed, toComment, toPost, toStories } from '@/services/feedServer';
 import { feedReporter, reportFeedEvent } from '@/lib/feedEvents';
@@ -238,7 +238,7 @@ export const useSocialStore = create<SocialState>()(
         const meId = currentUserId();
         if (!apiEnabled() || !meId) return;
         try {
-          const feed = await fetchServerFeed(meId);
+          const feed = await fetchServerFeed(meId, isGuestSession());
           set((s) => ({ ...s, ...feed }));
         } catch {
           // Offline: what is on the phone stays.

@@ -134,14 +134,14 @@ export default function HomeScreen() {
   // The feed, stories and who you follow come from the server: fetch them fresh whenever home opens for a signed-in person.
   const meId = user?.id;
   useEffect(() => {
-    if (apiEnabled() && meId && !isGuest) void useSocialStore.getState().loadFromServer();
+    if (apiEnabled() && meId) void useSocialStore.getState().loadFromServer();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [meId]);
+  }, [meId, isGuest]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
-      apiEnabled() && user && !isGuest ? useSocialStore.getState().loadFromServer() : Promise.resolve(),
+      apiEnabled() && user ? useSocialStore.getState().loadFromServer() : Promise.resolve(),
       user ? fetchWantToCookItems(user.id) : Promise.resolve(),
       user ? fetchCurrentPlan(user.id) : Promise.resolve(),
     ]);

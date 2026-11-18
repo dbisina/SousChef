@@ -123,13 +123,15 @@ export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 're
 }
 
 /** Everything the home feed needs in one go: posts from people you follow and ones picked for you, and the story row. */
-export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
+export async function fetchServerFeed(meId: string, guest = false): Promise<ServerFeed> {
+  // A guest has no account on the server: only the public calls (picked-for-you posts, communities to discover) work for them.
+  const none = <T,>(empty: T): Promise<T> => Promise.resolve(empty);
   const [following, forYou, tray, follows, mine, discover] = await Promise.all([
-    apiFeed('following', { limit: 30 }),
+    guest ? none({ items: [] as ApiPost[] }) : apiFeed('following', { limit: 30 }),
     apiFeed('for-you', { limit: 30 }),
-    apiStoryTray(),
-    apiFollowing(meId, { limit: 50 }).catch(() => ({ items: [] as Participant[] })),
-    apiMyCommunities().catch(() => [] as CommunitySummary[]),
+    guest ? none([] as Awaited<ReturnType<typeof apiStoryTray>>) : apiStoryTray(),
+    guest ? none({ items: [] as Participant[] }) : apiFollowing(meId, { limit: 50 }).catch(() => ({ items: [] as Participant[] })),
+    guest ? none([] as CommunitySummary[]) : apiMyCommunities().catch(() => [] as CommunitySummary[]),
     apiDiscoverCommunities().catch(() => [] as CommunitySummary[]),
   ]);
 

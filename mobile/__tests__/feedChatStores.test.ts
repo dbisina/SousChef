@@ -1,6 +1,7 @@
 // The feed store and the chat store in server mode, against a pretend server and a hand-driven live connection.
 jest.mock('expo-secure-store', () => ({ getItemAsync: async () => null, setItemAsync: async () => undefined, deleteItemAsync: async () => undefined }));
-jest.mock('@/lib/session', () => ({ currentUserId: () => 'u-me' }));
+let mockGuest = false;
+jest.mock('@/lib/session', () => ({ currentUserId: () => 'u-me', isGuestSession: () => mockGuest }));
 
 const mockSocket = { start: jest.fn(), stop: jest.fn(), ack: jest.fn(), sendTyping: jest.fn(), onlineIds: new Set<string>() };
 let mockHandlers: Record<string, (...a: never[]) => void> = {};
@@ -105,6 +106,20 @@ describe('the feed', () => {
     expect(st.likedPostIds).toEqual(['p1']);
     expect(st.savedPostIds).toEqual(['p2']);
     expect(st.followingIds).toEqual(['u-ben']);
+  });
+
+  it('shows a guest the picked-for-you posts, asking only for what works without an account', async () => {
+    mockGuest = true;
+    try {
+      routes = [feedRoutes()];
+      await s.social.useSocialStore.getState().loadFromServer();
+      expect(s.social.useSocialStore.getState().posts.map((p) => p.id)).toEqual(['p2', 'p1']);
+      expect(calls).toContain('GET /v1/feed/for-you');
+      expect(calls).not.toContain('GET /v1/feed/following');
+      expect(calls).not.toContain('GET /v1/stories');
+    } finally {
+      mockGuest = false;
+    }
   });
 
   it('keeps what it has when the server cannot be reached', async () => {
