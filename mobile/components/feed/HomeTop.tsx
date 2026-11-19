@@ -90,6 +90,7 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
   const authors = useSocialStore((s) => s.authors);
   const viewed = useSocialStore((s) => s.viewedStoryIds);
   const me = useAuthStore((s) => s.user);
+  const myStory = me ? stories.find((s) => s.authorId === me.id) : undefined;
   return (
     <ScrollView
       horizontal
@@ -97,8 +98,17 @@ export function StoriesRow({ onOpen, onAdd }: StoriesRowProps) {
       style={{ flexGrow: 0, marginHorizontal: -20 }}
       contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
     >
-      <StoryRing source={me?.photoURL ? { uri: me.photoURL } : null} name={t('home.yourPlate', 'Your plate')} initialsFrom={me?.displayName} seen add onPress={onAdd} />
-      {stories.map((story) => {
+      {/* Own story lives in this first ring: tap to watch it, + to add another. It is not repeated further along. */}
+      <StoryRing
+        source={me?.photoURL ? { uri: me.photoURL } : null}
+        name={t('home.yourPlate', 'Your plate')}
+        initialsFrom={me?.displayName}
+        seen={myStory ? viewed.includes(myStory.id) : true}
+        add
+        onAddPress={myStory ? onAdd : undefined}
+        onPress={myStory ? () => onOpen(myStory.id) : onAdd}
+      />
+      {stories.filter((s) => !me || s.authorId !== me.id).map((story) => {
         const author = authors.find((a) => a.id === story.authorId);
         if (!author) return null;
         return (

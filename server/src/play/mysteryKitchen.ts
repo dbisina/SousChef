@@ -310,7 +310,16 @@ export class MysteryKitchenService {
     const rooms = await this.db.gameRoom.findMany({ where: { phase: { not: 'done' }, players: { some: { userId } } }, include });
     for (const room of rooms) {
       const settled = await this.settle(room);
-      if (settled && settled.phase !== 'done') throw errors.conflict(`You are already in game ${room.code}. Leave it first`);
+      if (!settled || settled.phase === 'done') continue;
+      // A solo game that was walked away from is closed when its owner starts another game: the phone has no "leave"
+      // for a game already under way, so refusing would trap the person with nothing to leave.
+      if (settled.mode === 'solo') {
+        await this.locked(settled.id, async (tx, current) => {
+          if (current.phase !== 'done') await tx.gameRoom.update({ where: { id: settled.id }, data: { phase: 'done', finishedAt: this.now() } });
+        });
+        continue;
+      }
+      throw errors.conflict(`You are already in game ${room.code}. Leave it first`);
     }
   }
 

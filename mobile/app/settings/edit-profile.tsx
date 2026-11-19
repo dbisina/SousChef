@@ -7,7 +7,8 @@ import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { apiEnabled } from '@/lib/api';
+import { ApiError, apiEnabled } from '@/lib/api';
+import { guestBlocked } from '@/lib/guestPrompt';
 import { DeleteAccountSheet } from '@/components/settings/DeleteAccountSheet';
 import { uploadImage } from '@/lib/cloudinary';
 import { uploadFile } from '@/lib/upload';
@@ -90,6 +91,7 @@ export default function EditProfileScreen() {
   };
 
   const handleSave = async () => {
+    if (guestBlocked()) return; // a guest has no account on the server to save to: offer sign-up instead of failing
     if (!displayName.trim()) {
       showInfoToast(
         t('account.edit.nameNeededBody', 'Wait! We need to know what to call you!'),
@@ -115,8 +117,10 @@ export default function EditProfileScreen() {
       );
       router.back();
     } catch (error) {
+      // Say what the server said (username taken, too long, session over) instead of a vague "try again".
+      const reason = error instanceof ApiError && error.code !== 'network' && error.code !== 'timeout' ? error.message : '';
       showErrorToast(
-        t('account.edit.saveFailed', "Oops! We couldn't save your profile changes. Let's try once more?"),
+        reason || t('account.edit.saveFailed', "Oops! We couldn't save your profile changes. Let's try once more?"),
         t('account.edit.updateProblem', 'Update Problem')
       );
     }

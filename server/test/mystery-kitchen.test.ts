@@ -296,6 +296,16 @@ describe('who can do what', () => {
     expect((await join(ama!, other.code)).statusCode).toBe(200);
   });
 
+  it('lets someone start a new game after walking away from a solo game that was under way', async () => {
+    const [ama] = await people(1);
+    const old = await create(ama!, { mode: 'solo' });
+    expect((await start(ama!, old.code)).statusCode).toBe(200);
+    // The old game is still "cooking" and cannot be left; starting another must not trap the person.
+    const fresh = await call(t, 'POST', '/v1/play/rooms', ama!, { mode: 'solo' });
+    expect(fresh.statusCode).toBe(201);
+    expect((await roomOf(ama!, old.code)).phase).toBe('done');
+  });
+
   it('closes the room when the host leaves the lobby, and tells the others', async () => {
     const [ama, ben] = await people(2);
     const lobby = await create(ama!, { mode: 'group' });

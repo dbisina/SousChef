@@ -76,11 +76,13 @@ interface StoryRingProps {
   seen?: boolean;
   /** Show the orange + badge (own story). */
   add?: boolean;
+  /** When the ring itself opens a story, the + badge adds another one. */
+  onAddPress?: () => void;
   onPress?: () => void;
 }
 
 /** .st: 68px story avatar with orange (unseen) or grey (seen) ring and a label. */
-export function StoryRing({ source, name, initialsFrom, seen, add, onPress }: StoryRingProps) {
+export function StoryRing({ source, name, initialsFrom, seen, add, onAddPress, onPress }: StoryRingProps) {
   const tk = useTokens();
   return (
     <Pressable
@@ -97,12 +99,17 @@ export function StoryRing({ source, name, initialsFrom, seen, add, onPress }: St
           {source ? <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} /> : <UAvatar name={initialsFrom ?? name} size={56} />}
         </View>
         {add ? (
-          <View
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Add story"
+            disabled={!onAddPress}
+            onPress={onAddPress}
+            hitSlop={8}
             className="bg-accent border-2 border-ground items-center justify-center"
             style={{ position: 'absolute', right: -2, bottom: -2, width: 24, height: 24, borderRadius: 12 }}
           >
             <Icon name="plus" size="sm" color="accent-ink" />
-          </View>
+          </Pressable>
         ) : null}
       </View>
       <RNText className="text-ink" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12 }}>
