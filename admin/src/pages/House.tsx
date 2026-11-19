@@ -5,7 +5,7 @@ import { ApiError } from '../api';
 import { useLoad } from '../useLoad';
 import { Card, ConfirmButton, Empty, Loading, Page, useApi } from '../ui';
 
-/** Official SousChef accounts (clearly labelled in the app) and their kill switch, plus the daily puzzle list. */
+/** Official enplace accounts (clearly labelled in the app) and their kill switch, plus the daily puzzle list. */
 export function House() {
   const api = useApi();
   const [message, setMessage] = useState('');
@@ -27,8 +27,8 @@ export function House() {
       title="Official accounts and puzzles"
       actions={
         <>
-          <ConfirmButton danger label="Hide all official posts" confirm="Take every official SousChef post out of sight now?" onConfirm={() => flip(false)} />
-          <ConfirmButton label="Show them again" confirm="Put every official SousChef post back?" onConfirm={() => flip(true)} />
+          <ConfirmButton danger label="Hide all official posts" confirm="Take every official enplace post out of sight now?" onConfirm={() => flip(false)} />
+          <ConfirmButton label="Show them again" confirm="Put every official enplace post back?" onConfirm={() => flip(true)} />
         </>
       }
     >

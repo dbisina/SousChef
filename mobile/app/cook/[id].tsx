@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Timestamp } from 'firebase/firestore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -42,9 +42,41 @@ import { useGeminiLive } from '@/hooks/useGeminiLive';
 import { useCookAssistant } from '@/hooks/useCookAssistant';
 import { apiEnabled } from '@/lib/api';
 import { useGamificationStore } from '@/stores/gamificationStore';
+import { StepClip } from '@/components/cook/StepClip';
+import { reportFeedEvent } from '@/lib/feedEvents';
+import { recordCookFinished } from '@/lib/engagement';
+import { askForStoreReview } from '@/lib/reviewPrompt';
+import { useWantToCookStore } from '@/stores/wantToCookStore';
+import type { ImportedRecipe } from '@/types/wantToCook';
 import { isDesignReview } from '@/lib/designReview';
 
 type CookingStage = 'prep' | 'cooking' | 'done';
+
+/** What an imported recipe needs to be cooked step by step in this screen. */
+function recipeFromImported(r: ImportedRecipe): Recipe {
+  const servings = r.servings > 0 ? r.servings : 4;
+  return {
+    id: r.id,
+    title: r.title,
+    description: r.description,
+    imageURL: r.imageURL ?? '',
+    authorId: '',
+    authorName: r.sourcePlatform ?? '',
+    isOfficial: false,
+    category: r.category ?? 'dinner',
+    cuisine: r.cuisine ?? 'other',
+    difficulty: r.difficulty ?? 'medium',
+    prepTime: r.prepTime ?? 0,
+    cookTime: r.cookTime ?? 0,
+    servings,
+    ingredients: r.ingredients,
+    instructions: r.instructions,
+    nutrition: r.nutrition ?? { caloriesPerServing: 0, totalCalories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 },
+    tags: r.tags,
+    likes: 0,
+    createdAt: Timestamp.now(),
+  };
+}
 
 /** Pull "4-5 minutes" / "10 mins" out of a step so we can offer a one-tap timer. */
 const suggestMinutes = (instruction: string): number | null => {
@@ -56,6 +88,8 @@ const suggestMinutes = (instruction: string): number | null => {
 
 interface HeroProps {
   source: { uri: string };
+  /** This step's clip, when there is one: it plays in place of the photo. */
+  clip?: string | null;
   height: number;
   left?: React.ReactNode;
   center?: React.ReactNode;
@@ -64,12 +98,13 @@ interface HeroProps {
 }
 
 /** Cook.html hero: photo with darkened top/bottom, rounded bottom corners, glass controls on top. */
-function Hero({ source, height, left, center, right, children }: HeroProps) {
+function Hero({ source, clip, height, left, center, right, children }: HeroProps) {
   const insets = useSafeAreaInsets();
   const top = Math.max(insets.top, 20) + 14;
   return (
     <View style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36, overflow: 'hidden' }}>
       <PhotoCard source={source} height={height} radius={0} fade="both">
+        {clip ? <StepClip uri={clip} /> : null}
         <View
           pointerEvents="box-none"
           style={{ position: 'absolute', top, left: 20, right: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, zIndex: 2 }}
@@ -126,9 +161,13 @@ export default function CookingModeScreen() {
     }
     return undefined;
   });
+  // A recipe imported from a link or video lives on the person's want-to-cook list (the id is that item's id).
+  const imported = useWantToCookStore((st) => st.items.find((i) => i.id === id)?.importedRecipe);
+  const markAsCooked = useWantToCookStore((st) => st.markAsCooked);
   // Shelf (cookbook library) recipes live in a local store, not Firestore.
   const recipe = useMemo<Recipe | null>(() => {
     if (storeRecipe && storeRecipe.id === id) return storeRecipe;
+    if (imported) return recipeFromImported(imported);
     const c = shelfRecipe?.recipe.fullContent;
     if (!shelfRecipe || !c) return storeRecipe ?? null;
     const servings = c.servings > 0 ? c.servings : 4;
@@ -166,8 +205,15 @@ export default function CookingModeScreen() {
       likes: 0,
       createdAt: Timestamp.now(),
     };
-  }, [storeRecipe, shelfRecipe, id]);
+  }, [storeRecipe, shelfRecipe, imported, id]);
   const isLoading = !recipe && storeLoading;
+  // Only a recipe the server knows can be linked from a post (it rejects unknown ids). Imported and cookbook-shelf recipes post without the link.
+  const serverRecipeId = storeRecipe && storeRecipe.id === id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ? id : null;
+  /** Share Your Creation: close this screen, then open the post composer with the recipe filled in. */
+  const shareCreation = () => {
+    if (router.canDismiss()) router.dismissAll();
+    router.push({ pathname: '/post/new', params: { kind: 'made-this', recipeTitle: recipe?.title ?? '', ...(serverRecipeId ? { recipeId: serverRecipeId } : {}) } });
+  };
   const { tips, fetchTips } = useCookingTips();
   const { result: portionResult, isAnalyzing, analyzeImage, clear: clearPortionResult, accessDenied } = usePortionAnalysis();
   const { remainingPortion } = useRemainingUsage();
@@ -204,6 +250,8 @@ export default function CookingModeScreen() {
   const [currentStep, setCurrentStep] = useState(
     isDesignReview && stepParam ? Math.max(0, parseInt(stepParam, 10) || 0) : 0
   );
+  /** The clip cut for the step being cooked (only imported video recipes have them). */
+  const stepClip = imported?.stepClips?.[currentStep] ?? null;
   const [checkedIngredients, setCheckedIngredients] = useState<Set<string>>(new Set());
   const [showCamera, setShowCamera] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
@@ -296,6 +344,15 @@ export default function CookingModeScreen() {
         setCookedMinutes(Math.max(1, Math.round((Date.now() - startedAt.current) / 60000)));
       }
       setStage('done');
+      if (serverRecipeId) reportFeedEvent({ kind: 'cook_finish', recipeId: serverRecipeId });
+      // Count it, and (rarely, after a few cooks) ask for a store rating once they have had a moment on the Done screen.
+      void recordCookFinished()
+        .then((r) => {
+          if (r.askForReview) setTimeout(() => void askForStoreReview(), 1800);
+        })
+        .catch(() => undefined);
+      // Finishing a recipe from the want-to-cook list marks it cooked there too.
+      if (imported) void markAsCooked(id).catch(() => undefined);
     }
   };
 
@@ -309,6 +366,7 @@ export default function CookingModeScreen() {
     startedAt.current = Date.now();
     setStage('cooking');
     setCurrentStep(0);
+    if (serverRecipeId) reportFeedEvent({ kind: 'cook_start', recipeId: serverRecipeId });
   };
 
   // Handle voice command for reading step
@@ -505,7 +563,7 @@ export default function CookingModeScreen() {
                       </Text>
                       <Muted small>
                         {isWakeWordMode
-                          ? t('cooking.sayWake', 'Say “SousChef” followed by a command')
+                          ? t('cooking.sayWake', 'Say “enplace” followed by a command')
                           : t('cooking.enableHandsFree', 'Enable hands-free or tap the mic to use voice')}
                       </Muted>
                     </View>
@@ -518,7 +576,7 @@ export default function CookingModeScreen() {
                   {isWakeWordListening ? (
                     <View className="flex-row items-center" style={{ gap: 8, marginTop: 12 }}>
                       <Dot />
-                      <Muted small>{t('cooking.listeningForWake', 'Listening for “SousChef”...')}</Muted>
+                      <Muted small>{t('cooking.listeningForWake', 'Listening for “enplace”...')}</Muted>
                     </View>
                   ) : null}
                 </UCard>
@@ -652,6 +710,7 @@ export default function CookingModeScreen() {
           <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 150 }}>
             <Hero
               source={photo}
+              clip={stepClip}
               height={300}
               left={closeButton}
               center={
@@ -767,7 +826,7 @@ export default function CookingModeScreen() {
                   {geminiLive.lastResponse ? (
                     <UCard>
                       <View style={{ gap: 6 }}>
-                        <SectionLabel>{t('cooking.souschefAI', 'SousChef AI')}</SectionLabel>
+                        <SectionLabel>{t('cooking.souschefAI', 'enplace AI')}</SectionLabel>
                         <Text className="text-ink" style={{ fontFamily: FONT.sans, fontSize: 14, lineHeight: 20 }}>
                           {geminiLive.lastResponse}
                         </Text>
@@ -819,7 +878,7 @@ export default function CookingModeScreen() {
                     </View>
                     <Muted>
                       {isWakeWordMode
-                        ? t('cooking.sayWakeNext', 'Say “SousChef, next step”')
+                        ? t('cooking.sayWakeNext', 'Say “enplace, next step”')
                         : t('cooking.sayNext', 'Say “Next step”')}
                     </Muted>
                   </Pressable>
@@ -914,9 +973,11 @@ export default function CookingModeScreen() {
               label={t('cooking.shareCreation', 'Share Your Creation')}
               variant="accent"
               icon="camera"
-              onPress={() => setShowCamera(true)}
+              onPress={shareCreation}
             />
+            <UButton label={t('cooking.checkPortion', 'Check my portion')} variant="ghost" onPress={() => setShowCamera(true)} />
             <UButton label={t('cooking.backHome', 'Back to Home')} variant="ghost" onPress={goHome} />
+            <UButton label={t('cooking.sendFeedback', 'Send feedback')} variant="ghost" size="sm" onPress={() => router.push('/settings/help' as Href)} />
           </ActionBar>
         </>
       )}

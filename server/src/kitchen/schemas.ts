@@ -78,6 +78,7 @@ const importedRecipe = z.object({
   category: z.enum(RECIPE_CATEGORIES).optional(),
   tags: z.array(text(40).min(1)).max(20),
   extractionConfidence: z.number().min(0).max(1),
+  stepClips: z.array(webUrl.nullable()).max(80).optional(),
 });
 
 export const addWantToCookSchema = z.union([

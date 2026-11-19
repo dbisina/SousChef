@@ -1,4 +1,4 @@
-// SousChef database. Every change to this file needs a migration in the same commit
+// enplace database. Every change to this file needs a migration in the same commit
 // (npm run db:migrate -- --name what_changed).
 
 generator client {
@@ -15,7 +15,7 @@ enum UserRole {
   ADMIN
 }
 
-/// PERSON is a real user. HOUSE is an official SousChef account (shown with a badge), never passed off as a person.
+/// PERSON is a real user. HOUSE is an official enplace account (shown with a badge), never passed off as a person.
 enum AccountKind {
   PERSON
   HOUSE
@@ -56,6 +56,8 @@ model User {
   /// Set by staff when an account is suspended: no sign-in, no new content. Cleared to lift it.
   suspendedAt     DateTime?
   suspendedReason String    @default("")
+  /// Whether the feed may learn from what this person does (views, saves, hides). Off: nothing is recorded and nothing is used.
+  feedPersonalised Boolean  @default(true)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -118,6 +120,8 @@ model User {
   chefVerifications ChefVerification[]
   aiInsights       AiInsight[]
   scaleNotes       RecipeScaleNote[]
+  feedEvents       FeedEvent[]
+  tasteProfile     TasteProfile?
 
   // Finding people by the start or part of a name or handle.
   @@index([handle(ops: raw("gin_trgm_ops"))], type: Gin, map: "User_handle_trgm_idx")
@@ -1083,12 +1087,60 @@ model PromoGrant {
   key       String
   startsAt  DateTime
   endsAt    DateTime
+  /// Why staff gave it (admin grants only).
+  note      String?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, key])
   @@index([userId, endsAt])
+}
+
+/// A code staff make for general use (Android and web; Apple needs its own offer codes). Redeeming one makes a PromoGrant.
+model PromoCode {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  /// Upper case, no look-alike letters.
+  code       String    @unique
+  /// "premium" or "pro"
+  tier       String
+  days       Int
+  maxUses    Int
+  usedCount  Int       @default(0)
+  expiresAt  DateTime?
+  note       String?
+  active     Boolean   @default(true)
+  createdBy  String    @db.Uuid
+  createdAt  DateTime  @default(now())
+
+  redemptions PromoRedemption[]
+}
+
+/// One person using one code: a person can use a code once.
+model PromoRedemption {
+  codeId     String   @db.Uuid
+  userId     String   @db.Uuid
+  redeemedAt DateTime @default(now())
+
+  code PromoCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+
+  @@id([codeId, userId])
+}
+
+/// A sale the app shows on the plans screen. The real discount is a store offer; this only tells people about it.
+model Sale {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  /// "premium", "pro" or null for both
+  tier       String?
+  percentOff Int
+  label      String
+  startsAt   DateTime
+  endsAt     DateTime
+  active     Boolean  @default(true)
+  createdBy  String   @db.Uuid
+  createdAt  DateTime @default(now())
+
+  @@index([active, endsAt])
 }
 
 /// One call to an AI model: who asked, what for, which model, how many tokens and what it is estimated to have cost.
@@ -1399,4 +1451,36 @@ model StepImageUse {
   count  Int    @default(0)
 
   @@id([userId, day])
+}
+
+/// One thing a person did with the feed: the raw signal the taste profile learns from. Kept for 30 days (the profile keeps the
+/// lesson), deleted with the account. `kind` is impression, view, open, like, save, share, cook_start, cook_finish or hide.
+model FeedEvent {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  userId    String   @db.Uuid
+  kind      String
+  postId    String?  @db.Uuid
+  recipeId  String?  @db.Uuid
+  authorId  String?  @db.Uuid
+  /// How long it stayed on screen, in milliseconds (view events).
+  dwellMs   Int?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, kind, postId])
+  @@index([createdAt])
+}
+
+/// What the feed has learned about one person's taste: a short list of traits (cuisine:thai, ing:chicken, time:quick, ...) with
+/// how much they like each, rebuilt from what they like, save, cook and hide. Deleted with the account.
+model TasteProfile {
+  userId    String   @id @db.Uuid
+  vector    Json
+  /// How many signals it was built from. 0: nothing is known yet.
+  signals   Int      @default(0)
+  updatedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

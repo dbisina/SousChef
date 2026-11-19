@@ -1,14 +1,17 @@
-// Recipes against the SousChef server. Used by recipeService when EXPO_PUBLIC_API_URL is set.
+// Recipes against the enplace server. Used by recipeService when EXPO_PUBLIC_API_URL is set.
 import { Timestamp } from '@/lib/firebase';
 import type {
   CreateRecipeRequest,
   Page,
   MadePost,
+  Post as ApiPost,
   Recipe as ApiRecipe,
   RecipeComment as ApiRecipeComment,
   RateRecipeResponse,
   RecipeMatch,
   RecipeSummary,
+  BecauseYouCooked as ApiBecauseYouCooked,
+  SimilarRecipes,
   ToggleResponse,
   UpdateRecipeRequest,
 } from '@shared/index';
@@ -193,9 +196,28 @@ export function toAppMadePost(p: MadePost): RecipeMadePost {
   };
 }
 
+/** A post that carries the recipe (shared from the cook screen) shown as one of the recipe's "I made this" photos. */
+export function postToMadePost(p: ApiPost): RecipeMadePost {
+  return {
+    id: p.id,
+    recipeId: p.recipeId ?? '',
+    authorId: p.author.id,
+    authorName: p.author.displayName,
+    ...(p.author.photoUrl ? { authorPhotoURL: p.author.photoUrl } : {}),
+    imageURL: p.photoUrl,
+    ...(p.caption ? { caption: p.caption } : {}),
+    likes: p.likeCount,
+    createdAt: Timestamp.fromDate(new Date(p.createdAt)),
+  };
+}
+
+/** Photos people added to the recipe plus the posts they shared after cooking it, newest first. */
 export async function apiMadePosts(recipeId: string): Promise<RecipeMadePost[]> {
-  const page = await api().get<Page<MadePost>>(`/v1/recipes/${recipeId}/made`, { query: { limit: 20 } });
-  return page.items.map(toAppMadePost);
+  const [made, cooked] = await Promise.all([
+    api().get<Page<MadePost>>(`/v1/recipes/${recipeId}/made`, { query: { limit: 20 } }),
+    api().get<Page<ApiPost>>(`/v1/recipes/${recipeId}/cooked`, { query: { limit: 20 } }).catch(() => ({ items: [] as ApiPost[] })),
+  ]);
+  return [...made.items.map(toAppMadePost), ...cooked.items.map(postToMadePost)].sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
 }
 
 /** Uploads the photo from the phone, then adds it to the recipe's "I made this" photos. */
@@ -232,3 +254,17 @@ export async function apiRecipeComments(id: string): Promise<RecipeComment[]> {
 export const apiAddRecipeComment = (id: string, text: string): Promise<ApiRecipeComment> => api().post<ApiRecipeComment>(`/v1/recipes/${id}/comments`, { text });
 
 export const apiFlagRecipe = (id: string, reason: string): Promise<void> => api().post<unknown>(`/v1/recipes/${id}/flag`, { reason }).then(() => undefined);
+
+/* ---------------------------------------------------------------- recommendations */
+
+/** Dishes made of similar things, for the recipe being looked at. */
+export async function apiSimilarRecipes(recipeId: string, limit = 8): Promise<Recipe[]> {
+  const res = await api().get<SimilarRecipes>(`/v1/recipes/${recipeId}/similar`, { query: { limit } });
+  return res.items.map(toAppRecipe);
+}
+
+/** Dishes like the one this person cooked or saved last (`basedOn` null until they have). */
+export async function apiBecauseYouCooked(limit = 8): Promise<{ basedOn: { id: string; title: string } | null; items: Recipe[] }> {
+  const res = await api().get<ApiBecauseYouCooked>('/v1/feed/because-you-cooked', { query: { limit } });
+  return { basedOn: res.basedOn, items: res.items.map(toAppRecipe) };
+}

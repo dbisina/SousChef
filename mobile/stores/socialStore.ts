@@ -6,9 +6,11 @@ import type { FeedSnapshot, NewPostInput } from '@/services/feedService';
 import type { Author, Comment, Post } from '@/types/social';
 import { ME_ID } from '@/types/social';
 import { apiEnabled } from '@/lib/api';
-import { currentUserId } from '@/lib/session';
+import { currentUserId, isGuestSession } from '@/lib/session';
 import { uploadFile } from '@/lib/upload';
 import { fetchServerFeed, toComment, toPost, toStories } from '@/services/feedServer';
+import { feedReporter, reportFeedEvent } from '@/lib/feedEvents';
+import { guestBlocked } from '@/lib/guestPrompt';
 import {
   apiAddComment,
   apiCreatePost,
@@ -25,6 +27,8 @@ import {
 const EMPTY_FEED = { authors: [], posts: [], reels: [], stories: [], comments: [], communities: [], challenges: [], events: [] };
 
 interface SocialState extends FeedSnapshot {
+  /** Posts picked for this person, best first. Empty without a server. */
+  forYouIds: string[];
   likedPostIds: string[];
   savedPostIds: string[];
   likedReelIds: string[];
@@ -35,6 +39,8 @@ interface SocialState extends FeedSnapshot {
   viewedStoryIds: string[];
 
   toggleLikePost: (id: string) => void;
+  /** "Not interested": the post leaves the feed now, and the server is told so it stays out and the feed learns. */
+  hidePost: (id: string) => void;
   toggleSavePost: (id: string) => void;
   toggleLikeReel: (id: string) => void;
   toggleSaveReel: (id: string) => void;
@@ -62,6 +68,7 @@ export const useSocialStore = create<SocialState>()(
   persist(
     (set, get) => ({
       ...(apiEnabled() ? EMPTY_FEED : feedService.seed()),
+      forYouIds: [],
       likedPostIds: [],
       savedPostIds: [],
       likedReelIds: [],
@@ -71,8 +78,15 @@ export const useSocialStore = create<SocialState>()(
       joinedCommunityIds: [],
       viewedStoryIds: [],
 
+      hidePost: (id) => {
+        reportFeedEvent({ kind: 'hide', postId: id });
+        void feedReporter.flush();
+        set((s) => ({ posts: s.posts.filter((p) => p.id !== id), forYouIds: s.forYouIds.filter((x) => x !== id) }));
+      },
       toggleLikePost: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().likedPostIds.includes(id);
+        if (wantOn) reportFeedEvent({ kind: 'like', postId: id });
         if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, likes: count } : p)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.likedPostIds, id);
@@ -83,7 +97,9 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleSavePost: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().savedPostIds.includes(id);
+        if (wantOn) reportFeedEvent({ kind: 'save', postId: id });
         if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ posts: s.posts.map((p) => (p.id === id ? { ...p, saves: count } : p)) })), () => void get().loadFromServer());
         set((s) => {
           const { next, on } = flip(s.savedPostIds, id);
@@ -94,6 +110,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleLikeReel: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().likedReelIds.includes(id);
         if (apiEnabled()) syncToggle(() => apiSetPostLiked(id, wantOn), (count) => set((s) => ({ reels: s.reels.map((r) => (r.id === id ? { ...r, likes: count } : r)) })), () => void get().loadFromServer());
         set((s) => {
@@ -105,6 +122,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleSaveReel: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().savedReelIds.includes(id);
         if (apiEnabled()) syncToggle(() => apiSetPostSaved(id, wantOn), (count) => set((s) => ({ reels: s.reels.map((r) => (r.id === id ? { ...r, saves: count } : r)) })), () => void get().loadFromServer());
         set((s) => {
@@ -116,6 +134,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleLikeComment: (id) => {
+        if (guestBlocked()) return;
         const wantOn = !get().likedCommentIds.includes(id);
         const postId = get().comments.find((c) => c.id === id)?.postId;
         if (apiEnabled() && postId) syncToggle(() => apiSetCommentLiked(postId, id, wantOn), (count) => set((s) => ({ comments: s.comments.map((c) => (c.id === id ? { ...c, likes: count } : c)) })), () => void get().loadFromServer());
@@ -128,6 +147,7 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       toggleFollow: (authorId) => {
+        if (guestBlocked()) return;
         if (apiEnabled() && authorId !== ME_ID) {
           const wantOn = !get().followingIds.includes(authorId);
           apiSetFollowing(authorId, wantOn).catch(() => void get().loadFromServer());
@@ -135,6 +155,7 @@ export const useSocialStore = create<SocialState>()(
         set((s) => ({ followingIds: flip(s.followingIds, authorId).next }));
       },
       toggleJoinCommunity: (id) => {
+        if (guestBlocked()) return;
         if (apiEnabled()) {
           const wantOn = !get().joinedCommunityIds.includes(id);
           // A private community may only answer "pending" until an admin approves; the reload then shows the truth.
@@ -151,12 +172,13 @@ export const useSocialStore = create<SocialState>()(
         });
       },
       markStoryViewed: (id) => {
-        if (apiEnabled() && !get().viewedStoryIds.includes(id)) void apiViewStory(id);
+        if (apiEnabled() && !isGuestSession() && !get().viewedStoryIds.includes(id)) void apiViewStory(id);
         set((s) => (s.viewedStoryIds.includes(id) ? s : { viewedStoryIds: [...s.viewedStoryIds, id] }));
       },
 
       addComment: (postId, text, parentId) => {
         if (!text.trim()) return null;
+        if (guestBlocked()) return null;
         const comment = feedService.buildComment(postId, text, parentId);
         if (apiEnabled()) {
           // Shown at once; swapped for the server's copy (with its real id) when it answers.
@@ -225,7 +247,7 @@ export const useSocialStore = create<SocialState>()(
         const meId = currentUserId();
         if (!apiEnabled() || !meId) return;
         try {
-          const feed = await fetchServerFeed(meId);
+          const feed = await fetchServerFeed(meId, isGuestSession());
           set((s) => ({ ...s, ...feed }));
         } catch {
           // Offline: what is on the phone stays.
@@ -234,6 +256,7 @@ export const useSocialStore = create<SocialState>()(
       resetSample: () =>
         set({
           ...feedService.seed(),
+          forYouIds: [],
           likedPostIds: [],
           savedPostIds: [],
           likedReelIds: [],

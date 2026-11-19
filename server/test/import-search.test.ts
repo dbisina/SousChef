@@ -85,10 +85,10 @@ describe('importing by description', () => {
     t.ai.deepseek.handler = () => recipeJson;
     t.ai.nebius.handler = () => recipeJson;
     const empty = (await ask(ama, 'vegan lasagne')).json<ImportResult>();
-    expect(empty).toMatchObject({ status: 'done', message: expect.stringContaining('Written by SousChef AI'), recipe: { title: 'Vegan Lasagne' } });
+    expect(empty).toMatchObject({ status: 'done', message: expect.stringContaining('Written by enplace AI'), recipe: { title: 'Vegan Lasagne' } });
     down = true;
     const failed = (await ask(ama, 'vegan lasagne please')).json<ImportResult>();
-    expect(failed.message).toContain('Written by SousChef AI');
+    expect(failed.message).toContain('Written by enplace AI');
   });
 });
 

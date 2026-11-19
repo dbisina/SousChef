@@ -1,0 +1,170 @@
+[
+  {
+    "part": "wordmark",
+    "theme": "dark",
+    "mode": "solid",
+    "size": "1080x420",
+    "files": {
+      "svg": "wordmark/enplace_wordmark_dark_solid.svg",
+      "png": "wordmark/enplace_wordmark_dark_solid.png",
+      "jpg": "wordmark/enplace_wordmark_dark_solid.jpg",
+      "webp": "wordmark/enplace_wordmark_dark_solid.webp",
+      "ico": "wordmark/enplace_wordmark_dark_solid.ico",
+      "webm": "wordmark/enplace_wordmark_dark_solid.webm"
+    }
+  },
+  {
+    "part": "wordmark",
+    "theme": "dark",
+    "mode": "transparent",
+    "size": "1080x420",
+    "files": {
+      "svg": "wordmark/enplace_wordmark_dark_transparent.svg",
+      "png": "wordmark/enplace_wordmark_dark_transparent.png",
+      "jpg": "wordmark/enplace_wordmark_dark_transparent.jpg",
+      "webp": "wordmark/enplace_wordmark_dark_transparent.webp",
+      "ico": "wordmark/enplace_wordmark_dark_transparent.ico",
+      "webm": "wordmark/enplace_wordmark_dark_transparent.webm"
+    }
+  },
+  {
+    "part": "wordmark",
+    "theme": "light",
+    "mode": "solid",
+    "size": "1080x420",
+    "files": {
+      "svg": "wordmark/enplace_wordmark_light_solid.svg",
+      "png": "wordmark/enplace_wordmark_light_solid.png",
+      "jpg": "wordmark/enplace_wordmark_light_solid.jpg",
+      "webp": "wordmark/enplace_wordmark_light_solid.webp",
+      "ico": "wordmark/enplace_wordmark_light_solid.ico",
+      "webm": "wordmark/enplace_wordmark_light_solid.webm"
+    }
+  },
+  {
+    "part": "wordmark",
+    "theme": "light",
+    "mode": "transparent",
+    "size": "1080x420",
+    "files": {
+      "svg": "wordmark/enplace_wordmark_light_transparent.svg",
+      "png": "wordmark/enplace_wordmark_light_transparent.png",
+      "jpg": "wordmark/enplace_wordmark_light_transparent.jpg",
+      "webp": "wordmark/enplace_wordmark_light_transparent.webp",
+      "ico": "wordmark/enplace_wordmark_light_transparent.ico",
+      "webm": "wordmark/enplace_wordmark_light_transparent.webm"
+    }
+  },
+  {
+    "part": "icon",
+    "theme": "dark",
+    "mode": "solid",
+    "size": "1024x1024",
+    "files": {
+      "svg": "icon/enplace_icon_dark_solid.svg",
+      "png": "icon/enplace_icon_dark_solid.png",
+      "jpg": "icon/enplace_icon_dark_solid.jpg",
+      "webp": "icon/enplace_icon_dark_solid.webp",
+      "ico": "icon/enplace_icon_dark_solid.ico",
+      "webm": "icon/enplace_icon_dark_solid.webm"
+    }
+  },
+  {
+    "part": "icon",
+    "theme": "dark",
+    "mode": "transparent",
+    "size": "1024x1024",
+    "files": {
+      "svg": "icon/enplace_icon_dark_transparent.svg",
+      "png": "icon/enplace_icon_dark_transparent.png",
+      "jpg": "icon/enplace_icon_dark_transparent.jpg",
+      "webp": "icon/enplace_icon_dark_transparent.webp",
+      "ico": "icon/enplace_icon_dark_transparent.ico",
+      "webm": "icon/enplace_icon_dark_transparent.webm"
+    }
+  },
+  {
+    "part": "icon",
+    "theme": "light",
+    "mode": "solid",
+    "size": "1024x1024",
+    "files": {
+      "svg": "icon/enplace_icon_light_solid.svg",
+      "png": "icon/enplace_icon_light_solid.png",
+      "jpg": "icon/enplace_icon_light_solid.jpg",
+      "webp": "icon/enplace_icon_light_solid.webp",
+      "ico": "icon/enplace_icon_light_solid.ico",
+      "webm": "icon/enplace_icon_light_solid.webm"
+    }
+  },
+  {
+    "part": "icon",
+    "theme": "light",
+    "mode": "transparent",
+    "size": "1024x1024",
+    "files": {
+      "svg": "icon/enplace_icon_light_transparent.svg",
+      "png": "icon/enplace_icon_light_transparent.png",
+      "jpg": "icon/enplace_icon_light_transparent.jpg",
+      "webp": "icon/enplace_icon_light_transparent.webp",
+      "ico": "icon/enplace_icon_light_transparent.ico",
+      "webm": "icon/enplace_icon_light_transparent.webm"
+    }
+  },
+  {
+    "part": "lockup",
+    "theme": "dark",
+    "mode": "solid",
+    "size": "1640x490",
+    "files": {
+      "svg": "lockup/enplace_lockup_dark_solid.svg",
+      "png": "lockup/enplace_lockup_dark_solid.png",
+      "jpg": "lockup/enplace_lockup_dark_solid.jpg",
+      "webp": "lockup/enplace_lockup_dark_solid.webp",
+      "ico": "lockup/enplace_lockup_dark_solid.ico",
+      "webm": "lockup/enplace_lockup_dark_solid.webm"
+    }
+  },
+  {
+    "part": "lockup",
+    "theme": "dark",
+    "mode": "transparent",
+    "size": "1640x490",
+    "files": {
+      "svg": "lockup/enplace_lockup_dark_transparent.svg",
+      "png": "lockup/enplace_lockup_dark_transparent.png",
+      "jpg": "lockup/enplace_lockup_dark_transparent.jpg",
+      "webp": "lockup/enplace_lockup_dark_transparent.webp",
+      "ico": "lockup/enplace_lockup_dark_transparent.ico",
+      "webm": "lockup/enplace_lockup_dark_transparent.webm"
+    }
+  },
+  {
+    "part": "lockup",
+    "theme": "light",
+    "mode": "solid",
+    "size": "1640x490",
+    "files": {
+      "svg": "lockup/enplace_lockup_light_solid.svg",
+      "png": "lockup/enplace_lockup_light_solid.png",
+      "jpg": "lockup/enplace_lockup_light_solid.jpg",
+      "webp": "lockup/enplace_lockup_light_solid.webp",
+      "ico": "lockup/enplace_lockup_light_solid.ico",
+      "webm": "lockup/enplace_lockup_light_solid.webm"
+    }
+  },
+  {
+    "part": "lockup",
+    "theme": "light",
+    "mode": "transparent",
+    "size": "1640x490",
+    "files": {
+      "svg": "lockup/enplace_lockup_light_transparent.svg",
+      "png": "lockup/enplace_lockup_light_transparent.png",
+      "jpg": "lockup/enplace_lockup_light_transparent.jpg",
+      "webp": "lockup/enplace_lockup_light_transparent.webp",
+      "ico": "lockup/enplace_lockup_light_transparent.ico",
+      "webm": "lockup/enplace_lockup_light_transparent.webm"
+    }
+  }
+]

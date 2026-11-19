@@ -1,4 +1,4 @@
-/* SousChef 2.0 design tokens + components. Mirrors the canvas; source of truth for styling. */
+/* enplace 2.0 design tokens + components. Mirrors the canvas; source of truth for styling. */
 *{box-sizing:border-box;scrollbar-width:none}
 html,body{margin:0;overflow:hidden}
 ::-webkit-scrollbar{display:none;width:0;height:0}

@@ -72,7 +72,7 @@ export default function DoctorReportScreen() {
 
   const share = () => {
     const text = [
-      t('health.report.shareTitle', 'SousChef health summary'),
+      t('health.report.shareTitle', 'enplace health summary'),
       `${name} · ${period} · ${report.condition}`,
       `${t('health.report.avgGlucose', 'Avg glucose')}: ${report.avgGlucose.toFixed(1)} mmol/L`,
       `${t('health.report.timeInRange', 'Time in range')}: ${report.timeInRangePct}%`,
@@ -116,7 +116,7 @@ export default function DoctorReportScreen() {
           </View>
           <Image
             source={require('@/assets/icon.png')}
-            accessibilityLabel="SousChef"
+            accessibilityLabel="enplace"
             style={{ width: 30, height: 30, borderRadius: 9 }}
           />
         </View>

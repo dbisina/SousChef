@@ -1,5 +1,5 @@
 /**
- * The cooking voice assistant when the app is connected to the SousChef server. It replaces Gemini Live (which needed a key on the
+ * The cooking voice assistant when the app is connected to the enplace server. It replaces Gemini Live (which needed a key on the
  * phone): the phone listens (on-device speech recognition) and speaks (the system voice); commands such as "next" or "set a timer
  * for ten minutes" are handled on the phone, and questions go to the server (`/v1/ai/cook-chat`, which reads the recipe).
  * It has the same shape as `useGeminiLive`, so the cooking screen uses either.

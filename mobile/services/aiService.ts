@@ -7,7 +7,7 @@ import {
 import { AISubstitutionResult, Ingredient, PortionAnalysis, Recipe } from '@/types';
 import { getPantryItemNames } from './pantryService';
 import { apiEnabled } from '@/lib/api';
-import { apiAnalyzeRecipe, apiSubstitutions } from '@/services/aiToolsApi';
+import { apiAnalyzeRecipe, apiPlateNutrition, apiSubstitutions } from '@/services/aiToolsApi';
 
 // Analyze what can be made with available ingredients
 export const analyzeRecipeWithPantry = async (
@@ -37,6 +37,19 @@ export const analyzePortionImage = async (
   targetRecipe?: Recipe,
   ingredientHints?: string[]
 ): Promise<PortionAnalysis> => {
+  // With the server on, the plate is read there (no AI key on the phone) and comes back with nutrition as well as calories.
+  if (apiEnabled()) {
+    const r = await apiPlateNutrition(imageUri, ingredientHints ?? []);
+    const pick = (n: { proteinG: number; carbsG: number; fatG: number; fiberG: number; sugarG: number; sodiumMg: number }) => ({ proteinG: n.proteinG, carbsG: n.carbsG, fatG: n.fatG, fiberG: n.fiberG, sugarG: n.sugarG, sodiumMg: n.sodiumMg });
+    return {
+      detectedItems: r.items.map((i) => ({ name: i.name, estimatedAmount: i.estimatedAmount, unit: i.unit, confidence: i.confidence, estimatedCalories: i.calories, nutrition: pick(i) })),
+      suggestedServings: r.suggestedServings,
+      totalEstimatedCalories: r.total.calories,
+      recommendations: r.recommendations,
+      totalNutrition: pick(r.total),
+      note: r.note,
+    };
+  }
   return analyzePortionFromImage(imageUri, targetRecipe?.ingredients, ingredientHints);
 };
 

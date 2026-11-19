@@ -3,7 +3,7 @@
 Two generations live side by side until Phase 5 cleanup.
 
 - Old (NativeWind `dark:` pairs, Ionicons): Button, IconButton, Input, SearchInput, Card, PressableCard, GlassCard, Badge, Avatar, AvatarGroup, Loading, Empty, Toast...
-- New (SousChef 2.0, semantic tokens): everything in the "2.0 primitives" block of `index.ts`.
+- New (enplace 2.0, semantic tokens): everything in the "2.0 primitives" block of `index.ts`.
 
 Naming: a new primitive keeps the plain name unless an old export has it. Collisions get a `U` prefix:
 UButton, UIconButton, UCard, UInput, UBadge, UAvatar, USwitch (RN Switch). Phase 5 drops the old ones and the prefix.

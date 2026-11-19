@@ -849,7 +849,7 @@ async function extractRedditContent(url: string): Promise<PlatformContent> {
   try {
     const jsonUrl = url.replace(/\/?(\?.*)?$/, '.json');
     const resp = await fetch(jsonUrl, {
-      headers: { 'User-Agent': 'SousChef/1.0' },
+      headers: { 'User-Agent': 'enplace/1.0' },
     });
     if (resp.ok) {
       const data = await resp.json();

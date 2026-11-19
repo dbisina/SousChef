@@ -82,6 +82,11 @@ export interface ImportedRecipe {
   tags: string[];
   /** 0 to 1: how sure the import was. */
   extractionConfidence: number;
+  /**
+   * One short silent clip per instruction (same order; null where there is none), cut from the video the person imported.
+   * Private to them: never kept in the shared import cache and never attached to a published recipe.
+   */
+  stepClips?: (string | null)[];
 }
 
 /** How much of a recipe the pantry covers. Names only: amounts and units rarely line up between a pantry and a recipe. */

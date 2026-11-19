@@ -76,6 +76,11 @@ export interface ScanRecipeResponse {
   recipe: ImportedRecipe;
 }
 
+/** Plain text the person typed, pasted or dictated: a recipe from a note, a message, a notebook. */
+export interface ReadRecipeTextRequest {
+  text: string;
+}
+
 /* ---------------------------------------------------------------- what is in my kitchen */
 
 export interface PantryScanRequest {
@@ -152,6 +157,44 @@ export interface PlateCheckResponse {
   praise: string;
   tip: string;
   /** Always shown: this is a look at a photo, not a food-safety check. */
+  note: string;
+}
+
+/* ---------------------------------------------------------------- calories and nutrition from a plate photo */
+
+export interface PlateNutritionRequest {
+  /** A finished `made_post` upload of the plate. It is deleted after reading. */
+  uploadId: string;
+  /** What the person says is on the plate, when the first reading got it wrong. */
+  hints?: string[];
+}
+
+/** Estimated amounts. Grams, except sodium in milligrams. */
+export interface NutritionFacts {
+  calories: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG: number;
+  sugarG: number;
+  sodiumMg: number;
+}
+
+export interface PlateNutritionItem extends NutritionFacts {
+  name: string;
+  estimatedAmount: number;
+  unit: string;
+  /** 0 to 1. */
+  confidence: number;
+}
+
+export interface PlateNutritionResponse {
+  items: PlateNutritionItem[];
+  /** The sum of the items, worked out by the server. */
+  total: NutritionFacts;
+  suggestedServings: number;
+  recommendations: string[];
+  /** Always shown: a photo cannot give exact numbers. */
   note: string;
 }
 

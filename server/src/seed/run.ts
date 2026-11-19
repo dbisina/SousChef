@@ -41,7 +41,7 @@ export interface SeedReport {
 const tally = () => ({ created: 0, existing: 0 });
 
 /**
- * Starter content for a fresh server: the official SousChef accounts, the recipes and cookbooks that used to live in
+ * Starter content for a fresh server: the official enplace accounts, the recipes and cookbooks that used to live in
  * Firestore (once each, under those accounts), a few posts, and the first Daily Dish puzzles. Safe to run again: it only
  * adds what is missing and never touches puzzles staff have already set.
  */
@@ -56,10 +56,13 @@ export async function seedContent(db: Db, options: SeedOptions = {}, say: (line:
 
   // 1. Official accounts
   const houseIds = new Map<HouseKey, string>();
-  for (const key of Object.keys(HOUSES) as HouseKey[]) {
-    const def = HOUSES[key];
-    const found = await db.user.findFirst({ where: { handle: def.handle, kind: 'HOUSE' }, select: { id: true } });
+  for (const [key, def] of Object.entries(HOUSES)) {
+    const found = await db.user.findFirst({ where: { handle: { in: [def.handle, def.legacyHandle] }, kind: 'HOUSE' }, select: { id: true, handle: true, displayName: true, bio: true } });
     if (found) {
+      // An account made under the old name is renamed in place (same id, so followers and posts stay).
+      if (!dry && (found.handle !== def.handle || found.displayName !== def.displayName || found.bio !== def.bio)) {
+        await db.user.update({ where: { id: found.id }, data: { handle: def.handle, displayName: def.displayName, bio: def.bio } });
+      }
       houseIds.set(key, found.id);
       report.houses.existing++;
       continue;

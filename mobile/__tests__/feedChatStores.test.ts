@@ -1,6 +1,7 @@
 // The feed store and the chat store in server mode, against a pretend server and a hand-driven live connection.
 jest.mock('expo-secure-store', () => ({ getItemAsync: async () => null, setItemAsync: async () => undefined, deleteItemAsync: async () => undefined }));
-jest.mock('@/lib/session', () => ({ currentUserId: () => 'u-me' }));
+let mockGuest = false;
+jest.mock('@/lib/session', () => ({ currentUserId: () => 'u-me', isGuestSession: () => mockGuest }));
 
 const mockSocket = { start: jest.fn(), stop: jest.fn(), ack: jest.fn(), sendTyping: jest.fn(), onlineIds: new Set<string>() };
 let mockHandlers: Record<string, (...a: never[]) => void> = {};
@@ -105,6 +106,39 @@ describe('the feed', () => {
     expect(st.likedPostIds).toEqual(['p1']);
     expect(st.savedPostIds).toEqual(['p2']);
     expect(st.followingIds).toEqual(['u-ben']);
+  });
+
+  it('shows a guest the picked-for-you posts, asking only for what works without an account', async () => {
+    mockGuest = true;
+    try {
+      routes = [feedRoutes()];
+      await s.social.useSocialStore.getState().loadFromServer();
+      expect(s.social.useSocialStore.getState().posts.map((p) => p.id)).toEqual(['p2', 'p1']);
+      expect(calls).toContain('GET /v1/feed/for-you');
+      expect(calls).not.toContain('GET /v1/feed/following');
+      expect(calls).not.toContain('GET /v1/stories');
+    } finally {
+      mockGuest = false;
+    }
+  });
+
+  it('asks a guest to sign up instead of liking, and makes no server call', async () => {
+    routes = [feedRoutes()];
+    await s.social.useSocialStore.getState().loadFromServer();
+    const before = calls.length;
+    const alertSpy = jest.spyOn(require('react-native').Alert, 'alert').mockImplementation(() => undefined);
+    mockGuest = true;
+    try {
+      s.social.useSocialStore.getState().toggleLikePost('p2');
+      expect(alertSpy).toHaveBeenCalledTimes(1);
+      expect(s.social.useSocialStore.getState().likedPostIds).toEqual(['p1']);
+      expect(s.social.useSocialStore.getState().addComment('p2', 'yum')).toBeNull();
+      await settle();
+      expect(calls.length).toBe(before);
+    } finally {
+      mockGuest = false;
+      alertSpy.mockRestore();
+    }
   });
 
   it('keeps what it has when the server cannot be reached', async () => {

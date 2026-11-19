@@ -10,9 +10,10 @@ import { FONT } from '@/components/ui/fonts';
 import { SERVER_MODE } from '@/constants/features';
 import { useAuthStore } from '@/stores/authStore';
 import { useSocialStore } from '@/stores/socialStore';
-import { Action, AuthorRow, photoOf, shareText } from '@/components/feed/shared';
+import { Action, AuthorRow, CookedWith, photoOf, shareText } from '@/components/feed/shared';
 import { CommentItem } from '@/components/feed/CommentItem';
-import type { Comment, PhotoRef } from '@/types/social';
+import { SafetySheet } from '@/components/moderation/SafetySheet';
+import type { Comment, PhotoRef, Post } from '@/types/social';
 
 interface Item {
   source: 'post' | 'reel';
@@ -22,6 +23,7 @@ interface Item {
   title: string;
   caption: string;
   recipeId?: string;
+  cookedWith?: NonNullable<Post['cookedWith']>;
   likes: number;
   commentCount: number;
   saves: number;
@@ -49,12 +51,13 @@ export default function PostDetailScreen() {
   const toggleSaveReel = useSocialStore((s) => s.toggleSaveReel);
   const addComment = useSocialStore((s) => s.addComment);
 
+  const [safety, setSafety] = useState(false);
   const [draft, setDraft] = useState('');
   const [replyTo, setReplyTo] = useState<{ id: string; handle: string } | null>(null);
 
   const item: Item | undefined = useMemo(() => {
     const p = posts.find((x) => x.id === id);
-    if (p) return { source: 'post', id: p.id, authorId: p.authorId, photo: p.photo, title: p.title, caption: p.caption, recipeId: p.recipeId, likes: p.likes, commentCount: p.commentCount, saves: p.saves, createdAt: p.createdAt };
+    if (p) return { source: 'post', id: p.id, authorId: p.authorId, photo: p.photo, title: p.title, caption: p.caption, recipeId: p.recipeId, cookedWith: p.cookedWith, likes: p.likes, commentCount: p.commentCount, saves: p.saves, createdAt: p.createdAt };
     const r = reels.find((x) => x.id === id);
     if (r) return { source: 'reel', id: r.id, authorId: r.authorId, photo: r.photo, title: r.title, caption: r.caption, likes: r.likes, commentCount: r.commentCount, saves: r.saves, createdAt: r.createdAt };
     return undefined;
@@ -103,13 +106,18 @@ export default function PostDetailScreen() {
         <PhotoCard source={photoOf(item.photo)} height={380} radius={0} fade="none" accessibilityLabel={item.title}>
           <View className="flex-row justify-between" style={{ position: 'absolute', top, left: 20, right: 20 }}>
             <UIconButton tone="glassDark" icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />
-            <UIconButton
-              tone="glassDark"
-              icon="bookmark"
-              filled={saved}
-              label={saved ? t('post.unsave', 'Remove from saved') : t('post.save', 'Save')}
-              onPress={() => (isPost ? toggleSavePost(item.id) : toggleSaveReel(item.id))}
-            />
+            <View className="flex-row" style={{ gap: 10 }}>
+              {item.authorId !== me?.id ? (
+                <UIconButton tone="glassDark" icon="more" label={t('safety.title', 'Report or block')} onPress={() => setSafety(true)} />
+              ) : null}
+              <UIconButton
+                tone="glassDark"
+                icon="bookmark"
+                filled={saved}
+                label={saved ? t('post.unsave', 'Remove from saved') : t('post.save', 'Save')}
+                onPress={() => (isPost ? toggleSavePost(item.id) : toggleSaveReel(item.id))}
+              />
+            </View>
           </View>
         </PhotoCard>
 
@@ -129,6 +137,7 @@ export default function PostDetailScreen() {
               }
             />
           ) : null}
+          {item.cookedWith ? <CookedWith title={item.cookedWith.title} authorName={item.cookedWith.authorName} onPress={() => router.push(`/recipe/${item.cookedWith!.recipeId}` as Href)} /> : null}
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center" style={{ gap: 18 }}>
               <Action
@@ -197,6 +206,15 @@ export default function PostDetailScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
+      <SafetySheet
+        visible={safety}
+        onClose={() => setSafety(false)}
+        targetType="post"
+        targetId={item.id}
+        personId={author?.id}
+        personName={author?.handle}
+        onBlocked={() => (router.canGoBack() ? router.back() : router.replace('/'))}
+      />
     </Screen>
   );
 }

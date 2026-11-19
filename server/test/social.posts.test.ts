@@ -15,6 +15,50 @@ beforeEach(() => t.reset());
 type Who = Awaited<ReturnType<typeof register>>;
 const feed = async (who: Who | undefined, path = '/v1/feed/following', query = '') => (await call(t, 'GET', `${path}${query}`, who)).json<Page<Post>>();
 
+describe('cooked with another cook\'s recipe', () => {
+  const token = (name: string) => `ExponentPushToken[${name}]`;
+  const settle = () => new Promise((r) => setTimeout(r, 200));
+
+  it('shows whose recipe a post was cooked with, in the feed and on the post', async () => {
+    const [kemi, ama] = [await register(t, { displayName: 'Kemi' }), await register(t, { displayName: 'Ama' })] as [Who, Who];
+    const recipe = await createRecipe(t, kemi);
+    const post = await makePost(t, ama, { recipeId: recipe.id });
+    expect(post.recipe).toMatchObject({ id: recipe.id, title: recipe.title, author: { id: kemi.user.id, displayName: 'Kemi' } });
+    const fetched = (await call(t, 'GET', `/v1/posts/${post.id}`, ama)).json<Post>();
+    expect(fetched.recipe?.author.id).toBe(kemi.user.id);
+    await call(t, 'PUT', `/v1/users/${ama.user.id}/follow`, kemi);
+    const items = (await feed(kemi)).items;
+    expect(items.find((p) => p.id === post.id)?.recipe?.title).toBe(recipe.title);
+    expect((await makePost(t, ama)).recipe).toBeNull();
+  });
+
+  it('lists what people cooked with a recipe, newest first, leaving out private communities', async () => {
+    const [kemi, ama, tola] = [await register(t, { displayName: 'Kemi' }), await register(t, { displayName: 'Ama' }), await register(t, { displayName: 'Tola' })] as [Who, Who, Who];
+    const recipe = await createRecipe(t, kemi);
+    const first = await makePost(t, ama, { recipeId: recipe.id, title: 'Mine' });
+    const second = await makePost(t, tola, { recipeId: recipe.id, title: 'Tola dinner' });
+    await makePost(t, ama); // not about this recipe
+    const page = (await call(t, 'GET', `/v1/recipes/${recipe.id}/cooked`)).json<Page<Post>>();
+    expect(page.items.map((p) => p.id)).toEqual([second.id, first.id]);
+    expect(page.items.every((p) => p.recipe?.id === recipe.id)).toBe(true);
+  });
+
+  it('tells the recipe writer, but not when they cook their own recipe', async () => {
+    const [kemi, ama] = [await register(t, { displayName: 'Kemi' }), await register(t, { displayName: 'Ama' })] as [Who, Who];
+    await call(t, 'PUT', '/v1/me/devices', kemi, { pushToken: token('kemi-phone'), platform: 'ios' });
+    const recipe = await createRecipe(t, kemi);
+    await makePost(t, kemi, { recipeId: recipe.id });
+    await settle();
+    expect(t.push.sent).toEqual([]);
+    const post = await makePost(t, ama, { recipeId: recipe.id });
+    await settle();
+    expect(t.push.sent).toEqual([
+      { to: token('kemi-phone'), title: 'Ama cooked your recipe', body: recipe.title, data: { type: 'recipe-cooked', postId: post.id, recipeId: recipe.id } },
+    ]);
+  });
+});
+
+
 describe('profiles and following', () => {
   it('shows a public profile with counts, and how you relate to the person', async () => {
     const [ama, kemi] = [await register(t, { displayName: 'Ama' }), await register(t, { displayName: 'Kemi' })] as [Who, Who];

@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
-import { useRouter, type Href } from 'expo-router';
+import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
   Field,
@@ -34,15 +34,17 @@ type PickerKind = 'recipe' | 'community' | null;
 
 export default function NewPostScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ kind?: string; recipeId?: string; recipeTitle?: string }>();
   const { t } = useTranslation();
   const createPost = useSocialStore((s) => s.createPost);
   const communities = useSocialStore((s) => s.communities);
   const wantToCook = useWantToCookStore((s) => s.items);
 
-  const [kind, setKind] = useState<PostKind>('recipe');
+  const [kind, setKind] = useState<PostKind>(params.kind === 'made-this' ? 'made-this' : 'recipe');
   const [photo, setPhoto] = useState<PhotoRef>('gnocchi');
   const [caption, setCaption] = useState('');
-  const [recipe, setRecipe] = useState<{ id: string; title: string } | null>(null);
+  // Arriving from the cook screen: the recipe that was just cooked is already attached (when the server knows it).
+  const [recipe, setRecipe] = useState<{ id: string; title: string } | null>(params.recipeId ? { id: params.recipeId, title: params.recipeTitle ?? '' } : null);
   const [communityId, setCommunityId] = useState<string | null>(null);
   const [picker, setPicker] = useState<PickerKind>(null);
   const [scaleNote, setScaleNote] = useState<ScaleNoteRequest | null>(null);
@@ -61,6 +63,13 @@ export default function NewPostScreen() {
   // With the server on, a post needs a real photo from the phone (the sample photos cannot be uploaded).
   const choosePhoto = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    const uri = !result.canceled ? result.assets[0]?.uri : undefined;
+    if (uri) setPhoto(uri);
+  };
+  const takePhoto = async () => {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) return;
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
     const uri = !result.canceled ? result.assets[0]?.uri : undefined;
     if (uri) setPhoto(uri);
   };
@@ -139,6 +148,7 @@ export default function NewPostScreen() {
 
         {apiEnabled() ? (
           <Rows>
+            <ListRow icon="camera" title={t('newPost.takePhoto', 'Take a photo')} onPress={takePhoto} />
             <ListRow
               icon="image"
               title={t('newPost.choosePhoto', 'Choose a photo')}

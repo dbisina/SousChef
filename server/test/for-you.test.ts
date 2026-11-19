@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { rankFeed, type FeedCandidate } from '@souschef/native';
+import { spreadAuthors } from '../src/social/forYou';
 import type { Page, Post } from '@shared';
 import { DAY_MS, makeApp, register, type TestApp } from './helpers';
 import { call, createRecipe } from './recipeHelpers';
@@ -91,7 +92,20 @@ describe('the for-you feed', () => {
     expect(first3).toContain('Third');
   });
 
-  it('leaves out old posts, hidden posts, blocked people and private communities\' posts', async () => {
+  it('fills a quiet week with older posts, but leaves them out once the week has plenty', async () => {
+    const [ama, other] = [await register(t), await register(t)] as [Who, Who];
+    const oldPost = await makePost(t, other, { title: 'Old' });
+    await t.db.post.update({ where: { id: oldPost.id }, data: { createdAt: new Date(Date.now() - 20 * DAY_MS) } });
+    // a quiet week: the only post there is is three weeks old, and it still shows
+    expect(titles(await forYou(ama))).toEqual(['Old']);
+    // a busy week: 40 fresh posts fill the feed and the old one stays out
+    await t.db.post.createMany({ data: Array.from({ length: 40 }, (_, i) => ({ authorId: ama.user.id, kind: 'made-this', title: `Fresh ${i}`, photoUrl: 'https://img.example.com/p.jpg' })) });
+    const all = await forYou(ama, '?limit=50');
+    expect(all.items).toHaveLength(40);
+    expect(titles(all)).not.toContain('Old');
+  });
+
+  it('leaves out hidden posts, blocked people and private communities\' posts, and keeps old ones to the quiet-week fill', async () => {
     const [me, fresh, old, hidden, blocked, member] = [await register(t), await register(t), await register(t), await register(t), await register(t), await register(t)] as [Who, Who, Who, Who, Who, Who];
     await makePost(t, fresh, { title: 'Fresh' });
     const oldPost = await makePost(t, old, { title: 'Old' });
@@ -103,8 +117,8 @@ describe('the for-you feed', () => {
     const secret = (await call(t, 'POST', '/v1/communities', member, { name: 'Secret club', visibility: 'private' })).json<{ id: string }>();
     await makePost(t, member, { title: 'Secret', communityId: secret.id });
 
-    expect(titles(await forYou(me))).toEqual(['Fresh']);
-    expect(titles(await forYou(undefined)).sort()).toEqual(['Blocked', 'Fresh']); // signed out: the block is yours, not everyone's
+    expect(titles(await forYou(me))).toEqual(['Fresh', 'Old']); // the week is quiet, so the old post fills in behind the fresh one
+    expect(titles(await forYou(undefined)).sort()).toEqual(['Blocked', 'Fresh', 'Old']); // signed out: the block is yours, not everyone's
   });
 
   it('pages without repeating or skipping, even when new posts arrive in between', async () => {
@@ -144,5 +158,17 @@ describe('cursors', () => {
     for (const bad of ['', '!!!', Buffer.from('{}').toString('base64url'), Buffer.from('{"asOf":"2026-11-15","offset":1.5}').toString('base64url')]) {
       expect(decodeCursor(bad)).toBeNull();
     }
+  });
+});
+
+describe('spreading authors', () => {
+  const authorOf = (id: string) => id.split(':')[0] as string;
+  it('keeps the order but holds back a post whose author was just shown', () => {
+    expect(spreadAuthors(['a:1', 'a:2', 'a:3', 'b:1', 'c:1'], authorOf)).toEqual(['a:1', 'b:1', 'c:1', 'a:2', 'a:3']);
+  });
+  it('leaves a feed with no repeats alone, and a feed from one author as it was', () => {
+    expect(spreadAuthors(['a:1', 'b:1', 'c:1'], authorOf)).toEqual(['a:1', 'b:1', 'c:1']);
+    expect(spreadAuthors(['a:1', 'a:2', 'a:3'], authorOf)).toEqual(['a:1', 'a:2', 'a:3']);
+    expect(spreadAuthors([], authorOf)).toEqual([]);
   });
 });

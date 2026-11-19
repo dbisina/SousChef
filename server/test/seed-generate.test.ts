@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { AiRouter } from '../src/ai/router';
 import { routerSettings } from '../src/ai/factory';
-import { believableNutrition, findWikipediaPhoto, generateContent, generatePuzzles, type DishDef } from '../src/seed/generate';
+import { believableNutrition, findWikipediaPhoto, generateContent, generatePuzzles, rephotoDish, type DishDef } from '../src/seed/generate';
 import { seedContent } from '../src/seed/run';
 import { FakeAiProvider } from './aiHelpers';
 import { FakeStorage, makeApp, testConfig, type TestApp } from './helpers';
@@ -134,6 +134,29 @@ describe('generating real content', () => {
     expect(again.existing).toBe(4);
     expect(again.cookbooks).toBe(0);
     expect(await t.db.cookbook.count({ where: { title: 'Kitchen Favourites' } })).toBe(1);
+  });
+
+  it('gives a recipe a new photo that its posts follow, and keeps the old one when nothing passes', async () => {
+    await seedContent(t.db);
+    const storage = new FakeStorage();
+    const { ai } = router();
+    await generateContent({ db: t.db, ai, storage, fetchImpl: wikipedia({ licence: 'CC BY-SA 4.0' }) }, dishes);
+    const before = await t.db.recipe.findFirstOrThrow({ where: { title: 'Onion Stew' } });
+    expect(before.description).toContain('Photo: Jane Cook');
+
+    const said = await rephotoDish({ db: t.db, ai, storage, fetchImpl: wikipedia({ licence: 'CC0' }) }, dishes, 'Onion Stew');
+    expect(said).toContain('new photo https://media.test/seed/onion-stew-');
+    const after = await t.db.recipe.findFirstOrThrow({ where: { title: 'Onion Stew' } });
+    expect(after.imageUrl).not.toBe(before.imageUrl);
+    expect(after.description).not.toContain('Photo:'); // the old credit went with the old photo
+    expect((await t.db.post.findFirstOrThrow({ where: { recipeId: after.id } })).photoUrl).toBe(after.imageUrl);
+
+    const { ai: strict } = router(() => false); // the vision check refuses everything
+    expect(await rephotoDish({ db: t.db, ai: strict, storage, fetchImpl: wikipedia({ licence: 'CC0' }) }, dishes, 'Onion Stew')).toContain('kept the old photo');
+    expect((await t.db.recipe.findFirstOrThrow({ where: { title: 'Onion Stew' } })).imageUrl).toBe(after.imageUrl);
+    expect(await rephotoDish({ db: t.db, ai, storage }, dishes, 'No Such Dish')).toContain('not in the dish list');
+    // A named file that Commons does not return (or that is not free) changes nothing.
+    expect(await rephotoDish({ db: t.db, ai, storage, fetchImpl: wikipedia({ licence: 'CC0' }) }, dishes, 'Onion Stew', 'File:Missing.jpg')).toContain('kept the old photo');
   });
 
   it('does not spend on a recipe when there is no usable photo, and honours the limit and dry run', async () => {

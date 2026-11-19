@@ -1,4 +1,4 @@
-# Shared brief for screen agents (SousChef 2.0)
+# Shared brief for screen agents (enplace 2.0)
 
 Repo: Expo 54, expo-router 6, NativeWind 4, zustand, TS strict. Branch `redesign/v2`. Plan: `C:\Users\USER\.claude\plans\validated-toasting-castle.md`.
 Several agents run in parallel on disjoint files. **Edit only the files your brief lists.** Never commit, never switch branches, never run `git stash/reset/checkout`.

@@ -164,7 +164,7 @@ describe('clearing out old data', () => {
     });
 
     const counts = await new Maintenance(t.db).purge();
-    expect(counts).toEqual({ sessions: 2, passwordResets: 1, webhookEvents: 1, importCache: 1, aiUsage: 0, aiInsights: 0 });
+    expect(counts).toEqual({ sessions: 2, passwordResets: 1, webhookEvents: 1, importCache: 1, aiUsage: 0, aiInsights: 0, feedEvents: 0 });
     const hashes = (await t.db.session.findMany({ select: { tokenHash: true } })).map((s) => s.tokenHash);
     expect(hashes).toContain('recent-revoked');
     expect(hashes).not.toContain('old-expired');

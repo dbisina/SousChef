@@ -160,6 +160,17 @@ export const purchasePackage = async (
   }
 };
 
+/** Opens Apple's own "Redeem code" sheet (iPhone only). Apple does not allow our own codes to unlock plans, so offer codes go through here. */
+export const presentAppleCodeSheet = async (): Promise<boolean> => {
+  if (Platform.OS !== 'ios' || !isConfigured) return false;
+  try {
+    await Purchases.presentCodeRedemptionSheet();
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 // Restore purchases
 export const restorePurchases = async (): Promise<RestoreResult> => {
   if (!isConfigured) {

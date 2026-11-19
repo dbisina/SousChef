@@ -23,7 +23,7 @@ import {
   apiUpdatePantryItem,
 } from '@/services/pantryApi';
 
-// With EXPO_PUBLIC_API_URL set, the pantry lives on the SousChef server and the person is the signed-in account
+// With EXPO_PUBLIC_API_URL set, the pantry lives on the enplace server and the person is the signed-in account
 // (the userId argument is kept so callers do not change).
 
 const getPantryCollection = (userId: string) =>

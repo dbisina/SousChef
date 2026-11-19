@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,8 @@ import { FONT } from '@/components/ui/fonts';
 import { useSocialStore } from '@/stores/socialStore';
 import { timeAgo } from '@/lib/timeAgo';
 import type { Comment } from '@/types/social';
+import { SafetySheet } from '@/components/moderation/SafetySheet';
+import { useAuthStore } from '@/stores/authStore';
 import { photoOf } from './shared';
 
 interface CommentItemProps {
@@ -21,6 +23,8 @@ export function CommentItem({ comment, reply, onReply }: CommentItemProps) {
   const author = useSocialStore((s) => s.authors.find((a) => a.id === comment.authorId));
   const liked = useSocialStore((s) => s.likedCommentIds.includes(comment.id));
   const toggleLike = useSocialStore((s) => s.toggleLikeComment);
+  const myId = useAuthStore((s) => s.user?.id);
+  const [safety, setSafety] = useState(false);
   if (!author) return null;
   const size = reply ? 30 : 36;
   return (
@@ -61,6 +65,19 @@ export function CommentItem({ comment, reply, onReply }: CommentItemProps) {
           <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 15 }}>
             {`· ${t('post.likesCount', '{{n}} likes', { n: comment.likes })}`}
           </RNText>
+          {author.id !== myId ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('safety.title', 'Report or block')}
+              onPress={() => setSafety(true)}
+              hitSlop={{ top: 14, bottom: 14, left: 8, right: 8 }}
+              style={{ justifyContent: 'center' }}
+            >
+              <RNText className="text-muted" style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 15 }}>
+                {`· ${t('safety.reportShort', 'Report')}`}
+              </RNText>
+            </Pressable>
+          ) : null}
         </View>
       </View>
       <Pressable
@@ -73,6 +90,7 @@ export function CommentItem({ comment, reply, onReply }: CommentItemProps) {
       >
         <Icon name="heart" size="sm" filled={liked} color={liked ? 'accent' : 'ink'} />
       </Pressable>
+      <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="comment" targetId={comment.id} personId={author.id} personName={author.handle} />
     </View>
   );
 }

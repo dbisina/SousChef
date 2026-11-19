@@ -84,7 +84,7 @@ export default function KitchenScreen() {
 
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           <PhotoCard
-            source={PHOTOS.veg as PhotoSource}
+            source={PHOTOS.greens as PhotoSource}
             fade="both"
             height={160}
             radius={26}

@@ -1,4 +1,4 @@
-// "Want to cook", the shopping list and link import against the SousChef server.
+// "Want to cook", the shopping list and link import against the enplace server.
 // Used by wantToCookStore and recipeImportService when EXPO_PUBLIC_API_URL is set.
 import { resolveTikTokVideo } from '@/lib/tiktokVideo';
 import { Timestamp } from '@/lib/firebase';
@@ -40,6 +40,7 @@ export function importedFromApi(r: ApiImported, id: string): ImportedRecipe {
     tags: r.tags,
     extractedAt: Timestamp.now(),
     extractionConfidence: r.extractionConfidence,
+    ...(r.stepClips && r.stepClips.some(Boolean) ? { stepClips: r.stepClips } : {}),
   };
 }
 
@@ -61,6 +62,7 @@ export function importedToApi(r: ImportedRecipe): ApiImported {
     ...(r.category ? { category: r.category } : {}),
     tags: r.tags,
     extractionConfidence: r.extractionConfidence,
+    ...(r.stepClips && r.stepClips.some(Boolean) ? { stepClips: r.stepClips } : {}),
   };
 }
 

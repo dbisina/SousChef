@@ -1,13 +1,13 @@
 import React from 'react';
 import { ScrollView, Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
-import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
-import { Dot, Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, useTokens, type PhotoSource } from '@/components/ui';
+import { Icon, PhotoCard, StoryRing, Tag, UBadge, UIconButton, useTokens, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
 import { useSocialStore } from '@/stores/socialStore';
 import { useAuthStore } from '@/stores/authStore';
+import { Wordmark } from '@/components/brand/Wordmark';
 import { DarkBar, BarText, GlassPill, photoOf } from './shared';
 
 interface HomeHeaderProps {
@@ -27,14 +27,14 @@ export function HomeHeader({ unread, onSearch, onNotifications, onMessages, onAd
       className="flex-row items-center justify-between"
       style={{ paddingTop: Math.max(insets.top, 20) + 14, paddingBottom: 10, paddingHorizontal: 20, gap: 12 }}
     >
-      <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
+      <View className="flex-row items-center" style={{ gap: 6 }}>
+        <UIconButton icon="plus" label={t('home.pasteLink', 'Paste a recipe or video link')} onPress={onAdd} />
+        <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
+      </View>
       <View pointerEvents="none" style={{ flex: 1, minWidth: 0, alignItems: 'center', justifyContent: 'center' }}>
-        <RNText className="text-ink" numberOfLines={1} accessibilityRole="header" style={{ fontFamily: FONT.display, fontSize: 19, lineHeight: 24, letterSpacing: -0.38 }}>
-          SousChef
-        </RNText>
+        <Wordmark width={112} />
       </View>
       <View className="flex-row items-center" style={{ gap: 6 }}>
-        <UIconButton icon="search" label={t('home.search', 'Search')} onPress={onSearch} />
         <View>
           <UIconButton icon="bell" label={t('home.notifications', 'Notifications')} onPress={onNotifications} />
         </View>

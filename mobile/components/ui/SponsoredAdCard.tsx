@@ -56,6 +56,7 @@ export const SponsoredAdCard: React.FC<SponsoredAdCardProps> = ({
     trackClick(ad.id);
 
     try {
+      if (!ad.ctaURL) return;
       const supported = await Linking.canOpenURL(ad.ctaURL);
       if (supported) {
         await Linking.openURL(ad.ctaURL);

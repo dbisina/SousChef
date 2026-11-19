@@ -27,8 +27,6 @@ export function allowedFor(recipe: { allergens: string[]; dietaryFlags: string[]
   });
 }
 
-/** Meal plans are the costliest request, so even Pro gets a few a day. */
-const MEAL_PLAN_PER_DAY = 5;
 const MAX_CANDIDATES = 60;
 const DAY_MS = 86_400_000;
 /** Diets that a recipe must be flagged for (an allergy is the opposite: the recipe must not list it). */
@@ -164,7 +162,6 @@ export class AiToolsService {
 
   async mealPlan(userId: string, req: GenerateMealPlanRequest): Promise<GeneratedMealPlan> {
     const features = (await this.entitlements.forUser(userId)).features;
-    if (!features.mealPlanGeneration) throw errors.upgradeRequired('pro');
     if (!isDay(req.startDate)) throw errors.validation({ startDate: 'Use a date written YYYY-MM-DD' });
     const dates = planDates(req.startDate, req.days);
     const restrictions = (req.restrictions ?? []).map((r) => nameKey(r)).filter(Boolean);
@@ -189,7 +186,7 @@ export class AiToolsService {
 
     const out = await this.ai.runJson({ task: 'meal_plan', system: PLAN_SYSTEM, prompt, json: true, maxOutputTokens: 3500, temperature: 0.4 }, planSchema, {
       userId,
-      dailyLimit: { perDay: MEAL_PLAN_PER_DAY, key: 'meal_plan' },
+      dailyLimit: { perDay: features.mealPlanPerWeek, key: 'meal_plan', windowDays: 7 }, // the costliest request: a few a week
     });
 
     // Keep only what the AI was allowed to choose: the dates and meal types asked for, and recipes from the offered list.

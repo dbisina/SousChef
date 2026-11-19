@@ -1,7 +1,7 @@
 {
   "name": "functions",
   "version": "1.0.0",
-  "description": "Firebase Cloud Functions for SousChef",
+  "description": "Firebase Cloud Functions for enplace",
   "main": "index.js",
   "scripts": {
     "serve": "firebase emulators:start --only functions",

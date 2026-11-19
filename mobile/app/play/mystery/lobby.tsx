@@ -74,7 +74,7 @@ export default function MysteryLobbyScreen() {
   };
   const invite = () =>
     Share.share({
-      message: t('play.mk.inviteMessage', 'Join my Mystery Kitchen on SousChef. Room code {{code}}', {
+      message: t('play.mk.inviteMessage', 'Join my Mystery Kitchen on enplace. Room code {{code}}', {
         code: round.roomCode,
       }),
     }).catch(() => undefined);
@@ -100,7 +100,7 @@ export default function MysteryLobbyScreen() {
 
       <RoomCodeCard
         code={round.roomCode}
-        hint={t('play.mk.codeHint', 'Friends join from SousChef with this code')}
+        hint={t('play.mk.codeHint', 'Friends join from enplace with this code')}
         copied={copied}
         labels={{
           room: t('play.mk.roomCode', 'Room code'),

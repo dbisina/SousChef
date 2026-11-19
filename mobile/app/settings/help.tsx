@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { SITE_URL, SUPPORT_EMAIL } from '@/lib/contact';
+import { openStoreReviewPage } from '@/lib/reviewPrompt';
 import { Linking, Text, View } from 'react-native';
 import { KeyboardAwareScrollView as ScrollView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
@@ -31,7 +33,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How do voice commands work?',
-    a: 'In cooking mode, tap the microphone icon or enable hands-free mode. Say "SousChef" followed by commands like "next step" or "read ingredients".',
+    a: 'In cooking mode, tap the microphone icon or enable hands-free mode. Say "enplace" followed by commands like "next step" or "read ingredients".',
   },
   {
     q: "What's included in Premium?",
@@ -76,11 +78,11 @@ export default function HelpCenterScreen() {
   );
 
   const handleContactSupport = () => {
-    Linking.openURL('mailto:support@souschef.app?subject=SousChef Support Request');
+    if (SUPPORT_EMAIL) Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Support request`);
   };
 
   const handleVisitWebsite = () => {
-    Linking.openURL('https://souschef.app/help');
+    if (SITE_URL) Linking.openURL(`${SITE_URL}/help`);
   };
 
   return (
@@ -88,7 +90,7 @@ export default function HelpCenterScreen() {
       bare
       footer={
         <CtaBar fade>
-          <UButton icon="mail" label={t('account.help.contact', 'Contact Support')} onPress={handleContactSupport} />
+          {SUPPORT_EMAIL ? <UButton icon="mail" label={t('account.help.contact', 'Contact Support')} onPress={handleContactSupport} /> : null}
         </CtaBar>
       }
     >
@@ -154,12 +156,23 @@ export default function HelpCenterScreen() {
 
         <Rows>
           <ListRow
+            icon="star"
+            title={t('account.help.rate', 'Rate enplace')}
+            subtitle={t('account.help.rateBody', 'A rating helps other cooks find us')}
+            onPress={() => void openStoreReviewPage()}
+          />
+        </Rows>
+
+        {SITE_URL ? (
+        <Rows>
+          <ListRow
             icon="globe"
             title={t('account.help.website', 'Website')}
             subtitle={t('account.help.websiteBody', 'More resources')}
             onPress={handleVisitWebsite}
           />
         </Rows>
+        ) : null}
       </ScrollView>
     </Screen>
   );

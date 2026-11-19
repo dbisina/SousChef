@@ -1,26 +1,26 @@
 {
   "expo": {
-    "name": "SousChef",
-    "slug": "souschef",
+    "name": "enplace",
+    "slug": "enplace",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "scheme": "souschef",
+    "scheme": "enplace",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-light.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFF7ED"
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lyon98.souschef",
+      "bundleIdentifier": "com.enplaceapp.mobile",
       "infoPlist": {
-        "NSCameraUsageDescription": "SousChef needs camera access to analyze portion sizes and ingredients",
-        "NSPhotoLibraryUsageDescription": "SousChef needs photo library access to upload recipe images",
-        "NSSpeechRecognitionUsageDescription": "SousChef uses speech recognition for hands-free cooking commands",
-        "NSMicrophoneUsageDescription": "SousChef needs microphone access for voice commands during cooking",
+        "NSCameraUsageDescription": "enplace needs camera access to analyze portion sizes and ingredients",
+        "NSPhotoLibraryUsageDescription": "enplace needs photo library access to upload recipe images",
+        "NSSpeechRecognitionUsageDescription": "enplace uses speech recognition for hands-free cooking commands",
+        "NSMicrophoneUsageDescription": "enplace needs microphone access for voice commands during cooking",
         "ITSAppUsesNonExemptEncryption": false
       },
       "googleServicesFile": "./GoogleService-Info.plist"
@@ -28,13 +28,20 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F97316"
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png",
+        "backgroundColor": "#0b0b0b"
       },
-      "package": "com.lyon98.souschef",
+      "package": "com.enplaceapp.mobile",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.RECORD_AUDIO"
+      ],
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
       ],
       "googleServicesFile": "./google-services.json",
       "intentFilters": [
@@ -57,6 +64,9 @@
           ],
           "data": [
             {
+              "scheme": "enplace"
+            },
+            {
               "scheme": "souschef"
             }
           ]
@@ -65,21 +75,36 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "backgroundColor": "#0b0b0b",
+      "themeColor": "#0b0b0b"
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-light.png",
+          "backgroundColor": "#ffffff",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "dark": {
+            "image": "./assets/splash-dark.png",
+            "backgroundColor": "#0b0b0b"
+          }
+        }
+      ],
       "expo-apple-authentication",
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow SousChef to access your camera for portion analysis"
+          "cameraPermission": "Allow enplace to access your camera for portion analysis"
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow SousChef to access your photos for recipe images"
+          "photosPermission": "Allow enplace to access your photos for recipe images"
         }
       ],
       [
@@ -98,8 +123,8 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
-          "color": "#FF6B35"
+          "icon": "./assets/notification-icon.png",
+          "color": "#ff6b35"
         }
       ],
       "./plugins/withDisableBundleSigning",
@@ -116,24 +141,24 @@
         "origin": false
       },
       "eas": {
-        "projectId": "26401b62-e685-47ed-aa5b-ec3d8a4e04cc",
         "build": {
           "experimental": {
             "ios": {
               "appExtensions": [
                 {
                   "targetName": "ShareExtension",
-                  "bundleIdentifier": "com.lyon98.souschef.ShareExtension",
+                  "bundleIdentifier": "com.enplaceapp.mobile.ShareExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [
-                      "group.com.lyon98.souschef"
+                      "group.com.enplaceapp.mobile"
                     ]
                   }
                 }
               ]
             }
           }
-        }
+        },
+        "projectId": "d8f5a2f6-445e-4bee-b6ae-1fa27fb78853"
       }
     },
     "owner": "dxs-db"

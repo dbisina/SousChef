@@ -34,7 +34,7 @@ export interface GenerateDeps {
   say?: (line: string) => void;
 }
 
-const UA = 'SousChefSeed/1.0 (recipe app content seeding)';
+const UA = 'enplaceSeed/1.0 (recipe app content seeding)';
 const FREE_LICENSE = /^(cc0|public domain|pd\b|cc[- ]by(?![- ]n[cd])|cc[- ]by[- ]sa)/i;
 const NEEDS_CREDIT = /^cc[- ]by/i;
 
@@ -131,7 +131,7 @@ export async function photoShows(ai: AiRouter, title: string, photo: Photo, mode
         system: 'You check food photos. Answer only with JSON.',
         prompt:
           mode === 'dish'
-            ? `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? Return {"match": true|false, "reason": "..."}.`
+            ? `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? It must also show no readable business names, shop or restaurant signs, menus, receipts, price tags, logos or brand text anywhere in the picture. Return {"match": true|false, "reason": "..."}.`
             : `Is this a clear, good photo of "${title}" (a food, ingredient, dish, drink, kitchen tool or cooking technique)? It must really show that subject, in focus, with no text overlays, logos, maps, diagrams or people's faces as the main subject. Return {"match": true|false, "reason": "..."}.`,
         images: [{ base64: photo.bytes.toString('base64'), mimeType: photo.mime }],
         json: true,
@@ -156,6 +156,61 @@ export async function store(storage: Storage, key: string, photo: Photo, fetchIm
 }
 
 /**
+ * A verified photo of the dish: the lead picture of its Wikipedia article if that shows the dish, otherwise the first
+ * Wikimedia Commons search result (free licence only) that a vision model confirms. Null with a reason when none passes.
+ */
+export async function pickDishPhoto(ai: AiRouter, dish: Pick<DishDef, 'title' | 'wiki'>, fetchImpl: typeof fetch): Promise<{ photo: Photo | null; reason: string }> {
+  let lead: Photo | null = null;
+  try {
+    lead = await findWikipediaPhoto(dish.wiki, fetchImpl);
+  } catch {
+    lead = null;
+  }
+  if (lead && (await photoShows(ai, dish.title, lead))) return { photo: lead, reason: '' };
+  let candidates: Photo[] = [];
+  try {
+    candidates = await findCommonsPhotos(`${dish.title} food dish`, fetchImpl, 3);
+  } catch {
+    candidates = [];
+  }
+  for (const c of candidates) if (await photoShows(ai, dish.title, c)) return { photo: c, reason: '' };
+  return { photo: null, reason: lead || candidates.length > 0 ? 'the photo does not clearly show the dish' : 'no freely licensed photo found' };
+}
+
+/**
+ * Gives an official recipe a new verified photo: the recipe, its posts, and any cookbook cover or account picture that used the
+ * old one all move to it. For photos that turned out to show someone else's branding. Returns what happened, in words.
+ */
+export async function rephotoDish(deps: GenerateDeps, dishes: DishDef[], title: string, commonsFile?: string): Promise<string> {
+  const { db, ai, storage } = deps;
+  if (!storage) throw new Error('Photos need the file store (S3_* settings).');
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const dish = dishes.find((d) => d.title === title);
+  if (!dish) return `${title}: not in the dish list`;
+  const recipes = await db.recipe.findMany({ where: { title, author: { kind: 'HOUSE' } }, select: { id: true, imageUrl: true, description: true } });
+  if (recipes.length === 0) return `${title}: no such official recipe`;
+  let found: { photo: Photo | null; reason: string };
+  if (commonsFile) {
+    // A file chosen by a person: still must be freely licensed and pass the same picture check.
+    const [candidate] = await findCommonsPhotos(commonsFile.replace(/^File:/i, ''), fetchImpl, 1);
+    found = candidate && (await photoShows(ai, dish.title, candidate)) ? { photo: candidate, reason: '' } : { photo: null, reason: `${commonsFile} is not free to use or does not pass the picture check` };
+  } else {
+    found = await pickDishPhoto(ai, dish, fetchImpl);
+  }
+  if (!found.photo) return `${title}: kept the old photo (${found.reason})`;
+  const photo = found.photo;
+  const imageUrl = await store(storage, `seed/${slug(title)}-${Date.now().toString(36)}.${photo.mime === 'image/png' ? 'png' : 'jpg'}`, photo, fetchImpl);
+  for (const r of recipes) {
+    const base = (r.description ?? '').replace(/\n\nPhoto: [^\n]*$/, '');
+    await db.recipe.update({ where: { id: r.id }, data: { imageUrl, description: photo.credit ? `${base}\n\n${photo.credit}` : base } });
+    await db.post.updateMany({ where: { recipeId: r.id }, data: { photoUrl: imageUrl } });
+    await db.cookbook.updateMany({ where: { coverImageUrl: r.imageUrl }, data: { coverImageUrl: imageUrl } });
+    await db.user.updateMany({ where: { photoUrl: r.imageUrl, kind: 'HOUSE' }, data: { photoUrl: imageUrl } });
+  }
+  return `${title}: new photo ${imageUrl} (${photo.source})`;
+}
+
+/**
  * Real recipes from the dish list: one model-written recipe per dish (checked against the server's own recipe rules), with a
  * real photo of the dish from Wikipedia (free licences only, checked by a vision model, stored on our own file store so the link
  * never dies). A dish with no verified photo is skipped, never faked. Then a cookbook per official account, and a post for
@@ -172,8 +227,8 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
   const recipes = new RecipeService(db, new EntitlementService(db));
   const cookbooks = new CookbookService(db);
   const ids = new Map<HouseKey, string>();
-  for (const key of Object.keys(HOUSES) as HouseKey[]) {
-    const found = await db.user.findFirst({ where: { handle: HOUSES[key].handle, kind: 'HOUSE' }, select: { id: true } });
+  for (const [key, account] of Object.entries(HOUSES)) {
+    const found = await db.user.findFirst({ where: { handle: { in: [account.handle, account.legacyHandle] }, kind: 'HOUSE' }, select: { id: true } });
     if (found) ids.set(key, found.id);
   }
 
@@ -198,15 +253,12 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
     }
     if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
     try {
-      const photo = await findWikipediaPhoto(dish.wiki, fetchImpl);
-      if (!photo) {
-        report.skipped.push({ title: dish.title, reason: 'no freely licensed photo found' });
+      const found = await pickDishPhoto(ai, dish, fetchImpl);
+      if (!found.photo) {
+        report.skipped.push({ title: dish.title, reason: found.reason });
         continue;
       }
-      if (!(await photoShows(ai, dish.title, photo))) {
-        report.skipped.push({ title: dish.title, reason: 'the photo does not clearly show the dish' });
-        continue;
-      }
+      const photo = found.photo;
       const draft = await ai.runJson(
         { task: 'extract_recipe', system: SYSTEM, prompt: `Dish: ${dish.title}\nCuisine: ${dish.cuisine}\nMeal: ${dish.category}`, json: true, maxOutputTokens: 2500, temperature: 0.3 },
         aiSchema,
@@ -263,9 +315,10 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
         const account = await db.user.findUnique({ where: { id: owner }, select: { photoUrl: true } });
         if (!account?.photoUrl && list[0]) await db.user.update({ where: { id: owner }, data: { photoUrl: list[0].imageUrl } });
       }
-      const title = `${def.displayName.replace(/^SousChef /, '')} Favourites`;
+      if (!def) continue;
+      const title = `${def.displayName.replace(/^enplace /, '')} Favourites`;
       if (list.length >= 4 && !(await db.cookbook.findFirst({ where: { title }, select: { id: true } }))) {
-        await cookbooks.create({ title, description: def.bio.replace(' An official SousChef account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
+        await cookbooks.create({ title, description: def.bio.replace(' An official enplace account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
         report.cookbooks++;
       }
     }

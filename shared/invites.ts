@@ -1,4 +1,4 @@
-// Inviting friends, and SousChef's own labeled "house" accounts. Dates are ISO strings.
+// Inviting friends, and enplace's own labeled "house" accounts. Dates are ISO strings.
 import type { Participant } from './chat';
 import type { PostKind } from './social';
 
@@ -32,7 +32,7 @@ export interface RedeemInviteResponse {
 
 /* ---------------------------------------------------------------- house accounts */
 
-/** An official SousChef account. Shown with a badge; it can never sign in or pretend to be a person. */
+/** An official enplace account. Shown with a badge; it can never sign in or pretend to be a person. */
 export interface HouseAccount {
   user: Participant;
   bio: string;

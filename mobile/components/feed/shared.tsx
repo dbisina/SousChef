@@ -1,6 +1,7 @@
 import React from 'react';
 import { Share, Text as RNText, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
+import { useTranslation } from 'react-i18next';
 import { photoSource } from '@/lib/photo';
 import { Glass, Icon, Title, UAvatar, type IconName, type PhotoSource } from '@/components/ui';
 import { FONT } from '@/components/ui/fonts';
@@ -14,6 +15,33 @@ export const photoOf = (ref: PhotoRef | null | undefined): PhotoSource | null =>
 /** Opens the native share sheet; failures (cancelled, unsupported) are ignored. */
 export function shareText(message: string) {
   Share.share({ message }).catch(() => undefined);
+}
+
+interface CookedWithProps {
+  title: string;
+  authorName: string;
+  onPress: () => void;
+}
+
+/** "Cooked with Kemi's Jollof Rice": the recipe a post was made from, tappable. */
+export function CookedWith({ title, authorName, onPress }: CookedWithProps) {
+  const { t } = useTranslation();
+  const label = t('post.cookedWith', 'Cooked with {{author}}’s {{recipe}}', { author: authorName, recipe: title });
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel={label}
+      onPress={onPress}
+      hitSlop={6}
+      style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 8, opacity: pressed ? 0.7 : 1 })}
+    >
+      <Icon name="book" size="sm" color="muted" />
+      <RNText className="text-muted flex-1" numberOfLines={1} style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
+        {label}
+      </RNText>
+      <Icon name="arrowRight" size="sm" color="muted" />
+    </Pressable>
+  );
 }
 
 interface AuthorRowProps {

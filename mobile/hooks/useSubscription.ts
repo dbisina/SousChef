@@ -83,7 +83,7 @@ export const useSubscription = () => {
       const result = await purchase(pkg);
 
       if (result.success) {
-        showSuccessToast('You now have full access to SousChef! Happy cooking! 🎉', 'Welcome aboard!');
+        showSuccessToast('You now have full access to enplace! Happy cooking! 🎉', 'Welcome aboard!');
       } else if (result.userCancelled) {
         // User cancelled, no alert needed
       } else {

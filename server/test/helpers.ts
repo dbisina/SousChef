@@ -87,6 +87,12 @@ export class FakeStorage implements Storage {
   async head(key: string) {
     return this.files.get(key) ?? null;
   }
+  /** Keys a test wants the store to refuse. */
+  readonly failWrite = new Set<string>();
+  async write(key: string, bytes: Buffer, contentType: string) {
+    if (this.failWrite.has(key)) throw new Error('storage unavailable');
+    this.put(key, bytes.byteLength, contentType, bytes);
+  }
   async delete(key: string) {
     if (this.failDelete.has(key)) throw new Error('storage unavailable');
     this.files.delete(key);
@@ -175,7 +181,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem", "StepImage", "StepImageUse", "IngredientPhoto" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem", "StepImage", "StepImageUse", "IngredientPhoto", "PromoCode", "Sale" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();
@@ -184,6 +190,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
+    storage.failWrite.clear();
     offset = 0;
     mail.resets.length = 0;
   };

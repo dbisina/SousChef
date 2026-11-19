@@ -12,7 +12,7 @@ export { RadialFAB } from './RadialFAB';
 export { Toast } from './Toast';
 export type { FABAction } from './RadialFAB';
 
-// ── SousChef 2.0 primitives (see README.md for the naming scheme) ──
+// ── enplace 2.0 primitives (see README.md for the naming scheme) ──
 export { Screen, TopBar } from './Screen';
 export { ToneScope, ToneBlock, useTone, useTokens, useColor } from './tone';
 export type { ColorKey } from './tone';

@@ -1,4 +1,4 @@
-// Sign-in and account calls against the SousChef server. Used by the auth store when EXPO_PUBLIC_API_URL is set.
+// Sign-in and account calls against the enplace server. Used by the auth store when EXPO_PUBLIC_API_URL is set.
 import { Timestamp, auth, createUserWithEmailAndPassword, deleteUser, sendPasswordResetEmail, signInWithCredential, signInWithEmailAndPassword, signOut as firebaseSignOut, updateProfile } from '@/lib/firebase';
 import { getFriendlyAuthError } from '@/lib/utils';
 import type { AuthResponse, Me, UpdateProfileRequest } from '@shared/index';

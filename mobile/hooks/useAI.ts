@@ -11,6 +11,7 @@ import { AISubstitutionResult, PortionAnalysis, Recipe, Ingredient } from '@/typ
 import { FeatureCheckResult } from '@/types/subscription';
 import { useAuth } from './useAuth';
 import { useSubscription } from './useSubscription';
+import { ApiError, apiEnabled } from '@/lib/api';
 
 // Hook for AI ingredient substitution
 export const useIngredientSubstitution = () => {
@@ -124,6 +125,11 @@ export const usePortionAnalysis = () => {
 
   // Check access before analyzing
   const checkAccess = useCallback(async (): Promise<boolean> => {
+    // With the server on, the server keeps the count (a weekly allowance for everything that reads photos), so there is no second counter here.
+    if (apiEnabled()) {
+      setAccessDenied(null);
+      return true;
+    }
     const access = await checkPortionAccess();
     if (!access.allowed) {
       setAccessDenied(access);
@@ -150,6 +156,12 @@ export const usePortionAnalysis = () => {
       await recordPortionUsage();
       return analysisResult;
     } catch (err) {
+      // The allowance is used up: say so calmly (the screen shows when it frees up) rather than as a failure.
+      if (err instanceof ApiError && err.code === 'limit_reached') {
+        setAccessDenied({ allowed: false, reason: 'limit_reached', upgradeRequired: 'premium' });
+        setError(err.message);
+        return null;
+      }
       const message = err instanceof Error ? err.message : 'Failed to analyze image';
       setError(message);
       return null;

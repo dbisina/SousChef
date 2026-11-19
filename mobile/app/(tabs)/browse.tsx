@@ -276,7 +276,7 @@ export default function BrowseScreen() {
       <View className="items-center" style={{ paddingVertical: 40, gap: 12 }}>
         <Title>{t('browseUi.noRecipes', 'No recipes yet')}</Title>
         <Muted center>{t('browseUi.noRecipesBody', 'Be the first to share a recipe')}</Muted>
-        <UButton size="sm" label={t('browseUi.createRecipe', 'Create a recipe')} onPress={() => router.push('/(tabs)/upload')} />
+        <UButton size="sm" label={t('browseUi.createRecipe', 'Create a recipe')} onPress={() => router.push('/recipe/new')} />
       </View>
     );
   };

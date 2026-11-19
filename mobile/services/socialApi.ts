@@ -1,4 +1,4 @@
-// Feeds, posts, comments, follows, stories and reports against the SousChef server. The feed screens use these when
+// Feeds, posts, comments, follows, stories and reports against the enplace server. The feed screens use these when
 // EXPO_PUBLIC_API_URL is set. Every list comes back in pages: pass `nextCursor` as `cursor` for the next one.
 import type {
   Challenge as ApiChallenge,
@@ -10,6 +10,7 @@ import type {
   CreatePostRequest,
   CreateReportRequest,
   CreateStoryRequest,
+  FeedPreferences,
   FollowToggle,
   Page,
   Participant,
@@ -117,3 +118,9 @@ export interface HandleCheck {
 /** Is a username well formed and free (or already yours)? */
 export const apiHandleAvailable = (handle: string): Promise<HandleCheck> =>
   api().get<HandleCheck>(`/v1/users/handle-available?handle=${encodeURIComponent(handle)}`);
+
+/* ---------------------------------------------------------------- feed learning */
+
+/** Whether the feed may learn from what this person does. */
+export const apiFeedPreferences = (): Promise<FeedPreferences> => api().get<FeedPreferences>('/v1/me/feed-preferences');
+export const apiSetFeedPreferences = (personalised: boolean): Promise<FeedPreferences> => api().put<FeedPreferences>('/v1/me/feed-preferences', { personalised });

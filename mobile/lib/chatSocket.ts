@@ -1,4 +1,4 @@
-// The live connection to the SousChef server (WebSocket /v1/ws): new messages, receipts, typing, who is online, and game
+// The live connection to the enplace server (WebSocket /v1/ws): new messages, receipts, typing, who is online, and game
 // updates. It only listens; messages are sent with normal requests (see services/chatApi.ts).
 //
 // It signs in with the access token as the first frame, answers pings, and reconnects by itself with growing waits.

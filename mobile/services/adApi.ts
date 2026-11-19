@@ -1,4 +1,4 @@
-// Sponsored ads against the SousChef server. Used by adService when EXPO_PUBLIC_API_URL is set.
+// Sponsored ads against the enplace server. Used by adService when EXPO_PUBLIC_API_URL is set.
 import { Timestamp } from '@/lib/firebase';
 import type { AdInquiryRequest, AdminAd, CreateAdRequest, PublicAd, UpdateAdRequest } from '@shared/index';
 import { api } from '@/lib/api';

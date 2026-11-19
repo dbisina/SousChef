@@ -108,7 +108,7 @@ export async function safeGet(input: string, options: GetOptions = {}, requester
   for (let hop = 0; hop <= maxRedirects; hop++) {
     const res = await requester(url, {
       timeoutMs,
-      headers: { 'user-agent': 'Mozilla/5.0 (compatible; SousChefBot/1.0)', accept: 'text/html,application/json;q=0.9,*/*;q=0.5', ...options.headers },
+      headers: { 'user-agent': 'Mozilla/5.0 (compatible; enplaceBot/1.0)', accept: 'text/html,application/json;q=0.9,*/*;q=0.5', ...options.headers },
     });
     if (REDIRECTS.has(res.status)) {
       const location = res.headers['location'];
@@ -148,7 +148,7 @@ export async function resolveRedirects(input: string, options: Pick<GetOptions, 
   const { timeoutMs = 8_000, maxRedirects = 3 } = options;
   let url = checkUrl(input);
   for (let hop = 0; hop <= maxRedirects; hop++) {
-    const res = await requester(url, { timeoutMs, headers: { 'user-agent': 'Mozilla/5.0 (compatible; SousChefBot/1.0)', accept: '*/*' } });
+    const res = await requester(url, { timeoutMs, headers: { 'user-agent': 'Mozilla/5.0 (compatible; enplaceBot/1.0)', accept: '*/*' } });
     await drain(res.body);
     if (!REDIRECTS.has(res.status)) return url.toString();
     const location = res.headers['location'];

@@ -7,7 +7,6 @@ export const PHOTOS = {
   bowl: require('./bowl.jpg'),
   broccoli: require('./broccoli.jpg'),
   brownie: require('./brownie.jpg'),
-  burger: require('./burger.jpg'),
   chicken: require('./chicken.jpg'),
   cookbook: require('./cookbook.jpg'),
   eggs: require('./eggs.jpg'),
@@ -30,7 +29,6 @@ export const PHOTOS = {
   tacos2: require('./tacos2.jpg'),
   toast: require('./toast.jpg'),
   tomatoes: require('./tomatoes.jpg'),
-  veg: require('./veg.jpg'),
 } as const;
 
 export type PhotoName = keyof typeof PHOTOS;

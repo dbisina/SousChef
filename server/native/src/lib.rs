@@ -27,6 +27,14 @@ pub struct FeedCandidate {
     pub views: u32,
     pub author_affinity: f64,
     pub has_recipe: bool,
+    /// 0 to 1: how close the dish is to what the viewer likes. Left out: 0.
+    pub taste: Option<f64>,
+    /// 0 to 1: how much the viewer has pushed this author away. Left out: 0.
+    pub avoid: Option<f64>,
+    /// How many times the viewer was shown it and ignored it. Left out: 0.
+    pub seen: Option<u32>,
+    /// What kind of dish (its cuisine), so one kind does not fill the page. Left out: no group.
+    pub group: Option<String>,
 }
 
 /// Orders posts for the "for you" feed and returns the ids of the best `limit`, best first.
@@ -44,6 +52,10 @@ pub fn rank_feed(candidates: Vec<FeedCandidate>, limit: u32) -> Vec<String> {
             views: c.views,
             author_affinity: c.author_affinity,
             has_recipe: c.has_recipe,
+            taste: c.taste.unwrap_or(0.0),
+            avoid: c.avoid.unwrap_or(0.0),
+            seen: c.seen.unwrap_or(0),
+            group: c.group.unwrap_or_default(),
         })
         .collect();
     souschef_feed::rank(&posts, limit as usize)

@@ -158,7 +158,7 @@ export default function ShoppingListScreen() {
       grouped.set(item.category, existing);
     });
 
-    let message = `${t('planShop.shareHeader', 'Shopping List from SousChef')}\n\n`;
+    let message = `${t('planShop.shareHeader', 'Shopping List from enplace')}\n\n`;
     grouped.forEach((items, category) => {
       message += `${SHOPPING_CATEGORY_LABELS[category]}\n`;
       message += items.join('\n');

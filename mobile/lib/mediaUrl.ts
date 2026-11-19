@@ -15,7 +15,7 @@ const cloud = (): string => (process.env.EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ''
 const mediaHosts = (): string[] =>
   (process.env.EXPO_PUBLIC_MEDIA_HOSTS ?? '')
     .split(',')
-    .map((h) => h.trim().toLowerCase())
+    .map((h: string) => h.trim().toLowerCase())
     .filter(Boolean);
 
 /** The smallest standard width that is at least `width` (so the same few sizes are cached and reused). */

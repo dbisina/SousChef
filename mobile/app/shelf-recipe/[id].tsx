@@ -90,7 +90,7 @@ export default function ShelfRecipeScreen() {
     if (!recipe || !cookbook) return;
     try {
       await Share.share({
-        message: t('cookbooks.shelfRecipe.shareMessage', 'Check out "{{recipe}}" from {{book}}!\n\nFound on SousChef App', {
+        message: t('cookbooks.shelfRecipe.shareMessage', 'Check out "{{recipe}}" from {{book}}!\n\nFound on enplace App', {
           recipe: recipe.name,
           book: cookbook.title,
         }),

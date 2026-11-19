@@ -32,6 +32,7 @@ interface ScreenProps {
 export function Screen({ tone = 'auto', scroll, bottomSpace = 0, bare, footer, children, style }: ScreenProps) {
   const effective = useThemeStore((s) => s.effectiveTheme);
   const resolved = tone === 'auto' ? effective : tone;
+  const insets = useSafeAreaInsets();
   return (
     <ToneScope tone={resolved} style={style}>
       <StatusBar style={resolved === 'dark' ? 'light' : 'dark'} />
@@ -53,6 +54,10 @@ export function Screen({ tone = 'auto', scroll, bottomSpace = 0, bare, footer, c
           <PaddedBody.Provider value>{children}</PaddedBody.Provider>
         </View>
       )}
+      {/* A scrolling page slides under the transparent status bar; this keeps the clock and battery on a clean strip. */}
+      {scroll && !bare && insets.top > 0 ? (
+        <View pointerEvents="none" className="bg-ground" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top, zIndex: 5 }} />
+      ) : null}
       {footer}
     </ToneScope>
   );

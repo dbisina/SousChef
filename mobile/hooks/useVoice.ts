@@ -261,7 +261,7 @@ export const useVoiceControl = () => {
     setError(null);
   }, []);
 
-  // Enable wake word mode (hands-free listening for "SousChef")
+  // Enable wake word mode (hands-free listening for "enplace")
   const enableWakeWordMode = useCallback(
     async (onWakeWord?: (command: string) => void): Promise<boolean> => {
       if (!isInitialized) {
@@ -289,7 +289,7 @@ export const useVoiceControl = () => {
       if (started) {
         setWakeWordListening(true);
         // Notify user that hands-free mode is active
-        await speakWithStyle("Hands-free mode activated. Say 'SousChef' followed by your command.", 'friendly');
+        await speakWithStyle("Hands-free mode activated. Say 'enplace' followed by your command.", 'friendly');
       } else {
         setWakeWordMode(false);
         setError('Failed to start wake word listening');

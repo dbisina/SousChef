@@ -1,15 +1,10 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { PanResponder, Text as RNText, View, type LayoutChangeEvent } from 'react-native';
+import React, { useState } from 'react';
+import { Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import {
-  DEFAULT_DELIVERY_RADIUS_KM,
-  MAX_DELIVERY_RADIUS_KM,
-  MIN_DELIVERY_RADIUS_KM,
-  useSetupStore,
-} from '@/stores/setupStore';
+import { useSetupStore } from '@/stores/setupStore';
 import { showErrorToast } from '@/stores/toastStore';
 import {
   Chip,
@@ -21,7 +16,6 @@ import {
   Muted,
   ProgressBar,
   Screen,
-  Title,
   TopBar,
   UButton,
   UIconButton,
@@ -43,61 +37,11 @@ const CONDITIONS = [
 
 const toggle = (list: string[], id: string) => (list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
 
-interface RadiusSliderProps {
-  value: number;
-  onChange: (km: number) => void;
-  label: string;
-}
-
-/** 8px orange-on-grey track, 44px touch area, drag or step with accessibility actions. */
-function RadiusSlider({ value, onChange, label }: RadiusSliderProps) {
-  const widthRef = useRef(1);
-  const span = MAX_DELIVERY_RADIUS_KM - MIN_DELIVERY_RADIUS_KM;
-  const fromX = (x: number) =>
-    MIN_DELIVERY_RADIUS_KM + Math.round(Math.max(0, Math.min(1, x / widthRef.current)) * span);
-  const pan = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: (e) => onChange(fromX(e.nativeEvent.locationX)),
-        onPanResponderMove: (e) => onChange(fromX(e.nativeEvent.locationX)),
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onChange]
-  );
-  const pct = (value - MIN_DELIVERY_RADIUS_KM) / span;
-  return (
-    <View
-      accessible
-      accessibilityRole="adjustable"
-      accessibilityLabel={label}
-      accessibilityValue={{ min: MIN_DELIVERY_RADIUS_KM, max: MAX_DELIVERY_RADIUS_KM, now: value, text: `${value} km` }}
-      accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-      onAccessibilityAction={(e) => {
-        if (e.nativeEvent.actionName === 'increment') onChange(Math.min(MAX_DELIVERY_RADIUS_KM, value + 1));
-        else onChange(Math.max(MIN_DELIVERY_RADIUS_KM, value - 1));
-      }}
-      onLayout={(e: LayoutChangeEvent) => {
-        widthRef.current = Math.max(1, e.nativeEvent.layout.width);
-      }}
-      style={{ height: 44, justifyContent: 'center', marginVertical: -18 }}
-      {...pan.panHandlers}
-    >
-      <View pointerEvents="none" className="bg-track overflow-hidden" style={{ height: 8, borderRadius: 4 }}>
-        <View className="bg-accent" style={{ height: 8, borderRadius: 4, width: `${pct * 100}%` }} />
-      </View>
-    </View>
-  );
-}
-
 export default function SetupScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const user = useAuthStore((s) => s.user);
   const updateUserProfile = useAuthStore((s) => s.updateUserProfile);
-  const radius = useSetupStore((s) => s.deliveryRadiusKm);
-  const setRadius = useSetupStore((s) => s.setDeliveryRadiusKm);
   const markSetupDone = useSetupStore((s) => s.markSetupDone);
 
   const [diets, setDiets] = useState<string[]>(user?.dietaryPreferences ?? []);
@@ -207,24 +151,6 @@ export default function SetupScreen() {
             />
           ))}
         </View>
-      </View>
-
-      <View className="bg-surface-2" style={{ borderRadius: 26, padding: 18, gap: 10 }}>
-        <View className="flex-row items-center justify-between">
-          <Title>{t('welcome.setup.deliveryTitle', 'Food delivery near you')}</Title>
-          <Title>{`${radius} km`}</Title>
-        </View>
-        <RadiusSlider
-          value={radius ?? DEFAULT_DELIVERY_RADIUS_KM}
-          onChange={setRadius}
-          label={t('welcome.setup.deliveryTitle', 'Food delivery near you')}
-        />
-        <Muted small>
-          {t(
-            'welcome.setup.deliveryHint',
-            'Restaurants that deliver within this distance appear in your feed.'
-          )}
-        </Muted>
       </View>
     </Screen>
   );

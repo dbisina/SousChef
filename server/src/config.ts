@@ -134,6 +134,8 @@ const schema = z
       .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
     /** Imports (each can open a web page and call an AI service) allowed per minute per address. */
     IMPORT_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(20),
+    /** Which For You ranking runs: v2 learns each person's taste; v1 is the plain engagement ranking (for comparing or rolling back). */
+    FEED_RANKER: z.enum(['v1', 'v2']).default('v2'),
     /** All AI calls together stop when this much has been spent in a month (US dollars). */
     AI_MONTHLY_BUDGET_USD: z.coerce.number().min(0).default(5),
     AI_PRICE_GEMINI_IN: z.coerce.number().min(0).default(0.3),
@@ -153,7 +155,7 @@ const schema = z
     S3_ACCESS_KEY_ID: z.string().default(''),
     S3_SECRET_ACCESS_KEY: z.string().default(''),
     S3_REGION: z.string().default('auto'),
-    /** The public address of the bucket, e.g. https://media.souschef.app (no trailing slash). */
+    /** The public address of the bucket, e.g. https://media.your-domain.example (no trailing slash). */
     STORAGE_PUBLIC_URL: z.string().default(''),
 
     /**

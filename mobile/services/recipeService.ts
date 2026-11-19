@@ -35,7 +35,7 @@ import {
   apiUpdateRecipe,
 } from '@/services/recipeApi';
 
-// With EXPO_PUBLIC_API_URL set, every function below goes to the SousChef server instead of Firestore and Cloudinary.
+// With EXPO_PUBLIC_API_URL set, every function below goes to the enplace server instead of Firestore and Cloudinary.
 
 const RECIPES_COLLECTION = 'recipes';
 

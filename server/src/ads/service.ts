@@ -18,16 +18,16 @@ import { errors } from '../errors';
 
 const DAY_MS = 86_400_000;
 
-/** SousChef's own ad, shown when no campaign is running. Never counted. */
+/** enplace's own ad, shown when no campaign is running. Never counted. */
 export const FALLBACK_AD: PublicAd = {
   id: 'fallback',
-  advertiserName: 'SousChef',
+  advertiserName: 'enplace',
   advertiserLogoUrl: null,
-  title: 'Fresh Ingredients Delivered',
-  subtitle: 'Get 20% off your first grocery order',
+  title: 'Import any recipe video',
+  subtitle: 'Paste a TikTok, Instagram or YouTube link and cook it step by step.',
   imageUrl: 'https://images.unsplash.com/photo-1543352634-a1c51d9f1fa7?auto=format&fit=crop&w=800&q=80',
-  ctaText: 'Shop Now',
-  ctaUrl: 'https://souschef.app/partners',
+  ctaText: 'Try it',
+  ctaUrl: '',
   format: 'card',
   accentColor: '#22C55E',
   darkMode: false,
@@ -93,7 +93,7 @@ export class AdService {
 
   /**
    * The ad to show in a place: the most recently started campaign that is active, in its dates, includes the place and
-   * still has budget left. SousChef's own ad when there is none.
+   * still has budget left. enplace's own ad when there is none.
    */
   async forPlacement(placement: AdPlacement): Promise<PublicAd> {
     const now = this.now();

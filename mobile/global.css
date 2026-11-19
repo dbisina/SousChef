@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /*
- * SousChef 2.0 semantic color tokens (space-separated RGB channels so Tailwind can apply alpha).
+ * enplace 2.0 semantic color tokens (space-separated RGB channels so Tailwind can apply alpha).
  * Source of truth is the token table in stores/themeStore.ts; keep the two in sync.
  * <Screen tone="dark"> and ThemeProvider override these per subtree at runtime with NativeWind vars().
  */

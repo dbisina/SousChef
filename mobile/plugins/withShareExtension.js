@@ -1,7 +1,7 @@
 /**
- * Expo Config Plugin: iOS Share Extension for SousChef
+ * Expo Config Plugin: iOS Share Extension for enplace
  * 
- * Adds a native iOS Share Extension target so SousChef appears in the
+ * Adds a native iOS Share Extension target so enplace appears in the
  * iOS share sheet when users share URLs, videos, or images from any app.
  *
  * Supported content: web URLs, video files, image files, and plain text.
@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SHARE_EXT_NAME = 'ShareExtension';
-const APP_GROUP = 'group.com.lyon98.souschef';
+const APP_GROUP = 'group.com.enplaceapp.mobile';
 const TEAM_ID = 'KJWN27VC5D'; // Apple Developer Team ID for code signing
 
 // ─── Swift source for the Share Extension ────────────────────────
@@ -232,7 +232,7 @@ const SHARE_EXT_PLIST = `<?xml version="1.0" encoding="UTF-8"?>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Import to SousChef</string>
+    <string>Import to enplace</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -329,7 +329,7 @@ const withShareExtensionTarget = (config) => {
         // Add target to Xcode project
         const proj = mod.modResults;
         const targetUuid = proj.generateUuid();
-        const bundleId = `com.lyon98.souschef.${SHARE_EXT_NAME}`;
+        const bundleId = `com.enplaceapp.mobile.${SHARE_EXT_NAME}`;
 
         // Check if target already exists
         const existingTarget = proj.pbxTargetByName(SHARE_EXT_NAME);

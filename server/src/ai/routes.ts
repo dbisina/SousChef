@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { MEAL_TYPES, REWRITE_GOALS, type ChatAssistRequest, type CookChatRequest, type RewriteRecipeRequest, type ScaleNoteRequest, type ScaleRecipeRequest, type CaptionRequest, type GenerateMealPlanRequest, type LeftoversRequest, type PlateCheckRequest, type SearchIntentRequest, type SubstituteRequest, type TonightRequest } from '@shared';
+import { MEAL_TYPES, REWRITE_GOALS, type ChatAssistRequest, type CookChatRequest, type RewriteRecipeRequest, type ScaleNoteRequest, type ScaleRecipeRequest, type CaptionRequest, type GenerateMealPlanRequest, type LeftoversRequest, type PlateCheckRequest, type PlateNutritionRequest, type SearchIntentRequest, type SubstituteRequest, type TonightRequest } from '@shared';
 import { parse } from '../auth/schemas';
 import type { AuthService } from '../auth/service';
 import { viewerResolvers } from '../auth/viewer';
@@ -39,6 +39,7 @@ const scanKitchenSchema = z.object({ uploadIds: z.array(z.uuid()).min(1).max(4),
 const tonightSchema = z.object({ maxMinutes: z.number().int().min(5).max(600).optional(), mood: text(60).optional(), restrictions: restrictionsSchema }) satisfies z.ZodType<TonightRequest>;
 const leftoversSchema = z.object({ text: text(300), restrictions: restrictionsSchema }) satisfies z.ZodType<LeftoversRequest>;
 const plateSchema = z.object({ uploadId: z.uuid(), recipeId: z.uuid().optional() }) satisfies z.ZodType<PlateCheckRequest>;
+const plateNutritionSchema = z.object({ uploadId: z.uuid(), hints: z.array(text(60)).max(12).optional() }) satisfies z.ZodType<PlateNutritionRequest>;
 const captionSchema = z.object({ uploadId: z.uuid() }) satisfies z.ZodType<CaptionRequest>;
 const searchSchema = z.object({ q: text(200) }) satisfies z.ZodType<SearchIntentRequest>;
 
@@ -101,6 +102,16 @@ export function aiToolsRoutes(app: FastifyInstance, tools: AiToolsService, kitch
     const { userId } = await requireViewer(request);
     const body = parse(plateSchema, request.body);
     return kitchen.plateCheck(userId, body.uploadId, body.recipeId);
+  });
+
+  /** What is left of the intensive-AI pool and meal plans: the screens show it as a quiet meter. */
+  app.get('/v1/ai/allowance', async (request) => kitchen.allowance((await requireViewer(request)).userId));
+
+  /** Calories and estimated nutrition from a photo of a plate. The photo is deleted after reading. */
+  app.post('/v1/ai/plate-nutrition', limited, async (request) => {
+    const { userId } = await requireViewer(request);
+    const body = parse(plateNutritionSchema, request.body);
+    return kitchen.plateNutrition(userId, body.uploadId, body.hints);
   });
 
   app.post('/v1/ai/caption', limited, async (request) => kitchen.caption((await requireViewer(request)).userId, parse(captionSchema, request.body).uploadId));
