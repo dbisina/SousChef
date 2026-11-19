@@ -39,10 +39,10 @@
               "client_type": 3
             },
             {
-              "client_id": "154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh.apps.googleusercontent.com",
+              "client_id": "154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.enplace.app"
+                "bundle_id": "com.enplaceapp.mobile"
               }
             }
           ]
@@ -57,6 +57,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "154942572911-0je20u1jd1mcvkgp34pd46brqbh4gu17.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enplaceapp.mobile",
+            "certificate_hash": "4adf8372d1544e87372f69cdecc09e4c70bc19a2"
+          }
+        },
         {
           "client_id": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
           "client_type": 3
@@ -75,10 +83,10 @@
               "client_type": 3
             },
             {
-              "client_id": "154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh.apps.googleusercontent.com",
+              "client_id": "154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.enplace.app"
+                "bundle_id": "com.enplaceapp.mobile"
               }
             }
           ]
