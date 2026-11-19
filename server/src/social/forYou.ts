@@ -6,6 +6,8 @@ export type { FeedCandidate };
 export const FOR_YOU_WINDOW_MS = 7 * 24 * 3_600_000;
 /** Most posts handed to the ranker per request. */
 export const FOR_YOU_CANDIDATES = 300;
+/** When the last week holds fewer posts than this, older ones fill the feed (a quiet week must not leave it empty). */
+export const FOR_YOU_MIN_CANDIDATES = 40;
 
 /** Which part of the ranked feed the next page starts at, and the moment the candidate set was fixed at. */
 export interface ForYouCursor {
@@ -34,4 +36,20 @@ export const AFFINITY = { followed: 1, engaged: 0.5, self: 0.3, stranger: 0 } as
 /** The ids of the best `want` candidates, best first (the Rust ranker). */
 export function rank(candidates: FeedCandidate[], want: number): string[] {
   return rankFeed(candidates, want);
+}
+
+/**
+ * Keeps one account from filling a stretch of the feed: the same order, but a post is held back while its author is one of
+ * the last two shown (and used as it comes round again, or when nothing else is left). Many posts from one account in a
+ * row would otherwise push everything else out of the first screen.
+ */
+export function spreadAuthors(ids: string[], authorOf: (id: string) => string): string[] {
+  const left = [...ids];
+  const out: string[] = [];
+  while (left.length > 0) {
+    const recent = new Set(out.slice(-2).map(authorOf));
+    const at = left.findIndex((id) => !recent.has(authorOf(id)));
+    out.push(left.splice(at === -1 ? 0 : at, 1)[0] as string);
+  }
+  return out;
 }

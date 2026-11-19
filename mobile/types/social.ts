@@ -22,6 +22,8 @@ export interface Post {
   /** e.g. "35 min · Easy" */
   meta?: string;
   recipeId?: string;
+  /** Whose recipe this was cooked with (set when the post is about a recipe). */
+  cookedWith?: { recipeId: string; title: string; authorId: string; authorHandle: string; authorName: string };
   communityId?: string;
   likes: number;
   commentCount: number;
@@ -130,7 +132,7 @@ export interface ImageMessage extends MessageBase {
 }
 export type Message = TextMessage | RecipeCardMessage | VoiceMessage | ImageMessage;
 
-export type ConversationKind = 'friend' | 'group' | 'order' | 'community';
+export type ConversationKind = 'friend' | 'group' | 'community';
 
 export interface Conversation {
   id: string;

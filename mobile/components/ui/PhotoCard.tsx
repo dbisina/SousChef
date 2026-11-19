@@ -7,6 +7,7 @@ import { FIXED, TOKEN_HEX } from '@/stores/themeStore';
 import { FONT } from './fonts';
 import { Glass } from './Glass';
 import { Backdrop } from './Backdrop';
+import { optimizedSource } from '@/lib/mediaUrl';
 import { ToneBlock } from './tone';
 
 export type PhotoSource = ImageSource | number;
@@ -81,7 +82,7 @@ export function PhotoCard({
     <ToneBlock tone="dark" style={[frame, inner, onPress ? { width: '100%' } : null]}>
       {source ? (
         <Image
-          source={source}
+          source={optimizedSource(source, 640)}
           style={StyleSheet.absoluteFill}
           contentFit="cover"
           contentPosition={focus}

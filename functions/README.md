@@ -1,4 +1,4 @@
-# Firebase Cloud Functions for SousChef
+# Firebase Cloud Functions for enplace
 
 YouTube video download service using ytdl-core.
 

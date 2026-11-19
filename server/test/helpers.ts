@@ -5,6 +5,9 @@ import type { IdTokenVerifier, VerifiedIdentity } from '../src/auth/idToken';
 import type { Mailer } from '../src/auth/mailer';
 import { loadConfig, type Config } from '../src/config';
 import type { VideoTextSource } from '../src/imports/videoText';
+import type { VideoFrame, VideoFrameSource } from '../src/imports/videoFrames';
+import type { WebSearch } from '../src/imports/webSearch';
+import type { ImageGenerator } from '../src/ai/imageGen';
 import { errors } from '../src/errors';
 import type { Db } from '../src/db';
 import type { ChatEvent } from '@shared';
@@ -84,6 +87,12 @@ export class FakeStorage implements Storage {
   async head(key: string) {
     return this.files.get(key) ?? null;
   }
+  /** Keys a test wants the store to refuse. */
+  readonly failWrite = new Set<string>();
+  async write(key: string, bytes: Buffer, contentType: string) {
+    if (this.failWrite.has(key)) throw new Error('storage unavailable');
+    this.put(key, bytes.byteLength, contentType, bytes);
+  }
   async delete(key: string) {
     if (this.failDelete.has(key)) throw new Error('storage unavailable');
     this.files.delete(key);
@@ -142,7 +151,7 @@ export interface TestApp {
   close(): Promise<void>;
 }
 
-export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null } = {}): Promise<TestApp> {
+export async function makeApp(configOverrides: Record<string, string> = {}, options: { storage?: Storage | null; hub?: Partial<HubOptions>; videoText?: VideoTextSource | null; videoFrames?: VideoFrameSource | null; webSearch?: WebSearch | null; imageGenerator?: ImageGenerator | null; stepImageFetch?: typeof fetch; phoneVideo?: { download: (url: string, cookie?: string) => Promise<Buffer>; frames: (bytes: Buffer) => Promise<VideoFrame[]> } | null } = {}): Promise<TestApp> {
   const push = new FakePushSender();
   const ai = makeFakeAi();
   const web = new FakeWeb();
@@ -161,13 +170,18 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     aiProviders: ai.all,
     importRequester: web.requester,
     videoText: options.videoText ?? null,
+    videoFrames: options.videoFrames ?? null,
+    webSearch: options.webSearch ?? null,
+    imageGenerator: options.imageGenerator ?? null,
+    ...(options.stepImageFetch ? { stepImageFetch: options.stepImageFetch } : {}),
+    phoneVideo: options.phoneVideo ?? null,
     ...(options.hub ? { hub: options.hub } : {}),
     now: () => new Date(Date.now() + offset),
   });
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem", "StepImage", "StepImageUse", "IngredientPhoto", "PromoCode", "Sale" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();
@@ -176,6 +190,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
     storage.files.clear();
     storage.deleted.length = 0;
     storage.failDelete.clear();
+    storage.failWrite.clear();
     offset = 0;
     mail.resets.length = 0;
   };

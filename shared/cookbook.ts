@@ -1,4 +1,4 @@
-// Curated cookbooks: collections of recipes written by SousChef staff. Dates are ISO strings.
+// Curated cookbooks: collections of recipes written by enplace staff. Dates are ISO strings.
 
 export interface CookbookSummary {
   id: string;

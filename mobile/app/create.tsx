@@ -1,7 +1,8 @@
 import { View } from 'react-native';
 import { useRouter, type Href } from 'expo-router';
-import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim } from '@/components/ui';
-import type { IconName } from '@/components/ui';
+import { PhotoCard, Rows, ListRow, Screen, TopBar, UIconButton, H1, Dim, type IconName, type PhotoSource } from '@/components/ui';
+import { PHOTOS, type PhotoName } from '@/assets/photos';
+import { GAME_ART, type GameArtName } from '@/assets/games';
 
 interface Tile {
   title: string;
@@ -15,17 +16,17 @@ interface Row {
   href: Href;
 }
 
-const TILES: Tile[] = [
-  { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href },
-  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href },
-  { title: 'Start a game', subtitle: 'Mystery Kitchen', href: '/play/mystery/lobby' as Href },
-  { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href },
+const TILES: (Tile & { photo: PhotoName; art?: GameArtName })[] = [
+  { title: 'Write a recipe', subtitle: 'Paste, say or type it', href: '/recipe/new' as Href, photo: 'greens' },
+  { title: 'Import a link', subtitle: 'Video or website', href: '/import' as Href, photo: 'tacos' },
+  { title: 'Scan a cookbook', subtitle: 'Pages to recipes', href: '/cookbook-library' as Href, photo: 'cookbook' },
+  { title: 'New post', subtitle: 'Recipe, photo, video', href: '/post/new' as Href, photo: 'plating' },
 ];
 
 const ROWS: Row[] = [
   { title: 'Scan my plate', icon: 'scan', href: '/(tabs)/scan' as Href },
   { title: 'Log a reading', icon: 'drop', href: '/health/log' as Href },
-  { title: 'Write a recipe', icon: 'edit', href: '/(tabs)/upload' as Href },
+  { title: 'Start a game', icon: 'gamepad', href: '/play/mystery/lobby' as Href },
 ];
 
 export default function CreateScreen() {
@@ -47,6 +48,8 @@ export default function CreateScreen() {
         {TILES.map((t) => (
           <PhotoCard
             key={t.title}
+            source={(t.art ? GAME_ART[t.art] : PHOTOS[t.photo]) as PhotoSource}
+            fade="both"
             height={170}
             radius={26}
             width="48%"

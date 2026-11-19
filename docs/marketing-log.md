@@ -1,4 +1,7 @@
-# SousChef marketing log
+# enplace marketing log
+- 2026-11-16: Recipes imported from TikTok, Instagram and YouTube are now read by watching the video itself on the server (no screenshots), and typing what you want to cook searches the web for a real recipe.
+- 2026-11-16: Game questions come with real, licence-checked photos of the dish; solo Mystery Kitchen starts straight away; people pick their own @username and follower counts are real.
+- 2026-11-16: Home header redone (plus button, centred name), proper settings icon, bug report and developer contact, back-to-home from cooking fixed, the app's own food photos are back on Meal Plan, Pantry and Shopping.
 
 One place to turn what we build into posts. Every feature gets a block; every commit that ships something adds a line to
 the **build diary** at the bottom. If a feature is not honest to show yet, its status says so.
@@ -10,7 +13,7 @@ we must not overclaim.
 **Status words:** `built` (code written), `tested` (automated tests pass), `device-check` (still needs a real phone before
 we film it), `needs-keys` (needs a real AI/payment account to work for real).
 
-**Voice:** warm, plain, cook-first. SousChef helps you waste less, spend less and cook more. Never pretend official
+**Voice:** warm, plain, cook-first. enplace helps you waste less, spend less and cook more. Never pretend official
 accounts are people. Health content is numbers only, never advice.
 
 ---
@@ -112,15 +115,15 @@ someone already imported costs nothing (it is cached).
 **Post ideas:** 1. Chef spotlight series. 2. Carousel: "What staff look for." 3. Outreach post to cooks with a portfolio.
 **Careful:** the badge needs a paid plan and review; do not imply paying buys trust. `built, tested`.
 
-## 15. Official SousChef accounts (clearly labelled)
-**What:** SousChef can post as a labelled official account (never pretending to be a person) so the feed is not empty on day one.
+## 15. Official enplace accounts (clearly labelled)
+**What:** enplace can post as a labelled official account (never pretending to be a person) so the feed is not empty on day one.
 **Hook (careful tone):** "New here? These are our official kitchens."
 **Careful:** always labelled official. No fake people, no fake reviews. `built, tested`.
 
 ## 16. Safety by design
 **What:** two layers: quick rules (spam links, banned words) when you post, then an AI check after publishing that hides clear problems for staff to review. Staff can suspend accounts; people can report anything.
 **Hook:** "A kitchen community that stays kind."
-**Post ideas:** 1. Trust carousel: "How we keep SousChef friendly." 2. Reel: report a post, see it handled. 3. Build-in-public: "Post first, check after: why."
+**Post ideas:** 1. Trust carousel: "How we keep enplace friendly." 2. Reel: report a post, see it handled. 3. Build-in-public: "Post first, check after: why."
 `built, tested`.
 
 ## 17. Swap an ingredient with AI
@@ -199,8 +202,15 @@ someone already imported costs nothing (it is cached).
 - **Build in public:** one honest engineering lesson per week (cost caps, tests, safety choices).
 
 # Build diary (newest first; append one line per shipped change)
+- 2026-11-17: **A feed that learns you.** What you like, save, cook and say "not interested" to starts shaping your feed within a minute (gently at first, more as you use it), and one cuisine or one account cannot fill it. Every recipe page has "More like this", Home has "Because of <what you cooked>", and Spools come in your own order. A switch in settings turns learning off and forgets it (docs/recommender.md).
+- 2026-11-17: **Step-by-step video clips.** Import a cooking video and each step plays its own short clip in cook mode (private to you, never shared).
+- 2026-11-17: 32 official accounts are set up (recipes with verified photos are still being added to the new ones), so a new user's feed starts full. Cook someone's recipe and share it: the post says "Cooked with <cook>'s <recipe>" and links back, and the recipe's writer gets a notification.
+- 2026-11-17: Profile laid out the familiar way (photo on the left, posts / followers / following beside it, name and bio under, Edit and Share buttons), the same for everyone's profile.
+- 2026-11-17: The app is now **enplace** (always lowercase), with a connected-script wordmark on the home header and an opening animation ("mise en place" becomes "enplace"). Reels are now **Spools** (a spool of film: the scrollable cooking videos).
+- 2026-11-17: Restaurants and delivery are out for now (no delivery step in setup, no order screens, no grocery promo ad); pantry and the shopping list stay.
+- 2026-11-17: Cloudflare R2 holds the files and Cloudinary resizes the pictures for phones (smaller, faster images on mobile data).
 - 2026-11-15: Existing accounts keep working: sign in with Firebase as before and the server takes it from there (no password resets, no new accounts to make).
-- 2026-11-15: Starter content for a fresh server: official SousChef accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
+- 2026-11-15: Starter content for a fresh server: official enplace accounts, 10 recipes, 3 cookbooks, official posts and 14 Daily Dish puzzles from one command. Also fixed calories: amounts in grams were read as ounces, so some recipes showed thousands of calories.
 - 2026-11-15: App screens for every AI helper: tonight card, pantry photo scan, waste coach, health summary, cook-along chat, recipe rewriter, plate check, caption helper, smart search, shop-order list, chat reply/summary, scaling notes while posting.
 - 2026-11-15: Cook-to-scale for any headcount: Gemini estimates, creators' notes teach it, the app labels where numbers came from.
 - 2026-11-15: AI substitutions, AI meal plans and cookbook-page scanning moved to the server (allergy rules enforced in code). PR #25.

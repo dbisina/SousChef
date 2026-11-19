@@ -19,12 +19,16 @@ import {
   UButton,
   UCard,
   UInput,
+  type PhotoSource,
 } from '@/components/ui';
+import { GAME_ART, SOLO_GAME_ART } from '@/assets/games';
+
 import { apiSoloGames } from '@/services/soloApi';
 import type { SoloGameInfo } from '@shared/index';
 import { FIXED } from '@/stores/themeStore';
 import { puzzleNumberFor } from '@/lib/dailyDish';
 import { selectDailyStreak, usePlayStore } from '@/stores/playStore';
+
 
 export default function PlayScreen() {
   const router = useRouter();
@@ -66,6 +70,7 @@ export default function PlayScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <PhotoCard
+          source={GAME_ART.mystery_kitchen as PhotoSource}
           height={290}
           fade="both"
           topLeft={
@@ -140,6 +145,8 @@ export default function PlayScreen() {
             {solo.map((g) => (
               <PhotoCard
                 key={g.id}
+                source={(GAME_ART[SOLO_GAME_ART[g.id] ?? 'kitchen_trivia']) as PhotoSource}
+                fade="both"
                 height={150}
                 radius={24}
                 width="47.5%"

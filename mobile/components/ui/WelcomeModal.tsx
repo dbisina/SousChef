@@ -193,7 +193,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShow
                 <H1>
                   <Dim>{t('welcome.modal.line1', 'Welcome to')}</Dim>
                   {'\n'}
-                  SousChef
+                  enplace
                 </H1>
                 <Muted>{t('welcome.modal.subtitle', 'Your AI cooking companion.')}</Muted>
               </View>

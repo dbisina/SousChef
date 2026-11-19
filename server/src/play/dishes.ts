@@ -7,6 +7,12 @@ export interface MkDish {
   basket: string[];
   /// Warmest last. Buying one costs the player points.
   hints: [string, string, string];
+  /** How to cook it, step by step, never naming the dish (the built-in list has none; the pool writes them). */
+  steps?: string[];
+  /** A real photo of the finished dish, when there is one. */
+  photoUrl?: string | null;
+  /** The pool row it came from, so what is learned about it (steps, photo) can be kept. */
+  poolId?: string;
 }
 
 export const DISHES: MkDish[] = [

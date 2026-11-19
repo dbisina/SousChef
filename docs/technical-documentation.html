@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SousChef Technical Documentation - RevenueCat Shipyard</title>
+    <title>enplace Technical Documentation - RevenueCat Shipyard</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -533,7 +533,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <header>
-                <h1>SousChef</h1>
+                <h1>enplace</h1>
                 <div class="subtitle">Technical Documentation</div>
             </header>
 
@@ -578,7 +578,7 @@
             <section id="overview">
                 <h2>Architecture Overview</h2>
                 <p>
-                    SousChef is designed as a modern, AI-first culinary assistant that transforms how users discover,
+                    enplace is designed as a modern, AI-first culinary assistant that transforms how users discover,
                     organize, and execute recipes.
                     The architecture prioritizes offline-first capabilities where possible, real-time synchronization,
                     and low-latency interaction
@@ -730,7 +730,7 @@
                 </div>
 
                 <h3>State Management Flow</h3>
-                <p>SousChef uses Zustand for predictable state management across multiple domains:</p>
+                <p>enplace uses Zustand for predictable state management across multiple domains:</p>
 
                 <div class="timeline">
                     <div class="timeline-item">
@@ -856,7 +856,7 @@
                     <div class="glass-card">
                         <h4>Why Zustand?</h4>
                         <p>
-                            Zustand provides a simpler mental model than Redux. For SousChef's use cases (shopping
+                            Zustand provides a simpler mental model than Redux. For enplace's use cases (shopping
                             lists, timers), its hooks-based API
                             integrates seamlessly with React Native with minimal bundle size impact.
                         </p>
@@ -868,7 +868,7 @@
             <section id="revenuecat">
                 <h2>RevenueCat Implementation</h2>
                 <p>
-                    The core monetization strategy relies on the <strong>SousChef Pro</strong> subscription. RevenueCat
+                    The core monetization strategy relies on the <strong>enplace Pro</strong> subscription. RevenueCat
                     is the backbone of this system,
                     abstracting away the complexity of iOS and Android in-app purchase handling.
                 </p>
@@ -953,7 +953,7 @@ const handleImportRecipe = async (url: string) => {
             <section id="ai-workflow">
                 <h2>AI Workflow & Model Architecture</h2>
                 <p>
-                    SousChef employs a dual-model AI architecture: <strong>Gemini 2.0 Flash</strong> for text-based tasks (meal planning, substitutions, cooking tips) and <strong>Gemini 3 Flash Preview</strong> for vision/multimodal tasks (video/image recipe extraction, portion analysis).
+                    enplace employs a dual-model AI architecture: <strong>Gemini 2.0 Flash</strong> for text-based tasks (meal planning, substitutions, cooking tips) and <strong>Gemini 3 Flash Preview</strong> for vision/multimodal tasks (video/image recipe extraction, portion analysis).
                 </p>
 
                 <h3>Model Selection Strategy</h3>
@@ -972,12 +972,12 @@ const handleImportRecipe = async (url: string) => {
 
                 <div class="alert-box alert-info">
                     <h4>Multi-Key Failover System</h4>
-                    <p>SousChef implements automatic API key rotation with up to 5 keys. When one key reaches quota (429), hits rate limits, or returns auth errors (401/403), the system automatically rotates to the next available key. Ensures 99.9% uptime for AI features.</p>
+                    <p>enplace implements automatic API key rotation with up to 5 keys. When one key reaches quota (429), hits rate limits, or returns auth errors (401/403), the system automatically rotates to the next available key. Ensures 99.9% uptime for AI features.</p>
                 </div>
 
                 <h3>YouTube Video Download Infrastructure</h3>
                 <p>
-                    YouTube recipe videos require special handling due to YouTube's bot protection. SousChef uses a Firebase Cloud Function with <strong>yt-dlp</strong> (Python-based YouTube downloader) to reliably download videos at the lowest quality for AI analysis.
+                    YouTube recipe videos require special handling due to YouTube's bot protection. enplace uses a Firebase Cloud Function with <strong>yt-dlp</strong> (Python-based YouTube downloader) to reliably download videos at the lowest quality for AI analysis.
                 </p>
 
                 <div class="card-grid">
@@ -1112,7 +1112,7 @@ const handleImportRecipe = async (url: string) => {
             <section id="meal-planning">
                 <h2>AI-Powered Meal Planning</h2>
                 <p>
-                    SousChef's meal planning feature uses AI to generate personalized weekly meal plans that optimize ingredient usage, reduce food waste, and respect dietary preferences.
+                    enplace's meal planning feature uses AI to generate personalized weekly meal plans that optimize ingredient usage, reduce food waste, and respect dietary preferences.
                 </p>
 
                 <h3>Automatic Plan Generation</h3>
@@ -1189,7 +1189,7 @@ const handleImportRecipe = async (url: string) => {
 
                 <div class="alert-box alert-success">
                     <h4>Pro Feature</h4>
-                    <p>AI meal plan generation requires a SousChef Pro subscription. Free users can view and manually create meal plans.</p>
+                    <p>AI meal plan generation requires an enplace Pro subscription. Free users can view and manually create meal plans.</p>
                 </div>
             </section>
 
@@ -1376,7 +1376,7 @@ match /users/{userId} {
                 <section id="performance">
                     <h2>Performance Metrics & Optimizations</h2>
                     <p>
-                        SousChef is heavily optimized for low-latency interactions. Recent optimizations reduced re-renders by 70%, memory by 29%, and image load times by 75%.
+                        enplace is heavily optimized for low-latency interactions. Recent optimizations reduced re-renders by 70%, memory by 29%, and image load times by 75%.
                     </p>
 
                     <div class="stats-grid">
@@ -1506,7 +1506,7 @@ match /users/{userId} {
                 </section>
 
                 <footer>
-                    <p>&copy; 2026 SousChef. Built for RevenueCat Shipyard Creator Contest.</p>
+                    <p>&copy; 2026 enplace. Built for RevenueCat Shipyard Creator Contest.</p>
                 </footer>
 
         </main>

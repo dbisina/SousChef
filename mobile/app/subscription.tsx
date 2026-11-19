@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import type { SaleView } from '@shared/index';
+import { ApiError } from '@/lib/api';
+import { currentSale, redeemCode, redeemProblem, saleLine } from '@/services/promoApi';
 import { Stack, router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import {
@@ -27,7 +30,7 @@ import {
   Rows,
   FONT,
 } from '@/components/ui';
-import { getSubscriptionExpiryDate, willSubscriptionRenew } from '@/lib/revenuecat';
+import { getSubscriptionExpiryDate, presentAppleCodeSheet, willSubscriptionRenew } from '@/lib/revenuecat';
 import { showSuccessToast, showErrorToast } from '@/stores/toastStore';
 
 export default function SubscriptionScreen() {
@@ -59,6 +62,35 @@ export default function SubscriptionScreen() {
   const [useRevenueCatUI] = useState(true); // Toggle between custom and RC paywall
   const [refreshing, setRefreshing] = useState(false);
 
+  // A sale staff announced, shown as one calm line (the real discount is a store offer).
+  const [sale, setSale] = useState<SaleView | null>(null);
+  useEffect(() => {
+    void currentSale().then(setSale);
+  }, []);
+
+  // Redeem a code: Apple's own sheet on iPhone; on Android the person types a code from us.
+  const [code, setCode] = useState('');
+  const [redeeming, setRedeeming] = useState(false);
+  const [codeProblem, setCodeProblem] = useState('');
+  const handleRedeem = async () => {
+    if (Platform.OS === 'ios') {
+      if (await presentAppleCodeSheet()) await refreshCustomerInfo();
+      return;
+    }
+    setCodeProblem('');
+    setRedeeming(true);
+    try {
+      await redeemCode(code);
+      setCode('');
+      await refreshCustomerInfo();
+      showSuccessToast(t('account.sub.codeWorked', 'Your code worked. Enjoy!'), t('account.sub.codeWorkedTitle', 'Code redeemed'));
+    } catch (error) {
+      setCodeProblem(redeemProblem(error instanceof ApiError ? error.code : undefined));
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await Promise.all([refreshCustomerInfo(), refreshUsage()]);
@@ -71,7 +103,7 @@ export default function SubscriptionScreen() {
       const result = await presentPaywall();
       if (result.status === 'purchased' || result.status === 'restored') {
         showSuccessToast(
-          t('account.sub.welcomeAboard', "Welcome aboard! Thank you for subscribing to SousChef. We're so excited to have you!"),
+          t('account.sub.welcomeAboard', "Welcome aboard! Thank you for subscribing to enplace. We're so excited to have you!"),
           t('account.sub.successTitle', 'Success!')
         );
       }
@@ -210,7 +242,7 @@ export default function SubscriptionScreen() {
         <UCard tone="black" style={{ gap: 8, borderRadius: 30, padding: 20 }}>
           <SectionLabel>{t('account.sub.currentPlan', 'Current plan')}</SectionLabel>
           <View className="flex-row items-center" style={{ gap: 10 }}>
-            <Display size={32} style={{ lineHeight: 46.4 }}>{subscriptionTier === 'free' ? t('account.sub.freePlan', 'SousChef Free') : tierName}</Display>
+            <Display size={32} style={{ lineHeight: 46.4 }}>{subscriptionTier === 'free' ? t('account.sub.freePlan', 'enplace Free') : tierName}</Display>
             {isSubscribed ? <PremiumBadge tier={subscriptionTier} size="small" showIcon={false} /> : null}
           </View>
           <Muted small>{planNote}</Muted>
@@ -238,6 +270,44 @@ export default function SubscriptionScreen() {
           {flagRow(t('account.sub.offline', 'Offline Access'), currentFeatures.offlineAccess)}
           {flagRow(t('account.sub.nutrition', 'Advanced Nutrition'), currentFeatures.advancedNutrition)}
         </Rows>
+
+        {sale ? (
+          <UCard>
+            <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+              {saleLine(sale)}
+            </Text>
+          </UCard>
+        ) : null}
+
+        <UCard style={{ gap: 10 }}>
+          <Text className="text-ink" style={{ fontFamily: FONT.display, fontSize: 15 }}>
+            {t('account.sub.haveCode', 'Have a code?')}
+          </Text>
+          {Platform.OS === 'ios' ? (
+            <UButton variant="ghost" label={t('account.sub.redeemApple', 'Redeem with Apple')} onPress={handleRedeem} />
+          ) : (
+            <>
+              <TextInput
+                value={code}
+                onChangeText={setCode}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                placeholder={t('account.sub.codePlaceholder', 'Enter code')}
+                accessibilityLabel={t('account.sub.codeLabel', 'Plan code')}
+                maxLength={40}
+                style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingHorizontal: 14, minHeight: 48, fontFamily: FONT.sans, fontSize: 16, color: colors.text }}
+              />
+              {codeProblem ? <Muted small>{codeProblem}</Muted> : null}
+              <UButton
+                variant="ghost"
+                label={redeeming ? t('account.sub.checking', 'Checking...') : t('account.sub.redeem', 'Redeem')}
+                loading={redeeming}
+                disabled={code.trim().length < 4}
+                onPress={handleRedeem}
+              />
+            </>
+          )}
+        </UCard>
 
         {!isPro ? (
           <UCard

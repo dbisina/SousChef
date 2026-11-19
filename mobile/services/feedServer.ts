@@ -1,4 +1,4 @@
-// The feed from the SousChef server, shaped the way the feed screens already read it. Used by socialStore when
+// The feed from the enplace server, shaped the way the feed screens already read it. Used by socialStore when
 // EXPO_PUBLIC_API_URL is set.
 //
 // Two ids need care. The signed-in person is "me" (ME_ID) everywhere in the screens, so their server id is swapped for it
@@ -39,6 +39,7 @@ export function toPost(p: ApiPost, meId: string): Post {
     caption: p.caption,
     ...(p.meta ? { meta: p.meta } : {}),
     ...(p.recipeId ? { recipeId: p.recipeId } : {}),
+    ...(p.recipe ? { cookedWith: { recipeId: p.recipe.id, title: p.recipe.title, authorId: localId(p.recipe.author.id, meId), authorHandle: p.recipe.author.handle ?? '', authorName: p.recipe.author.displayName } } : {}),
     ...(p.communityId ? { communityId: p.communityId } : {}),
     likes: p.likeCount,
     commentCount: p.commentCount,
@@ -111,6 +112,8 @@ export function toEvent(e: ApiEvent): CommunityEvent {
 }
 
 export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 'reels' | 'stories' | 'communities' | 'challenges' | 'events'> {
+  /** The posts picked for this person, best first (the server's own order: the list above is sorted by date). */
+  forYouIds: string[];
   joinedCommunityIds: string[];
   likedPostIds: string[];
   savedPostIds: string[];
@@ -120,13 +123,15 @@ export interface ServerFeed extends Pick<FeedSnapshot, 'authors' | 'posts' | 're
 }
 
 /** Everything the home feed needs in one go: posts from people you follow and ones picked for you, and the story row. */
-export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
+export async function fetchServerFeed(meId: string, guest = false): Promise<ServerFeed> {
+  // A guest has no account on the server: only the public calls (picked-for-you posts, communities to discover) work for them.
+  const none = <T,>(empty: T): Promise<T> => Promise.resolve(empty);
   const [following, forYou, tray, follows, mine, discover] = await Promise.all([
-    apiFeed('following', { limit: 30 }),
+    guest ? none({ items: [] as ApiPost[] }) : apiFeed('following', { limit: 30 }),
     apiFeed('for-you', { limit: 30 }),
-    apiStoryTray(),
-    apiFollowing(meId, { limit: 100 }).catch(() => ({ items: [] as Participant[] })),
-    apiMyCommunities().catch(() => [] as CommunitySummary[]),
+    guest ? none([] as Awaited<ReturnType<typeof apiStoryTray>>) : apiStoryTray(),
+    guest ? none({ items: [] as Participant[] }) : apiFollowing(meId, { limit: 50 }).catch(() => ({ items: [] as Participant[] })),
+    guest ? none([] as CommunitySummary[]) : apiMyCommunities().catch(() => [] as CommunitySummary[]),
     apiDiscoverCommunities().catch(() => [] as CommunitySummary[]),
   ]);
 
@@ -155,10 +160,15 @@ export async function fetchServerFeed(meId: string): Promise<ServerFeed> {
   for (const g of tray) people.set(g.author.id, g.author);
   for (const f of follows.items) people.set(f.id, f);
 
-  const videos = posts.filter((p) => p.videoUrl);
+  // Videos picked for this person come first, in the server's order; the rest follow, newest first.
+  const rank = new Map(forYou.items.map((p, i) => [p.id, i]));
+  const videos = posts
+    .filter((p) => p.videoUrl)
+    .sort((a, b) => (rank.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.id) ?? Number.MAX_SAFE_INTEGER) || b.createdAt.localeCompare(a.createdAt));
   return {
     authors: [...people.values()].map((p) => toAuthor(p, meId)),
     posts: posts.map((p) => toPost(p, meId)),
+    forYouIds: forYou.items.map((p) => p.id),
     reels: videos.map((p) => toReel(p, meId)),
     stories: toStories(tray, meId),
     communities: communities.map(toCommunity),

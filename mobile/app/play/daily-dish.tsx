@@ -19,7 +19,7 @@ import {
   UInput,
   useTokens,
 } from '@/components/ui';
-import { Backdrop } from '@/components/ui/Backdrop';
+import { GAME_ART } from '@/assets/games';
 import { MAX_CLUES, MAX_GUESSES, clueSlots, isCorrect } from '@/lib/dailyDish';
 import {
   selectDailyPuzzle,
@@ -36,6 +36,7 @@ export default function DailyDishScreen() {
   const puzzle = usePlayStore((s) => selectDailyPuzzle(s));
   const streak = usePlayStore((s) => selectDailyStreak(s));
   const score = usePlayStore((s) => selectDailyScore(s));
+  const serverDaily = usePlayStore((s) => s.serverDaily);
   const startDaily = usePlayStore((s) => s.startDaily);
   const revealNextClue = usePlayStore((s) => s.revealNextClue);
   const guessDaily = usePlayStore((s) => s.guessDaily);
@@ -45,7 +46,9 @@ export default function DailyDishScreen() {
     startDaily();
   }, [startDaily]);
 
-  const slots = useMemo(() => (daily ? clueSlots(puzzle, daily) : []), [puzzle, daily]);
+  // The server's puzzle may have fewer than six clues: show exactly the ones it has.
+  const total = Math.min(MAX_CLUES, serverDaily?.cluesTotal ?? MAX_CLUES);
+  const slots = useMemo(() => (daily ? clueSlots(puzzle, daily).slice(0, total) : []), [puzzle, daily, total]);
 
   if (!daily) {
     return (
@@ -65,21 +68,34 @@ export default function DailyDishScreen() {
   return (
     <Screen
       scroll
-      bottomSpace={130}
+      bottomSpace={playing ? 230 : 130}
       footer={
         <CtaBar>
           {playing ? (
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <View style={{ width: 150 }}>
-                <UButton
-                  variant="ghost"
-                  label={t('play.daily.nextClue', 'Next clue')}
-                  disabled={daily.cluesShown >= MAX_CLUES}
-                  onPress={revealNextClue}
-                />
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <UButton label={t('play.daily.guess', 'Guess')} disabled={!text.trim()} onPress={submit} />
+            <View style={{ gap: 10 }}>
+              <UInput
+                label={t('play.daily.inputLabel', 'Guess the dish')}
+                placeholder={t('play.daily.inputPlaceholder', 'Type your guess')}
+                icon="search"
+                value={text}
+                onChangeText={setText}
+                onSubmitEditing={submit}
+                returnKeyType="go"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                <View style={{ width: 150 }}>
+                  <UButton
+                    variant="ghost"
+                    label={t('play.daily.nextClue', 'Next clue')}
+                    disabled={daily.cluesShown >= total}
+                    onPress={revealNextClue}
+                  />
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <UButton label={t('play.daily.guess', 'Guess')} disabled={!text.trim()} onPress={submit} />
+                </View>
               </View>
             </View>
           ) : (
@@ -96,14 +112,22 @@ export default function DailyDishScreen() {
       />
 
       <View className="bg-surface-3 overflow-hidden" style={{ height: 240, borderRadius: 30 }}>
-        <Backdrop />
+        {!playing && serverDaily?.photoUrl ? <Image source={{ uri: serverDaily.photoUrl }} contentFit="cover" transition={200} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} /> : <Image source={GAME_ART.daily_dish} contentFit="cover" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />}
+        <View className="items-center justify-center" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, gap: 10 }}>
+          <Icon name={playing ? 'help' : daily.status === 'solved' ? 'check' : 'close'} size="lg" />
+          {playing ? (
+            <RNText className="text-ink text-center" style={{ fontFamily: FONT.sansMedium, fontSize: 14, paddingHorizontal: 32, lineHeight: 20 }}>
+              {t('play.daily.prompt', 'Guess the dish from its clues. Stuck? Tap Next clue for another, at a small cost in points.')}
+            </RNText>
+          ) : null}
+        </View>
         <View style={{ position: 'absolute', top: 14, left: 14 }}>
           <Tag
             tone="glassDark"
             large
             label={
               playing
-                ? t('play.daily.clueOf', 'Clue {{n}} of {{max}}', { n: daily.cluesShown, max: MAX_CLUES })
+                ? t('play.daily.clueOf', 'Clue {{n}} of {{max}}', { n: daily.cluesShown, max: total })
                 : daily.status === 'solved'
                   ? t('play.daily.solved', 'Solved · +{{n}} pts', { n: score })
                   : t('play.daily.failed', 'Not this time')
@@ -143,9 +167,7 @@ export default function DailyDishScreen() {
                   borderColor: tk.line,
                 }}
               >
-                <RNText className="text-subtle" style={{ fontFamily: FONT.sansMedium, fontSize: 13 }}>
-                  ?
-                </RNText>
+                <Icon name="lock" size="sm" />
               </View>
             ),
           )}
@@ -175,19 +197,6 @@ export default function DailyDishScreen() {
         </View>
       ) : null}
 
-      {playing ? (
-        <UInput
-          label={t('play.daily.inputLabel', 'Guess the dish')}
-          placeholder={t('play.daily.inputPlaceholder', 'Type your guess')}
-          icon="search"
-          value={text}
-          onChangeText={setText}
-          onSubmitEditing={submit}
-          returnKeyType="go"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-      ) : null}
     </Screen>
   );
 }

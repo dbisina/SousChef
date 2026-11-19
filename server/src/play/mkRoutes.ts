@@ -4,7 +4,9 @@ import type { CreateRoomRequest, JoinRoomRequest, SubmitPlateRequest } from '@sh
 import { parse } from '../auth/schemas';
 import type { AuthService } from '../auth/service';
 import { viewerResolvers } from '../auth/viewer';
+import { errors } from '../errors';
 import type { MysteryKitchenService } from './mysteryKitchen';
+import type { StepImageService } from './stepImages';
 
 const createSchema = z.object({
   mode: z.enum(['solo', 'group']),
@@ -18,7 +20,7 @@ const plateSchema = z.object({
   note: z.string().trim().max(300).optional(),
 }) satisfies z.ZodType<SubmitPlateRequest>;
 
-export function mysteryKitchenRoutes(app: FastifyInstance, games: MysteryKitchenService, auth: AuthService): void {
+export function mysteryKitchenRoutes(app: FastifyInstance, games: MysteryKitchenService, auth: AuthService, stepImages?: StepImageService): void {
   const { requireViewer } = viewerResolvers(auth);
   const roomCode = (request: { params: unknown }) => parse(paramsSchema, request.params).code;
 
@@ -39,6 +41,14 @@ export function mysteryKitchenRoutes(app: FastifyInstance, games: MysteryKitchen
   app.post('/v1/play/rooms/:code/leave', async (request) => games.leave((await requireViewer(request)).userId, roomCode(request)));
 
   app.post('/v1/play/rooms/:code/hint', async (request) => games.hint((await requireViewer(request)).userId, roomCode(request)));
+
+  /** A picture of one cooking step. Paid plans only (each picture costs money); 403 upgrade_required for everyone else. */
+  app.get('/v1/play/rooms/:code/steps/:n/image', async (request) => {
+    const { userId } = await requireViewer(request);
+    const { n } = parse(z.object({ n: z.coerce.number().int().min(0).max(30) }), request.params);
+    if (!stepImages) throw errors.aiUnavailable('Step pictures are not available right now');
+    return stepImages.forStep(userId, roomCode(request), n);
+  });
 
   app.post('/v1/play/rooms/:code/plate', async (request) => {
     const { userId } = await requireViewer(request);

@@ -66,7 +66,7 @@ describe('substitutions', () => {
   it('keeps to the plan\'s daily allowance', async () => {
     const ama = await register(t);
     answer([{ substitute: 'oat milk', ratio: '1:1', notes: '', impact: 'minimal' }]);
-    for (let i = 0; i < 3; i++) expect((await ask(ama, { ingredient: `milk ${i}` })).statusCode).toBe(200);
+    for (let i = 0; i < 5; i++) expect((await ask(ama, { ingredient: `milk ${i}` })).statusCode).toBe(200);
     const blocked = await ask(ama, { ingredient: 'milk again' });
     expect(blocked.statusCode).toBe(409);
     expect(code(blocked)).toBe('limit_reached');
@@ -108,11 +108,19 @@ describe('a planned week', () => {
       });
   };
 
-  it('needs a Pro plan', async () => {
+  it('lets a free account try one a week, then says when it frees up (never a locked screen)', async () => {
+    const chef = await register(t);
+    const [rice] = await recipes(chef);
     const ama = await register(t);
-    const res = await plan(ama);
-    expect(res.statusCode).toBe(403);
-    expect(code(res)).toBe('upgrade_required');
+    planFor({ '2026-11-16': { dinner: rice!.id } });
+    expect((await plan(ama)).statusCode).toBe(200);
+    const blocked = await plan(ama);
+    expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
+    expect(blocked.json<ApiErrorBody>().error.message).toContain('week');
+    // After a week the allowance frees up again.
+    t.advance(8 * DAY_MS);
+    expect((await plan(ama)).statusCode).toBe(200);
   });
 
   it('plans the days asked for from real recipes, and works out the shopping list itself', async () => {
@@ -195,7 +203,7 @@ describe('a planned week', () => {
     expect((await plan(ama, { restrictions: ['vegetarian', 'vegan'] })).statusCode).toBe(409); // under three left
   });
 
-  it('checks the request and keeps to the daily allowance', async () => {
+  it('checks the request and keeps to the weekly allowance', async () => {
     const chef = await register(t);
     const [rice] = await recipes(chef);
     const ama = await register(t);
@@ -205,7 +213,7 @@ describe('a planned week', () => {
     expect((await plan(ama, { mealTypes: ['brunch'] })).statusCode).toBe(400);
     expect((await plan(undefined)).statusCode).toBe(401);
     planFor({ '2026-11-16': { dinner: rice!.id } });
-    for (let i = 0; i < 5; i++) expect((await plan(ama)).statusCode).toBe(200);
+    for (let i = 0; i < 10; i++) expect((await plan(ama)).statusCode).toBe(200);
     const blocked = await plan(ama);
     expect(blocked.statusCode).toBe(409);
     expect(code(blocked)).toBe('limit_reached');
@@ -252,11 +260,54 @@ describe('reading a cookbook page', () => {
     expect((await scan(undefined, { uploadIds: [mine.id] })).statusCode).toBe(401);
   });
 
-  it('counts against the same daily allowance as importing a link', async () => {
+  it('counts in the account pool for intensive AI (3 a week free), not the link-import allowance', async () => {
     const ama = await register(t);
     t.ai.gemini.handler = () => aiRecipe();
-    for (let i = 0; i < 5; i++) expect((await scan(ama, { uploadIds: [(await photo(ama)).id] })).statusCode).toBe(200);
+    for (let i = 0; i < 3; i++) expect((await scan(ama, { uploadIds: [(await photo(ama)).id] })).statusCode).toBe(200);
     const blocked = await scan(ama, { uploadIds: [(await photo(ama)).id] });
     expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
+  });
+});
+
+describe('reading a written recipe', () => {
+  const aiRecipe = () =>
+    JSON.stringify({ found: true, title: 'Moi Moi', description: 'Steamed bean pudding', servings: 6, ingredients: [{ name: 'beans', amount: 2, unit: 'cup' }, { name: 'pepper', amount: 2, unit: '' }], instructions: ['Blend the beans.', 'Steam for an hour.'], confidence: 0.8 });
+  const read = (who: Who | undefined, body: object) => call(t, 'POST', '/v1/imports/text', who, body);
+  const note = 'Moi moi: 2 cups beans, 2 peppers. Blend the beans and peppers. Steam for an hour.';
+
+  it('turns typed or dictated text into a draft and keeps nothing', async () => {
+    const ama = await register(t);
+    t.ai.gemini.handler = () => aiRecipe();
+    t.ai.deepseek.handler = () => aiRecipe();
+    const res = await read(ama, { text: note });
+    expect(res.statusCode).toBe(200);
+    const { recipe } = res.json<{ recipe: ImportedRecipe }>();
+    expect(recipe).toMatchObject({ title: 'Moi Moi', servings: 6, sourceUrl: 'text:written' });
+    expect(recipe.ingredients).toHaveLength(2);
+    expect(recipe.instructions).toHaveLength(2);
+    const sent = [...t.ai.gemini.calls, ...t.ai.deepseek.calls].at(-1);
+    expect(sent?.task).toBe('extract_recipe');
+    expect(sent?.prompt).toContain('2 cups beans'); // the text is passed on, inside a block it cannot escape as instructions
+  });
+
+  it('refuses text that is too short, text with no recipe in it, and a stranger', async () => {
+    const ama = await register(t);
+    expect((await read(ama, { text: 'soup' })).statusCode).toBe(400);
+    expect((await read(ama, {})).statusCode).toBe(400);
+    t.ai.gemini.handler = () => JSON.stringify({ found: false });
+    t.ai.deepseek.handler = () => JSON.stringify({ found: false });
+    expect((await read(ama, { text: 'Hello, how are you doing today? Nice weather we have.' })).statusCode).toBe(400);
+    expect((await read(undefined, { text: note })).statusCode).toBe(401);
+  });
+
+  it('uses the same daily allowance as other imports', async () => {
+    const ama = await register(t);
+    t.ai.gemini.handler = () => aiRecipe();
+    t.ai.deepseek.handler = () => aiRecipe();
+    for (let i = 0; i < 5; i++) expect((await read(ama, { text: note })).statusCode).toBe(200);
+    const blocked = await read(ama, { text: note });
+    expect(blocked.statusCode).toBe(409);
+    expect(code(blocked)).toBe('limit_reached');
   });
 });

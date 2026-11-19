@@ -55,6 +55,8 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
+  /** The unique username people use to find and follow each other (shown as @handle). */
+  handle?: string;
   photoURL?: string;
   /** The wide picture across the top of the profile. */
   bannerURL?: string;
@@ -241,19 +243,35 @@ export interface AISubstitutionResult {
   tips: string[];
 }
 
+/** Estimated nutrition: grams, except sodium in milligrams. */
+export interface NutritionBreakdown {
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG: number;
+  sugarG: number;
+  sodiumMg: number;
+}
+
 export interface PortionAnalysis {
   detectedItems: DetectedItem[];
   suggestedServings: number;
   totalEstimatedCalories: number;
   recommendations: string[];
+  /** Set when the server read the plate: the totals of the items below. */
+  totalNutrition?: NutritionBreakdown;
+  /** Always shown with the numbers: a photo cannot give exact values. */
+  note?: string;
 }
 
 export interface DetectedItem {
   name: string;
   estimatedAmount: number;
   unit: string;
+  /** 0 to 1. */
   confidence: number;
   estimatedCalories: number;
+  nutrition?: NutritionBreakdown;
 }
 
 // Form types

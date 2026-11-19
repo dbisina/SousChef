@@ -9,7 +9,8 @@ import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
-import { Field, FONT, H1, Dim, Icon, Muted, Screen, TopBar, UButton } from '@/components/ui';
+import { Field, FONT, H1, Dim, Icon, Muted, PhotoCard, Screen, TopBar, UButton, type PhotoSource } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 const registerSchema = z
   .object({
@@ -79,6 +80,7 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          <PhotoCard source={PHOTOS.salad as PhotoSource} fade="both" height={170} radius={28} accessibilityLabel={t('welcome.register.line2', 'account')} />
           <View style={{ gap: 8, marginTop: 4, marginBottom: 8 }}>
             <H1 style={{ fontSize: 36, lineHeight: 39, letterSpacing: -1.08 }}>
               <Dim>{t('welcome.register.line1', 'Create your')}</Dim>

@@ -165,7 +165,7 @@ export function useGeminiLive(options: UseGeminiLiveOptions = {}): UseGeminiLive
         });
       } else {
         // General assistant mode
-        systemContext = `You are SousChef, a friendly cooking AI assistant. Help the user with cooking questions, pantry management, and meal planning.
+        systemContext = `You are enplace, a friendly cooking AI assistant. Help the user with cooking questions, pantry management, and meal planning.
 ${user?.allergies?.length ? `User allergies: ${user.allergies.join(', ')}` : ''}
 ${user?.healthConditions?.length ? `Health conditions: ${user.healthConditions.join(', ')}` : ''}
 ${user?.dietaryPreferences?.length ? `Dietary preferences: ${user.dietaryPreferences.join(', ')}` : ''}

@@ -69,6 +69,9 @@ import {
 
 // Wake word patterns
 const WAKE_WORD_PATTERNS = [
+  // The app's name: "enplace" (speech recognition often hears it as two words, or as "on place").
+  /\b(hey\s+|ok(?:ay)?\s+)?(?:en|on)\s*place\b/i,
+  /\b(?:hey|ok(?:ay)?)\s+(?:in|and)\s*place\b/i,
   /\b(hey\s+)?sous\s*chef\b/i,
   /\b(okay|ok)\s+sous\s*chef\b/i,
   /\bsue\s*chef\b/i, // Common misrecognition
@@ -279,12 +282,12 @@ export const setupVoiceListeners = (callbacks: VoiceEventCallback): void => {
 };
 
 // Check if transcript contains wake word
-const checkForWakeWord = (transcript: string): boolean => {
+export const checkForWakeWord = (transcript: string): boolean => {
   return WAKE_WORD_PATTERNS.some((pattern) => pattern.test(transcript));
 };
 
 // Extract the command portion after the wake word
-const extractCommandAfterWakeWord = (transcript: string): string => {
+export const extractCommandAfterWakeWord = (transcript: string): string => {
   // Remove wake word patterns and get the remaining command
   let command = transcript;
 

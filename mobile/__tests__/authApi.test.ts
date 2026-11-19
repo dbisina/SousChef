@@ -1,4 +1,4 @@
-// The auth store against a pretend server: the same screens, with accounts living on the SousChef server.
+// The auth store against a pretend server: the same screens, with accounts living on the enplace server.
 const mockMemory = new Map<string, string>();
 jest.mock('expo-secure-store', () => ({
   getItemAsync: async (k: string) => mockMemory.get(k) ?? null,
@@ -111,6 +111,18 @@ describe('signing up, in and out', () => {
     expect((server.mock.calls[0][1] as RequestInit).headers).not.toHaveProperty('authorization');
     expect(mockMemory.get('souschef.tokens.v1')).toContain('"refreshToken":"r1"');
     expect(mockFirebaseTouched).not.toHaveBeenCalled();
+  });
+
+  it('stops being a guest once someone signs in or up (likes, reports and follows depend on it)', async () => {
+    useAuthStore.setState({ isGuest: true });
+    server.mockResolvedValueOnce(reply(200, { user: me(), tokens }));
+    await useAuthStore.getState().signIn('ama@example.com', 'right password');
+    expect(useAuthStore.getState().isGuest).toBe(false);
+
+    useAuthStore.setState({ isGuest: true, user: null });
+    server.mockResolvedValueOnce(reply(201, { user: me(), tokens }));
+    await useAuthStore.getState().signUp('ama@example.com', 'correct horse battery', 'Ama Okafor');
+    expect(useAuthStore.getState().isGuest).toBe(false);
   });
 
   it('shows a friendly message when sign-in fails, and signs in on the next try', async () => {

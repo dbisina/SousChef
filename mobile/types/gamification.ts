@@ -38,7 +38,7 @@ export const XP_VALUES = {
 
 // Level thresholds
 export const LEVEL_THRESHOLDS = [
-  0,     // Level 1: Sous Chef
+  0,     // Level 1: enplace
   200,   // Level 2: Line Cook
   500,   // Level 3: Station Chef
   1000,  // Level 4: Sauce Chef
@@ -51,7 +51,7 @@ export const LEVEL_THRESHOLDS = [
 ];
 
 export const LEVEL_NAMES = [
-  'Sous Chef',
+  'enplace',
   'Line Cook',
   'Station Chef',
   'Sauce Chef',

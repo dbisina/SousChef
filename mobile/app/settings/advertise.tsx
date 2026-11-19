@@ -17,7 +17,9 @@ import {
   UButton,
   UIconButton,
   Display,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 import { submitAdInquiry } from '@/services/adService';
 import { showErrorToast, showInfoToast } from '@/stores/toastStore';
 import {
@@ -112,7 +114,7 @@ export default function AdvertiseScreen() {
           <Muted center>
             {t(
               'account.advertise.sentBody',
-              "Thanks for your interest in advertising on SousChef. We'll review your inquiry and get back to you within 48 hours."
+              "Thanks for your interest in advertising on enplace. We'll review your inquiry and get back to you within 48 hours."
             )}
           </Muted>
         </View>
@@ -146,6 +148,7 @@ export default function AdvertiseScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: 190 }}>
           <PhotoCard
+            source={PHOTOS.grocery as PhotoSource}
             height={260}
             radius={0}
             fade="both"

@@ -29,7 +29,7 @@ import {
 } from '@/services/authApi';
 
 /**
- * With EXPO_PUBLIC_API_URL set, accounts live on the SousChef server; without it everything here still uses Firebase.
+ * With EXPO_PUBLIC_API_URL set, accounts live on the enplace server; without it everything here still uses Firebase.
  * Runs `work` against the server and turns any failure into the store's error message.
  */
 async function viaApi<T>(set: (s: Partial<AuthState>) => void, work: () => Promise<T>): Promise<T> {
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (email, password, displayName) => {
     if (apiEnabled()) {
       const user = await viaApi(set, () => apiSignUp(email, password, displayName));
-      set({ user, isLoading: false });
+      set({ user, isGuest: false, isLoading: false });
       return;
     }
     set({ isLoading: true, error: null });
@@ -127,7 +127,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       };
 
       await setDoc(doc(db, 'users', uid), userData);
-      set({ user: userData, isLoading: false });
+      set({ user: userData, isGuest: false, isLoading: false });
     } catch (error: unknown) {
       const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
@@ -138,7 +138,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signIn: async (email, password) => {
     if (apiEnabled()) {
       const user = await viaApi(set, () => apiSignIn(email, password));
-      set({ user, isLoading: false });
+      set({ user, isGuest: false, isLoading: false });
       return;
     }
     set({ isLoading: true, error: null });
@@ -164,7 +164,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         await setDoc(doc(db, 'users', userCredential.user.uid), userData);
       }
 
-      set({ user: userData, isLoading: false });
+      set({ user: userData, isGuest: false, isLoading: false });
     } catch (error: unknown) {
       const message = getFriendlyAuthError(error);
       set({ error: message, isLoading: false });
@@ -245,7 +245,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const updated = await viaApi(set, () => apiUpdateProfile(updates));
       // Only what the server owns; lists the server does not send yet (saved recipes and the like) stay as they are.
       set({
-        user: { ...user, displayName: updated.displayName, bio: updated.bio, photoURL: updated.photoURL, bannerURL: updated.bannerURL, role: updated.role, isVerifiedChef: updated.isVerifiedChef },
+        user: { ...user, displayName: updated.displayName, handle: updated.handle, bio: updated.bio, photoURL: updated.photoURL, bannerURL: updated.bannerURL, role: updated.role, isVerifiedChef: updated.isVerifiedChef },
         isLoading: false,
       });
       return;

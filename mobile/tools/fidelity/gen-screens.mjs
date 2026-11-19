@@ -2,7 +2,7 @@
 import fs from 'node:fs';
 const map = {
   Main: ['/onboarding'], Login: ['/auth/login'], Register: ['/auth/register'], SetupTaste: ['/setup'],
-  Home: ['/(tabs)'], Reels: ['/reels'], StoryView: ['/story/story-ama'], PostDetail: ['/post/post-katsu'],
+  Home: ['/(tabs)'], Reels: ['/spools'], StoryView: ['/story/story-ama'], PostDetail: ['/post/post-katsu'],
   CreatePost: ['/post/new'], Community: ['/community/budget'], You: ['/(tabs)/you', 'user'], Messages: ['/messages'],
   Chat: ['/messages/conv-ama'], Restaurant: ['/restaurant/smash', 'restaurant'], OrderSheet: ['/order/sheet?dishId=double-smash', 'orderSheet'],
   Onboarding2: ['/onboarding?slide=1'], Onboarding3: ['/onboarding?slide=2'],

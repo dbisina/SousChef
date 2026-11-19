@@ -63,9 +63,11 @@ COPY --from=build /app/server/dist ./dist
 COPY --from=build /app/server/prisma ./prisma
 COPY --from=admin /app/admin/dist ./admin-dist
 ENV ADMIN_DIR=/app/server/admin-dist
-# yt-dlp (one self-contained file): reads video captions and subtitles for link imports. It never downloads the video.
+# yt-dlp (one self-contained file): reads video captions and subtitles for link imports, and downloads a small copy of a video when its recipe has to be read from the pictures.
 ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
 ENV YT_DLP_PATH=/usr/local/bin/yt-dlp
+# ffmpeg: takes pictures from a downloaded video so its recipe can be read when the caption has none.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 USER node
 EXPOSE 3000
 # The memory cap lives in the start script (--max-old-space-size).
@@ -84,5 +86,7 @@ COPY --from=admin /app/admin/dist ./admin-dist
 ENV ADMIN_DIR=/app/server/admin-dist
 ADD --chmod=755 https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux /usr/local/bin/yt-dlp
 ENV YT_DLP_PATH=/usr/local/bin/yt-dlp
+# ffmpeg: takes pictures from a downloaded video so its recipe can be read when the caption has none.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && rm -rf /var/lib/apt/lists/*
 EXPOSE 3000
 CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]

@@ -1,4 +1,4 @@
-// Conversations and messages from the SousChef server, shaped the way the chat screens already read them.
+// Conversations and messages from the enplace server, shaped the way the chat screens already read them.
 // The signed-in person is "me" (ME_ID) in the screens, so their server id is swapped for it on the way in.
 import type { Conversation as ApiConversation, Message as ApiMessage } from '@shared/index';
 import { localId } from '@/services/feedServer';

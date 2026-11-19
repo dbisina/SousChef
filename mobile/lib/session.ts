@@ -5,3 +5,10 @@ export function currentUserId(): string | null {
   const { useAuthStore } = require('@/stores/authStore') as typeof import('@/stores/authStore');
   return useAuthStore.getState().user?.id ?? null;
 }
+
+/** True when the person is trying the app without an account (the server knows nothing about them). */
+export function isGuestSession(): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { useAuthStore } = require('@/stores/authStore') as typeof import('@/stores/authStore');
+  return useAuthStore.getState().isGuest;
+}

@@ -6,7 +6,13 @@
 //   npm run seed -- --pro me@example.com   give an existing account a Pro plan for 30 days (test hosts only)
 //   npm run seed -- --reset-generated      delete the recipes (and their posts) that --generate wrote, to write them again
 //   npm run seed -- --puzzles N            write Daily Dish puzzles until there are N (and stock the generated games)
-//   npm run seed -- --generate [N]         write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
+//   npm run seed -- --puzzle-photos [N]    give Daily Dish puzzles a real photo of the answer, N at a time (default 20)
+//   npm run seed -- --photos [N]           give game questions a real photo, N at a time (default 30; run again for the next batch;
+//                                          add --retry to look again at questions that found none before)
+//   npm run seed -- --rephoto "Title" ["File:Name.jpg"]
+//                                          give one official recipe a new checked photo (its posts and covers follow); name a
+//                                          Wikimedia Commons file to choose the picture yourself
+//   npm run seed -- --generate [N]        write recipes with real photos from the dish list (needs the AI and file store settings; N at most)
 //
 // Uses DATABASE_URL. Safe to run again.
 import { createDb } from '../db';
@@ -15,7 +21,7 @@ import { loadConfig } from '../config';
 import { storageFromConfig } from '../storage/storage';
 import dishList from '../../seed/dishes.json';
 import { GamePoolService, POOL_GAMES } from '../play/pool';
-import { generateContent, generatePuzzles, type DishDef } from './generate';
+import { backfillPuzzlePhotos, generateContent, generatePuzzles, rephotoDish, type DishDef } from './generate';
 import { seedContent } from './run';
 
 async function main() {
@@ -33,6 +39,18 @@ async function main() {
   try {
     const report = await seedContent(db, { dryRun: args.includes('--dry-run'), ...(adminEmail ? { adminEmail } : {}), ...(proEmail ? { proEmail } : {}) }, (line) => process.stdout.write(`${line}\n`));
     process.stdout.write(`\n${JSON.stringify(report, null, 2)}\n`);
+    if (args.includes('--report')) {
+      // Where the content stands: recipes per official account (fewest first) and what the AI has cost this month.
+      const accounts = await db.user.findMany({ where: { kind: 'HOUSE' }, select: { id: true, handle: true } });
+      const counts = await db.recipe.groupBy({ by: ['authorId'], where: { author: { kind: 'HOUSE' } }, _count: { _all: true } });
+      const per = new Map(counts.map((c) => [c.authorId, c._count._all]));
+      const rows = accounts.map((a) => ({ handle: a.handle, recipes: per.get(a.id) ?? 0 })).sort((a, b) => a.recipes - b.recipes);
+      const spent = await db.aiUsage.aggregate({ where: { createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) } }, _sum: { costMicros: true } });
+      const config = loadConfig(process.env);
+      process.stdout.write(`accounts: ${rows.length}, recipes: ${rows.reduce((s, r) => s + r.recipes, 0)}, under 10: ${rows.filter((r) => r.recipes < 10).length}\n`);
+      for (const r of rows) process.stdout.write(`${String(r.recipes).padStart(3)}  ${r.handle}\n`);
+      process.stdout.write(`AI spent this month: $${((spent._sum.costMicros ?? 0) / 1_000_000).toFixed(2)} of $${config.AI_MONTHLY_BUDGET_USD}\n`);
+    }
     const puzzlesAt = args.indexOf('--puzzles');
     if (puzzlesAt >= 0) {
       const target = Number(args[puzzlesAt + 1]);
@@ -42,7 +60,7 @@ async function main() {
       const ai = buildAiRouter(config, db, log);
       const added = await generatePuzzles(db, ai, target, (line) => process.stdout.write(`${line}\n`));
       process.stdout.write(`added ${added} puzzles\n`);
-      const pool = new GamePoolService(db, ai, undefined, undefined, false);
+      const pool = new GamePoolService(db, ai, undefined, undefined, false, { storage: storageFromConfig(config), pauseMs: 2500 });
       for (const game of POOL_GAMES) {
         try {
           process.stdout.write(`${game}: +${await pool.refill(game)} questions\n`);
@@ -51,6 +69,27 @@ async function main() {
         }
       }
     }
+    const puzzlePhotosAt = args.indexOf('--puzzle-photos');
+    if (puzzlePhotosAt >= 0) {
+      // Real photos of the answers to Daily Dish puzzles that have none: N at a time (default 20).
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      const storage = storageFromConfig(config);
+      if (!storage) throw new Error('--puzzle-photos needs the file store settings');
+      const added = await backfillPuzzlePhotos(db, buildAiRouter(config, db, log), storage, (line) => process.stdout.write(`${line}\n`), { pauseMs: 2500, limit: Number(args[puzzlePhotosAt + 1]) || 20 });
+      process.stdout.write(`puzzle photos added: ${added}\n`);
+    }
+    const photosAt = args.indexOf('--photos');
+    if (photosAt >= 0) {
+      // Real photos for game questions that have none: N at a time (default 30), until the batch is done.
+      const batch = Number(args[photosAt + 1]) || 30;
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      const pool = new GamePoolService(db, buildAiRouter(config, db, log), undefined, undefined, false, { storage: storageFromConfig(config), pauseMs: 2500 });
+      const total = await db.gamePoolItem.count({ where: { photoTried: false, imageUrl: null } });
+      process.stdout.write(`${total} questions still to look at\n`);
+      process.stdout.write(`photos added: ${await pool.backfillPhotos(batch, { retry: args.includes('--retry') })}\n`);
+    }
     if (args.includes('--reset-generated')) {
       const titles = (dishList as DishDef[]).map((d) => d.title);
       const ids = (await db.recipe.findMany({ where: { title: { in: titles }, author: { kind: 'HOUSE' } }, select: { id: true } })).map((r) => r.id);
@@ -58,6 +97,14 @@ async function main() {
       await db.cookbook.deleteMany({ where: { title: { endsWith: ' Favourites' } } });
       const gone = await db.recipe.deleteMany({ where: { id: { in: ids } } });
       process.stdout.write(`removed ${gone.count} generated recipes\n`);
+    }
+    const rephotoAt = args.indexOf('--rephoto');
+    if (rephotoAt >= 0) {
+      const title = args[rephotoAt + 1];
+      if (!title || title.startsWith('--')) throw new Error('--rephoto needs a recipe title in quotes');
+      const config = loadConfig(process.env);
+      const log = { warn: (m: unknown) => process.stderr.write(`${typeof m === 'string' ? m : JSON.stringify(m)}\n`) };
+      process.stdout.write(`${await rephotoDish({ db, ai: buildAiRouter(config, db, log), storage: storageFromConfig(config) }, dishList as DishDef[], title, args[rephotoAt + 2]?.startsWith('--') ? undefined : args[rephotoAt + 2])}\n`);
     }
     const genAt = args.indexOf('--generate');
     if (genAt >= 0) {

@@ -4,11 +4,11 @@ import { LegalLayout, LegalSection } from '@/components/subscription/LegalLayout
 const SECTIONS: { title: string; body: string }[] = [
   {
     title: '1. Acceptance of Terms',
-    body: 'By accessing or using SousChef, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our application.',
+    body: 'By accessing or using enplace, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our application.',
   },
   {
     title: '2. Description of Service',
-    body: 'SousChef is a mobile application that provides recipe management, meal planning, AI-powered cooking assistance, and related features. We reserve the right to modify, suspend, or discontinue any aspect of the service at any time.',
+    body: 'enplace is a mobile application that provides recipe management, meal planning, AI-powered cooking assistance, and related features. We reserve the right to modify, suspend, or discontinue any aspect of the service at any time.',
   },
   {
     title: '3. User Accounts',
@@ -16,7 +16,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '4. User Content',
-    body: 'You retain ownership of content you create, including recipes and photos. By posting content, you grant SousChef a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content within the application.',
+    body: 'You retain ownership of content you create, including recipes and photos. By posting content, you grant enplace a non-exclusive, worldwide, royalty-free license to use, display, and distribute your content within the application.',
   },
   {
     title: '5. Subscription and Payments',
@@ -24,7 +24,11 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '6. Prohibited Conduct',
-    body: "You agree not to:\n• Use the service for unlawful purposes\n• Upload harmful, offensive, or infringing content\n• Attempt to access other users' accounts\n• Interfere with the service's operation\n• Scrape or collect user data without permission",
+    body: "You agree not to:\n• Use the service for unlawful purposes\n• Post objectionable content: hate, harassment, threats, sexual or violent material, or content that endangers children\n• Post spam, scams or dangerous cooking or health advice\n• Upload infringing content\n• Attempt to access other users' accounts\n• Interfere with the service's operation\n• Scrape or collect user data without permission",
+  },
+  {
+    title: '6a. Reports, Blocking and Enforcement',
+    body: 'There is no tolerance for objectionable content or abusive people. Use the more button on any post, comment, profile or chat to report it or block the person. We review reports, usually within 24 hours, remove content that breaks these terms and may suspend or remove accounts that do so.',
   },
   {
     title: '7. AI Features Disclaimer',
@@ -32,15 +36,15 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '8. Intellectual Property',
-    body: 'SousChef and its original content, features, and functionality are owned by SousChef and are protected by international copyright, trademark, and other intellectual property laws.',
+    body: 'enplace and its original content, features, and functionality are owned by enplace and are protected by international copyright, trademark, and other intellectual property laws.',
   },
   {
     title: '9. Limitation of Liability',
-    body: 'SousChef shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service. Our liability is limited to the amount you paid for the service in the past 12 months.',
+    body: 'enplace shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the service. Our liability is limited to the amount you paid for the service in the past 12 months.',
   },
   {
     title: '10. Indemnification',
-    body: 'You agree to indemnify and hold SousChef harmless from any claims, damages, or expenses arising from your use of the service or violation of these terms.',
+    body: 'You agree to indemnify and hold enplace harmless from any claims, damages, or expenses arising from your use of the service or violation of these terms.',
   },
   {
     title: '11. Termination',
@@ -56,7 +60,7 @@ const SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: '14. Contact Us',
-    body: 'For questions about these Terms of Service, please contact us at:\nEmail: danbis664@gmail.com',
+    body: 'For questions about these Terms of Service, please contact us at:\nEmail: danielbisina.t@gmail.com',
   },
 ];
 

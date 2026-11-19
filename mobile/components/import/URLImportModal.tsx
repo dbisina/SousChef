@@ -522,7 +522,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                 </View>
                 <TextInput
                   className="flex-1 py-4 pr-2 text-base text-neutral-900 dark:text-neutral-50"
-                  placeholder="https://..."
+                  placeholder="Paste a link, or say what you want to cook"
                   placeholderTextColor="#9CA3AF"
                   value={url}
                   onChangeText={setUrl}
@@ -530,7 +530,7 @@ export const URLImportModal: React.FC<URLImportModalProps> = ({
                   onBlur={() => setIsFocused(false)}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  keyboardType="url"
+                  keyboardType="default"
                   returnKeyType="go"
                   onSubmitEditing={handleImport}
                   editable={!isImporting}

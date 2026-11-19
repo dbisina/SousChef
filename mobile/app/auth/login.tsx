@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
-import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton } from '@/components/ui';
+import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton, type PhotoSource } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 import { FIXED, useThemeStore } from '@/stores/themeStore';
 import {
   signInWithGoogle,
@@ -133,6 +134,8 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <PhotoCard
+            source={PHOTOS.pasta as PhotoSource}
+            fade="both"
             height={300}
             radius={0}
             style={{ borderBottomLeftRadius: 36, borderBottomRightRadius: 36 }}

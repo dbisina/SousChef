@@ -10,7 +10,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // SousChef 2.0 semantic tokens: values come from CSS variables (global.css light/dark sets,
+        // enplace 2.0 semantic tokens: values come from CSS variables (global.css light/dark sets,
         // overridden per subtree by <Screen tone> / ToneScope via NativeWind vars()).
         'ground': 'rgb(var(--ground) / <alpha-value>)',
         'surface': 'rgb(var(--surface) / <alpha-value>)',

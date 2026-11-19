@@ -107,4 +107,14 @@ export class PushNotifier {
       this.log.warn({ count: invalidTokens.length }, 'forgot push tokens the service rejected');
     }
   }
+
+  /** Tells a recipe's writer that someone cooked it and shared the result. */
+  async recipeCooked(n: { recipeAuthorId: string; cookName: string; recipeTitle: string; postId: string; recipeId: string }): Promise<void> {
+    const devices = await this.db.device.findMany({ where: { userId: n.recipeAuthorId }, select: { pushToken: true } });
+    if (devices.length === 0) return;
+    const { invalidTokens } = await this.sender.send(
+      devices.map((d) => ({ to: d.pushToken, title: `${n.cookName} cooked your recipe`, body: n.recipeTitle.slice(0, 120), data: { type: 'recipe-cooked', postId: n.postId, recipeId: n.recipeId } })),
+    );
+    if (invalidTokens.length > 0) await this.db.device.deleteMany({ where: { pushToken: { in: invalidTokens } } });
+  }
 }

@@ -46,6 +46,12 @@ export function socialRoutes(app: FastifyInstance, follows: FollowService, posts
     return { items: await follows.search(q, await optionalViewer(request), n) };
   });
 
+  // Is this username free (or already yours)? Powers the live check while someone types one.
+  app.get('/v1/users/handle-available', async (request) => {
+    const { handle } = parse(z.object({ handle: z.string().trim().max(40) }), request.query);
+    return follows.handleAvailable(handle, await optionalViewer(request));
+  });
+
   app.get('/v1/users/:id', async (request) => follows.profile(parse(idParam, request.params).id, await optionalViewer(request)));
 
   app.put('/v1/users/:id/follow', async (request) => {
@@ -69,6 +75,11 @@ export function socialRoutes(app: FastifyInstance, follows: FollowService, posts
   app.get('/v1/users/:id/posts', async (request) => {
     const { limit: n, cursor } = parse(pageQuery, request.query);
     return posts.byUser(parse(idParam, request.params).id, await optionalViewer(request), n, cursor);
+  });
+
+  app.get('/v1/recipes/:id/cooked', async (request) => {
+    const { limit: n, cursor } = parse(pageQuery, request.query);
+    return posts.byRecipe(parse(idParam, request.params).id, await optionalViewer(request), n, cursor);
   });
 
   /* ---- feeds ---- */

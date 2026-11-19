@@ -6,4 +6,6 @@ export const FONT = {
   sans: 'Inter_400Regular',
   sansMedium: 'Inter_500Medium',
   sansSemi: 'Inter_600SemiBold',
+  /** A connected script, used only for the word "mise" in the opening animation (the logo itself is the brand kit's vector). */
+  script: 'Satisfy_400Regular',
 } as const;

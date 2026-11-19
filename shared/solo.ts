@@ -20,6 +20,8 @@ export interface SoloGameInfo {
 export interface SoloItem {
   id: string;
   prompt: string;
+  /** A real photo of what the question is about, when there is one. */
+  imageUrl?: string;
   options?: string[];
   steps?: string[];
 }

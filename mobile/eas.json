@@ -25,7 +25,22 @@
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "EXPO_PUBLIC_API_URL": "https://souschef-api-production.up.railway.app",
-        "EXPO_PUBLIC_AUTH_VIA": "firebase"
+        "EXPO_PUBLIC_AUTH_VIA": "firebase",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "drk6rje53",
+        "EXPO_PUBLIC_MEDIA_HOSTS": "pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev,s3store-production.up.railway.app",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "danielbisina.t@gmail.com",
+        "EXPO_PUBLIC_DEVELOPER_EMAIL": "danielbisina.t@gmail.com",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyD1-lacKkOFbJkhgvMmGupiiKn-enewkVA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "en-place-mise.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "en-place-mise",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "en-place-mise.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "154942572911",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:154942572911:android:6dc7d0963d2667b1b3c09a",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_bQVDyRsqrdzDFCXuQIlwbsaObBU",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "154942572911-0je20u1jd1mcvkgp34pd46brqbh4gu17.apps.googleusercontent.com",
+        "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_qKvvtzPXsGjWtaHFkLMUZVYRcNr"
       }
     },
     "production": {
@@ -39,7 +54,22 @@
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
         "EXPO_PUBLIC_API_URL": "https://souschef-api-production.up.railway.app",
-        "EXPO_PUBLIC_AUTH_VIA": "firebase"
+        "EXPO_PUBLIC_AUTH_VIA": "firebase",
+        "EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME": "drk6rje53",
+        "EXPO_PUBLIC_MEDIA_HOSTS": "pub-2bc1cfca634f4813a0dd4a2d957c7926.r2.dev,s3store-production.up.railway.app",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "danielbisina.t@gmail.com",
+        "EXPO_PUBLIC_DEVELOPER_EMAIL": "danielbisina.t@gmail.com",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyD1-lacKkOFbJkhgvMmGupiiKn-enewkVA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "en-place-mise.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "en-place-mise",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "en-place-mise.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "154942572911",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:154942572911:android:6dc7d0963d2667b1b3c09a",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_bQVDyRsqrdzDFCXuQIlwbsaObBU",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "154942572911-0je20u1jd1mcvkgp34pd46brqbh4gu17.apps.googleusercontent.com",
+        "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY": "appl_qKvvtzPXsGjWtaHFkLMUZVYRcNr"
       }
     }
   },

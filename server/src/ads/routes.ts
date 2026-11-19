@@ -78,7 +78,7 @@ const inquirySchema = z.object({
 }) satisfies z.ZodType<AdInquiryRequest>;
 
 const placementQuery = z.object({ placement: z.enum(AD_PLACEMENTS) });
-/** A real ad's id, or `fallback` for SousChef's own. */
+/** A real ad's id, or `fallback` for enplace's own. */
 const adIdParam = z.object({ id: z.union([z.uuid(), z.literal('fallback')]) });
 const idParam = z.object({ id: z.uuid() });
 const statsQuery = z.object({ days: z.coerce.number().int().min(1).max(90).default(30) });
@@ -96,7 +96,7 @@ export function adRoutes(app: FastifyInstance, ads: AdService, auth: AuthService
   const strict = { config: { rateLimit: { max: config.AUTH_RATE_LIMIT_MAX, timeWindow: '1 minute' } } };
 
   /**
-   * The ad to show in a place. SousChef's own ad stands in when no campaign is running. People on a plan that is
+   * The ad to show in a place. enplace's own ad stands in when no campaign is running. People on a plan that is
    * ad-free get `{ ad: null }`.
    */
   app.get('/v1/ads', async (request) => {

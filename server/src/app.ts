@@ -9,6 +9,7 @@ import type { Config } from './config';
 import { createDb, type Db } from './db';
 import { AppError } from './errors';
 import { healthRoutes } from './health';
+import { legalRoutes } from './legal';
 import { storageFromConfig, type Storage } from './storage/storage';
 import { uploadRoutes } from './uploads/routes';
 import { UploadService } from './uploads/service';
@@ -21,6 +22,10 @@ import websocket from '@fastify/websocket';
 import { noEvents, type ChatEvents } from './chat/events';
 import { ChatHub, defaultHubOptions, tee, type HubOptions } from './chat/hub';
 import { ExpoPushSender, PushNotifier, type PushSender } from './chat/push';
+import { FeedEventService } from './recommend/events';
+import { SimilarService } from './recommend/similar';
+import { TasteService } from './recommend/taste';
+import { recommendRoutes } from './recommend/routes';
 import { chatRoutes } from './chat/routes';
 import { ChatService } from './chat/service';
 import { communityRoutes } from './communities/routes';
@@ -38,9 +43,13 @@ import { DailyDishService } from './play/dailyDish';
 import { playRoutes } from './play/routes';
 import { MysteryKitchenService } from './play/mysteryKitchen';
 import { mysteryKitchenRoutes } from './play/mkRoutes';
+import { StepImageService } from './play/stepImages';
+import { geminiImageGenerator, type ImageGenerator } from './ai/imageGen';
 import { SoloGameService } from './play/solo';
 import { GamePoolService } from './play/pool';
 import { ytDlpSource, type VideoTextSource } from './imports/videoText';
+import { downloadVideo, watchBytes, ytDlpWatch, type VideoFrameSource, type WatchedOrFrames } from './imports/videoFrames';
+import { braveSearch, firstWorking, tavilySearch, type WebSearch } from './imports/webSearch';
 import { soloRoutes } from './play/soloRoutes';
 import { backgroundJobs } from './jobs';
 import { Maintenance } from './jobs/maintenance';
@@ -71,6 +80,8 @@ import { ReportService } from './social/reports';
 import { socialRoutes } from './social/routes';
 import { StoryService } from './social/stories';
 import { storyRoutes } from './social/storyRoutes';
+import { promoRoutes } from './promos/routes';
+import { PromoService } from './promos/service';
 import { subscriptionRoutes } from './subscriptions/routes';
 import { EntitlementService } from './subscriptions/service';
 import { RecipeService } from './recipes/service';
@@ -85,6 +96,16 @@ export interface BuildOptions {
   importRequester?: Requester;
   /** Reads a video's caption and subtitles. Tests pass a fake; leave unset to use yt-dlp when YT_DLP_PATH is set. */
   videoText?: VideoTextSource | null;
+  /** Downloads a video and takes pictures from it (default: yt-dlp + ffmpeg when YT_DLP_PATH is set). Tests pass a stub or null. */
+  videoFrames?: VideoFrameSource | null;
+  /** Web search for imports by description (default: Tavily then Brave when their keys are set). Tests pass a stub or null. */
+  webSearch?: WebSearch | null;
+  /** Makes step pictures (default: Gemini's image model when the paid key is set). Tests pass a stub or null. */
+  imageGenerator?: ImageGenerator | null;
+  /** Used to upload step pictures to the file store (tests pass a stub). */
+  stepImageFetch?: typeof fetch;
+  /** Downloads and reads a video the phone resolved (default: on when YT_DLP_PATH is set; needs ffmpeg). Tests pass a stub or null. */
+  phoneVideo?: { download: (url: string, cookie?: string) => Promise<Buffer>; frames: (bytes: Buffer) => Promise<WatchedOrFrames> } | null;
   /** The AI services to use. Tests pass fakes; leave unset to build them from the AI_* settings. */
   aiProviders?: AiProvider[];
   /** The file store. Tests pass a fake; leave unset to build one from the S3_* settings (or none). */
@@ -171,16 +192,19 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   app.setNotFoundHandler((_request, reply) => reply.code(404).send({ error: { code: 'not_found', message: 'Not found' } }));
 
   healthRoutes(app, db);
+  legalRoutes(app);
   authRoutes(app, auth, config);
   const entitlements = new EntitlementService(db, options.now);
   subscriptionRoutes(app, entitlements, auth, config);
+  promoRoutes(app, new PromoService(db, options.now), auth, config);
   uploadRoutes(app, uploads, auth, config);
   // Live chat: a WebSocket gateway plus Expo notifications for people who are not connected.
   await app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   const hub = new ChatHub(db, auth, app.log, { ...defaultHubOptions, ...options.hub }, options.now);
   const chat = new ChatService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now);
   const pushSender = options.pushSender === undefined ? (config.NODE_ENV === 'test' ? null : new ExpoPushSender(app.log, fetch, config.EXPO_ACCESS_TOKEN || undefined)) : options.pushSender;
-  hub.attach(chat, pushSender ? new PushNotifier(db, pushSender, app.log) : null);
+  const notifier = pushSender ? new PushNotifier(db, pushSender, app.log) : null;
+  hub.attach(chat, notifier);
   hub.start();
   app.get('/v1/ws', { websocket: true }, (socket) => hub.accept(socket));
   chatRoutes(app, chat, auth);
@@ -188,10 +212,12 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   moderationRoutes(app, moderation, new ChefVerificationService(db, options.now), auth);
   adminRoutes(app, new AdminService(db, ai, options.now), auth);
   if (config.ADMIN_DIR) registerAdminSite(app, config.ADMIN_DIR);
-  const postService = new PostService(db, uploads, options.now, moderation);
+  const tasteService = new TasteService(db, options.now);
+  const postService = new PostService(db, uploads, options.now, moderation, notifier ? (n) => void notifier.recipeCooked(n).catch((err) => app.log.warn({ err }, 'could not notify a recipe writer')) : null, config.FEED_RANKER === 'v2' ? tasteService : null);
   socialRoutes(app, new FollowService(db), postService, auth, config);
+  recommendRoutes(app, new FeedEventService(db, options.now), new SimilarService(db, tasteService), auth, config);
   communityRoutes(app, new CommunityService(db, uploads, tee(hub, options.chatEvents ?? noEvents), options.now), postService, auth);
-  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}) }) : null) : options.videoText), auth, config);
+  importRoutes(app, new ImportService(db, ai, entitlements, uploads, storage, options.importRequester, options.now, options.videoText === undefined ? (config.YT_DLP_PATH ? ytDlpSource({ bin: config.YT_DLP_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}), ...(config.YT_DLP_COOKIES_PATH ? { cookiesFile: config.YT_DLP_COOKIES_PATH } : {}) }) : null) : options.videoText, options.videoFrames === undefined ? (config.YT_DLP_PATH ? ytDlpWatch({ ytDlp: config.YT_DLP_PATH, ffmpeg: config.FFMPEG_PATH, ...(config.IMPORT_PROXY_URL ? { proxy: config.IMPORT_PROXY_URL } : {}), ...(config.YT_DLP_COOKIES_PATH ? { cookiesFile: config.YT_DLP_COOKIES_PATH } : {}) }) : null) : options.videoFrames, options.webSearch === undefined ? webSearchFromConfig(config) : options.webSearch, options.phoneVideo === undefined ? (config.YT_DLP_PATH ? { download: (url, cookie) => downloadVideo(url, cookie), frames: (bytes) => watchBytes(bytes, { ffmpeg: config.FFMPEG_PATH }) } : null) : options.phoneVideo), auth, config);
   const insights = new InsightCache(db, options.now);
   const vitals = new VitalsService(db, HealthCipher.fromKeys(config.HEALTH_DATA_KEY, config.HEALTH_DATA_KEY_ID, config.HEALTH_DATA_OLD_KEYS), options.now);
   aiToolsRoutes(
@@ -204,9 +230,14 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
     config,
   );
   playRoutes(app, new DailyDishService(db, options.now), auth);
-  const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test');
+  const pool = new GamePoolService(db, ai, options.now, undefined, config.NODE_ENV !== 'test', config.NODE_ENV === 'test' ? null : { storage, pauseMs: 2500 });
   const games = new MysteryKitchenService(db, ai, uploads, storage, tee(hub, options.chatEvents ?? noEvents), options.now, undefined, pool);
-  mysteryKitchenRoutes(app, games, auth);
+  mysteryKitchenRoutes(
+    app,
+    games,
+    auth,
+    new StepImageService(db, storage, options.imageGenerator === undefined ? (config.AI_GEMINI_API_KEY ? geminiImageGenerator(config.AI_GEMINI_API_KEY, config.AI_IMAGE_MODEL) : null) : options.imageGenerator, entitlements, options.now, config.STEP_IMAGE_DAILY_CAP, options.stepImageFetch),
+  );
   soloRoutes(app, new SoloGameService(db, config.JWT_SECRET, options.now, undefined, pool), auth);
   vitalsRoutes(app, vitals, auth);
   const invites = new InviteService(db, options.now);
@@ -231,4 +262,11 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   });
 
   return { app, db, auth, uploads, chat, hub, stories, invites, ai, games, moderation, jobs };
+}
+
+function webSearchFromConfig(config: Config): WebSearch | null {
+  const searches: WebSearch[] = [];
+  if (config.TAVILY_API_KEY) searches.push(tavilySearch(config.TAVILY_API_KEY));
+  if (config.BRAVE_SEARCH_API_KEY) searches.push(braveSearch(config.BRAVE_SEARCH_API_KEY));
+  return searches.length > 0 ? firstWorking(searches) : null;
 }

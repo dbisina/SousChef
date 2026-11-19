@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
+import { Alert, ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { useRouter, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -24,7 +24,7 @@ import { puzzleNumberFor } from '@/lib/dailyDish';
 import { selectAuthor, selectIsFollowing, selectIsPostLiked, selectIsPostSaved, useSocialStore } from '@/stores/socialStore';
 import { compactCount, timeAgo } from '@/lib/timeAgo';
 import type { PhotoRef } from '@/types/social';
-import { Action, AuthorRow, BarText, DarkBar, photoOf, shareText } from './shared';
+import { Action, AuthorRow, BarText, CookedWith, DarkBar, photoOf, shareText } from './shared';
 
 const go = (router: ReturnType<typeof useRouter>, href: string) => router.push(href as Href);
 
@@ -43,6 +43,7 @@ export function FriendPost({ postId }: { postId: string }) {
   const toggleLike = useSocialStore((s) => s.toggleLikePost);
   const toggleSave = useSocialStore((s) => s.toggleSavePost);
   const toggleFollow = useSocialStore((s) => s.toggleFollow);
+  const hidePost = useSocialStore((s) => s.hidePost);
   const [page, setPage] = useState(0);
 
   if (!post || !author) return null;
@@ -50,6 +51,11 @@ export function FriendPost({ postId }: { postId: string }) {
   const w = width - 40;
   const kindLabel = post.kind === 'recipe' ? t('home.kindRecipe', 'Recipe') : post.kind === 'plan' ? t('home.kindPlan', 'Plan') : t('home.kindPost', 'Post');
   const open = () => go(router, `/post/${post.id}`);
+  const confirmHide = () =>
+    Alert.alert(t('home.hideTitle', 'Not interested in this?'), t('home.hideBody', 'It leaves your feed, and you will see fewer posts like it.'), [
+      { text: t('common.cancel', 'Cancel'), style: 'cancel' },
+      { text: t('home.hideConfirm', 'Not interested'), style: 'destructive', onPress: () => hidePost(post.id) },
+    ]);
 
   return (
     <View style={{ gap: 12 }}>
@@ -108,8 +114,13 @@ export function FriendPost({ postId }: { postId: string }) {
           <Action icon="chat" label={t('home.comments', 'Comments')} count={post.commentCount} onPress={open} />
           <Action icon="send" label={t('home.share', 'Share')} onPress={() => shareText(`${post.title} · ${post.caption}`)} />
         </View>
-        <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={() => toggleSave(post.id)} />
+        <View className="flex-row items-center" style={{ gap: 14 }}>
+          <Action icon="bookmark" label={t('home.save', 'Save')} active={saved} onPress={() => toggleSave(post.id)} />
+          <Action icon="more" label={t('home.moreOptions', 'More options')} onPress={confirmHide} />
+        </View>
       </View>
+
+      {post.cookedWith ? <CookedWith title={post.cookedWith.title} authorName={post.cookedWith.authorName} onPress={() => go(router, `/recipe/${post.cookedWith!.recipeId}`)} /> : null}
 
       <Body>
         <RNText style={{ fontFamily: FONT.sansSemi }}>{author.handle}</RNText> {post.caption}
@@ -127,9 +138,30 @@ export function FriendPost({ postId }: { postId: string }) {
   );
 }
 
-/* ------------------------------------------------------------------ reels row */
+/* ------------------------------------------------------------------ the ranked list */
 
-export function ReelsRow() {
+interface ForYouListProps {
+  postIds: string[];
+  /** A card was laid out inside this list (its place, so the screen can tell what is on screen). */
+  onCardLayout?: (postId: string, y: number, height: number) => void;
+}
+
+/** The posts picked for this person, in the order the server chose, each one a card they can say "not interested" to. */
+export function ForYouList({ postIds, onCardLayout }: ForYouListProps) {
+  return (
+    <View style={{ gap: 22 }}>
+      {postIds.map((id) => (
+        <View key={id} onLayout={(e) => onCardLayout?.(id, e.nativeEvent.layout.y, e.nativeEvent.layout.height)}>
+          <FriendPost postId={id} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ spools row */
+
+export function SpoolsRow() {
   const { t } = useTranslation();
   const router = useRouter();
   const reels = useSocialStore((s) => s.reels);
@@ -139,9 +171,9 @@ export function ReelsRow() {
     <View style={{ gap: 12 }}>
       <View className="flex-row items-center justify-between" style={{ height: 24 }}>
         <View className="flex-row items-center" style={{ gap: 8 }}>
-          <H2>{t('home.reels', 'Reels')}</H2>
+          <H2>{t('home.spools', 'Spools')}</H2>
         </View>
-        <Pressable accessibilityRole="link" accessibilityLabel={t('home.seeAllReels', 'See all reels')} onPress={() => go(router, '/reels')} hitSlop={10}>
+        <Pressable accessibilityRole="link" accessibilityLabel={t('home.seeAllSpools', 'See all spools')} onPress={() => go(router, '/reels')} hitSlop={10}>
           <LinkText>{t('home.seeAll', 'See all')}</LinkText>
         </Pressable>
       </View>
@@ -158,7 +190,7 @@ export function ReelsRow() {
             width={132}
             height={228}
             radius={22}
-            onPress={() => router.push({ pathname: '/reels', params: { start: reel.id } })}
+            onPress={() => router.push({ pathname: '/spools', params: { start: reel.id } })}
             accessibilityLabel={reel.title}
           >
             <View pointerEvents="none" style={{ position: 'absolute', left: 12, right: 10, bottom: 10, gap: 2 }}>

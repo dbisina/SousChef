@@ -1,4 +1,4 @@
-// Recipes in server mode: the cook screen, recipe page, lists, likes, saves, ratings and comments all read the SousChef server
+// Recipes in server mode: the cook screen, recipe page, lists, likes, saves, ratings and comments all read the enplace server
 // through the recipe store. (They used to read the old Firebase database, which has none of the server's recipes: "Recipe not found".)
 jest.mock('expo-secure-store', () => ({ getItemAsync: async () => null, setItemAsync: async () => undefined, deleteItemAsync: async () => undefined }));
 jest.mock('@/lib/firebase', () => ({
@@ -32,7 +32,7 @@ jest.mock('@/lib/firebase', () => ({
 jest.mock('firebase/firestore', () => ({ Timestamp: { now: () => ({}) } }));
 const tokens = { accessToken: 'a1', accessTokenExpiresAt: new Date(Date.now() + 900_000).toISOString(), refreshToken: 'r1' };
 const reply = (status: number, body?: unknown) => ({ ok: status < 300, status, json: async () => body ?? null });
-const author = { id: 'house1', handle: 'souschef_quick', displayName: 'SousChef Quick Meals', photoUrl: null, isChef: true, isVerifiedChef: true, isOfficial: true };
+const author = { id: 'house1', handle: 'souschef_quick', displayName: 'enplace Quick Meals', photoUrl: null, isChef: true, isVerifiedChef: true, isOfficial: true };
 const full = (id: string) => ({
   id,
   title: 'Garlic Butter Pasta',
@@ -101,7 +101,7 @@ describe('recipes from the server', () => {
     const recipe = await store.useRecipeStore.getState().fetchRecipeById('r1');
     expect(recipe?.title).toBe('Garlic Butter Pasta');
     expect(recipe?.instructions).toEqual(['Boil', 'Toss']);
-    expect(recipe?.authorName).toBe('SousChef Quick Meals');
+    expect(recipe?.authorName).toBe('enplace Quick Meals');
     expect(store.useRecipeStore.getState().currentRecipe?.id).toBe('r1');
   });
 
@@ -142,7 +142,7 @@ describe('recipes from the server', () => {
     await s.addComment('r1', { recipeId: 'r1', authorId: 'me', authorName: 'Me', text: 'Lovely' });
     const comments = await s.fetchComments('r1');
     await s.flagRecipe('r1', 'spam');
-    expect(comments[0]).toMatchObject({ id: 'c1', text: 'Lovely', authorName: 'SousChef Quick Meals' });
+    expect(comments[0]).toMatchObject({ id: 'c1', text: 'Lovely', authorName: 'enplace Quick Meals' });
     expect(calls).toEqual([
       'PUT /v1/recipes/r1/like',
       'DELETE /v1/recipes/r1/like',

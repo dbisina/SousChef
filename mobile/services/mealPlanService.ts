@@ -39,7 +39,7 @@ import {
   apiWasteStats,
 } from '@/services/mealPlanApi';
 
-// With EXPO_PUBLIC_API_URL set, plans and the waste log live on the SousChef server. A plan is identified by its
+// With EXPO_PUBLIC_API_URL set, plans and the waste log live on the enplace server. A plan is identified by its
 // week (the Monday), so that is the "plan id" passed around the app in that mode.
 
 // Collection paths

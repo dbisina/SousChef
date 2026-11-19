@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { apiHandleAvailable } from '@/services/socialApi';
 import { Alert, Platform, ScrollView, Text, View } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
@@ -17,7 +18,6 @@ import {
   Icon,
   ListRow,
   Muted,
-  PhotoCard,
   Rows,
   Screen,
   Tag,
@@ -38,8 +38,26 @@ export default function EditProfileScreen() {
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
-  const [bannerURL, setBannerURL] = useState(user?.bannerURL || '');
-  const [isUploadingBanner, setIsUploadingBanner] = useState(false);
+  const [handle, setHandle] = useState(user?.handle || '');
+  const [handleState, setHandleState] = useState<'ok' | 'checking' | 'taken' | 'invalid'>('ok');
+  // Check the username as it is typed (after a short pause); keeping your own name is always fine.
+  useEffect(() => {
+    if (!apiEnabled() || !handle || handle === user?.handle) {
+      setHandleState('ok');
+      return;
+    }
+    setHandleState('checking');
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      apiHandleAvailable(handle)
+        .then((r) => !cancelled && setHandleState(r.available ? 'ok' : r.reason === 'taken' ? 'taken' : 'invalid'))
+        .catch(() => !cancelled && setHandleState('ok')); // offline: the server still checks on save
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [handle, user?.handle]);
   const [deleteSheet, setDeleteSheet] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -71,27 +89,6 @@ export default function EditProfileScreen() {
     }
   };
 
-  const handlePickBanner = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [3, 1],
-      quality: 0.8,
-    });
-    if (result.canceled || !result.assets[0]) return;
-    setIsUploadingBanner(true);
-    try {
-      setBannerURL((await uploadFile(result.assets[0].uri, 'banner')).url);
-    } catch {
-      showErrorToast(
-        t('account.edit.bannerFailed', "We couldn't upload your new banner just yet. Want to try again?"),
-        t('account.edit.uploadProblem', 'Upload Problem'),
-      );
-    } finally {
-      setIsUploadingBanner(false);
-    }
-  };
-
   const handleSave = async () => {
     if (!displayName.trim()) {
       showInfoToast(
@@ -101,11 +98,16 @@ export default function EditProfileScreen() {
       return;
     }
 
+    if (apiEnabled() && (handleState === 'taken' || handleState === 'invalid' || handleState === 'checking')) {
+      showInfoToast(t('account.edit.usernameFix', 'Pick a free username first.'), t('account.edit.username', 'Username'));
+      return;
+    }
+
     try {
       await updateUserProfile({
         displayName: displayName.trim(),
+        ...(apiEnabled() && handle && handle !== user?.handle ? { handle } : {}),
         photoURL: photoURL || undefined,
-        ...(apiEnabled() ? { bannerURL } : {}),
       });
       showSuccessToast(
         t('account.edit.savedBody', 'Looking good! Your profile has been updated.'),
@@ -184,25 +186,6 @@ export default function EditProfileScreen() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 150, gap: 16 }}
         >
-          {apiEnabled() ? (
-            <View style={{ gap: 8 }}>
-              <Pressable accessibilityRole="button" accessibilityLabel={t('account.edit.changeBanner', 'Change banner')} onPress={handlePickBanner} disabled={isUploadingBanner}>
-                <PhotoCard source={bannerURL ? { uri: bannerURL } : null} height={120} radius={24} fade="none">
-                  <View style={{ position: 'absolute', right: 12, bottom: 12 }}>
-                    <UIconButton
-                      icon="camera"
-                      tone="black"
-                      label={isUploadingBanner ? t('account.edit.uploading', 'Uploading...') : t('account.edit.changeBanner', 'Change banner')}
-                      onPress={handlePickBanner}
-                      disabled={isUploadingBanner}
-                    />
-                  </View>
-                </PhotoCard>
-              </Pressable>
-              {bannerURL ? <UButton size="sm" variant="ghost" label={t('account.edit.removeBanner', 'Remove banner')} onPress={() => setBannerURL('')} /> : null}
-            </View>
-          ) : null}
-
           <View style={{ alignSelf: 'center', marginTop: 6, marginBottom: 4 }}>
             <UAvatar
               name={displayName || user?.displayName || ''}
@@ -228,12 +211,35 @@ export default function EditProfileScreen() {
             autoCapitalize="words"
           />
 
+          {apiEnabled() ? (
+            <View style={{ gap: 7 }}>
+              <Field
+                label={t('account.edit.username', 'Username')}
+                value={handle}
+                onChangeText={(v) => setHandle(v.replace(/^@/, '').toLowerCase())}
+                placeholder={t('account.edit.usernamePlaceholder', 'your_username')}
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={20}
+              />
+              <Muted small>
+                {handleState === 'checking'
+                  ? t('account.edit.usernameChecking', 'Checking…')
+                  : handleState === 'taken'
+                    ? t('account.edit.usernameTaken', 'That username is taken')
+                    : handleState === 'invalid'
+                      ? t('account.edit.usernameInvalid', 'Use 3 to 20 lowercase letters, numbers or underscores')
+                      : t('account.edit.usernameHint', 'People find and follow you by @{{handle}}', { handle: handle || 'username' })}
+              </Muted>
+            </View>
+          ) : null}
+
           <View style={{ gap: 7 }}>
             <Field
               label={t('account.edit.email', 'Email')}
               value={user?.email ?? ''}
               editable={false}
-              placeholder="you@example.com"
+              placeholder="Email address"
             />
             <View className="flex-row items-center" style={{ gap: 6, paddingStart: 4 }}>
               <Icon name="lock" size="sm" color="muted" />

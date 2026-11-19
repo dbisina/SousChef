@@ -5,6 +5,14 @@ import type { Participant } from './chat';
 export const POST_KINDS = ['recipe', 'made-this', 'video', 'plan'] as const;
 export type PostKind = (typeof POST_KINDS)[number];
 
+/** The recipe a post is about: shown as "cooked with <author>'s <title>". */
+export interface PostRecipe {
+  id: string;
+  title: string;
+  imageUrl: string | null;
+  author: Participant;
+}
+
 export interface Post {
   id: string;
   author: Participant;
@@ -16,6 +24,8 @@ export interface Post {
   photoUrl: string;
   videoUrl: string | null;
   recipeId: string | null;
+  /** The recipe behind recipeId (its title and who wrote it), so a post can say who it was cooked with. */
+  recipe: PostRecipe | null;
   /** Set for a post made inside a community. */
   communityId: string | null;
   challengeId: string | null;

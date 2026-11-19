@@ -1,5 +1,6 @@
-// "Want to cook", the shopping list and link import against the SousChef server.
+// "Want to cook", the shopping list and link import against the enplace server.
 // Used by wantToCookStore and recipeImportService when EXPO_PUBLIC_API_URL is set.
+import { resolveTikTokVideo } from '@/lib/tiktokVideo';
 import { Timestamp } from '@/lib/firebase';
 import type {
   AddShoppingItemsRequest,
@@ -39,6 +40,7 @@ export function importedFromApi(r: ApiImported, id: string): ImportedRecipe {
     tags: r.tags,
     extractedAt: Timestamp.now(),
     extractionConfidence: r.extractionConfidence,
+    ...(r.stepClips && r.stepClips.some(Boolean) ? { stepClips: r.stepClips } : {}),
   };
 }
 
@@ -60,6 +62,7 @@ export function importedToApi(r: ImportedRecipe): ApiImported {
     ...(r.category ? { category: r.category } : {}),
     tags: r.tags,
     extractionConfidence: r.extractionConfidence,
+    ...(r.stepClips && r.stepClips.some(Boolean) ? { stepClips: r.stepClips } : {}),
   };
 }
 
@@ -146,6 +149,17 @@ export async function apiClearShopping(checkedOnly: boolean): Promise<void> {
 /* ---------------------------------------------------------------- link import */
 
 /**
+ * "I want to cook ...": the server searches the web for a real recipe page and imports it (or, with no search available,
+ * has the model write a standard version and says so in `message`). Null when nothing usable came back.
+ */
+export async function apiSearchRecipe(query: string, onProgress?: (message: string) => void): Promise<(URLExtractionResponse & { note?: string }) | null> {
+  onProgress?.('Searching the web for a recipe...');
+  const result = await api().post<ImportResult>('/v1/imports/search', { query }, { timeoutMs: 90_000 });
+  if (result.status !== 'done' || !result.recipe) return null;
+  return { success: true, recipe: importedFromApi(result.recipe, result.id), confidence: result.recipe.extractionConfidence, ...(result.message ? { note: result.message } : {}) };
+}
+
+/**
  * Reads a recipe from a link on the server (caption, page data, then AI). Null when the server cannot read it from the
  * link alone (a video whose caption has no recipe), so the caller can fall back to the on-device reader.
  */
@@ -157,6 +171,18 @@ export async function apiExtractFromUrl(
 ): Promise<URLExtractionResponse | null> {
   onProgress?.('Reading the link...');
   let result = await api().post<ImportResult>('/v1/imports', { url }, { timeoutMs: 60_000 });
+  if (result.status === 'needs_frames' && result.platform === 'tiktok') {
+    // TikTok refuses the server's address but not this phone's: find the video file here, and the server reads it.
+    try {
+      onProgress?.('Fetching the video...');
+      const found = await resolveTikTokVideo(url);
+      if (found) {
+        result = await api().post<ImportResult>(`/v1/imports/${result.id}/video`, found, { timeoutMs: 120_000 });
+      }
+    } catch {
+      // the screenshot fallback below (if the caller offers it), then the on-device reader
+    }
+  }
   if (result.status === 'needs_frames' && askFrames) {
     const uris = await askFrames();
     if (uris && uris.length > 0) {

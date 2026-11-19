@@ -23,7 +23,7 @@ import {
 import { apiEnabled } from '@/lib/api';
 import { apiAdForPlacement, apiAllAds, apiCreateAd, apiDeleteAd, apiRecordAd, apiSubmitInquiry, apiUpdateAd } from '@/services/adApi';
 
-// With EXPO_PUBLIC_API_URL set, ads come from the SousChef server: it picks the ad, leaves out people on an ad-free
+// With EXPO_PUBLIC_API_URL set, ads come from the enplace server: it picks the ad, leaves out people on an ad-free
 // plan, counts views and taps per day, and keeps spend and budgets.
 
 // ── Firestore Collections ──

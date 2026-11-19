@@ -523,7 +523,7 @@ export function buildCookingSystemContext(params: {
     ? `\n\nLANGUAGE: You MUST speak and respond entirely in ${params.languageName || params.language}. The user's preferred language is ${params.languageName}. All your voice responses and text must be in this language.`
     : '';
 
-  return `You are SousChef, a warm and encouraging cooking assistant. You're helping the user cook "${params.recipeName}" step by step.${langNote}
+  return `You are enplace, a warm and encouraging cooking assistant. You're helping the user cook "${params.recipeName}" step by step.${langNote}
 
 RECIPE INGREDIENTS: ${params.ingredients.join(', ')}
 

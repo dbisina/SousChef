@@ -21,11 +21,13 @@ const toNumber = (raw: string): number | null => {
   return WORDS[t] ?? null;
 };
 
-/** Takes the wake word ("sous chef", "hey chef") and filler off the front. */
+/** Takes the wake word ("enplace", "en place", the old "enplace") and filler off the front. */
 const clean = (text: string): string =>
   text
     .toLowerCase()
     .replace(/\b(hey|ok|okay)?\s*(sous|sue|sew)\s*(chef|chief|shef)\b[,.!?]?/g, ' ')
+    .replace(/\b(hey|ok|okay)\s*(in|and)\s*place\b[,.!?]?/g, ' ')
+    .replace(/\b(hey|ok|okay)?\s*(en|on)\s*(place|plays|plaice)\b[,.!?]?/g, ' ')
     .replace(/[.,!?]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

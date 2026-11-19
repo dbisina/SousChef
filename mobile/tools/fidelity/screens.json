@@ -220,7 +220,7 @@
   "fixture": "recipes"
  },
  "Reels": {
-  "route": "/reels",
+  "route": "/spools",
   "theme": "dark"
  },
  "Register": {

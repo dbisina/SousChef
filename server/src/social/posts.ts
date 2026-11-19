@@ -14,12 +14,19 @@ import { errors } from '../errors';
 import { authorSelect, toAuthor } from '../recipes/mappers';
 import type { WriteGuard } from '../moderation/service';
 import type { UploadService } from '../uploads/service';
-import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_WINDOW_MS, rank } from './forYou';
+import type { TasteService } from '../recommend/taste';
+import { AFFINITY, decodeCursor, encodeCursor, FOR_YOU_CANDIDATES, FOR_YOU_MIN_CANDIDATES, FOR_YOU_WINDOW_MS, rank, spreadAuthors } from './forYou';
 
 const MAX_POSTS_PER_DAY = 20;
 const DAY_MS = 86_400_000;
 
-const withAuthor = { author: { select: authorSelect } } satisfies Prisma.PostInclude;
+const withAuthor = {
+  author: { select: authorSelect },
+  recipe: { select: { id: true, title: true, imageUrl: true, authorId: true, author: { select: authorSelect } } },
+} satisfies Prisma.PostInclude;
+
+/** Told when someone shares a post about another person's recipe, so that person can be notified. */
+export type CookedNotice = (n: { recipeAuthorId: string; cookName: string; recipeTitle: string; postId: string; recipeId: string }) => void;
 type PostRow = Prisma.PostGetPayload<{ include: typeof withAuthor }>;
 type CommentRow = Prisma.PostCommentGetPayload<{ include: { author: { select: typeof authorSelect } } }>;
 const commentInclude = { author: { select: authorSelect } } satisfies Prisma.PostCommentInclude;
@@ -35,6 +42,9 @@ export class PostService {
     private readonly uploads: UploadService,
     private readonly now: () => Date = () => new Date(),
     private readonly guard: WriteGuard | null = null,
+    private readonly onCooked: CookedNotice | null = null,
+    /** When set, the For You feed also learns from each person's taste (FEED_RANKER=v2). */
+    private readonly taste: TasteService | null = null,
   ) {}
 
   /* ------------------------------------------------------------------ posts */
@@ -87,7 +97,12 @@ export class PostService {
       },
       include: withAuthor,
     });
-    return this.toPost(row, { liked: false, saved: false });
+    const made = this.toPost(row, { liked: false, saved: false });
+    // Tell the recipe's writer someone cooked it (not when they cooked their own).
+    if (this.onCooked && row.recipe && row.recipe.authorId !== userId) {
+      this.onCooked({ recipeAuthorId: row.recipe.authorId, cookName: row.author.displayName, recipeTitle: row.recipe.title, postId: row.id, recipeId: row.recipe.id });
+    }
+    return made;
   }
 
   async get(id: string, viewer: Viewer | null): Promise<Post> {
@@ -112,6 +127,11 @@ export class PostService {
     if (viewer && viewer.userId !== target && (await this.blockedBetween(viewer.userId, target))) throw errors.notFound('Person not found');
     const own = viewer !== null && (viewer.userId === target || viewer.role === 'admin');
     return this.page({ authorId: target, ...(own ? {} : { status: 'PUBLISHED' }) }, viewer, limit, cursor);
+  }
+
+  /** What people cooked with a recipe: the public posts that carry it, newest first (not from people the viewer has blocked). */
+  async byRecipe(recipeId: string, viewer: Viewer | null, limit: number, cursor?: string): Promise<Page<Post>> {
+    return this.page({ recipeId, status: 'PUBLISHED', communityId: null, ...(viewer ? notBlocked(viewer.userId) : {}) }, viewer, limit, cursor);
   }
 
   /** Posts from people you follow, and your own, newest first. */
@@ -139,17 +159,27 @@ export class PostService {
     const asOf = state ? new Date(state.asOf) : this.now();
     const offset = state?.offset ?? 0;
 
+    // Posts this person marked "not interested" stay out of their feed.
+    const hidden = viewer ? (await this.db.feedEvent.findMany({ where: { userId: viewer.userId, kind: 'hide', postId: { not: null } }, select: { postId: true } })).map((h) => h.postId as string) : [];
     const where: Prisma.PostWhereInput = {
       status: 'PUBLISHED',
       createdAt: { gte: new Date(asOf.getTime() - FOR_YOU_WINDOW_MS), lte: asOf },
+      ...(hidden.length > 0 ? { id: { notIn: hidden } } : {}),
       ...(viewer ? notBlocked(viewer.userId) : {}),
     };
-    const rows = await this.db.post.findMany({
-      where: viewer?.role === 'admin' ? where : { AND: [where, this.communityGate(viewer?.userId ?? null)] },
-      include: withAuthor,
-      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: FOR_YOU_CANDIDATES,
-    });
+    const gated = (w: Prisma.PostWhereInput): Prisma.PostWhereInput => (viewer?.role === 'admin' ? w : { AND: [w, this.communityGate(viewer?.userId ?? null)] });
+    const newest = { orderBy: [{ createdAt: 'desc' as const }, { id: 'desc' as const }] };
+    let rows = await this.db.post.findMany({ where: gated(where), include: withAuthor, ...newest, take: FOR_YOU_CANDIDATES });
+    // A quiet week (few people post yet) must not leave the feed empty: older posts fill it, and the freshness term keeps them below new ones.
+    if (rows.length < FOR_YOU_MIN_CANDIDATES) {
+      const older = await this.db.post.findMany({
+        where: gated({ ...where, createdAt: { lt: new Date(asOf.getTime() - FOR_YOU_WINDOW_MS) } }),
+        include: withAuthor,
+        ...newest,
+        take: FOR_YOU_CANDIDATES - rows.length,
+      });
+      rows = [...rows, ...older];
+    }
     if (rows.length === 0) return { items: [], nextCursor: null };
 
     const authors = [...new Set(rows.map((r) => r.authorId))];
@@ -174,6 +204,11 @@ export class PostService {
     const affinity = (authorId: string): number =>
       viewer && authorId === viewer.userId ? AFFINITY.self : followedIds.has(authorId) ? AFFINITY.followed : engagedIds.has(authorId) ? AFFINITY.engaged : AFFINITY.stranger;
 
+    // v2: what this person likes (by dish), what they have already scrolled past and who they pushed away.
+    const profile = viewer && this.taste ? await this.taste.taste(viewer.userId) : null;
+    const recipeInfo = this.taste ? await this.taste.recipes(rows.map((r) => r.recipeId).filter((x): x is string => !!x)) : new Map();
+    const fatigue = viewer && this.taste && profile ? await this.taste.fatigue(viewer.userId, rows.map((r) => r.id), authors) : null;
+
     const ranked = rank(
       rows.map((r) => ({
         id: r.id,
@@ -185,10 +220,19 @@ export class PostService {
         views: r.viewCount,
         authorAffinity: affinity(r.authorId),
         hasRecipe: r.recipeId !== null,
+        ...(this.taste
+          ? {
+              taste: this.taste.match(profile, r.recipeId ? recipeInfo.get(r.recipeId) : undefined),
+              avoid: fatigue?.avoid.get(r.authorId) ?? 0,
+              seen: fatigue?.seen.get(r.id) ?? 0,
+              group: (r.recipeId ? recipeInfo.get(r.recipeId)?.cuisine : undefined) ?? '',
+            }
+          : {}),
       })),
       offset + limit,
     );
-    const pageIds = ranked.slice(offset, offset + limit);
+    const authorOf = new Map(rows.map((r) => [r.id, r.authorId]));
+    const pageIds = spreadAuthors(ranked, (id) => authorOf.get(id) ?? id).slice(offset, offset + limit);
     const byId = new Map(rows.map((r) => [r.id, r]));
     const items = await this.decorate(pageIds.map((id) => byId.get(id) as PostRow), viewer?.userId ?? null);
     // More to show when the candidates run past this page.
@@ -405,6 +449,7 @@ export class PostService {
       photoUrl: r.photoUrl,
       videoUrl: r.videoUrl,
       recipeId: r.recipeId,
+      recipe: r.recipe ? { id: r.recipe.id, title: r.recipe.title, imageUrl: r.recipe.imageUrl || null, author: toAuthor(r.recipe.author) } : null,
       communityId: r.communityId,
       challengeId: r.challengeId,
       likeCount: r.likeCount,

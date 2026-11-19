@@ -99,7 +99,18 @@ const schema = z
     AI_NEBIUS_API_KEY: z.string().default(''),
     /** Nebius Token Factory (OpenAI-compatible). Text work and the moderation check. */
     /** Path of the yt-dlp program (empty = off). Reads video captions and subtitles for link imports. */
+    /** Web search for "I want to cook X" (Tavily first, then Brave; empty = off, the model writes the recipe instead). */
+    TAVILY_API_KEY: z.string().default(''),
+    BRAVE_SEARCH_API_KEY: z.string().default(''),
+    /** Image model for Mystery Kitchen step pictures (paid plans only; uses the paid Gemini key). */
+    AI_IMAGE_MODEL: z.string().default('gemini-2.5-flash-image'),
+    /** Step pictures one person may have made per day (each costs money; ones already made for the same step are free to reuse). */
+    STEP_IMAGE_DAILY_CAP: z.coerce.number().int().min(0).max(500).default(30),
     YT_DLP_PATH: z.string().default(''),
+    /** Path of a cookies file (Netscape format) from a logged-in account; lets yt-dlp read Instagram. Empty = anonymous. */
+    YT_DLP_COOKIES_PATH: z.string().default(''),
+    /** ffmpeg, used with yt-dlp to take pictures from a video whose caption holds no recipe. */
+    FFMPEG_PATH: z.string().default('ffmpeg'),
     /** Optional outbound proxy for yt-dlp, for platforms that block data-centre addresses. */
     IMPORT_PROXY_URL: z.string().default(''),
     AI_NEBIUS_MODEL: z.string().default('Qwen/Qwen3-30B-A3B-Instruct-2507'),
@@ -123,6 +134,8 @@ const schema = z
       .transform((v) => v.split(',').map((s) => s.trim()).filter(Boolean)),
     /** Imports (each can open a web page and call an AI service) allowed per minute per address. */
     IMPORT_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(20),
+    /** Which For You ranking runs: v2 learns each person's taste; v1 is the plain engagement ranking (for comparing or rolling back). */
+    FEED_RANKER: z.enum(['v1', 'v2']).default('v2'),
     /** All AI calls together stop when this much has been spent in a month (US dollars). */
     AI_MONTHLY_BUDGET_USD: z.coerce.number().min(0).default(5),
     AI_PRICE_GEMINI_IN: z.coerce.number().min(0).default(0.3),
@@ -142,7 +155,7 @@ const schema = z
     S3_ACCESS_KEY_ID: z.string().default(''),
     S3_SECRET_ACCESS_KEY: z.string().default(''),
     S3_REGION: z.string().default('auto'),
-    /** The public address of the bucket, e.g. https://media.souschef.app (no trailing slash). */
+    /** The public address of the bucket, e.g. https://media.your-domain.example (no trailing slash). */
     STORAGE_PUBLIC_URL: z.string().default(''),
 
     /**

@@ -1,4 +1,4 @@
-// Games from the SousChef server, shaped the way the game screens already read them.
+// Games from the enplace server, shaped the way the game screens already read them.
 import type { DailyDishView, MkRoomView } from '@shared/index';
 import { toDateKey } from '@/lib/dailyDish';
 import type { DailyDishPuzzle, DailyDishState, DailyDishStreak, MKDifficulty, MKPhase, MysteryKitchenRound } from '@/types/play';
@@ -49,8 +49,9 @@ export function toRound(view: MkRoomView, meId: string, now: number): MysteryKit
       // The dish stays secret until the end; the hints you have bought come first, locked ones are empty slots.
       name: view.dish ?? '',
       description: '',
-      photo: '',
-      ingredients: (view.basket ?? []).map((label) => ({ label })),
+      photo: view.dishPhotoUrl ?? '',
+      steps: view.steps,
+      ingredients: (view.basket ?? []).map((label) => ({ label, ...(view.ingredientPhotos?.[label] ? { photo: view.ingredientPhotos[label] } : {}) })),
       hints: [...view.hints, ...Array.from({ length: view.hintsLeft }, () => '')],
     },
     ...(view.twist ? { twist: { title: 'Twist', text: view.twist } } : {}),

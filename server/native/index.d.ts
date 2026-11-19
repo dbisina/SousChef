@@ -24,6 +24,14 @@ export interface FeedCandidate {
   /** 0 (a stranger) to 1 (someone the viewer follows). */
   authorAffinity: number;
   hasRecipe: boolean;
+  /** 0 to 1: how close the dish is to what the viewer likes. Left out: 0. */
+  taste?: number | null;
+  /** 0 to 1: how much the viewer has pushed this author away. Left out: 0. */
+  avoid?: number | null;
+  /** How many times the viewer was shown it and ignored it. Left out: 0. */
+  seen?: number | null;
+  /** What kind of dish (its cuisine), so one kind does not fill the page. Left out: no group. */
+  group?: string | null;
 }
 
 /** Orders posts for the "for you" feed and returns the ids of the best `limit`, best first. */

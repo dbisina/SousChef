@@ -7,7 +7,7 @@
  * @module app/(tabs)/scan
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text as RNText, View } from 'react-native';
 import { Pressable } from '@/components/ui/Pressable';
 import { Image } from 'expo-image';
@@ -18,6 +18,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { usePortionAnalysis } from '@/hooks/useAI';
 import { useRemainingUsage } from '@/hooks/useSubscription';
+import { useUpsell } from '@/hooks/useUpsell';
+import { leftIn, useAllowance, windowWord } from '@/hooks/useAllowance';
 import { CameraCapture } from '@/components/camera';
 import { foodPhoto } from '@/components/mealplan/foodPhoto';
 import {
@@ -56,7 +58,11 @@ export default function ScanScreen() {
   const { remainingPortion } = useRemainingUsage();
 
   const [showCamera, setShowCamera] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
+  // Plans are offered politely (see hooks/useUpsell.ts): never by surprise, and the person can always tap "See plans".
+  const upsell = useUpsell();
+  const { allowance, refresh: refreshAllowance } = useAllowance();
+  const outOfScans = allowance ? leftIn(allowance) === 0 : remainingPortion === 0;
+  const usedUpMessage = t('foodScan.usedUp', "That's all the scans for {{when}}. They free up again soon.", { when: allowance ? windowWord(allowance) : t('foodScan.thisWeek', 'this week') });
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [showFix, setShowFix] = useState(false);
   const [hintInput, setHintInput] = useState('');
@@ -66,11 +72,15 @@ export default function ScanScreen() {
     setCapturedImage(imageUri);
     setShowCamera(false);
     // Analyze without a specific recipe - just general food analysis
-    const result = await analyzeImage(imageUri);
-    if (!result && accessDenied) {
-      setShowPaywall(true);
-    }
+    await analyzeImage(imageUri);
+    void refreshAllowance();
   };
+
+  // The allowance ran out while scanning: a calm note, and the plan sheet only if it is a good time.
+  useEffect(() => {
+    if (accessDenied && capturedImage) void upsell.offer(usedUpMessage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accessDenied]);
 
   const resetScan = () => {
     setCapturedImage(null);
@@ -93,16 +103,16 @@ export default function ScanScreen() {
   };
 
   const handleStartScan = () => {
-    if (remainingPortion === 0) {
-      setShowPaywall(true);
+    if (outOfScans) {
+      void upsell.offer(usedUpMessage);
       return;
     }
     setShowCamera(true);
   };
 
   const handlePickFromGallery = async () => {
-    if (remainingPortion === 0) {
-      setShowPaywall(true);
+    if (outOfScans) {
+      void upsell.offer(usedUpMessage);
       return;
     }
     const picked = await ImagePicker.launchImageLibraryAsync({
@@ -138,15 +148,16 @@ export default function ScanScreen() {
     }
   };
 
-  const leftLabel =
-    remainingPortion === 'unlimited'
+  const leftLabel = allowance
+    ? t('foodScan.left', '{{n}} left', { n: leftIn(allowance) ?? 0 })
+    : remainingPortion === 'unlimited'
       ? t('foodScan.unlimited', 'Unlimited')
       : t('foodScan.left', '{{n}} left', { n: remainingPortion });
 
   const paywall = (
     <Paywall
-      visible={showPaywall}
-      onClose={() => setShowPaywall(false)}
+      visible={upsell.visible}
+      onClose={upsell.close}
       feature="Portion Analysis"
       requiredTier={accessDenied?.upgradeRequired || 'premium'}
     />
@@ -165,7 +176,7 @@ export default function ScanScreen() {
   if (portionResult && capturedImage) {
     const items = portionResult.detectedItems ?? [];
     const avgConfidence =
-      items.length > 0 ? Math.round((items.reduce((s, i) => s + (i.confidence ?? 0), 0) / items.length) * 100) : 0;
+      items.length > 0 ? Math.min(100, Math.round((items.reduce((s, i) => s + ((i.confidence ?? 0) > 1 ? (i.confidence ?? 0) / 100 : (i.confidence ?? 0)), 0) / items.length) * 100)) : 0;
     const servings = portionResult.suggestedServings;
 
     return (
@@ -238,6 +249,33 @@ export default function ScanScreen() {
               </RNText>
             </View>
 
+            {portionResult.totalNutrition ? (
+              <View style={{ gap: 10 }}>
+                <View className="flex-row" style={{ gap: 10 }}>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.proteinG} g`} label={t('foodScan.protein', 'Protein')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.carbsG} g`} label={t('foodScan.carbs', 'Carbs')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.fatG} g`} label={t('foodScan.fat', 'Fat')} />
+                  </View>
+                </View>
+                <View className="flex-row" style={{ gap: 10 }}>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.fiberG} g`} label={t('foodScan.fiber', 'Fibre')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.sugarG} g`} label={t('foodScan.sugar', 'Sugar')} />
+                  </View>
+                  <View className="flex-1">
+                    <Tile value={`${portionResult.totalNutrition.sodiumMg} mg`} label={t('foodScan.sodium', 'Sodium')} />
+                  </View>
+                </View>
+              </View>
+            ) : null}
+
             <View className="flex-row" style={{ gap: 10 }}>
               <View className="flex-1">
                 <Tile value={items.length} label={t('foodScan.items', 'Items')} />
@@ -258,6 +296,8 @@ export default function ScanScreen() {
               </View>
             ) : null}
 
+            {portionResult.note ? <Muted small>{portionResult.note}</Muted> : null}
+
             {items.length > 0 ? (
               <Rows>
                 {items.map((item, i) => (
@@ -268,6 +308,11 @@ export default function ScanScreen() {
                       <Muted small numberOfLines={1}>
                         {`${item.estimatedAmount} ${item.unit}`}
                       </Muted>
+                      {item.nutrition ? (
+                        <Muted small numberOfLines={1}>
+                          {t('foodScan.itemMacros', 'P {{p}} g · C {{c}} g · F {{f}} g', { p: item.nutrition.proteinG, c: item.nutrition.carbsG, f: item.nutrition.fatG })}
+                        </Muted>
+                      ) : null}
                     </View>
                     <Muted>{`${item.estimatedCalories} kcal`}</Muted>
                   </View>
@@ -374,20 +419,16 @@ export default function ScanScreen() {
       >
         {denied ? (
           <View className="items-center" style={{ gap: 12 }}>
-            <Icon name="lock" size="lg" color="accent" />
-            <Title center>{t('foodScan.upgradeTitle', 'Upgrade Required')}</Title>
+            <Icon name="clock" size="lg" color="muted" />
+            <Title center>{t('foodScan.usedTitle', "That's all the scans for now")}</Title>
             <Muted small center>
-              {accessDenied?.reason === 'limit_reached'
-                ? t('foodScan.limitReached', "You've reached your daily limit of {{n}} scans.", { n: accessDenied.limit })
-                : t('foodScan.premiumOnly', 'Food scanning is a premium feature.')}
+              {allowance?.intensive.resetsAt
+                ? t('foodScan.freesUpOn', 'They free up again on {{date}}. Plans give you more.', { date: new Date(allowance.intensive.resetsAt).toLocaleDateString() })
+                : usedUpMessage}
             </Muted>
-            <View style={{ alignSelf: 'stretch' }}>
-              <UButton
-                variant="accent"
-                icon="star"
-                label={t('foodScan.upgradeNow', 'Upgrade Now')}
-                onPress={() => setShowPaywall(true)}
-              />
+            <View style={{ alignSelf: 'stretch', gap: 8 }}>
+              <UButton variant="ghost" label={t('foodScan.seePlans', 'See plans')} onPress={upsell.open} />
+              <UButton variant="ghost" label={t('foodScan.scanLater', 'Maybe later')} onPress={() => { clearPortionResult(); setCapturedImage(null); }} />
             </View>
           </View>
         ) : (
@@ -402,6 +443,11 @@ export default function ScanScreen() {
                 ? t('foodScan.analyzingHint', 'Identifying ingredients and portions')
                 : t('foodScan.readyHint', 'Snap your plate for calories and nutrition')}
             </Muted>
+            {allowance && !isAnalyzing ? (
+              <Muted small center>
+                {t('foodScan.meter', '{{left}} of {{max}} scans left {{when}}', { left: leftIn(allowance) ?? 0, max: allowance.intensive.max, when: windowWord(allowance) })}
+              </Muted>
+            ) : null}
           </View>
         )}
 

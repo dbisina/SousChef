@@ -1,4 +1,4 @@
-// Meal plans and the food-waste log against the SousChef server. Used by mealPlanService when EXPO_PUBLIC_API_URL is set.
+// Meal plans and the food-waste log against the enplace server. Used by mealPlanService when EXPO_PUBLIC_API_URL is set.
 // The server identifies a plan by its week (the Monday), so that is what the app's plan `id` is in this mode.
 import { Timestamp } from '@/lib/firebase';
 import type {

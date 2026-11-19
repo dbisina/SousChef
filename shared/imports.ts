@@ -3,6 +3,18 @@ import type { ImportedRecipe } from './kitchen';
 
 export type ImportPlatform = 'youtube' | 'tiktok' | 'instagram' | 'website';
 
+export interface AddVideoRequest {
+  /** The video file's own address, as the platform's page gave it to the phone. */
+  videoUrl: string;
+  /** The cookie the platform gave the phone with it (the file is refused without it). */
+  cookie?: string;
+}
+
+export interface SearchImportRequest {
+  /** What the person wants to cook, in their own words ("a good vegan lasagne"). */
+  query: string;
+}
+
 export interface CreateImportRequest {
   /** A link to a video or to a page with a recipe on it. */
   url: string;

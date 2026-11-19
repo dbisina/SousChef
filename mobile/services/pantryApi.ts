@@ -1,4 +1,4 @@
-// The pantry against the SousChef server. Used by pantryService and pantryStore when EXPO_PUBLIC_API_URL is set.
+// The pantry against the enplace server. Used by pantryService and pantryStore when EXPO_PUBLIC_API_URL is set.
 import { Timestamp } from '@/lib/firebase';
 import type { BulkAddPantryRequest, PantryFilter, PantryItem as ApiPantryItem, PantryItemInput, PantrySummary, UpdatePantryItemRequest } from '@shared/index';
 import { api } from '@/lib/api';

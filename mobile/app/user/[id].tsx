@@ -1,56 +1,44 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { RefreshControl, ScrollView, Text as RNText, View, useWindowDimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { Recipe, User } from '@/types';
 import {
-  Display,
   H2,
   Icon,
   Loading,
   Muted,
   PhotoCard,
   Screen,
-  SheetPanel,
-  Tag,
-  ToneBlock,
   UButton,
   UIconButton,
 } from '@/components/ui';
+import { SafetySheet } from '@/components/moderation/SafetySheet';
 import { FONT } from '@/components/ui/fonts';
-import { FIXED } from '@/stores/themeStore';
+import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import { db, doc, getDoc } from '@/lib/firebase';
 import { isDesignReview } from '@/lib/designReview';
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <View className="items-center">
-      <RNText className="text-ink" style={{ fontFamily: FONT.display, fontSize: 20, lineHeight: 29 }}>
-        {value}
-      </RNText>
-      <Muted small>{label}</Muted>
-    </View>
-  );
-}
-
-const compact = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, '')}k` : String(n));
+import { apiEnabled } from '@/lib/api';
+import { apiProfile, apiSetFollowing } from '@/services/socialApi';
 
 export default function UserProfileScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { user: currentUser } = useAuthStore();
   const { fetchUserRecipes, followUser, unfollowUser } = useRecipeStore();
 
+  const [safety, setSafety] = useState(false);
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [postCount, setPostCount] = useState(0);
 
   const isOwnProfile = currentUser?.id === id;
 
@@ -68,11 +56,29 @@ export default function UserProfileScreen() {
     }
     setIsLoading(true);
     try {
-      const userDoc = await getDoc(doc(db, 'users', id));
-      if (userDoc.exists()) {
-        const userData = { id: userDoc.id, ...userDoc.data() } as User;
-        setProfileUser(userData);
-        setIsFollowing(currentUser?.following?.includes(id) || false);
+      if (apiEnabled()) {
+        // The server is the source of truth: the profile, the follower count and whether you follow them.
+        const p = await apiProfile(id);
+        setProfileUser({
+          id: p.id,
+          displayName: p.displayName,
+          photoURL: p.photoUrl ?? undefined,
+          bio: p.bio,
+          isVerifiedChef: p.isVerifiedChef,
+          handle: p.handle,
+        } as unknown as User);
+        setFollowerCount(p.followerCount);
+        setFollowingCount(p.followingCount);
+        setPostCount(p.postCount);
+        setIsFollowing(p.viewer?.following ?? false);
+      } else {
+        const userDoc = await getDoc(doc(db, 'users', id));
+        if (userDoc.exists()) {
+          const userData = { id: userDoc.id, ...userDoc.data() } as User;
+          setProfileUser(userData);
+          setFollowerCount(userData.followers?.length ?? 0);
+          setIsFollowing(currentUser?.following?.includes(id) || false);
+        }
       }
       const userRecipes = await fetchUserRecipes(id);
       setRecipes(userRecipes.filter((r) => r.status !== 'flagged'));
@@ -83,7 +89,7 @@ export default function UserProfileScreen() {
     }
     // fetchUserRecipes is a stable zustand action; currentUser.following drives the follow state.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, currentUser?.following]);
+  }, [id]);
 
   useEffect(() => {
     loadProfile();
@@ -91,12 +97,22 @@ export default function UserProfileScreen() {
 
   const handleFollowToggle = async () => {
     if (!currentUser || !id || isOwnProfile) return;
-    if (isFollowing) {
-      await unfollowUser(currentUser.id, id);
-      setIsFollowing(false);
-    } else {
-      await followUser(currentUser.id, id);
-      setIsFollowing(true);
+    const next = !isFollowing;
+    setIsFollowing(next); // optimistic; the server's answer below replaces it
+    setFollowerCount((n) => Math.max(0, n + (next ? 1 : -1)));
+    try {
+      if (apiEnabled()) {
+        const r = await apiSetFollowing(id, next);
+        setIsFollowing(r.following);
+        setFollowerCount(r.followerCount);
+      } else if (next) {
+        await followUser(currentUser.id, id);
+      } else {
+        await unfollowUser(currentUser.id, id);
+      }
+    } catch {
+      setIsFollowing(!next);
+      setFollowerCount((n) => Math.max(0, n + (next ? -1 : 1)));
     }
   };
 
@@ -116,35 +132,8 @@ export default function UserProfileScreen() {
     );
   }
 
-  const followerCount = profileUser.followers?.length || 0;
-  const topInset = Math.max(insets.top, 20) + 14;
-  const tile = Math.floor((width - 40 - 12) / 2);
-
-  const heroOverlay = (
-    <>
-      <View
-        className="flex-row items-center justify-between"
-        style={{ position: 'absolute', top: topInset, left: 20, right: 20, zIndex: 2 }}
-      >
-        <UIconButton icon="back" tone="glassDark" label={t('common.back', 'Back')} onPress={() => router.back()} />
-      </View>
-      <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 6 }}>
-        {profileUser.isVerifiedChef ? (
-          <View style={{ alignSelf: 'flex-start' }}>
-            <Tag tone="glass" icon="check" label={t('cookbooks.profile.verified', 'Verified chef')} />
-          </View>
-        ) : null}
-        <Display size={30} numberOfLines={2}>
-          {profileUser.displayName}
-        </Display>
-        {profileUser.bio ? (
-          <RNText numberOfLines={2} style={{ fontFamily: FONT.sans, fontSize: 12, lineHeight: 17.4, color: FIXED.captionSub }}>
-            {profileUser.bio}
-          </RNText>
-        ) : null}
-      </View>
-    </>
-  );
+  const tile = Math.floor((width - 8) / 3);
+  const handle = (profileUser as User & { handle?: string }).handle;
 
   return (
     <Screen bare>
@@ -153,64 +142,64 @@ export default function UserProfileScreen() {
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={loadProfile} />}
       >
-        {profileUser.photoURL ? (
-          <PhotoCard
-            source={{ uri: profileUser.photoURL }}
-            height={340}
-            radius={0}
-            fade="both"
-            accessibilityLabel={profileUser.displayName}
-          >
-            {heroOverlay}
-          </PhotoCard>
-        ) : (
-          <ToneBlock tone="dark" className="bg-night" style={{ height: 340 }}>
-            {heroOverlay}
-          </ToneBlock>
-        )}
+        <ProfileHeader
+          handle={handle ?? profileUser.displayName}
+          name={profileUser.displayName}
+          bio={profileUser.bio}
+          avatar={profileUser.photoURL ? { uri: profileUser.photoURL } : undefined}
+          verified={Boolean(profileUser.isVerifiedChef)}
+          topLeft={<UIconButton icon="back" label={t('common.back', 'Back')} onPress={() => router.back()} />}
+          topRight={!isOwnProfile ? <UIconButton icon="more" label={t('safety.title', 'Report or block')} onPress={() => setSafety(true)} /> : undefined}
+          stats={[
+            { value: Math.max(postCount, 0), label: t('cookbooks.profile.posts', 'posts') },
+            { value: followerCount, label: t('cookbooks.profile.followers', 'followers') },
+            { value: followingCount, label: t('cookbooks.profile.followingLabel', 'following') },
+          ]}
+          actions={
+            !isOwnProfile && currentUser ? (
+              <View style={{ flex: 1 }}>
+                <UButton
+                  size="sm"
+                  variant={isFollowing ? 'ghost' : 'accent'}
+                  label={isFollowing ? t('cookbooks.profile.following', 'Following') : t('cookbooks.profile.follow', 'Follow')}
+                  onPress={handleFollowToggle}
+                />
+              </View>
+            ) : undefined
+          }
+        />
 
-        <SheetPanel gap={14}>
-          <View className="flex-row items-center justify-between" style={{ gap: 12 }}>
-            <Stat value={String(recipes.length)} label={t('cookbooks.profile.recipes', 'Recipes')} />
-            <Stat value={compact(followerCount)} label={t('cookbooks.profile.followers', 'Followers')} />
-            <Stat value={compact(profileUser.totalLikes || 0)} label={t('cookbooks.profile.likes', 'Likes')} />
-            {!isOwnProfile && currentUser ? (
-              <UButton
-                size="sm"
-                style={{ paddingHorizontal: 26 }}
-                variant={isFollowing ? 'ghost' : 'accent'}
-                label={isFollowing ? t('cookbooks.profile.following', 'Following') : t('cookbooks.profile.follow', 'Follow')}
-                onPress={handleFollowToggle}
-              />
-            ) : (
-              <View />
-            )}
+        <View style={{ marginTop: 18 }}>
+          <View className="flex-row items-center" style={{ paddingHorizontal: 20, paddingBottom: 10, gap: 8 }}>
+            <Icon name="grid" size="sm" />
+            <RNText className="text-ink" style={{ fontFamily: FONT.sansSemi, fontSize: 13 }}>
+              {t('cookbooks.profile.recipes', 'Recipes')} · {recipes.length}
+            </RNText>
           </View>
-
           {recipes.length === 0 ? (
             <View className="items-center" style={{ paddingVertical: 40, gap: 10 }}>
               <Icon name="kitchen" size="lg" color="muted" />
               <Muted>{t('cookbooks.profile.noRecipes', 'No recipes yet')}</Muted>
             </View>
           ) : (
-            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+            <View className="flex-row flex-wrap" style={{ gap: 4 }}>
               {recipes.map((item) => (
                 <PhotoCard
                   key={item.id}
-                  source={{ uri: item.imageURL }}
+                  source={item.imageURL ? { uri: item.imageURL } : null}
                   width={tile}
-                  height={170}
-                  radius={24}
-                  title={item.title}
-                  titleSize={15}
-                  captionInset={14}
+                  height={tile}
+                  radius={0}
+                  fade="none"
+                  accessibilityLabel={item.title}
                   onPress={() => router.push(`/recipe/${item.id}`)}
                 />
               ))}
             </View>
           )}
-        </SheetPanel>
+        </View>
       </ScrollView>
+      <SafetySheet visible={safety} onClose={() => setSafety(false)} targetType="user" targetId={id} personId={id} personName={profileUser.displayName} onBlocked={() => (router.canGoBack() ? router.back() : router.replace('/'))} />
     </Screen>
   );
 }

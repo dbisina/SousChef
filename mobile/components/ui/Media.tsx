@@ -1,4 +1,5 @@
 import React from 'react';
+import { optimizedSource } from '@/lib/mediaUrl';
 import { StyleSheet, Text as RNText, View, type ViewStyle } from 'react-native';
 import { Pressable } from './Pressable';
 import { Image } from 'expo-image';
@@ -30,7 +31,7 @@ export function UAvatar({ source, name, size = 44, square }: UAvatarProps) {
       style={{ width: size, height: size, borderRadius: radius }}
     >
       {source ? (
-        <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
+        <Image source={optimizedSource(source, size)} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} />
       ) : (
         <RNText className="text-muted" style={{ fontFamily: FONT.display, fontSize: size * 0.36 }}>
           {initials}
@@ -70,6 +71,8 @@ export function AvatarStack({ people, size = 30, max = 5 }: AvatarStackProps) {
 interface StoryRingProps {
   source?: PhotoSource | null;
   name: string;
+  /** The name initials come from when there is no photo (the label can be something else, like "Your plate"). */
+  initialsFrom?: string;
   seen?: boolean;
   /** Show the orange + badge (own story). */
   add?: boolean;
@@ -77,7 +80,7 @@ interface StoryRingProps {
 }
 
 /** .st: 68px story avatar with orange (unseen) or grey (seen) ring and a label. */
-export function StoryRing({ source, name, seen, add, onPress }: StoryRingProps) {
+export function StoryRing({ source, name, initialsFrom, seen, add, onPress }: StoryRingProps) {
   const tk = useTokens();
   return (
     <Pressable
@@ -91,7 +94,7 @@ export function StoryRing({ source, name, seen, add, onPress }: StoryRingProps) 
         style={{ width: 68, height: 68, borderRadius: 34, padding: 3, alignItems: 'center', justifyContent: 'center' }}
       >
         <View style={{ width: 62, height: 62, borderRadius: 31, overflow: 'hidden', borderWidth: 3, borderColor: tk.ground }}>
-          {source ? <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} /> : <UAvatar name={name} size={56} />}
+          {source ? <Image source={source} style={StyleSheet.absoluteFill} contentFit="cover" accessible={false} /> : <UAvatar name={initialsFrom ?? name} size={56} />}
         </View>
         {add ? (
           <View

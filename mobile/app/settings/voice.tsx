@@ -13,7 +13,9 @@ import {
   Tag,
   TopBar,
   USwitch,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 export default function VoiceSettingsScreen() {
   const router = useRouter();
@@ -27,6 +29,8 @@ export default function VoiceSettingsScreen() {
       <TopBar variant="compact" title={t('account.voice.title', 'Voice Commands')} onBack={() => router.back()} />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 14 }}>
         <PhotoCard
+          source={PHOTOS.ricebowl as PhotoSource}
+          fade="both"
           height={190}
           topLeft={<Tag tone="glassDark" large icon="mic" label={t('account.voice.handsFree', 'Hands-free')} />}
           topRight={

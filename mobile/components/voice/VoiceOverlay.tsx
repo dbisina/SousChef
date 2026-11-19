@@ -86,10 +86,10 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
 
   const hints = isWakeWordMode
     ? [
-        t('cooking.hintWakeNext', '“SousChef next”'),
-        t('cooking.hintWakeBack', '“SousChef back”'),
-        t('cooking.hintWakeRead', '“SousChef read”'),
-        t('cooking.hintWakeTimer', '“SousChef timer 5 minutes”'),
+        t('cooking.hintWakeNext', '“enplace next”'),
+        t('cooking.hintWakeBack', '“enplace back”'),
+        t('cooking.hintWakeRead', '“enplace read”'),
+        t('cooking.hintWakeTimer', '“enplace timer 5 minutes”'),
       ]
     : [
         t('cooking.hintNext', '“Next step”'),
@@ -195,8 +195,8 @@ export const VoiceOverlay: React.FC<VoiceOverlayProps> = ({
                 </View>
                 <Muted small>
                   {isWakeWordMode
-                    ? t('cooking.handsFreeListening', 'Listening for “SousChef”')
-                    : t('cooking.handsFreeHint', 'Say “SousChef” to activate')}
+                    ? t('cooking.handsFreeListening', 'Listening for “enplace”')
+                    : t('cooking.handsFreeHint', 'Say “enplace” to activate')}
                 </Muted>
               </View>
               <USwitch

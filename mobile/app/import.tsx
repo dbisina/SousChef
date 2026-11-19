@@ -26,7 +26,9 @@ import {
   UButton,
   UIconButton,
   UInput,
+  type PhotoSource,
 } from '@/components/ui';
+import { PHOTOS } from '@/assets/photos';
 
 // Friendly label for detected source types (carried over from the old URL import modal).
 const SOURCE_LABELS: Record<string, string> = {
@@ -239,6 +241,8 @@ export default function ImportScreen() {
           showsVerticalScrollIndicator={false}
         >
           <PhotoCard
+            source={PHOTOS.plating as PhotoSource}
+            fade="both"
             height={220}
             title={previewTitle}
             subtitle={previewSubtitle}
@@ -252,12 +256,12 @@ export default function ImportScreen() {
           <UInput
             icon="link"
             label={t('importUi.urlLabel', 'Recipe URL')}
-            placeholder="https://..."
+            placeholder="Paste a link, or say what you want to cook"
             value={url}
             onChangeText={setUrl}
             autoCapitalize="none"
             autoCorrect={false}
-            keyboardType="url"
+            keyboardType="default"
             returnKeyType="go"
             onSubmitEditing={handleImport}
             editable={!isImporting}

@@ -32,6 +32,7 @@ import { ScaleCard } from '@/components/recipe/ScaleCard';
 import { CookChatCard, RewriteCard } from '@/components/ai/AiCooking';
 import { RecipeComments } from '@/components/recipe/RecipeComments';
 import { MadeThisGallery } from '@/components/recipe/MadeThisGallery';
+import { MoreLikeThis } from '@/components/recipe/MoreLikeThis';
 import { Paywall } from '@/components/subscription';
 import { formatRelativeTime } from '@/lib/utils';
 import type { Ingredient } from '@/types';
@@ -78,7 +79,7 @@ export default function RecipeDetailScreen() {
     if (!recipe) return;
     try {
       await Share.share({
-        message: `Check out this recipe: ${recipe.title}\n\nFrom SousChef App`,
+        message: `Check out this recipe: ${recipe.title}\n\nFrom enplace App`,
       });
     } catch (e) {
       console.error(e);
@@ -425,6 +426,8 @@ export default function RecipeDetailScreen() {
           ) : null}
 
           <MadeThisGallery recipeId={recipe.id} />
+
+          <MoreLikeThis recipeId={recipe.id} />
 
           <RecipeComments recipeId={recipe.id} />
 

@@ -44,6 +44,8 @@ export default function MysteryRevealScreen() {
   );
 
   if (!round || round.phase !== 'reveal') return <Screen tone="dark" />;
+  const meId = round.players.find((p) => p.isYou)?.id;
+  const mine = ranked.find((s) => s.playerId === meId);
 
   const close = () => {
     leaveRound();
@@ -104,6 +106,26 @@ export default function MysteryRevealScreen() {
             </RNText>
           </View>
         </PhotoCard>
+
+        {mine ? (
+          <View style={{ paddingHorizontal: 20, gap: 10 }}>
+            <View className="flex-row" style={{ gap: 12 }}>
+              <View style={{ flex: 1, gap: 6 }}>
+                <PhotoCard source={samplePhoto(round.secret.photo)} height={190} radius={22} fade="none" accessibilityLabel={t('play.mk.intended', 'The real dish')} />
+                <Muted small center>{t('play.mk.intended', 'The real dish')}</Muted>
+              </View>
+              <View style={{ flex: 1, gap: 6 }}>
+                <PhotoCard source={samplePhoto(mine.plate)} height={190} radius={22} fade="none" accessibilityLabel={t('play.mk.yourPlate', 'Your plate')} />
+                <Muted small center>{t('play.mk.yourPlate', 'Your plate')}</Muted>
+              </View>
+            </View>
+            <UCard style={{ borderRadius: 22, padding: 16, gap: 6, alignItems: 'center' }}>
+              <RNText style={{ fontFamily: FONT.display, fontSize: 44, lineHeight: 50, color: FIXED.paper }}>{mine.score}</RNText>
+              <Muted small>{t('play.mk.matchScore', 'How close your plate is to the real dish, out of 100')}</Muted>
+              <Muted center>{`“${mine.comment}”`}</Muted>
+            </UCard>
+          </View>
+        ) : null}
 
         <View style={{ paddingHorizontal: 20, paddingTop: 6 }}>
           <Podium entries={entries} winnerLabel={t('play.mk.winner', 'Winner')} />

@@ -30,7 +30,7 @@ export const useAuth = () => {
   const router = useRouter();
   const segments = useSegments();
 
-  // With a server address set, accounts live on the SousChef server: bring back the saved sign-in, and go to the
+  // With a server address set, accounts live on the enplace server: bring back the saved sign-in, and go to the
   // sign-in screen if the server ever ends it.
   useEffect(() => {
     if (isDesignReview || !apiEnabled()) return;

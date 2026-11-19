@@ -1,4 +1,4 @@
-// Conversations and messages against the SousChef server, plus the live connection. The chat screens use these when
+// Conversations and messages against the enplace server, plus the live connection. The chat screens use these when
 // EXPO_PUBLIC_API_URL is set. A message is sent with a `clientId`, so sending it again after a bad connection is safe.
 import type {
   Blocked,

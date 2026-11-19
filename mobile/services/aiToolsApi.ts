@@ -1,6 +1,7 @@
 // The server's AI helpers: ingredient substitutions, a planned week of meals, and reading a recipe from cookbook photos.
 // Used by aiService, mealPlanAIService and recipeImportService when EXPO_PUBLIC_API_URL is set (so no AI key lives on the phone).
 import type {
+  AiAllowance,
   CaptionResponse,
   ChatAssistRequest,
   ChatAssistResponse,
@@ -9,11 +10,13 @@ import type {
   GeneratedMealPlan,
   GenerateMealPlanRequest,
   HealthSummaryResponse,
+  ImportedRecipe,
   LeftoversRequest,
   LeftoversResponse,
   PantryScanRequest,
   PantryScanResponse,
   PlateCheckResponse,
+  PlateNutritionResponse,
   RewriteRecipeRequest,
   RewriteRecipeResponse,
   ScaleNote,
@@ -148,6 +151,20 @@ export async function apiPlateCheck(imageUri: string, recipeId?: string): Promis
   const up = await uploadFile(imageUri, 'made_post');
   return api().post<PlateCheckResponse>('/v1/ai/plate-check', { uploadId: up.id, ...(recipeId ? { recipeId } : {}) }, { timeoutMs: 60_000 });
 }
+
+/** A recipe typed, pasted or dictated as plain text, turned into a draft to check and publish. Counts as one import. */
+export async function apiReadRecipeText(text: string): Promise<ImportedRecipe> {
+  return (await api().post<ScanRecipeResponse>('/v1/imports/text', { text }, { timeoutMs: 60_000 })).recipe;
+}
+
+/** Calories and estimated nutrition from a photo of a plate. The server deletes the photo after reading it. */
+export async function apiPlateNutrition(imageUri: string, hints: string[] = []): Promise<PlateNutritionResponse> {
+  const up = await uploadFile(imageUri, 'made_post');
+  return api().post<PlateNutritionResponse>('/v1/ai/plate-nutrition', { uploadId: up.id, ...(hints.length ? { hints } : {}) }, { timeoutMs: 90_000 });
+}
+
+/** What is left of the account's allowance for photo-reading AI and meal plans: the screens show it as a quiet meter. */
+export const apiAllowance = (): Promise<AiAllowance> => api().get<AiAllowance>('/v1/ai/allowance');
 
 export async function apiSuggestCaption(imageUri: string): Promise<CaptionResponse> {
   const up = await uploadFile(imageUri, 'made_post');

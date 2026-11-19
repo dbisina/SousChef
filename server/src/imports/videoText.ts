@@ -20,6 +20,8 @@ export interface YtDlpOptions {
   bin: string;
   /** Optional outbound proxy for platforms that block data-centre addresses. */
   proxy?: string;
+  /** A cookies file (Netscape format) from a logged-in account, for platforms that refuse anonymous reads (Instagram). */
+  cookiesFile?: string;
   timeoutMs?: number;
   /** Replaceable in tests. */
   run?: (bin: string, args: string[], timeoutMs: number) => Promise<{ stdout: string }>;
@@ -81,6 +83,7 @@ export function ytDlpSource(options: YtDlpOptions): VideoTextSource {
         '-o',
         path.join(dir, 's.%(ext)s'),
         ...(options.proxy ? ['--proxy', options.proxy] : []),
+        ...(options.cookiesFile ? ['--cookies', options.cookiesFile] : []),
         '--',
         url,
       ];

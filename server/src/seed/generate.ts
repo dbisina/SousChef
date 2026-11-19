@@ -34,7 +34,7 @@ export interface GenerateDeps {
   say?: (line: string) => void;
 }
 
-const UA = 'SousChefSeed/1.0 (recipe app content seeding)';
+const UA = 'enplaceSeed/1.0 (recipe app content seeding)';
 const FREE_LICENSE = /^(cc0|public domain|pd\b|cc[- ]by(?![- ]n[cd])|cc[- ]by[- ]sa)/i;
 const NEEDS_CREDIT = /^cc[- ]by/i;
 
@@ -61,7 +61,7 @@ const SYSTEM = `You are a professional recipe developer writing for a cooking ap
 Rules: real, sensible quantities for the stated servings; metric or common kitchen units (g, ml, tbsp, tsp, cup, piece, clove, pinch); every step names the heat, the time or the sign that it is done; no invented health claims; nothing unsafe.
 Return only JSON: {"description": one or two inviting sentences, "servings": number, "prepTime": minutes, "cookTime": minutes, "difficulty": "easy"|"medium"|"hard", "ingredients": [{"name": string, "amount": number, "unit": string}], "instructions": [string], "tags": [string], "dietaryFlags": subset of ["vegetarian","vegan","gluten-free","dairy-free","nut-free"], "allergens": subset of ["gluten","dairy","eggs","nuts","peanuts","soy","fish","shellfish","sesame"], "nutritionPerServing": {"calories": kcal, "protein": g, "carbs": g, "fat": g, "fiber": g} for ONE serving, worked out from your ingredient amounts, "postTitle": a short friendly headline, "postCaption": two sentences of practical advice for cooking it well}.`;
 
-interface Photo {
+export interface Photo {
   bytes: Buffer;
   mime: string;
   /** Text to credit the photographer with, or null when the licence asks for none. */
@@ -123,13 +123,16 @@ export function believableNutrition(n: { calories: number; protein: number; carb
 }
 
 /** Asks a model that can see whether the picture really shows the dish (a lead image can be a map, a diagram or a person). */
-export async function photoShows(ai: AiRouter, title: string, photo: Photo): Promise<boolean> {
+export async function photoShows(ai: AiRouter, title: string, photo: Photo, mode: 'dish' | 'subject' = 'dish'): Promise<boolean> {
   try {
     const v = await ai.runJson(
       {
         task: 'judge_plate',
         system: 'You check food photos. Answer only with JSON.',
-        prompt: `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? Return {"match": true|false, "reason": "..."}.`,
+        prompt:
+          mode === 'dish'
+            ? `Does this photo clearly show the dish "${title}" as a finished plate or serving of food (not a diagram, map, ingredients only, packaging or a person)? It must also show no readable business names, shop or restaurant signs, menus, receipts, price tags, logos or brand text anywhere in the picture. Return {"match": true|false, "reason": "..."}.`
+            : `Is this a clear, good photo of "${title}" (a food, ingredient, dish, drink, kitchen tool or cooking technique)? It must really show that subject, in focus, with no text overlays, logos, maps, diagrams or people's faces as the main subject. Return {"match": true|false, "reason": "..."}.`,
         images: [{ base64: photo.bytes.toString('base64'), mimeType: photo.mime }],
         json: true,
         maxOutputTokens: 120,
@@ -145,11 +148,66 @@ export async function photoShows(ai: AiRouter, title: string, photo: Photo): Pro
 
 const slug = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-async function store(storage: Storage, key: string, photo: Photo, fetchImpl: typeof fetch): Promise<string> {
+export async function store(storage: Storage, key: string, photo: Photo, fetchImpl: typeof fetch): Promise<string> {
   const signed = await storage.presignUpload({ key, contentType: photo.mime, expiresSeconds: 600 });
   const res = await fetchImpl(signed.url, { method: 'PUT', headers: signed.headers, body: new Uint8Array(photo.bytes) });
   if (!res.ok) throw new Error(`upload failed (${res.status})`);
   return storage.publicUrl(key);
+}
+
+/**
+ * A verified photo of the dish: the lead picture of its Wikipedia article if that shows the dish, otherwise the first
+ * Wikimedia Commons search result (free licence only) that a vision model confirms. Null with a reason when none passes.
+ */
+export async function pickDishPhoto(ai: AiRouter, dish: Pick<DishDef, 'title' | 'wiki'>, fetchImpl: typeof fetch): Promise<{ photo: Photo | null; reason: string }> {
+  let lead: Photo | null = null;
+  try {
+    lead = await findWikipediaPhoto(dish.wiki, fetchImpl);
+  } catch {
+    lead = null;
+  }
+  if (lead && (await photoShows(ai, dish.title, lead))) return { photo: lead, reason: '' };
+  let candidates: Photo[] = [];
+  try {
+    candidates = await findCommonsPhotos(`${dish.title} food dish`, fetchImpl, 3);
+  } catch {
+    candidates = [];
+  }
+  for (const c of candidates) if (await photoShows(ai, dish.title, c)) return { photo: c, reason: '' };
+  return { photo: null, reason: lead || candidates.length > 0 ? 'the photo does not clearly show the dish' : 'no freely licensed photo found' };
+}
+
+/**
+ * Gives an official recipe a new verified photo: the recipe, its posts, and any cookbook cover or account picture that used the
+ * old one all move to it. For photos that turned out to show someone else's branding. Returns what happened, in words.
+ */
+export async function rephotoDish(deps: GenerateDeps, dishes: DishDef[], title: string, commonsFile?: string): Promise<string> {
+  const { db, ai, storage } = deps;
+  if (!storage) throw new Error('Photos need the file store (S3_* settings).');
+  const fetchImpl = deps.fetchImpl ?? fetch;
+  const dish = dishes.find((d) => d.title === title);
+  if (!dish) return `${title}: not in the dish list`;
+  const recipes = await db.recipe.findMany({ where: { title, author: { kind: 'HOUSE' } }, select: { id: true, imageUrl: true, description: true } });
+  if (recipes.length === 0) return `${title}: no such official recipe`;
+  let found: { photo: Photo | null; reason: string };
+  if (commonsFile) {
+    // A file chosen by a person: still must be freely licensed and pass the same picture check.
+    const [candidate] = await findCommonsPhotos(commonsFile.replace(/^File:/i, ''), fetchImpl, 1);
+    found = candidate && (await photoShows(ai, dish.title, candidate)) ? { photo: candidate, reason: '' } : { photo: null, reason: `${commonsFile} is not free to use or does not pass the picture check` };
+  } else {
+    found = await pickDishPhoto(ai, dish, fetchImpl);
+  }
+  if (!found.photo) return `${title}: kept the old photo (${found.reason})`;
+  const photo = found.photo;
+  const imageUrl = await store(storage, `seed/${slug(title)}-${Date.now().toString(36)}.${photo.mime === 'image/png' ? 'png' : 'jpg'}`, photo, fetchImpl);
+  for (const r of recipes) {
+    const base = (r.description ?? '').replace(/\n\nPhoto: [^\n]*$/, '');
+    await db.recipe.update({ where: { id: r.id }, data: { imageUrl, description: photo.credit ? `${base}\n\n${photo.credit}` : base } });
+    await db.post.updateMany({ where: { recipeId: r.id }, data: { photoUrl: imageUrl } });
+    await db.cookbook.updateMany({ where: { coverImageUrl: r.imageUrl }, data: { coverImageUrl: imageUrl } });
+    await db.user.updateMany({ where: { photoUrl: r.imageUrl, kind: 'HOUSE' }, data: { photoUrl: imageUrl } });
+  }
+  return `${title}: new photo ${imageUrl} (${photo.source})`;
 }
 
 /**
@@ -169,8 +227,8 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
   const recipes = new RecipeService(db, new EntitlementService(db));
   const cookbooks = new CookbookService(db);
   const ids = new Map<HouseKey, string>();
-  for (const key of Object.keys(HOUSES) as HouseKey[]) {
-    const found = await db.user.findFirst({ where: { handle: HOUSES[key].handle, kind: 'HOUSE' }, select: { id: true } });
+  for (const [key, account] of Object.entries(HOUSES)) {
+    const found = await db.user.findFirst({ where: { handle: { in: [account.handle, account.legacyHandle] }, kind: 'HOUSE' }, select: { id: true } });
     if (found) ids.set(key, found.id);
   }
 
@@ -195,15 +253,12 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
     }
     if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
     try {
-      const photo = await findWikipediaPhoto(dish.wiki, fetchImpl);
-      if (!photo) {
-        report.skipped.push({ title: dish.title, reason: 'no freely licensed photo found' });
+      const found = await pickDishPhoto(ai, dish, fetchImpl);
+      if (!found.photo) {
+        report.skipped.push({ title: dish.title, reason: found.reason });
         continue;
       }
-      if (!(await photoShows(ai, dish.title, photo))) {
-        report.skipped.push({ title: dish.title, reason: 'the photo does not clearly show the dish' });
-        continue;
-      }
+      const photo = found.photo;
       const draft = await ai.runJson(
         { task: 'extract_recipe', system: SYSTEM, prompt: `Dish: ${dish.title}\nCuisine: ${dish.cuisine}\nMeal: ${dish.category}`, json: true, maxOutputTokens: 2500, temperature: 0.3 },
         aiSchema,
@@ -260,9 +315,10 @@ export async function generateContent(deps: GenerateDeps, dishes: DishDef[], opt
         const account = await db.user.findUnique({ where: { id: owner }, select: { photoUrl: true } });
         if (!account?.photoUrl && list[0]) await db.user.update({ where: { id: owner }, data: { photoUrl: list[0].imageUrl } });
       }
-      const title = `${def.displayName.replace(/^SousChef /, '')} Favourites`;
+      if (!def) continue;
+      const title = `${def.displayName.replace(/^enplace /, '')} Favourites`;
       if (list.length >= 4 && !(await db.cookbook.findFirst({ where: { title }, select: { id: true } }))) {
-        await cookbooks.create({ title, description: def.bio.replace(' An official SousChef account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
+        await cookbooks.create({ title, description: def.bio.replace(' An official enplace account.', ''), coverImageUrl: list[0]!.imageUrl, recipeIds: list.map((r) => r.id) });
         report.cookbooks++;
       }
     }
@@ -314,4 +370,85 @@ export async function generatePuzzles(db: Db, ai: AiRouter, target: number, say:
     ]);
   }
   return added.length;
+}
+
+/**
+ * Gives Daily Dish puzzles a real photo of the answer (shown when the game is over): the lead picture of the dish's Wikipedia
+ * article, free licences only, checked by a vision model, stored on our own file store. A puzzle with no verified photo is left
+ * without one. Returns how many were given a photo. Safe to run again.
+ */
+export async function backfillPuzzlePhotos(
+  db: Db,
+  ai: AiRouter,
+  storage: Storage,
+  say: (line: string) => void = () => undefined,
+  options: { fetchImpl?: typeof fetch; pauseMs?: number; limit?: number } = {},
+): Promise<number> {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const todo = await db.dailyPuzzle.findMany({ where: { photoUrl: null }, orderBy: { position: 'asc' }, take: options.limit ?? 40 });
+  let added = 0;
+  for (const puzzle of todo) {
+    try {
+      const photo = await findWikipediaPhoto(puzzle.answer, fetchImpl);
+      if (photo && (await photoShows(ai, puzzle.answer, photo))) {
+        const url = await store(storage, `daily/${slug(puzzle.answer)}.jpg`, photo, fetchImpl);
+        await db.dailyPuzzle.update({ where: { position: puzzle.position }, data: { photoUrl: url } });
+        added += 1;
+        say(`photo: ${puzzle.answer}`);
+      } else {
+        say(`no photo: ${puzzle.answer}`);
+      }
+    } catch (err) {
+      say(`photo failed for ${puzzle.answer}: ${err instanceof Error ? err.message : String(err)}`);
+    }
+    if (options.pauseMs) await new Promise((r) => setTimeout(r, options.pauseMs));
+  }
+  return added;
+}
+
+/**
+ * Photos from a Wikimedia Commons search (free licences only, wide enough to use), best first. For questions about an
+ * ingredient or technique whose Wikipedia article has no usable lead picture. Returns up to `max` candidates.
+ */
+export async function findCommonsPhotos(query: string, fetchImpl: typeof fetch = fetch, max = 3): Promise<Photo[]> {
+  const get = async (url: string) => {
+    for (let attempt = 0; ; attempt++) {
+      const res = await fetchImpl(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
+      if (res.ok) return res;
+      if (res.status !== 429 || attempt >= 3) throw new Error(`${res.status}`);
+      await new Promise((r) => setTimeout(r, 4000 * (attempt + 1)));
+    }
+  };
+  const search = (await (
+    await get(
+      `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=8&gsrsearch=${encodeURIComponent(`${query} filetype:bitmap`)}&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=1000`,
+    )
+  ).json()) as {
+    query?: { pages?: Record<string, { index?: number; imageinfo?: { thumburl?: string; width?: number; mime?: string; extmetadata?: Record<string, { value?: string }> }[]; title?: string }> };
+  };
+  const pages = Object.values(search.query?.pages ?? {}).sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+  const out: Photo[] = [];
+  for (const page of pages) {
+    const info = page.imageinfo?.[0];
+    const licence = info?.extmetadata?.['LicenseShortName']?.value ?? '';
+    if (!info?.thumburl || !FREE_LICENSE.test(licence) || !/^image\/(jpeg|png)$/.test(info.mime ?? '') || (info.width ?? 0) < 700) continue;
+    // Skip files whose name says they are not a photograph of the thing.
+    if (/\b(map|diagram|logo|icon|flag|svg|chart|graph|drawing|illustration|painting|label|packag)/i.test(page.title ?? '')) continue;
+    try {
+      const img = await get(info.thumburl);
+      const bytes = Buffer.from(await img.arrayBuffer());
+      if (bytes.byteLength < 20_000 || bytes.byteLength > 3_500_000) continue;
+      const author = stripTags(info.extmetadata?.['Artist']?.value ?? '') || 'Wikimedia Commons contributor';
+      out.push({
+        bytes,
+        mime: info.thumburl.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg',
+        credit: NEEDS_CREDIT.test(licence) ? `Photo: ${author.slice(0, 80)} (${licence}), Wikimedia Commons` : null,
+        source: `https://commons.wikimedia.org/wiki/${encodeURIComponent((page.title ?? '').replace(/ /g, '_'))}`,
+      });
+    } catch {
+      // try the next candidate
+    }
+    if (out.length >= max) break;
+  }
+  return out;
 }

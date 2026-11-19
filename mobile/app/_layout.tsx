@@ -1,11 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Stack, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, Platform } from 'react-native';
+import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts, Outfit_400Regular, Outfit_500Medium, Outfit_600SemiBold } from '@expo-google-fonts/outfit';
+import { BrandSplash } from '@/components/ui/BrandSplash';
+import { Satisfy_400Regular } from '@expo-google-fonts/satisfy';
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from '@expo-google-fonts/inter';
 import { onAuthStateChanged } from 'firebase/auth';
 import * as Linking from 'expo-linking';
@@ -56,8 +58,11 @@ export default function RootLayout() {
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
+    Satisfy_400Regular,
   });
   const fontsReady = fontsLoaded || !!fontError;
+  // The opening animation plays once per launch, and never ends before the app is ready.
+  const [splashDone, setSplashDone] = useState(isDesignReview);
   const notificationListener = useRef<Notifications.EventSubscription>(null);
   const responseListener = useRef<Notifications.EventSubscription>(null);
 
@@ -115,6 +120,8 @@ export default function RootLayout() {
     const handleInitialURL = async () => {
       // Review mode: on web the page URL itself would be read as a shared recipe link.
       if (isDesignReview) return;
+      // On web the launch URL is just the page address (never a shared link), so it must not open the import screen.
+      if (Platform.OS === 'web') return;
       // Check Share Extension bridge first
       const shareExtURL = await getSharedURL();
       if (shareExtURL) {
@@ -136,6 +143,7 @@ export default function RootLayout() {
 
     // Listen for incoming URLs while app is running (Linking + Share Extension)
     const subscription = Linking.addEventListener('url', (event) => {
+      if (Platform.OS === 'web') return; // page navigation, not a shared link
       const extracted = extractURLFromText(event.url);
       if (extracted) {
         setSharedURL(extracted);
@@ -168,12 +176,8 @@ export default function RootLayout() {
 
   if (!fontsReady) return null;
 
-  if (!isInitialized) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+  if (!isInitialized || !splashDone) {
+    return <BrandSplash ready={isInitialized} onDone={() => setSplashDone(true)} />;
   }
 
   return (
@@ -363,7 +367,7 @@ export default function RootLayout() {
           options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom', contentStyle: { backgroundColor: '#0B0B0B' } }}
         />
         <Stack.Screen name="import" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="reels" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen name="spools" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen name="story/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen
           name="share"

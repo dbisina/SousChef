@@ -3,9 +3,11 @@ import type { Cookbook, CookbookSummary, Page, RecipeSummary } from '@shared';
 import { HOUSES, HOUSE_POSTS, PUZZLES } from '../src/seed/copy';
 import { seedContent } from '../src/seed/run';
 import content from '../seed/content.json';
+import dishes from '../seed/dishes.json';
 import { makeApp, register, type TestApp } from './helpers';
 import { call } from './recipeHelpers';
 
+const HOUSE_COUNT = Object.keys(HOUSES).length;
 let t: TestApp;
 beforeAll(async () => {
   t = await makeApp();
@@ -25,7 +27,7 @@ describe('first run', () => {
   it('adds the official accounts, recipes, cookbooks, posts and puzzles', async () => {
     const report = await seedContent(t.db);
     expect(report).toEqual({
-      houses: { created: 8, existing: 0 },
+      houses: { created: HOUSE_COUNT, existing: 0 },
       recipes: { created: 10, existing: 0 },
       cookbooks: { created: 3, existing: 0 },
       posts: { created: HOUSE_POSTS.length, existing: 0 },
@@ -34,7 +36,7 @@ describe('first run', () => {
       admin: null,
       pro: null,
     });
-    expect(await counts()).toEqual({ houses: 8, recipes: 10, cookbooks: 3, posts: HOUSE_POSTS.length, puzzles: PUZZLES.length });
+    expect(await counts()).toEqual({ houses: HOUSE_COUNT, recipes: 10, cookbooks: 3, posts: HOUSE_POSTS.length, puzzles: PUZZLES.length });
 
     const houses = await t.db.user.findMany({ where: { kind: 'HOUSE' }, orderBy: { handle: 'asc' } });
     expect(houses.map((h) => h.handle)).toEqual(Object.values(HOUSES).map((h) => h.handle).sort());
@@ -74,12 +76,37 @@ describe('first run', () => {
   });
 });
 
+describe('official accounts and the dish list', () => {
+  it('has unique handles, and every dish belongs to an account that exists', () => {
+    const handles = Object.values(HOUSES).map((h) => h.handle);
+    expect(new Set(handles).size).toBe(handles.length);
+    expect(handles.length).toBeGreaterThanOrEqual(20);
+    expect(handles.every((h) => /^[a-z0-9_]{3,30}$/.test(h))).toBe(true);
+    const keys = new Set(Object.keys(HOUSES));
+    expect(dishes.filter((d) => !keys.has(d.house))).toEqual([]);
+  });
+  it('gives every account at least ten dishes to cook (generated ones plus hand-written ones)', () => {
+    const per = new Map<string, number>();
+    for (const d of dishes) per.set(d.house, (per.get(d.house) ?? 0) + 1);
+    for (const r of content.recipes as { house: string }[]) per.set(r.house, (per.get(r.house) ?? 0) + 1);
+    expect(Object.keys(HOUSES).filter((k) => (per.get(k) ?? 0) < 10)).toEqual([]);
+  });
+  it('has no repeated dish title inside one account', () => {
+    const seen = new Set<string>();
+    for (const d of dishes) {
+      const k = d.house + '|' + d.title.toLowerCase();
+      expect(seen.has(k)).toBe(false);
+      seen.add(k);
+    }
+  });
+});
+
 describe('running again', () => {
   it('adds nothing the second time', async () => {
     await seedContent(t.db);
     const before = await counts();
     const again = await seedContent(t.db);
-    expect(again).toMatchObject({ houses: { created: 0, existing: 8 }, recipes: { created: 0, existing: 10 }, cookbooks: { created: 0, existing: 3 }, posts: { created: 0 }, puzzles: 'kept' });
+    expect(again).toMatchObject({ houses: { created: 0, existing: HOUSE_COUNT }, recipes: { created: 0, existing: 10 }, cookbooks: { created: 0, existing: 3 }, posts: { created: 0 }, puzzles: 'kept' });
     expect(await counts()).toEqual(before);
   });
 
@@ -117,7 +144,7 @@ describe('dry run', () => {
   it('says what would happen and writes nothing', async () => {
     const lines: string[] = [];
     const report = await seedContent(t.db, { dryRun: true }, (l) => lines.push(l));
-    expect(report).toMatchObject({ houses: { created: 8 }, puzzles: 'would-set' });
+    expect(report).toMatchObject({ houses: { created: HOUSE_COUNT }, puzzles: 'would-set' });
     expect(lines.some((l) => l.startsWith('would create official account'))).toBe(true);
     expect(await counts()).toEqual({ houses: 0, recipes: 0, cookbooks: 0, posts: 0, puzzles: 0 });
   });

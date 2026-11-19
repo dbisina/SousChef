@@ -1,6 +1,6 @@
-# SousChef staff dashboard
+# enplace staff dashboard
 
-A small static website (Vite + React + TypeScript) for staff. It talks to the server's `/v1/admin/*` routes and signs in with a normal SousChef account whose role is ADMIN; any other account is signed straight back out.
+A small static website (Vite + React + TypeScript) for staff. It talks to the server's `/v1/admin/*` routes and signs in with a normal enplace account whose role is ADMIN; any other account is signed straight back out.
 
 | Page | What staff can do |
 |---|---|
@@ -9,7 +9,7 @@ A small static website (Vite + React + TypeScript) for staff. It talks to the se
 | Chef verification | Approve, reject (with a reason shown to the person) or revoke the badge |
 | AI | Spend by provider, task and day; which providers and Gemini free keys are ready or resting (last four characters only) |
 | Ads | Pause, activate or delete sponsored cards; move advertising enquiries along |
-| Official accounts | Hide or show every official SousChef post (the kill switch); see the Daily Dish puzzle list (read only) |
+| Official accounts | Hide or show every official enplace post (the kill switch); see the Daily Dish puzzle list (read only) |
 
 ## Run it
 

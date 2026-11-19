@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { DEVELOPER_EMAIL, SUPPORT_EMAIL } from '@/lib/contact';
 import { SERVER_MODE } from '@/constants/features';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, Linking, Platform, ScrollView, Text, View } from 'react-native';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -16,15 +18,20 @@ import {
   PhotoCard,
   Rows,
   Screen,
+  SectionLabel,
   Tag,
   UButton,
   UCard,
   UIconButton,
+  USwitch,
   Title,
   Body,
   type IconName,
 } from '@/components/ui';
 import { getTierFeatures } from '@/services/subscriptionService';
+import { apiEnabled } from '@/lib/api';
+import { feedReporter } from '@/lib/feedEvents';
+import { apiFeedPreferences, apiSetFeedPreferences } from '@/services/socialApi';
 
 type SettingsRoute =
   | '/subscription'
@@ -35,6 +42,7 @@ type SettingsRoute =
   | '/settings/appearance'
   | '/settings/help'
   | '/settings/advertise'
+  | '/settings/chef-verification'
   | '/settings/terms'
   | '/settings/analytics';
 
@@ -56,6 +64,23 @@ export default function ProfileScreen() {
   const { recipes: myRecipes } = useMyRecipes();
   const { subscriptionTier, isSubscribed, tierName } = useSubscription();
   const adFree = isGuest ? false : getTierFeatures(subscriptionTier).adFree;
+
+  // Whether the feed may learn from what this person does (views, saves, "not interested"). On unless they turn it off.
+  const [personalised, setPersonalised] = useState(true);
+  useEffect(() => {
+    if (!apiEnabled() || isGuest) return;
+    apiFeedPreferences()
+      .then((p) => setPersonalised(p.personalised))
+      .catch(() => undefined);
+  }, [isGuest]);
+  const changePersonalised = (on: boolean) => {
+    setPersonalised(on);
+    feedReporter.setEnabled(on);
+    apiSetFeedPreferences(on).catch(() => {
+      setPersonalised(!on);
+      feedReporter.setEnabled(!on);
+    });
+  };
 
   const handleSignOut = () => {
     if (isGuest) {
@@ -114,7 +139,11 @@ export default function ProfileScreen() {
     { id: 'voice', icon: 'mic', label: t('account.profile.voice', 'Voice Commands'), route: '/settings/voice' },
     { id: 'appearance', icon: 'moon', label: t('account.profile.appearance', 'Appearance'), route: '/settings/appearance' },
     { id: 'help', icon: 'help', label: t('account.profile.help', 'Help center'), route: '/settings/help' },
-    { id: 'advertise', icon: 'store', label: t('account.profile.advertise', 'Advertise on SousChef'), route: '/settings/advertise' },
+    // The badge is a server thing: without a server there is nobody to ask.
+    ...(apiEnabled() && !user.isVerifiedChef
+      ? [{ id: 'chef', icon: 'check' as const, label: t('account.profile.chefVerify', 'Apply to be a verified chef'), subtitle: t('account.profile.chefVerifyBody', 'Get the badge on your recipes'), route: '/settings/chef-verification' as const }]
+      : []),
+    { id: 'advertise', icon: 'store', label: t('account.profile.advertise', 'Advertise on enplace'), route: '/settings/advertise' },
     { id: 'terms', icon: 'book', label: t('account.profile.legal', 'Terms and privacy'), route: '/settings/terms' },
   ];
 
@@ -221,7 +250,59 @@ export default function ProfileScreen() {
             </UCard>
           ) : null}
 
-          <Rows>{items.map(renderRow)}</Rows>
+          {(
+            [
+              { key: 'account', label: t('account.profile.groupAccount', 'Account'), ids: ['subscription', 'dietary', 'weight', 'analytics'] },
+              { key: 'app', label: t('account.profile.groupApp', 'App'), ids: ['notifications', 'voice', 'appearance'] },
+            ] as const
+          ).map((group) => {
+            const rows = items.filter((i) => (group.ids as readonly string[]).includes(i.id));
+            return rows.length > 0 ? (
+              <View key={group.key} style={{ gap: 8 }}>
+                <SectionLabel>{group.label}</SectionLabel>
+                <Rows>
+                  {rows.map(renderRow)}
+                  {group.key === 'app' && apiEnabled() && !isGuest ? (
+                    <ListRow
+                      key="personalised"
+                      icon="star"
+                      title={t('account.profile.personalised', 'Personalised feed')}
+                      subtitle={t('account.profile.personalisedSub', 'Let your feed learn from what you view, save and cook. Off: nothing is recorded.')}
+                      right={<USwitch value={personalised} onValueChange={changePersonalised} label={t('account.profile.personalised', 'Personalised feed')} />}
+                    />
+                  ) : null}
+                </Rows>
+              </View>
+            ) : null;
+          })}
+          <View style={{ gap: 8 }}>
+          <SectionLabel>{t('account.profile.groupSupport', 'Help and about')}</SectionLabel>
+          <Rows>
+          {items.filter((i) => ['help', 'advertise', 'terms'].includes(i.id)).map(renderRow)}
+          {SUPPORT_EMAIL ? (
+          <ListRow
+            icon="warning"
+            title={t('account.profile.reportBug', 'Report a bug')}
+            subtitle={t('account.profile.reportBugSub', 'Tell us what went wrong')}
+            onPress={() =>
+              void Linking.openURL(
+                `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent('Bug report')}&body=${encodeURIComponent(
+                  `What happened:\n\nWhat I expected:\n\nSteps to reproduce:\n\n---\nApp ${Constants.expoConfig?.version ?? ''} · ${Platform.OS} ${Platform.Version}`,
+                )}`,
+              )
+            }
+          />
+          ) : null}
+          {DEVELOPER_EMAIL ? (
+          <ListRow
+            icon="mail"
+            title={t('account.profile.contactDev', 'Contact the developer')}
+            subtitle={t('account.profile.contactDevSub', 'Building your own app? Get in touch')}
+            onPress={() => void Linking.openURL(`mailto:${DEVELOPER_EMAIL}?subject=${encodeURIComponent('Developer enquiry')}`)}
+          />
+          ) : null}
+          </Rows>
+          </View>
 
           {/* Banner ad hidden for ad-free tiers */}
           {!adFree ? <AdMobBanner /> : null}
@@ -234,7 +315,7 @@ export default function ProfileScreen() {
           />
 
           <Muted small center>
-            SousChef v1.0.0
+            enplace v1.0.0
           </Muted>
         </View>
       </ScrollView>

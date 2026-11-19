@@ -51,6 +51,9 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
   const active = PARENT[current] ?? current;
   const bottom = Math.max(insets.bottom - 6, 16);
 
+  // The food scanner is a full-screen camera: its own shutter sits at the bottom, so the bar stays out of the way.
+  if (current === 'scan') return null;
+
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom, alignItems: 'center' }}>
       <View

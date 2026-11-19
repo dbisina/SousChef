@@ -1,0 +1,170 @@
+[
+  {
+    "key": "italian",
+    "handle": "enplace_italian",
+    "displayName": "enplace Italian",
+    "bio": "Nonna-style Italian cooking, from pasta to pizza. An official enplace account.",
+    "legacyHandle": "souschef_italian"
+  },
+  {
+    "key": "nigerian",
+    "handle": "enplace_nigerian",
+    "displayName": "enplace Nigerian Kitchen",
+    "bio": "Proper Nigerian home cooking: stews, soups, rice and street snacks. An official enplace account.",
+    "legacyHandle": "souschef_nigerian"
+  },
+  {
+    "key": "mexican",
+    "handle": "enplace_mexican",
+    "displayName": "enplace Mexican",
+    "bio": "Tacos, salsas and slow-cooked classics from across Mexico. An official enplace account.",
+    "legacyHandle": "souschef_mexican"
+  },
+  {
+    "key": "thai",
+    "handle": "enplace_thai",
+    "displayName": "enplace Thai",
+    "bio": "Sweet, sour, salty and hot: Thai home cooking. An official enplace account.",
+    "legacyHandle": "souschef_thai"
+  },
+  {
+    "key": "indian",
+    "handle": "enplace_indian",
+    "displayName": "enplace Indian",
+    "bio": "Curries, breads and snacks from every corner of India. An official enplace account.",
+    "legacyHandle": "souschef_indian"
+  },
+  {
+    "key": "japanese",
+    "handle": "enplace_japanese",
+    "displayName": "enplace Japanese",
+    "bio": "Everyday Japanese food: ramen, rice bowls, tempura and more. An official enplace account.",
+    "legacyHandle": "souschef_japanese"
+  },
+  {
+    "key": "korean",
+    "handle": "enplace_korean",
+    "displayName": "enplace Korean",
+    "bio": "Bold, fermented and fiery: Korean favourites at home. An official enplace account.",
+    "legacyHandle": "souschef_korean"
+  },
+  {
+    "key": "lebanese",
+    "handle": "enplace_lebanese",
+    "displayName": "enplace Levant",
+    "bio": "Mezze, grills and sweets from Lebanon and the wider Levant. An official enplace account.",
+    "legacyHandle": "souschef_lebanese"
+  },
+  {
+    "key": "french",
+    "handle": "enplace_french",
+    "displayName": "enplace French",
+    "bio": "Bistro classics and patisserie, simplified. An official enplace account.",
+    "legacyHandle": "souschef_french"
+  },
+  {
+    "key": "ethiopian",
+    "handle": "enplace_ethiopian",
+    "displayName": "enplace Ethiopian",
+    "bio": "Stews, injera and spice blends from Ethiopia and Eritrea. An official enplace account.",
+    "legacyHandle": "souschef_ethiopian"
+  },
+  {
+    "key": "bread",
+    "handle": "enplace_bread",
+    "displayName": "enplace Bread",
+    "bio": "Loaves, flatbreads and rolls with real crumb. An official enplace account.",
+    "legacyHandle": "souschef_bread"
+  },
+  {
+    "key": "grill",
+    "handle": "enplace_grill",
+    "displayName": "enplace Grill",
+    "bio": "BBQ, skewers and smoke: fire-cooked favourites. An official enplace account.",
+    "legacyHandle": "souschef_grill"
+  },
+  {
+    "key": "soups",
+    "handle": "enplace_soups",
+    "displayName": "enplace Soups",
+    "bio": "Bowls for every season: brothy, creamy and hearty. An official enplace account.",
+    "legacyHandle": "souschef_soups"
+  },
+  {
+    "key": "salads",
+    "handle": "enplace_salads",
+    "displayName": "enplace Salads",
+    "bio": "Fresh, filling salads that are more than leaves. An official enplace account.",
+    "legacyHandle": "souschef_salads"
+  },
+  {
+    "key": "breakfast",
+    "handle": "enplace_breakfast",
+    "displayName": "enplace Breakfast",
+    "bio": "Start the day properly: eggs, griddle and granola. An official enplace account.",
+    "legacyHandle": "souschef_breakfast"
+  },
+  {
+    "key": "mealprep",
+    "handle": "enplace_mealprep",
+    "displayName": "enplace Meal Prep",
+    "bio": "Cook once, eat all week: batch-friendly recipes. An official enplace account.",
+    "legacyHandle": "souschef_mealprep"
+  },
+  {
+    "key": "budget",
+    "handle": "enplace_budget",
+    "displayName": "enplace Budget",
+    "bio": "Good meals that cost very little. An official enplace account.",
+    "legacyHandle": "souschef_budget"
+  },
+  {
+    "key": "vegetarian",
+    "handle": "enplace_vegetarian",
+    "displayName": "enplace Vegetarian",
+    "bio": "Meat-free meals that are satisfying in their own right. An official enplace account.",
+    "legacyHandle": "souschef_vegetarian"
+  },
+  {
+    "key": "seafood",
+    "handle": "enplace_seafood",
+    "displayName": "enplace Seafood",
+    "bio": "Fish and shellfish, cooked simply and well. An official enplace account.",
+    "legacyHandle": "souschef_seafood"
+  },
+  {
+    "key": "slowcooker",
+    "handle": "enplace_slowcooker",
+    "displayName": "enplace Slow Cooker",
+    "bio": "Set it, forget it, come home to dinner. An official enplace account.",
+    "legacyHandle": "souschef_slowcooker"
+  },
+  {
+    "key": "airfryer",
+    "handle": "enplace_airfryer",
+    "displayName": "enplace Air Fryer",
+    "bio": "Crisp results with a fraction of the oil. An official enplace account.",
+    "legacyHandle": "souschef_airfryer"
+  },
+  {
+    "key": "kids",
+    "handle": "enplace_kids",
+    "displayName": "enplace Kids",
+    "bio": "Food children actually eat, with hidden vegetables. An official enplace account.",
+    "legacyHandle": "souschef_kids"
+  },
+  {
+    "key": "sauces",
+    "handle": "enplace_sauces",
+    "displayName": "enplace Sauces",
+    "bio": "Stocks, dressings and sauces that lift everything. An official enplace account.",
+    "legacyHandle": "souschef_sauces"
+  },
+  {
+    "key": "onepot",
+    "handle": "enplace_onepot",
+    "displayName": "enplace One Pot",
+    "bio": "One pan, one pot, very little washing up. An official enplace account.",
+    "legacyHandle": "souschef_onepot"
+  }
+]

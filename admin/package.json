@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Staff dashboard for SousChef: reports, chef verification, AI spend and keys, ads, house accounts.",
+  "description": "Staff dashboard for enplace: reports, chef verification, AI spend and keys, ads, house accounts.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

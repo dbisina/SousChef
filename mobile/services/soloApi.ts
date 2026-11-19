@@ -1,4 +1,4 @@
-// The solo games (Kitchen Trivia, Step Sorter, Ingredient Match) against the SousChef server. The server builds each round
+// The solo games (Kitchen Trivia, Step Sorter, Ingredient Match) against the enplace server. The server builds each round
 // and scores it; the phone only shows what it is told.
 import type { SoloAnswerRequest, SoloGameId, SoloGameInfo, SoloLeaderboardEntry, SoloResult, SoloRound } from '@shared/index';
 import { api } from '@/lib/api';

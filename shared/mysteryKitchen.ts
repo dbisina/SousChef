@@ -97,11 +97,22 @@ export interface MkRoomView {
   twist: string | null;
   /** The hints this player has bought so far. */
   hints: string[];
+  /** How to cook it, step by step, without naming the dish. Empty until the game starts. */
+  steps: string[];
+  /** A real photo for each basket ingredient that has one (by the ingredient's name), so players can see what to get. */
+  ingredientPhotos: Record<string, string>;
   hintsLeft: number;
   /** Has this player handed in a plate? */
   submitted: boolean;
   canStart: boolean;
   /** Only once the game is over. */
   dish: string | null;
+  /** A real photo of the intended dish, once the game is over (the plate is judged against it). */
+  dishPhotoUrl: string | null;
   results: MkResult[] | null;
+}
+
+/** A picture of one cooking step (made by an image model; paid plans only). */
+export interface StepImageResponse {
+  url: string;
 }
