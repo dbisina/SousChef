@@ -7,7 +7,7 @@ import { UButton } from '@/components/ui';
 import { useThemeStore } from '@/stores/themeStore';
 import { useAuthStore } from '@/stores/authStore';
 import { showErrorToast } from '@/stores/toastStore';
-import { isAppleSignInAvailable, signInWithApple, signInWithGoogle, useGoogleAuth } from '@/services/socialAuthService';
+import { googleTokensFrom, isAppleSignInAvailable, signInWithApple, signInWithGoogle, useGoogleAuth } from '@/services/socialAuthService';
 
 /**
  * "Continue with Google" and "Continue with Apple". Both do sign-in and sign-up in one step (a new person gets an account),
@@ -38,8 +38,7 @@ export function SocialButtons({ verb = 'Continue' }: { verb?: 'Continue' | 'Sign
   useEffect(() => {
     if (!response) return;
     if (response.type === 'success') {
-      const idToken = (response.params as Record<string, string | undefined>).id_token ?? null;
-      const accessToken = (response.params as Record<string, string | undefined>).access_token ?? null;
+      const { idToken, accessToken } = googleTokensFrom(response);
       setBusy(true);
       signInWithGoogle(idToken, accessToken)
         .then((r) => finish(r, 'Google'))

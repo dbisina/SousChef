@@ -200,9 +200,22 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
 /**
  * Hook to use Google authentication
  */
+// iPhone: Google's iOS client allows the id-token flow, which hands the ID token straight back. Android: Google refuses
+// that response type for Android clients ("Error 400: invalid_request"), so Android uses the code flow, and the hook
+// swaps the code for the tokens itself (they arrive on `response.authentication`).
+const useGoogleRequest = Platform.OS === 'android' ? Google.useAuthRequest : Google.useIdTokenAuthRequest;
+
+/** The Google ID token and access token from a sign-in response, whichever flow produced it. */
+export const googleTokensFrom = (response: {
+  params?: Record<string, string | undefined> | null;
+  authentication?: { idToken?: string | null; accessToken?: string | null } | null;
+}): { idToken: string | null; accessToken: string | null } => ({
+  idToken: response.params?.id_token ?? response.authentication?.idToken ?? null,
+  accessToken: response.params?.access_token ?? response.authentication?.accessToken ?? null,
+});
+
 export const useGoogleAuth = () => {
-  // The id-token flow hands the ID token straight back (the default code flow does not, which left sign-in with no token).
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
+  const [request, response, promptAsync] = useGoogleRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
