@@ -6,6 +6,7 @@ import { Chefs } from './pages/Chefs';
 import { House } from './pages/House';
 import { Login } from './pages/Login';
 import { Overview } from './pages/Overview';
+import { Promos } from './pages/Promos';
 import { Reports } from './pages/Reports';
 import { ApiContext } from './ui';
 
@@ -16,6 +17,7 @@ const ROUTES = [
   { path: 'ai', label: 'AI', page: Ai },
   { path: 'ads', label: 'Ads', page: Ads },
   { path: 'house', label: 'Official accounts', page: House },
+  { path: 'promos', label: 'Plans & codes', page: Promos },
 ] as const;
 
 const current = (): string => window.location.hash.replace(/^#\/?/, '') || 'overview';

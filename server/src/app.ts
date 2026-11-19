@@ -80,6 +80,8 @@ import { ReportService } from './social/reports';
 import { socialRoutes } from './social/routes';
 import { StoryService } from './social/stories';
 import { storyRoutes } from './social/storyRoutes';
+import { promoRoutes } from './promos/routes';
+import { PromoService } from './promos/service';
 import { subscriptionRoutes } from './subscriptions/routes';
 import { EntitlementService } from './subscriptions/service';
 import { RecipeService } from './recipes/service';
@@ -194,6 +196,7 @@ export async function buildApp(options: BuildOptions): Promise<Built> {
   authRoutes(app, auth, config);
   const entitlements = new EntitlementService(db, options.now);
   subscriptionRoutes(app, entitlements, auth, config);
+  promoRoutes(app, new PromoService(db, options.now), auth, config);
   uploadRoutes(app, uploads, auth, config);
   // Live chat: a WebSocket gateway plus Expo notifications for people who are not connected.
   await app.register(websocket, { options: { maxPayload: 16 * 1024 } });

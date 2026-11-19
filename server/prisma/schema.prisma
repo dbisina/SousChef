@@ -1087,12 +1087,60 @@ model PromoGrant {
   key       String
   startsAt  DateTime
   endsAt    DateTime
+  /// Why staff gave it (admin grants only).
+  note      String?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, key])
   @@index([userId, endsAt])
+}
+
+/// A code staff make for general use (Android and web; Apple needs its own offer codes). Redeeming one makes a PromoGrant.
+model PromoCode {
+  id         String    @id @default(uuid(7)) @db.Uuid
+  /// Upper case, no look-alike letters.
+  code       String    @unique
+  /// "premium" or "pro"
+  tier       String
+  days       Int
+  maxUses    Int
+  usedCount  Int       @default(0)
+  expiresAt  DateTime?
+  note       String?
+  active     Boolean   @default(true)
+  createdBy  String    @db.Uuid
+  createdAt  DateTime  @default(now())
+
+  redemptions PromoRedemption[]
+}
+
+/// One person using one code: a person can use a code once.
+model PromoRedemption {
+  codeId     String   @db.Uuid
+  userId     String   @db.Uuid
+  redeemedAt DateTime @default(now())
+
+  code PromoCode @relation(fields: [codeId], references: [id], onDelete: Cascade)
+
+  @@id([codeId, userId])
+}
+
+/// A sale the app shows on the plans screen. The real discount is a store offer; this only tells people about it.
+model Sale {
+  id         String   @id @default(uuid(7)) @db.Uuid
+  /// "premium", "pro" or null for both
+  tier       String?
+  percentOff Int
+  label      String
+  startsAt   DateTime
+  endsAt     DateTime
+  active     Boolean  @default(true)
+  createdBy  String   @db.Uuid
+  createdAt  DateTime @default(now())
+
+  @@index([active, endsAt])
 }
 
 /// One call to an AI model: who asked, what for, which model, how many tokens and what it is estimated to have cost.

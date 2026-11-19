@@ -5,6 +5,7 @@
 //    the token ran out at the same moment share ONE refresh (a refresh token works only once, so two would sign the person out).
 //  - Errors come back as `ApiError` with the server's machine-readable `code`, so screens switch on codes, not on text.
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import type { ApiErrorBody, AuthResponse, AuthTokens, ErrorCode } from '@shared/index';
 
 /** A failure from the server (`code` from the server) or from getting there (`network`, `timeout`). */
@@ -146,7 +147,7 @@ export function createApiClient(options: ApiClientOptions) {
     try {
       res = await doFetch(url.toString(), {
         method,
-        headers: { ...(opts.body !== undefined ? { 'content-type': 'application/json' } : {}), accept: 'application/json', ...(active ? { authorization: `Bearer ${active.accessToken}` } : {}) },
+        headers: { ...(opts.body !== undefined ? { 'content-type': 'application/json' } : {}), accept: 'application/json', 'x-platform': Platform.OS, ...(active ? { authorization: `Bearer ${active.accessToken}` } : {}) },
         ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
         signal: controller.signal,
       });

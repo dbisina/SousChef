@@ -181,7 +181,7 @@ export async function makeApp(configOverrides: Record<string, string> = {}, opti
   await built.app.ready();
   const reset = async () => {
     // Tables that belong to a user go with the user; staff-owned content has no owner, so it is listed here.
-    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem", "StepImage", "StepImageUse", "IngredientPhoto" CASCADE`;
+    await built.db.$executeRaw`TRUNCATE "User", "Cookbook", "Ad", "AdInquiry", "WebhookEvent", "Conversation", "Report", "Community", "AiUsage", "ImportCache", "DailyPuzzle", "GamePoolItem", "StepImage", "StepImageUse", "IngredientPhoto", "PromoCode", "Sale" CASCADE`;
     events.published.length = 0;
     push.sent.length = 0;
     push.invalid.clear();

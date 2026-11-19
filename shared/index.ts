@@ -7,6 +7,7 @@ export * from './mealplan';
 export * from './cookbook';
 export * from './ads';
 export * from './tiers';
+export * from './promos';
 export * from './uploads';
 export * from './chat';
 export * from './social';
