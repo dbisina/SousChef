@@ -13,7 +13,7 @@ jest.mock('expo-secure-store', () => ({ getItemAsync: async () => null, setItemA
 const mockPlatformExtract = jest.fn();
 const mockAskFrames = jest.fn();
 const mockResolveTikTok = jest.fn(async () => null as { videoUrl: string; cookie?: string } | null);
-jest.mock('@/lib/tiktokVideo', () => ({ resolveTikTokVideo: (...a: unknown[]) => (mockResolveTikTok as unknown as (...x: unknown[]) => unknown)(...a) }));
+jest.mock('@/lib/tiktokVideo', () => ({ isTikTokUrl: (u: string) => /tiktok.com/i.test(u), tiktokCanonicalUrl: async (u: string) => u, tiktokCaption: async () => '', resolveTikTokVideo: (...a: unknown[]) => (mockResolveTikTok as unknown as (...x: unknown[]) => unknown)(...a) }));
 jest.mock('@/lib/importFrames', () => ({ askForFrames: (...a: unknown[]) => mockAskFrames(...a) }));
 jest.mock('@/lib/upload', () => ({ uploadFile: async (uri: string) => ({ id: `up-${uri}`, url: uri }) }));
 jest.mock('@/lib/gemini', () => ({ textModel: {}, visionModel: {}, createImagePart: jest.fn(), extractRecipeFromVideo: jest.fn(), extractRecipeFromText: jest.fn(), extractRecipeFromContentBundle: jest.fn(), extractRecipeWithThinking: jest.fn(), downloadVideoToTemp: jest.fn(), cleanupTempFile: jest.fn() }));

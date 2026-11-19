@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { Field, FONT, H1, Dim, Icon, Muted, PhotoCard, Screen, TopBar, UButton, type PhotoSource } from '@/components/ui';
 import { PHOTOS } from '@/assets/photos';
+import { SocialButtons } from '@/components/auth/SocialButtons';
 
 const registerSchema = z
   .object({
@@ -196,6 +197,14 @@ export default function RegisterScreen() {
             loading={isLoading}
             style={{ marginTop: 6 }}
           />
+
+          <View className="flex-row items-center" style={{ gap: 12, height: 17 }}>
+            <View className="flex-1 bg-divider" style={{ height: 1 }} />
+            <Muted small>{t('welcome.login.or', 'or')}</Muted>
+            <View className="flex-1 bg-divider" style={{ height: 1 }} />
+          </View>
+
+          <SocialButtons verb="Sign up" />
 
           <Muted small center>
             {t('welcome.register.termsPrefix', 'By continuing you agree to our')}{' '}

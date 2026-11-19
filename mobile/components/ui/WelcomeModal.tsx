@@ -60,6 +60,8 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShow
   const sheetH = useSharedValue(screenH);
   const translateY = useSharedValue(screenH);
   const backdrop = useSharedValue(0);
+  const ready = useSharedValue(0);
+  const rising = useRef(false);
   const closing = useRef(false);
   const fallback = useRef<ReturnType<typeof setTimeout> | null>(null);
   const onDismissRef = useRef(onDismiss);
@@ -94,9 +96,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShow
   // Slide in when the Modal mounts.
   useEffect(() => {
     if (!visible) return;
-    translateY.value = sheetH.value || screenH;
-    translateY.value = withSpring(0, { damping: 22, stiffness: 170 });
-    backdrop.value = withTiming(1, { duration: 250 });
+    // The rise itself starts from onLayout (once the real height is known), so the sheet never flashes at rest first.
     AsyncStorage.setItem(STORAGE_KEY, String(Date.now())).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
@@ -106,6 +106,8 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShow
       clearTimeout(fallback.current);
       fallback.current = null;
     }
+    rising.current = false;
+    ready.value = 0;
     setVisible(false);
     onDismissRef.current?.();
   }, []);
@@ -144,7 +146,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShow
       }
     });
 
-  const sheetStyle = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
+  const sheetStyle = useAnimatedStyle(() => ({ opacity: ready.value, transform: [{ translateY: translateY.value }] }));
   const backdropStyle = useAnimatedStyle(() => ({ opacity: backdrop.value }));
 
   if (!visible) return null;
@@ -166,7 +168,15 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ forceShow: forceShow
             <Animated.View
               accessibilityViewIsModal
               onLayout={(e) => {
-                sheetH.value = e.nativeEvent.layout.height;
+                const h = e.nativeEvent.layout.height;
+                sheetH.value = h;
+                if (rising.current || h <= 0) return;
+                rising.current = true;
+                translateY.value = h;
+                ready.value = 1;
+                // One calm rise that settles without a bounce.
+                translateY.value = withTiming(0, { duration: 360, easing: Easing.out(Easing.cubic) });
+                backdrop.value = withTiming(1, { duration: 300 });
               }}
               style={[
                 {

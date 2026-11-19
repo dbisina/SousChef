@@ -186,7 +186,7 @@ class ShareViewController: UIViewController {
 
         // Open the main app via custom URL scheme
         // Use .alphanumerics to fully encode the URL value (urlQueryAllowed leaves ? and & unencoded)
-        let appURL = URL(string: "souschef://share?url=\\(urlString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? urlString)")!
+        let appURL = URL(string: "enplace://share?url=\\(urlString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? urlString)")!
 
         // Use openURL to launch the main app
         var responder: UIResponder? = self
@@ -232,7 +232,7 @@ const SHARE_EXT_PLIST = `<?xml version="1.0" encoding="UTF-8"?>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Import to enplace</string>
+    <string>enplace</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>

@@ -1,6 +1,7 @@
 // "Want to cook", the shopping list and link import against the enplace server.
 // Used by wantToCookStore and recipeImportService when EXPO_PUBLIC_API_URL is set.
-import { resolveTikTokVideo } from '@/lib/tiktokVideo';
+import { isTikTokUrl, resolveTikTokVideo, tiktokCanonicalUrl, tiktokCaption } from '@/lib/tiktokVideo';
+import { apiReadRecipeText } from '@/services/aiToolsApi';
 import { Timestamp } from '@/lib/firebase';
 import type {
   AddShoppingItemsRequest,
@@ -170,6 +171,44 @@ export async function apiExtractFromUrl(
   askFrames?: () => Promise<string[] | null>,
 ): Promise<URLExtractionResponse | null> {
   onProgress?.('Reading the link...');
+  if (isTikTokUrl(url)) {
+    try {
+      return await extractTikTok(url, onProgress, askFrames);
+    } catch (error) {
+      // The server refused the link or could not be reached: the caption is still on TikTok's public card, which a phone can read.
+      const fromCaption = await recipeFromTikTokCaption(url, onProgress);
+      if (fromCaption) return fromCaption;
+      throw error;
+    }
+  }
+  return extractLink(url, onProgress, askFrames);
+}
+
+async function extractTikTok(url: string, onProgress?: (message: string) => void, askFrames?: () => Promise<string[] | null>): Promise<URLExtractionResponse | null> {
+  // TikTok's share button gives a short link; the server's address is often turned away on those, so the phone follows it first.
+  const link = await tiktokCanonicalUrl(url);
+  const found = await extractLink(link, onProgress, askFrames);
+  return found ?? (await recipeFromTikTokCaption(link, onProgress));
+}
+
+async function recipeFromTikTokCaption(url: string, onProgress?: (message: string) => void): Promise<URLExtractionResponse | null> {
+  onProgress?.('Reading the caption...');
+  const caption = await tiktokCaption(await tiktokCanonicalUrl(url));
+  // A caption with no ingredients or steps is just a title; do not make a recipe up from it.
+  if (caption.length < 80) return null;
+  try {
+    const recipe = await apiReadRecipeText(caption);
+    return { success: true, recipe: importedFromApi({ ...recipe, sourceUrl: url }, `tiktok-${Date.now()}`), confidence: recipe.extractionConfidence };
+  } catch {
+    return null;
+  }
+}
+
+async function extractLink(
+  url: string,
+  onProgress?: (message: string) => void,
+  askFrames?: () => Promise<string[] | null>,
+): Promise<URLExtractionResponse | null> {
   let result = await api().post<ImportResult>('/v1/imports', { url }, { timeoutMs: 60_000 });
   if (result.status === 'needs_frames' && result.platform === 'tiktok') {
     // TikTok refuses the server's address but not this phone's: find the video file here, and the server reads it.

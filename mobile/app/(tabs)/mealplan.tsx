@@ -33,6 +33,7 @@ import {
   type PhotoSource,
 } from '@/components/ui';
 import { PHOTOS } from '@/assets/photos';
+import { guestBlocked } from '@/lib/guestPrompt';
 import { Paywall } from '@/components/subscription';
 import { getWeekStartDate } from '@/services/mealPlanService';
 import { MealPlanPreferences, MealType } from '@/types/mealplan';
@@ -151,6 +152,7 @@ export default function MealPlanScreen() {
   };
 
   const handleGenerate = async () => {
+    if (guestBlocked()) return;
     if (!canGenerate.allowed) {
       setShowPaywall(true);
       return;

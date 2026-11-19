@@ -45,12 +45,12 @@ export async function getSharedURL(): Promise<string | null> {
 }
 
 /**
- * Parse a souschef:// URL scheme to extract the shared URL.
- * Format: souschef://share?url=<encoded_url>
+ * Parse an enplace:// (or the older souschef://) share link to extract the shared URL.
+ * Format: enplace://share?url=<encoded_url>
  */
 export function parseShareURL(urlString: string): string | null {
     try {
-        if (!urlString.startsWith('souschef://share')) return null;
+        if (!/^(enplace|souschef):\/\/share/i.test(urlString)) return null;
 
         const url = new URL(urlString);
         const sharedURL = url.searchParams.get('url');

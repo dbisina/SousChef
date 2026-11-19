@@ -143,12 +143,11 @@ export default function ImportedRecipeDetailScreen() {
       bare
       footer={
         <ActionBar>
-          <UButton
-            label={t('cooking.addToList', 'Add to list')}
-            variant="ghost"
+          <UIconButton
             icon="cart"
+            label={t('cooking.addToList', 'Add to shopping list')}
+            size={58}
             onPress={handleAddToShoppingList}
-            style={{ width: 120 }}
           />
           {!cooked ? (
             <UButton

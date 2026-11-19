@@ -163,10 +163,11 @@ export default function ImportScreen() {
       close();
       Alert.alert(
         t('importUi.doneTitle', 'Recipe Imported!'),
-        t('importUi.doneBody', '"{{title}}" has been added to your Want to Cook list.', { title }),
+        t('importUi.doneBody', '"{{title}}" is saved. You will find it at the top of Home, and under You > Imported.', { title }),
         [
-          { text: t('importUi.viewRecipes', 'View Recipes'), onPress: () => router.push('/want-to-cook' as Href) },
-          { text: t('kitchen.ok', 'OK'), style: 'default' },
+          { text: t('importUi.openRecipe', 'Open recipe'), onPress: () => router.push(`/imported-recipe/${result.id}` as Href) },
+          { text: t('importUi.viewRecipes', 'All my imports'), onPress: () => router.push('/want-to-cook' as Href) },
+          { text: t('kitchen.ok', 'OK'), style: 'cancel' },
         ]
       );
       // Refresh items so the new recipe shows immediately

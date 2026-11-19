@@ -217,6 +217,8 @@ export interface ImportedCardData {
   platform: string;
   minutes?: number;
   photo?: PhotoSource | null;
+  /** Imported in the last few days: shown at the top of Home with a "Just imported" label. */
+  fresh?: boolean;
 }
 
 export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPress: () => void }) {
@@ -236,7 +238,9 @@ export function ImportedCard({ item, onPress }: { item: ImportedCardData; onPres
       <View className="flex-1" style={{ minWidth: 0, gap: 2 }}>
         <View className="flex-row items-center" style={{ gap: 6 }}>
           <RNText className="text-muted" numberOfLines={1} style={{ fontFamily: FONT.sans, fontSize: 12, flexShrink: 1 }}>
-            {t('home.importedBy', 'Imported by you · {{source}}', { source: item.platform })}
+            {item.fresh
+              ? t('home.justImported', 'Just imported · {{source}}', { source: item.platform })
+              : t('home.importedBy', 'Imported by you · {{source}}', { source: item.platform })}
           </RNText>
         </View>
         <RNText className="text-ink" numberOfLines={2} style={{ fontFamily: FONT.display, fontSize: 15, lineHeight: 20, letterSpacing: -0.15 }}>

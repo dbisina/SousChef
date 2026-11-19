@@ -21,6 +21,7 @@ import { useRemainingUsage } from '@/hooks/useSubscription';
 import { useUpsell } from '@/hooks/useUpsell';
 import { leftIn, useAllowance, windowWord } from '@/hooks/useAllowance';
 import { CameraCapture } from '@/components/camera';
+import { shareScanResult } from '@/lib/shareScan';
 import { foodPhoto } from '@/components/mealplan/foodPhoto';
 import {
   CtaBar,
@@ -209,7 +210,7 @@ export default function ScanScreen() {
             >
               <UIconButton icon="close" tone="glassDark" label={t('foodScan.dismiss', 'Dismiss')} onPress={handleDismissResult} />
               <Tag large tone="glassDark" label={t('foodScan.portion', 'Portion analysis')} />
-              <View style={{ width: 46 }} />
+              <UIconButton icon="share" tone="glassDark" label={t('foodScan.share', 'Share analysis')} onPress={() => { void shareScanResult(portionResult); }} />
             </View>
             <View style={{ position: 'absolute', left: 22, right: 22, bottom: 54, gap: 4 }}>
               <RNText

@@ -12,10 +12,10 @@ export function guestBlocked(): boolean {
   if (!apiEnabled() || !isGuestSession()) return false;
   Alert.alert(
     i18n.t('guestGate.title', 'Create an account'),
-    i18n.t('guestGate.body', 'Likes, saves, comments and follows need an account, so they stay with you on every device.'),
+    i18n.t('guestGate.body', 'Posting, planning, saving and following need an account, so everything stays with you on every device.'),
     [
       { text: i18n.t('guestGate.later', 'Not now'), style: 'cancel' },
-      { text: i18n.t('guestGate.signUp', 'Sign up'), onPress: () => router.push('/auth/login') },
+      { text: i18n.t('guestGate.signUp', 'Sign up'), onPress: () => router.push('/auth/register') },
     ],
   );
   return true;

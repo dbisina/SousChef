@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Image, Text as RNText, ScrollView, Platform } from 'react-native';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import { Pressable } from '@/components/ui/Pressable';
@@ -7,19 +7,13 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useTranslation } from 'react-i18next';
-import * as AppleAuthentication from 'expo-apple-authentication';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import { Field, FONT, Icon, LinkText, Muted, PhotoCard, Screen, UButton, type PhotoSource } from '@/components/ui';
 import { PHOTOS } from '@/assets/photos';
-import { FIXED, useThemeStore } from '@/stores/themeStore';
-import {
-  signInWithGoogle,
-  signInWithApple,
-  useGoogleAuth,
-  isAppleSignInAvailable,
-} from '@/services/socialAuthService';
-import { showSuccessToast, showErrorToast, showInfoToast } from '@/stores/toastStore';
+import { FIXED } from '@/stores/themeStore';
+import { SocialButtons } from '@/components/auth/SocialButtons';
+import { showSuccessToast, showInfoToast } from '@/stores/toastStore';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -32,62 +26,8 @@ export default function LoginScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { signIn, setUser, resetPassword, isLoading, error } = useAuthStore();
-  const theme = useThemeStore((s) => s.effectiveTheme);
+  const { signIn, resetPassword, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
-  const [appleAvailable, setAppleAvailable] = useState(false);
-  const [socialLoading, setSocialLoading] = useState(false);
-
-  // Google Auth
-  const { response: googleResponse, promptAsync: googlePromptAsync, isReady: googleReady } = useGoogleAuth();
-
-  // Check Apple availability
-  useEffect(() => {
-    isAppleSignInAvailable().then(setAppleAvailable);
-  }, []);
-
-  // Handle Google response
-  useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      const { id_token, access_token } = googleResponse.params;
-      handleGoogleSignIn(id_token, access_token);
-    }
-  }, [googleResponse]);
-
-  const handleGoogleSignIn = async (idToken: string, accessToken: string) => {
-    setSocialLoading(true);
-    try {
-      const result = await signInWithGoogle(idToken, accessToken);
-      if (result.success && result.user) {
-        setUser(result.user);
-        router.replace('/(tabs)');
-      } else {
-        showErrorToast(result.error || 'We couldn\'t sign you in with Google. Let\'s try again?', 'Sign In Issue');
-      }
-    } catch (err) {
-      showErrorToast('Something unexpected happened. Maybe try another way?', 'Oops!');
-    } finally {
-      setSocialLoading(false);
-    }
-  };
-
-  const handleAppleSignIn = async () => {
-    setSocialLoading(true);
-    try {
-      const result = await signInWithApple();
-      if (result.success && result.user) {
-        setUser(result.user);
-        router.replace('/(tabs)');
-      } else if (result.error !== 'cancelled') {
-        showErrorToast(result.error || 'Apple Sign In didn\'t work this time. Try again?', 'Sign In Issue');
-      }
-    } catch (err) {
-      showErrorToast('Something unexpected happened. Maybe try another way?', 'Oops!');
-    } finally {
-      setSocialLoading(false);
-    }
-  };
-
   const {
     control,
     handleSubmit,
@@ -237,28 +177,7 @@ export default function LoginScreen() {
               <View className="flex-1 bg-divider" style={{ height: 1 }} />
             </View>
 
-            <UButton
-              variant="ghost"
-              icon="globe"
-              label={t('welcome.login.google', 'Continue with Google')}
-              onPress={() => googlePromptAsync()}
-              loading={socialLoading}
-              disabled={!googleReady}
-            />
-
-            {appleAvailable ? (
-              <AppleAuthentication.AppleAuthenticationButton
-                buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-                buttonStyle={
-                  theme === 'dark'
-                    ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
-                    : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                }
-                cornerRadius={29}
-                style={{ alignSelf: 'stretch', width: '100%', height: 58 }}
-                onPress={handleAppleSignIn}
-              />
-            ) : null}
+            <SocialButtons />
 
             {/* Guest mode */}
             <Pressable

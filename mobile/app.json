@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "scheme": "enplace",
+    "scheme": ["enplace", "souschef", "com.enplaceapp.mobile", "com.googleusercontent.apps.154942572911-fp66lgdso27igd9338kftmehqujecnnt"],
     "splash": {
       "image": "./assets/splash-light.png",
       "resizeMode": "contain",

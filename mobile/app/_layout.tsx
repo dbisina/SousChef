@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, router as rootRouter, useRouter } from 'expo-router';
+import { installNavGuard } from '@/lib/navGuard';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -46,6 +47,9 @@ const extractURLFromText = (text: string): string | null => {
   const urlMatch = text.match(/https?:\/\/[^\s]+/);
   return urlMatch ? urlMatch[0] : null;
 };
+
+// Wrapped before any screen renders, so every router.push/replace in the app ignores accidental repeats (double taps).
+installNavGuard(rootRouter as unknown as Parameters<typeof installNavGuard>[0]);
 
 export default function RootLayout() {
   const { isInitialized, setUser, fetchUserData, setInitialized } = useAuthStore();

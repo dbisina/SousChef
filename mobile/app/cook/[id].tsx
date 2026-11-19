@@ -441,6 +441,11 @@ export default function CookingModeScreen() {
   };
 
   const handleExit = () => {
+    // Nothing to lose yet (still on the first step): just leave, no question.
+    if (currentStep === 0) {
+      router.back();
+      return;
+    }
     Alert.alert(
       t('cooking.leaveTitle', 'Leaving the Kitchen?'),
       t('cooking.leaveBody', "Are you sure you want to exit? We'll lose your place in this recipe, and you'll have to start over later!"),

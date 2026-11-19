@@ -44,3 +44,35 @@ describe('resolving a link on the phone', () => {
     expect(await resolveTikTokVideo('https://www.tiktok.com/@a/video/1', reply(true, '<html></html>', null))).toBeNull();
   });
 });
+
+describe('tiktokCanonicalUrl and tiktokCaption', () => {
+  const { tiktokCanonicalUrl, tiktokCaption, isTikTokUrl } = jest.requireActual('@/lib/tiktokVideo') as typeof import('@/lib/tiktokVideo');
+  const answer = (url: string, ok = true, json: unknown = {}) =>
+    (async () => ({ ok, url, json: async () => json })) as unknown as typeof fetch;
+
+  it('turns a short share link into the plain video address', async () => {
+    const out = await tiktokCanonicalUrl('https://vm.tiktok.com/ZMabc123/', answer('https://www.tiktok.com/@chef.kemi/video/7300000000000000001?_r=1&u_code=x'));
+    expect(out).toBe('https://www.tiktok.com/@chef.kemi/video/7300000000000000001');
+  });
+
+  it('leaves full links and other sites alone, and survives a failed fetch', async () => {
+    expect(await tiktokCanonicalUrl('https://www.tiktok.com/@a/video/1', answer('x'))).toBe('https://www.tiktok.com/@a/video/1');
+    expect(await tiktokCanonicalUrl('https://example.com/a', answer('x'))).toBe('https://example.com/a');
+    const boom = (async () => { throw new Error('offline'); }) as unknown as typeof fetch;
+    expect(await tiktokCanonicalUrl('https://vm.tiktok.com/ZMabc123/', boom)).toBe('https://vm.tiktok.com/ZMabc123/');
+  });
+
+  it('keeps a short link when the redirect does not end on a video', async () => {
+    expect(await tiktokCanonicalUrl('https://vm.tiktok.com/ZMabc123/', answer('https://www.tiktok.com/login'))).toBe('https://vm.tiktok.com/ZMabc123/');
+  });
+
+  it('reads the caption', async () => {
+    expect(await tiktokCaption('https://www.tiktok.com/@a/video/1', answer('', true, { title: '  Easy jollof #recipe ' }))).toBe('Easy jollof #recipe');
+    expect(await tiktokCaption('https://www.tiktok.com/@a/video/1', answer('', false))).toBe('');
+  });
+
+  it('recognises tiktok addresses', () => {
+    expect(isTikTokUrl('https://vm.tiktok.com/ZM1/')).toBe(true);
+    expect(isTikTokUrl('https://example.com/tiktok.com/')).toBe(false);
+  });
+});

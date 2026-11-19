@@ -22,6 +22,8 @@ import { useGamificationStore } from '@/stores/gamificationStore';
 import { latestGlucose, readingStatus, useHealthStore } from '@/stores/healthStore';
 import { useRecipeStore } from '@/stores/recipeStore';
 import { useSocialStore } from '@/stores/socialStore';
+import { useWantToCookStore } from '@/stores/wantToCookStore';
+import { importedWithLinks } from '@/lib/importedRecipes';
 import { apiEnabled } from '@/lib/api';
 import { apiProfile } from '@/services/socialApi';
 import { FEATURES } from '@/constants/features';
@@ -30,7 +32,7 @@ import { ProfileHeader } from '@/components/profile/ProfileHeader';
 import type { Recipe } from '@/types';
 import { ME_ID } from '@/types/social';
 
-type ProfileTab = 'posts' | 'recipes' | 'saved';
+type ProfileTab = 'posts' | 'recipes' | 'imported' | 'saved';
 
 interface Quick {
   key: string;
@@ -53,6 +55,13 @@ export default function YouScreen() {
   const communities = useSocialStore((s) => s.communities);
   const joinedIds = useSocialStore((s) => s.joinedCommunityIds);
   const savedPostIds = useSocialStore((s) => s.savedPostIds);
+
+  const wantItems = useWantToCookStore((s) => s.items);
+  const fetchWantItems = useWantToCookStore((s) => s.fetchWantToCookItems);
+  useEffect(() => {
+    if (user?.id) void fetchWantItems(user.id);
+  }, [user?.id, fetchWantItems]);
+  const imported = useMemo(() => importedWithLinks(wantItems), [wantItems]);
 
   const [tab, setTab] = useState<ProfileTab>('posts');
   const [myRecipes, setMyRecipes] = useState<Recipe[]>([]);
@@ -141,7 +150,14 @@ export default function YouScreen() {
 
   const tile = (width - 8) / 3;
   const grid: { key: string; source: PhotoSource | null; label: string; href: string }[] =
-    tab === 'recipes'
+    tab === 'imported'
+      ? imported.map((i) => ({
+          key: i.id,
+          source: i.importedRecipe?.imageURL ? ({ uri: i.importedRecipe.imageURL } as PhotoSource) : null,
+          label: i.importedRecipe?.title ?? '',
+          href: `/imported-recipe/${i.id}`,
+        }))
+      : tab === 'recipes'
       ? myRecipes
           .filter((r) => r.imageURL)
           .map((r) => ({ key: r.id, source: { uri: r.imageURL } as PhotoSource, label: r.title, href: `/recipe/${r.id}` }))
@@ -157,7 +173,9 @@ export default function YouScreen() {
       ? t('you.emptyPosts', 'Share your first dish with friends.')
       : tab === 'recipes'
         ? t('you.emptyRecipes', 'Recipes you write or upload show up here.')
-        : t('you.emptySaved', 'Posts you save show up here.');
+        : tab === 'imported'
+          ? t('you.emptyImported', 'Recipes you import from a link show up here.')
+          : t('you.emptySaved', 'Posts you save show up here.');
 
   return (
     <Screen bare>
@@ -236,6 +254,7 @@ export default function YouScreen() {
             options={[
               { value: 'posts', label: t('you.tabPosts', 'Posts'), icon: 'grid' as IconName },
               { value: 'recipes', label: t('you.tabRecipes', 'Recipes') },
+              { value: 'imported', label: t('you.tabImported', 'Imported') },
               { value: 'saved', label: t('you.tabSaved', 'Saved') },
             ]}
           />
@@ -245,6 +264,7 @@ export default function YouScreen() {
           <View className="items-center" style={{ paddingHorizontal: 32, paddingTop: 28, gap: 14 }}>
             <Muted center>{emptyText}</Muted>
             {tab === 'posts' ? <UButton size="sm" label={t('you.newPost', 'New post')} onPress={() => go('/post/new')} /> : null}
+            {tab === 'imported' ? <UButton size="sm" label={t('you.importRecipe', 'Import a recipe')} onPress={() => go('/import')} /> : null}
           </View>
         ) : (
           <View className="flex-row flex-wrap" style={{ gap: 4, marginTop: 14 }}>
@@ -258,10 +278,16 @@ export default function YouScreen() {
                 fade="none"
                 onPress={() => go(g.href)}
                 accessibilityLabel={g.label}
+                {...(tab === 'imported' ? { title: g.label, titleSize: 12, captionInset: 8 } : {})}
               />
             ))}
           </View>
         )}
+        {tab === 'imported' && grid.length > 0 ? (
+          <View style={{ paddingHorizontal: 20, marginTop: 16 }}>
+            <UButton variant="ghost" size="sm" label={t('you.openWantToCook', 'Open my Want to cook list')} onPress={() => go('/want-to-cook')} />
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );

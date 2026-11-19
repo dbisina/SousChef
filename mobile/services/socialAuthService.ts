@@ -201,7 +201,8 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
  * Hook to use Google authentication
  */
 export const useGoogleAuth = () => {
-  const [request, response, promptAsync] = Google.useAuthRequest({
+  // The id-token flow hands the ID token straight back (the default code flow does not, which left sign-in with no token).
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,

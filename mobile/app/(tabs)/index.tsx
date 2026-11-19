@@ -31,6 +31,8 @@ import {
 import type { MealType } from '@/types/mealplan';
 import { ME_ID } from '@/types/social';
 import * as ImagePicker from 'expo-image-picker';
+import { guestBlocked } from '@/lib/guestPrompt';
+import { freshestImport } from '@/lib/importedRecipes';
 import { TonightCard as AiTonightCard } from '@/components/ai/AiKitchen';
 import { apiEnabled } from '@/lib/api';
 import { BecauseYouCooked } from '@/components/recipe/BecauseYouCooked';
@@ -81,7 +83,14 @@ export default function HomeScreen() {
 
   // Server mode: "Your plate" shares a photo as a story straight away (gone after 24 hours).
   const addStory = useCallback(async () => {
-    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, quality: 0.8 });
+    if (guestBlocked()) return;
+    // The system picker's own editor lets people crop and straighten the photo to a story shape before it goes up.
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [9, 16],
+      quality: 0.85,
+    });
     const uri = !picked.canceled ? picked.assets[0]?.uri : undefined;
     if (!uri) return;
     if (await useSocialStore.getState().postStory(uri)) showSuccessToast('Your story is up for 24 hours.');
@@ -160,7 +169,7 @@ export default function HomeScreen() {
     : null;
 
   // Imported by you: the newest saved import, if there is one.
-  const imported: (ImportedCardData & { href: string }) | null = useMemo(() => {
+  const imported: (ImportedCardData & { href: string; fresh: boolean }) | null = useMemo(() => {
     const items = wantToCookItems
       .filter((i) => i.status === 'saved' && i.importedRecipe)
       .sort((a, b) => safeTimestampMillis(b.savedAt) - safeTimestampMillis(a.savedAt));
@@ -175,6 +184,7 @@ export default function HomeScreen() {
       platform: PLATFORMS[key] ?? (key ? key.charAt(0).toUpperCase() + key.slice(1) : t('home.link', 'Link')),
       minutes: minutes > 0 ? minutes : undefined,
       photo: r.imageURL ? { uri: r.imageURL } : null,
+      fresh: freshestImport(wantToCookItems)?.id === item.id,
       href: `/imported-recipe/${item.id}`,
     };
   }, [wantToCookItems, t]);
@@ -287,6 +297,7 @@ export default function HomeScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={accent} />}
       >
         {FEATURES.feed ? <StoriesRow onOpen={(id) => go(`/story/${id}`)} onAdd={apiEnabled() ? () => void addStory() : () => go('/post/new')} /> : null}
+        {imported?.fresh ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
         {tonight ? <TonightCard title={tonight.title} sub={tonight.sub} photo={tonight.photo} onPress={() => go(tonight.href)} /> : null}
         {FEATURES.feed && rankedIds.length > 0 ? (
           <View onLayout={(e) => { listTop.current = e.nativeEvent.layout.y; placeCards(); }}>
@@ -296,7 +307,7 @@ export default function HomeScreen() {
         {FEATURES.feed ? <SpoolsRow /> : null}
         {FEATURES.feed ? <BecauseYouCooked signedIn={!isGuest} /> : null}
         {!isGuest ? <AiTonightCard /> : null}
-        {imported ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
+        {imported && !imported.fresh ? <ImportedCard item={imported} onPress={() => go(imported.href)} /> : null}
         {planIsReal ? <PlanShare cards={planCards} onUse={() => go('/(tabs)/mealplan')} /> : null}
         {FEATURES.feed ? <ChallengeCard /> : null}
         {FEATURES.feed && madePost ? <MadeYourRecipe postId={madePost.id} /> : null}
