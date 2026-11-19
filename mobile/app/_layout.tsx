@@ -15,6 +15,7 @@ import * as Linking from 'expo-linking';
 import * as Notifications from 'expo-notifications';
 import { auth } from '@/lib/firebase';
 import { useAuthStore } from '@/stores/authStore';
+import { apiEnabled } from '@/lib/api';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useShareIntentStore } from '@/stores/shareIntentStore';
 import { useThemeStore, useThemeColors } from '@/stores/themeStore';
@@ -73,6 +74,14 @@ export default function RootLayout() {
   useEffect(() => {
     // Review mode: auth is pre-initialised as a guest; a real listener would reset the injected user.
     if (isDesignReview) return;
+    if (apiEnabled()) {
+      // Accounts live on the enplace server. The old Firebase listener below loads the person from Firestore (empty in the
+      // new project) and then overwrote the real sign-in with "signed out", which is how people got logged out at random and
+      // sat on the splash waiting for it. Restore the saved sign-in instead, and never hold the splash for more than a few seconds.
+      void useAuthStore.getState().restoreSession();
+      const patience = setTimeout(() => setInitialized(true), 8000);
+      return () => clearTimeout(patience);
+    }
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userData = await fetchUserData(firebaseUser.uid);
