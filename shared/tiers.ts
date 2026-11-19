@@ -10,11 +10,11 @@ export type EntitlementId = (typeof ENTITLEMENTS)[keyof typeof ENTITLEMENTS];
 // RevenueCat product identifiers.
 export const PRODUCT_IDS = {
   // Premium tier - $6.99/month, $49.99/year
-  PREMIUM_MONTHLY: 'premium_monthly',
-  PREMIUM_ANNUAL: 'premium_yearly',
+  PREMIUM_MONTHLY: 'enplace_premium_monthly',
+  PREMIUM_ANNUAL: 'enplace_premium_yearly',
   // Pro tier - $11.99/month, $89.99/year
-  PRO_MONTHLY: 'pro_monthly',
-  PRO_ANNUAL: 'pro_yearly',
+  PRO_MONTHLY: 'enplace_pro_monthly',
+  PRO_ANNUAL: 'enplace_pro_yearly',
 } as const;
 export type ProductId = (typeof PRODUCT_IDS)[keyof typeof PRODUCT_IDS];
 
