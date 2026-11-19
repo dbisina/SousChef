@@ -11,7 +11,7 @@ import { Platform, Linking } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SHARED_URL_KEY = '@souschef_shared_url';
-const APP_GROUP = 'group.com.enplace.app';
+const APP_GROUP = 'group.com.enplaceapp.mobile';
 
 /**
  * Check for URLs shared via the iOS Share Extension (App Group UserDefaults).

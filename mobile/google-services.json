@@ -48,6 +48,42 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:154942572911:android:6dc7d0963d2667b1b3c09a",
+        "android_client_info": {
+          "package_name": "com.enplaceapp.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1-lacKkOFbJkhgvMmGupiiKn-enewkVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.enplace.app"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

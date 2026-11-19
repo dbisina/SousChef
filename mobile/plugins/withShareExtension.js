@@ -19,7 +19,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SHARE_EXT_NAME = 'ShareExtension';
-const APP_GROUP = 'group.com.enplace.app';
+const APP_GROUP = 'group.com.enplaceapp.mobile';
 const TEAM_ID = 'KJWN27VC5D'; // Apple Developer Team ID for code signing
 
 // ─── Swift source for the Share Extension ────────────────────────
@@ -329,7 +329,7 @@ const withShareExtensionTarget = (config) => {
         // Add target to Xcode project
         const proj = mod.modResults;
         const targetUuid = proj.generateUuid();
-        const bundleId = `com.enplace.app.${SHARE_EXT_NAME}`;
+        const bundleId = `com.enplaceapp.mobile.${SHARE_EXT_NAME}`;
 
         // Check if target already exists
         const existingTarget = proj.pbxTargetByName(SHARE_EXT_NAME);

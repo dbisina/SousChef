@@ -3,9 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh.apps.googleusercontent.com</string>
+	<string>154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh</string>
+	<string>com.googleusercontent.apps.154942572911-fp66lgdso27igd9338kftmehqujecnnt</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>154942572911-up32kf8hithpdidhm4a64dbh30u6c0g8.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
 	<string>AIzaSyDSxAhvlAg6A-tkFisMrEo3XqIPfkydR84</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.enplace.app</string>
+	<string>com.enplaceapp.mobile</string>
 	<key>PROJECT_ID</key>
 	<string>en-place-mise</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:154942572911:ios:fda0b77a10a10ee6b3c09a</string>
+	<string>1:154942572911:ios:ec1487f0d799e39cb3c09a</string>
 </dict>
 </plist>

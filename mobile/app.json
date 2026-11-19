@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.enplace.app",
+      "bundleIdentifier": "com.enplaceapp.mobile",
       "infoPlist": {
         "NSCameraUsageDescription": "enplace needs camera access to analyze portion sizes and ingredients",
         "NSPhotoLibraryUsageDescription": "enplace needs photo library access to upload recipe images",
@@ -31,7 +31,7 @@
         "monochromeImage": "./assets/adaptive-icon-monochrome.png",
         "backgroundColor": "#0b0b0b"
       },
-      "package": "com.enplace.app",
+      "package": "com.enplaceapp.mobile",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
@@ -147,19 +147,10 @@
               "appExtensions": [
                 {
                   "targetName": "ShareExtension",
-                  "bundleIdentifier": "com.enplace.app.ShareExtension",
+                  "bundleIdentifier": "com.enplaceapp.mobile.ShareExtension",
                   "entitlements": {
                     "com.apple.security.application-groups": [
-                      "group.com.enplace.app"
-                    ]
-                  }
-                },
-                {
-                  "targetName": "ShareExtension",
-                  "bundleIdentifier": "com.enplace.app.ShareExtension",
-                  "entitlements": {
-                    "com.apple.security.application-groups": [
-                      "group.com.enplace.app"
+                      "group.com.enplaceapp.mobile"
                     ]
                   }
                 }

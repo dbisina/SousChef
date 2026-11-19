@@ -35,10 +35,9 @@
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "en-place-mise",
         "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "en-place-mise.firebasestorage.app",
         "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "154942572911",
-        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:154942572911:android:60c7a933c57f904cb3c09a",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:154942572911:android:6dc7d0963d2667b1b3c09a",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "154942572911-up32kf8hithpdidhm4a64dbh30u6c0g8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com",
         "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_bQVDyRsqrdzDFCXuQIlwbsaObBU"
       }
     },
@@ -63,10 +62,9 @@
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "en-place-mise",
         "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "en-place-mise.firebasestorage.app",
         "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "154942572911",
-        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:154942572911:android:60c7a933c57f904cb3c09a",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:154942572911:android:6dc7d0963d2667b1b3c09a",
         "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "154942572911-fejj3n4el55ui5mp1p14eieelcimiaus.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "154942572911-jtpb6ftqnm0spov3b70nh28cbkmh0vmh.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "154942572911-up32kf8hithpdidhm4a64dbh30u6c0g8.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "154942572911-fp66lgdso27igd9338kftmehqujecnnt.apps.googleusercontent.com",
         "EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY": "goog_bQVDyRsqrdzDFCXuQIlwbsaObBU"
       }
     }
