@@ -414,6 +414,7 @@ export default function RootLayout() {
         <Stack.Screen name="import" options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }} />
         <Stack.Screen name="spools" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
         <Stack.Screen name="story/[id]" options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen name="google-auth" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen
           name="share"
           options={{
