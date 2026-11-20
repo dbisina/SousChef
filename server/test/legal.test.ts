@@ -23,3 +23,21 @@ describe('public legal pages', () => {
     expect(res.body).not.toContain('<script');
   });
 });
+
+// Android Google sign-in comes back to this page, which passes the result on to the app.
+describe('Google sign-in relay', () => {
+  it('serves the page with its script as a separate file (no inline script)', async () => {
+    const page = await t.app.inject({ method: 'GET', url: '/auth/google-relay' });
+    expect(page.statusCode).toBe(200);
+    expect(page.headers['content-type']).toContain('text/html');
+    expect(page.body).toContain('<script src="/auth/google-relay.js"></script>');
+    expect(page.body).not.toMatch(/<script>[^<]/);
+  });
+
+  it('serves a script that forwards the query and the # part to the app', async () => {
+    const js = await t.app.inject({ method: 'GET', url: '/auth/google-relay.js' });
+    expect(js.statusCode).toBe(200);
+    expect(js.headers['content-type']).toContain('javascript');
+    expect(js.body).toContain("enplace://google-auth'+location.search+location.hash");
+  });
+});

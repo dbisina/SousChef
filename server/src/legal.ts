@@ -49,7 +49,22 @@ const deletion = page(
 <h2>What is deleted</h2><p>Profile, recipes, posts, comments, stories, messages, pantry, meal plans, health logs, feed activity and your taste profile. Backups are removed within 30 days. Reports you made about others, and records we must keep by law, may be kept longer.</p>`,
 );
 
+/**
+ * Google sign-in on Android: Google refuses its token flow for Android clients, so the phone sends people to Google with the
+ * Web client and an https redirect. Google cannot redirect to the app's own address, so it lands on this page, whose script
+ * (a separate file: the site's content policy forbids inline scripts) hands whatever came back (the token sits after the #)
+ * to the app. Nothing is stored or logged here.
+ */
+const relayPage = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Signing in · enplace</title></head>
+<body style="font:16px system-ui,sans-serif;padding:24px"><p>Taking you back to enplace…</p><p><a id="open" href="enplace://google-auth">Tap here if the app does not open</a></p>
+<script src="/auth/google-relay.js"></script></body></html>`;
+
+const relayScript = `(function(){var t='enplace://google-auth'+location.search+location.hash;var a=document.getElementById('open');if(a)a.setAttribute('href',t);location.replace(t);})();`;
+
 export function legalRoutes(app: FastifyInstance): void {
+  app.get('/auth/google-relay', async (_request, reply) => reply.type('text/html; charset=utf-8').header('cache-control', 'no-store').send(relayPage));
+  app.get('/auth/google-relay.js', async (_request, reply) => reply.type('application/javascript; charset=utf-8').header('cache-control', 'public, max-age=3600').send(relayScript));
   const send = (html: string) => async (_request: unknown, reply: { type: (t: string) => { header: (k: string, v: string) => { send: (b: string) => unknown } } }) =>
     reply.type('text/html; charset=utf-8').header('cache-control', 'public, max-age=3600').send(html);
   app.get('/privacy', send(privacy));

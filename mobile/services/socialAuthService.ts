@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
@@ -15,7 +16,7 @@ import {
   Timestamp,
 } from '@/lib/firebase';
 import { User, UserRole } from '@/types';
-import { apiEnabled } from '@/lib/api';
+import { apiEnabled, apiUrl } from '@/lib/api';
 import { apiSocialSignIn, authViaFirebase, firebaseSocialSignIn, friendlyApiError } from '@/services/authApi';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -200,34 +201,97 @@ export const signInWithApple = async (): Promise<SocialAuthResult> => {
 /**
  * Hook to use Google authentication
  */
-// iPhone: Google's iOS client allows the id-token flow, which hands the ID token straight back. Android: Google refuses
-// that response type for Android clients ("Error 400: invalid_request"), so Android uses the code flow, and the hook
-// swaps the code for the tokens itself (they arrive on `response.authentication`).
-const useGoogleRequest = Platform.OS === 'android' ? Google.useAuthRequest : Google.useIdTokenAuthRequest;
+// iPhone: Google's iOS client allows the id-token flow, which hands the ID token straight back.
+// Android: Google refuses the token flow for Android clients ("Error 400: invalid_request") and the code flow needs a custom
+// scheme it no longer enables. So Android signs in with the Web client instead: Google sends the person back to a page on the
+// enplace server, which passes the result on to the app (see server/src/legal.ts, /auth/google-relay).
+export const ANDROID_RETURN_URL = 'enplace://google-auth';
 
-/** The Google ID token and access token from a sign-in response, whichever flow produced it. */
-export const googleTokensFrom = (response: {
+/** The address that sends someone to Google's sign-in on Android. */
+export const buildGoogleBrowserUrl = (o: { clientId: string; relayUrl: string; nonce: string; state: string }): string =>
+  'https://accounts.google.com/o/oauth2/v2/auth?' +
+  [
+    ['client_id', o.clientId],
+    ['redirect_uri', o.relayUrl],
+    ['response_type', 'id_token'],
+    ['scope', 'openid email profile'],
+    ['nonce', o.nonce],
+    ['state', o.state],
+    ['prompt', 'select_account'],
+  ]
+    .map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`)
+    .join('&');
+
+/** Reads what the relay handed back (`enplace://google-auth#id_token=...&state=...`). */
+export const parseGoogleReturn = (
+  url: string,
+  expectedState: string,
+): { idToken: string | null; accessToken: string | null; error: string | null } => {
+  const tail = url.includes('#') ? url.slice(url.indexOf('#') + 1) : url.includes('?') ? url.slice(url.indexOf('?') + 1) : '';
+  const p = new URLSearchParams(tail);
+  const error = p.get('error');
+  if (error) return { idToken: null, accessToken: null, error: p.get('error_description') || error };
+  if (p.get('state') !== expectedState) return { idToken: null, accessToken: null, error: 'Google sign-in came back in an unexpected way. Please try again.' };
+  return { idToken: p.get('id_token'), accessToken: p.get('access_token'), error: p.get('id_token') ? null : 'Google did not send a sign-in. Please try again.' };
+};
+
+type GoogleResponse = {
+  type: string;
   params?: Record<string, string | undefined> | null;
   authentication?: { idToken?: string | null; accessToken?: string | null } | null;
-}): { idToken: string | null; accessToken: string | null } => ({
+  error?: { message?: string } | null;
+};
+
+/** The Google ID token and access token from a sign-in response. */
+export const googleTokensFrom = (response: Partial<GoogleResponse>):{ idToken: string | null; accessToken: string | null } => ({
   idToken: response.params?.id_token ?? response.authentication?.idToken ?? null,
   accessToken: response.params?.access_token ?? response.authentication?.accessToken ?? null,
 });
 
-export const useGoogleAuth = () => {
-  const [request, response, promptAsync] = useGoogleRequest({
+const useGoogleExpoAuth = () => {
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     webClientId: GOOGLE_WEB_CLIENT_ID,
     iosClientId: GOOGLE_IOS_CLIENT_ID,
     androidClientId: GOOGLE_ANDROID_CLIENT_ID,
   });
-
-  return {
-    request,
-    response,
-    promptAsync,
-    isReady: !!request,
-  };
+  return { request, response, promptAsync: promptAsync as () => Promise<unknown>, isReady: !!request };
 };
+
+const useGoogleBrowserAuth = () => {
+  const [response, setResponse] = useState<GoogleResponse | null>(null);
+  const promptAsync = async (): Promise<unknown> => {
+    setResponse(null);
+    const nonce = generateNonce(24);
+    const state = generateNonce(16);
+    const url = buildGoogleBrowserUrl({ clientId: GOOGLE_WEB_CLIENT_ID, relayUrl: `${apiUrl()}/auth/google-relay`, nonce, state });
+    try {
+      const result = await WebBrowser.openAuthSessionAsync(url, ANDROID_RETURN_URL);
+      if (result.type !== 'success') {
+        const dismissed: GoogleResponse = { type: 'dismiss' };
+        setResponse(dismissed);
+        return dismissed;
+      }
+      const parsed = parseGoogleReturn(result.url, state);
+      const next: GoogleResponse = parsed.error
+        ? { type: 'error', error: { message: parsed.error } }
+        : { type: 'success', params: { id_token: parsed.idToken ?? undefined, ...(parsed.accessToken ? { access_token: parsed.accessToken } : {}) } };
+      setResponse(next);
+      return next;
+    } catch (e) {
+      const failed: GoogleResponse = { type: 'error', error: { message: e instanceof Error ? e.message : 'Google sign-in failed' } };
+      setResponse(failed);
+      return failed;
+    }
+  };
+  return { request: true as const, response, promptAsync, isReady: !!GOOGLE_WEB_CLIENT_ID };
+};
+
+export const useGoogleAuth: () => {
+  request: unknown;
+  response: GoogleResponse | null;
+  promptAsync: () => Promise<unknown>;
+  isReady: boolean;
+} = Platform.OS === 'android' ? useGoogleBrowserAuth : (useGoogleExpoAuth as never);
 
 /**
  * Check if Apple Sign In is available
