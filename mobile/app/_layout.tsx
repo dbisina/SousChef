@@ -4,6 +4,7 @@ import { installNavGuard } from '@/lib/navGuard';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, StyleSheet, View } from 'react-native';
 import { isOnboardingComplete } from '@/app/onboarding';
+import { applyPendingUpdate } from '@/lib/otaUpdate';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as SplashScreen from 'expo-splash-screen';
@@ -187,6 +188,12 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsReady) SplashScreen.hideAsync().catch(() => {});
   }, [fontsReady]);
+
+  // Over-the-air fixes: pick up a newer JavaScript bundle for this build while the opening animation covers the app.
+  useEffect(() => {
+    if (isDesignReview) return;
+    void applyPendingUpdate();
+  }, []);
 
   // First screen: decide it before anyone sees the app. Without this the home tab painted for a moment and then snapped to
   // onboarding or sign-in. The app is mounted underneath the opening animation, the first redirect happens while it is

@@ -7,7 +7,12 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "scheme": ["enplace", "souschef", "com.enplaceapp.mobile", "com.googleusercontent.apps.154942572911-fp66lgdso27igd9338kftmehqujecnnt"],
+    "scheme": [
+      "enplace",
+      "souschef",
+      "com.enplaceapp.mobile",
+      "com.googleusercontent.apps.154942572911-fp66lgdso27igd9338kftmehqujecnnt"
+    ],
     "splash": {
       "image": "./assets/splash-light.png",
       "resizeMode": "contain",
@@ -161,6 +166,14 @@
         "projectId": "d8f5a2f6-445e-4bee-b6ae-1fa27fb78853"
       }
     },
-    "owner": "dxs-db"
+    "owner": "dxs-db",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/d8f5a2f6-445e-4bee-b6ae-1fa27fb78853",
+      "fallbackToCacheTimeout": 0,
+      "checkAutomatically": "ON_LOAD"
+    }
   }
 }
