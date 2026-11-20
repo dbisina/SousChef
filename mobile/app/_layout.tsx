@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Stack, router as rootRouter, useRouter } from 'expo-router';
 import { installNavGuard } from '@/lib/navGuard';
 import { StatusBar } from 'expo-status-bar';
-import { Platform } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
+import { isOnboardingComplete } from '@/app/onboarding';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import * as SplashScreen from 'expo-splash-screen';
@@ -187,11 +188,35 @@ export default function RootLayout() {
     if (fontsReady) SplashScreen.hideAsync().catch(() => {});
   }, [fontsReady]);
 
+  // First screen: decide it before anyone sees the app. Without this the home tab painted for a moment and then snapped to
+  // onboarding or sign-in. The app is mounted underneath the opening animation, the first redirect happens while it is
+  // covered, and the cover only lifts once that has settled.
+  const startRouter = useRouter();
+  const [startReady, setStartReady] = useState(isDesignReview);
+  useEffect(() => {
+    if (isDesignReview || !isInitialized || startReady) return;
+    let alive = true;
+    (async () => {
+      try {
+        const user = useAuthStore.getState().user;
+        if (!user) {
+          const done = await isOnboardingComplete();
+          startRouter.replace(done ? '/auth/login' : '/onboarding');
+          await new Promise((r) => setTimeout(r, 250)); // let the navigation commit before the cover lifts
+        }
+      } catch {
+        // Navigation not ready yet: the route guard in useAuth redirects as soon as it is.
+      }
+      if (alive) setStartReady(true);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [isInitialized, startReady]);
+
   if (!fontsReady) return null;
 
-  if (!isInitialized || !splashDone) {
-    return <BrandSplash ready={isInitialized} onDone={() => setSplashDone(true)} />;
-  }
+  const covered = !isInitialized || !startReady || !splashDone;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -393,6 +418,11 @@ export default function RootLayout() {
       <Toast />
       </ThemeProvider>
       </DesignReviewFrame>
+      {covered ? (
+        <View style={StyleSheet.absoluteFill} pointerEvents="auto">
+          <BrandSplash ready={isInitialized && startReady} onDone={() => setSplashDone(true)} />
+        </View>
+      ) : null}
       </KeyboardProvider>
     </GestureHandlerRootView>
   );
