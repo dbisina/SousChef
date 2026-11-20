@@ -168,7 +168,7 @@
     },
     "owner": "dxs-db",
     "runtimeVersion": {
-      "policy": "fingerprint"
+      "policy": "appVersion"
     },
     "updates": {
       "url": "https://u.expo.dev/d8f5a2f6-445e-4bee-b6ae-1fa27fb78853",
