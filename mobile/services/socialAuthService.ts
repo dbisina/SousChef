@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import * as Crypto from 'expo-crypto';
 import {
   auth,
@@ -222,6 +223,9 @@ export const buildGoogleBrowserUrl = (o: { clientId: string; relayUrl: string; n
     .map(([k, v]) => `${k}=${encodeURIComponent(v as string)}`)
     .join('&');
 
+/** The return link, from the browser session if it reported one, else the one the app was opened with. */
+export const pickReturnUrl = (fromBrowser: string | null, fromLink: string | null): string | null => fromBrowser ?? fromLink ?? null;
+
 /** Reads what the relay handed back (`enplace://google-auth#id_token=...&state=...`). */
 export const parseGoogleReturn = (
   url: string,
@@ -264,14 +268,25 @@ const useGoogleBrowserAuth = () => {
     const nonce = generateNonce(24);
     const state = generateNonce(16);
     const url = buildGoogleBrowserUrl({ clientId: GOOGLE_WEB_CLIENT_ID, relayUrl: `${apiUrl()}/auth/google-relay`, nonce, state });
+    // Android often reports the browser as "dismissed" when the app is reopened by the return link, even though the link
+    // arrived. So the link itself is listened for too, and counts either way.
+    let captured: string | null = null;
+    const listener = Linking.addEventListener('url', ({ url: opened }) => {
+      if (opened.startsWith(ANDROID_RETURN_URL)) captured = opened;
+    });
     try {
       const result = await WebBrowser.openAuthSessionAsync(url, ANDROID_RETURN_URL);
-      if (result.type !== 'success') {
+      let returned = pickReturnUrl(result.type === 'success' ? result.url : null, captured);
+      for (let i = 0; i < 8 && !returned; i++) {
+        await new Promise((r) => setTimeout(r, 250)); // the link can land just after the browser closes
+        returned = pickReturnUrl(null, captured);
+      }
+      if (!returned) {
         const dismissed: GoogleResponse = { type: 'dismiss' };
         setResponse(dismissed);
         return dismissed;
       }
-      const parsed = parseGoogleReturn(result.url, state);
+      const parsed = parseGoogleReturn(returned, state);
       const next: GoogleResponse = parsed.error
         ? { type: 'error', error: { message: parsed.error } }
         : { type: 'success', params: { id_token: parsed.idToken ?? undefined, ...(parsed.accessToken ? { access_token: parsed.accessToken } : {}) } };
@@ -281,6 +296,8 @@ const useGoogleBrowserAuth = () => {
       const failed: GoogleResponse = { type: 'error', error: { message: e instanceof Error ? e.message : 'Google sign-in failed' } };
       setResponse(failed);
       return failed;
+    } finally {
+      listener.remove();
     }
   };
   return { request: true as const, response, promptAsync, isReady: !!GOOGLE_WEB_CLIENT_ID };

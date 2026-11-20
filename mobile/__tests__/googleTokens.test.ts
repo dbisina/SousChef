@@ -1,6 +1,7 @@
 jest.mock('expo-apple-authentication', () => ({}));
 jest.mock('expo-auth-session/providers/google', () => ({ useAuthRequest: jest.fn(), useIdTokenAuthRequest: jest.fn() }));
 jest.mock('expo-web-browser', () => ({ maybeCompleteAuthSession: jest.fn() }));
+jest.mock('expo-linking', () => ({ addEventListener: jest.fn(() => ({ remove: jest.fn() })) }));
 jest.mock('expo-crypto', () => ({}));
 jest.mock('@/lib/firebase', () => ({}));
 jest.mock('@/lib/api', () => ({ apiEnabled: () => true }));
@@ -31,7 +32,7 @@ describe('googleTokensFrom', () => {
   });
 });
 
-import { buildGoogleBrowserUrl, parseGoogleReturn } from '@/services/socialAuthService';
+import { buildGoogleBrowserUrl, parseGoogleReturn, pickReturnUrl } from '@/services/socialAuthService';
 
 describe('Android Google sign-in through the relay', () => {
   it('builds Google\'s address with the web client, the relay and the id-token response', () => {
@@ -57,6 +58,12 @@ describe('Android Google sign-in through the relay', () => {
 
   it('passes Google\'s error text along', () => {
     expect(parseGoogleReturn('enplace://google-auth?error=access_denied', 's1').error).toBe('access_denied');
+  });
+
+  it('uses the link the app was opened with when the browser reports it was dismissed', () => {
+    expect(pickReturnUrl(null, 'enplace://google-auth#id_token=a&state=s')).toBe('enplace://google-auth#id_token=a&state=s');
+    expect(pickReturnUrl('enplace://google-auth#x', 'enplace://google-auth#y')).toBe('enplace://google-auth#x');
+    expect(pickReturnUrl(null, null)).toBeNull();
   });
 
   it('says so when no token came back', () => {
